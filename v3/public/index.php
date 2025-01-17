@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use FastRoute\RouteCollector;
 use FastRoute\Dispatcher;
+use FastRoute\RouteCollector;
 use V3\App\Utilities\ResponseHandler;
 
 $response = ['success' => false, 'message' => ''];
@@ -20,7 +20,8 @@ $uri = $_SERVER['REQUEST_URI'];
 if (false !== $pos = strpos($uri, '?')) {
     $uri  = substr($uri, 0, $pos);
 }
-$uri = rawurldecode($url);
+$uri = rawurldecode($uri);
+$uri = str_replace('/api3/v3', '', $uri);
 
 
 // Dispatch the route
@@ -29,6 +30,10 @@ switch ($routeInfo[0]) {
     case Dispatcher::NOT_FOUND:
         http_response_code(404);
         $response['message'] = 'Route not found.';
+        if (!class_exists('V3\\App\\Utilities\\ResponseHandler')) {
+            die('Class V3\App\Utilities\ResponseHandler not found!');
+        }
+        
         ResponseHandler::sendJsonResponse($response);
         break;
 
@@ -43,11 +48,12 @@ switch ($routeInfo[0]) {
         $vars = $routeInfo[2];
 
         // Split the handler (e.g [AuthController, handleAuthRequest])
-        [$class, $method] = explode(', ', $handler);
+        [$class, $method] =$handler;
 
         // Instantiate and call the method
-        $controller = "V3\App\Controllers\$class";
-        if (class_exists($controller) && method_exists($class, $method)) {
+        $controller = "V3\App\Controllers\\$class";
+
+        if (class_exists($controller) && method_exists($controller, $method)) {
             (new $controller())->$method($vars);
         } else {
             http_response_code(500);

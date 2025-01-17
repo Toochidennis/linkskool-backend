@@ -5,7 +5,7 @@
     },
     "autoload": {
         "psr-4": {
-            "v3\\Api\\": "api3/v3/app/"
+            "V3\\App\\": "app/"
         }
     }
 }

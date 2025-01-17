@@ -23,3 +23,10 @@
 /app/Config/core.php
 /app/Config/database.php
 /vendors/*
+
+#ToochiDennis
+
+v3/config/*
+v3/vendor/*
+v3/public/.htaccess"
+.vscode

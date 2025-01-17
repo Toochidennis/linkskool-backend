@@ -3,9 +3,9 @@ namespace V3\App\Utilities;
 
 class EnvLoader{
     
-    public static function load($filePath = __DIR__ . '/.env')
+    public static function load($filePath = __DIR__ . '/../../config/.env')
     {
-        if (!file_exists($filePath)) throw new \InvalidArgumentException("File not found exception");
+        if (!file_exists($filePath)) throw new \InvalidArgumentException("File not found!");
 
         $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($lines as $line) {

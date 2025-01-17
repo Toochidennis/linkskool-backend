@@ -1,30 +1,27 @@
 <?php
-namespace V3\App\Utilities;
 
-require_once '../../config/tables.php';
-require_once '../../config/config.php';
+namespace V3\App\Utilities;
 
 class QueryExecutor
 {
     private $pdo;
 
-    public function __construct($pdo)
+    public function __construct(\PDO $pdo)
     {
         $this->pdo = $pdo;
     }
 
 
-    private function validateTable($table)
+    private function validateTable(string $table)
     {
-        global $allowedTables;
+        #die( $table);
 
-        if (!in_array($table, $allowedTables)) {
-            $response = [];
-            #Helper::sendJsonResponse()
+        if (!in_array($table, Tables::ALLOWED_TABLES)) {
+            throw new \InvalidArgumentException("Request not allowed");
         }
     }
 
-    public function insert($table, $data)
+    public function insert(string $table, array $data)
     {
         $this->validateTable($table);
         $columns = implode(", ", array_keys($data));

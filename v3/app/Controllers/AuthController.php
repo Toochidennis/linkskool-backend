@@ -2,8 +2,6 @@
 
 namespace V3\App\Controllers;
 
-require_once '../config/config.php';
-
 use V3\App\Utilities\Sanitizer;
 use V3\App\Utilities\AuthHelper;
 use V3\App\Utilities\QueryExecutor;
@@ -163,5 +161,9 @@ class AuthController
             $this->response['message'] = $e->getMessage();
             ResponseHandler::sendJsonResponse($this->response);
         }
+    }
+
+    public function logout(){
+        echo "Hi";
     }
 }
