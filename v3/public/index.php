@@ -10,6 +10,8 @@ $response = ['success' => false, 'message' => ''];
 $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('POST', '/auth/login', ['AuthController', 'handleAuthRequest']);
     $r->addRoute('POST', '/auth/logout', ['AuthController', 'logout']);
+    $r->addRoute('POST', '/student/addStudent', ['StudentController', 'addStudent']);
+    $r->addRoute('GET', '/student/getStudent/{id}', ['StudentController', 'getStudentById']);
 });
 
 // Fetch method and URI
@@ -30,16 +32,12 @@ switch ($routeInfo[0]) {
     case Dispatcher::NOT_FOUND:
         http_response_code(404);
         $response['message'] = 'Route not found.';
-        if (!class_exists('V3\\App\\Utilities\\ResponseHandler')) {
-            die('Class V3\App\Utilities\ResponseHandler not found!');
-        }
-        
         ResponseHandler::sendJsonResponse($response);
         break;
 
     case Dispatcher::METHOD_NOT_ALLOWED:
         http_response_code(405);
-        $response['message'] = 'Method not allowed.';
+        $response['message'] = 'Method not allowed. umm';
         ResponseHandler::sendJsonResponse($response);
         break;
 
@@ -52,6 +50,7 @@ switch ($routeInfo[0]) {
 
         // Instantiate and call the method
         $controller = "V3\App\Controllers\\$class";
+        #die($class);
 
         if (class_exists($controller) && method_exists($controller, $method)) {
             (new $controller())->$method($vars);
