@@ -4,6 +4,7 @@ namespace V3\App\Controllers;
 
 use V3\App\Utilities\Sanitizer;
 use V3\App\Utilities\AuthHelper;
+use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\QueryExecutor;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Utilities\DatabaseConnector;
@@ -11,90 +12,72 @@ use V3\App\Utilities\DatabaseConnector;
 
 class AuthController
 {
-    private $response = ['success' => false, 'message' => '', 'data' => ''];
+    private $this->response = ['success' => false, 'message' => '', 'data' => ''];
+
+    public function __construct()
+    {
+        AuthHelper::verifyAPIKey();
+    }
 
     public function handleAuthRequest()
     {
         try {
-            AuthHelper::verifyAPIKey();
+            $post = DataExtractor::extractPostData();
+            
+            if(!isset($post['username'], $post['password'], $post['token'])){
+                $this->response['message'] = 'Invalid JSON payload. Ensure that all fields are provided.';
+                ResponseHandler::sendJsonResponse($this->response);
+            }
 
-            switch ($_SERVER['REQUEST_METHOD']) {
-                case 'POST':
-                    $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+            $username = Sanitizer::sanitizeInput($post['username']);
+            $password = Sanitizer::sanitizeInput($post['password']);
+            $token = Sanitizer::sanitizeInput($post['token']);
 
-                    if (stripos($contentType, 'application/json') !== false) {
-                        // JSON Request
-                        $post = json_decode(file_get_contents('php://input'), true);
-                        if (json_last_error() !== JSON_ERROR_NONE  || !isset($post['username'], $post['password'], $post['token'])) {
-                            http_response_code(400);
-                            $response['message'] = 'Invalid JSON payload. Ensure that all fields are provided.';
-                            ResponseHandler::sendJsonResponse($response);
-                        }
-                    } elseif (stripos($contentType, 'application/x-www-form-urlencoded') !== false) {
-                        // Form-urlencoded Request
-                        $post = $_POST;
-                    } else {
-                        http_response_code(400);
-                        $response['message'] = 'Unsupported Content-Type.';
-                        ResponseHandler::sendJsonResponse($response);
-                    }
+            if (empty($username) || empty($password) || empty($token)) {
+                http_response_code(400);
+                $this->response['message'] = 'Invalid input. All fields are required.';
+                ResponseHandler::sendJsonResponse($this->response);
+            }
 
-                    $username = Sanitizer::sanitizeInput($post['username']);
-                    $password = Sanitizer::sanitizeInput($post['password']);
-                    $token = Sanitizer::sanitizeInput($post['token']);
+            $pdo = DatabaseConnector::connect();
 
-                    if (empty($username) || empty($password) || empty($token)) {
-                        http_response_code(400);
-                        $response['message'] = 'Invalid input. All fields are required.';
-                        ResponseHandler::sendJsonResponse($response);
-                    }
+            if (!$pdo) {
+                http_response_code(500);
+                $this->response['message'] = 'Unable to connect to the database.';
+                ResponseHandler::sendJsonResponse($this->response);
+            }
 
-                    $pdo = DatabaseConnector::connect();
+            $queryExecutor = new QueryExecutor($pdo);
 
-                    if (!$pdo) {
-                        http_response_code(500);
-                        $response['message'] = 'Unable to connect to the database.';
-                        ResponseHandler::sendJsonResponse($response);
-                    }
+            // Fetch school data by token
+            $result = $queryExecutor->findBy(
+                table: 'school_data',
+                conditions: ['token' => $token],
+                limit: 1
+            );
 
-                    $queryExecutor = new QueryExecutor($pdo);
+            if (!empty($result)) {
+                $dbName = $result['database_name'];
+                $schoolName = $result['school_name'];
 
-                    // Fetch school data by token
-                    $result = $queryExecutor->findBy(
-                        table: 'school_data',
-                        conditions: ['token' => $token],
-                        limit: 1
-                    );
+                $schoolDb = DatabaseConnector::connect(dbname: $dbName);
 
-                    if (!empty($result)) {
-                        $dbName = $result['database_name'];
-                        $schoolName = $result['school_name'];
+                if (!$schoolDb) {
+                    http_response_code(500);
+                    $this->response['message'] = 'Unable to connect to the school database.';
+                    ResponseHandler::sendJsonResponse($this->response);
+                }
 
-                        $schoolDb = DatabaseConnector::connect(dbname: $dbName);
-
-                        if (!$schoolDb) {
-                            http_response_code(500);
-                            $response['message'] = 'Unable to connect to the school database.';
-                            ResponseHandler::sendJsonResponse($response);
-                        }
-
-                        $this->login(username: $username, password: $password, schoolName: $schoolName, db: $schoolDb);
-                    } else {
-                        http_response_code(404);
-                        $response['message'] = 'School not found';
-                        ResponseHandler::sendJsonResponse($response);
-                    }
-                    break;
-                default:
-                    http_response_code(405);
-                    $response['message'] = 'Method not allowed';
-                    ResponseHandler::sendJsonResponse($response);
-                    break;
+                $this->login(username: $username, password: $password, schoolName: $schoolName, db: $schoolDb);
+            } else {
+                http_response_code(404);
+                $this->response['message'] = 'School not found';
+                ResponseHandler::sendJsonResponse($this->response);
             }
         } catch (\Exception $e) {
             http_response_code(500);
-            $response['message'] =  $e->getMessage();
-            ResponseHandler::sendJsonResponse($response);
+            $this->response['message'] =  $e->getMessage();
+            ResponseHandler::sendJsonResponse($this->response);
         }
     }
 
@@ -163,7 +146,8 @@ class AuthController
         }
     }
 
-    public function logout(){
+    public function logout()
+    {
         echo "Hi";
     }
 }

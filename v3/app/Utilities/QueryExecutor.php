@@ -63,6 +63,7 @@ class QueryExecutor
     public function delete($table, $conditions)
     {
         $this->validateTable($table);
+        
         $whereClauses = [];
         foreach ($conditions as $column => $value) {
             $whereClauses[] = "`$column` = ?";
@@ -81,8 +82,9 @@ class QueryExecutor
         $columnsList = !empty($columns) ? implode(", ", $columns) : "*";
 
         // Add conditions if provided
-        $whereClause = [];
+        $whereClause = '';
         if (!empty($conditions)) {
+            $whereParts = [];
             foreach ($conditions as $column => $value) {
                 $whereParts[] = "`$column` = ?";
             }

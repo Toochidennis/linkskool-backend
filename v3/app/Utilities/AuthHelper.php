@@ -33,7 +33,7 @@ class AuthHelper
     }
 
     // Validate JWT Token
-    public function validateJWT($token)
+    private static function validateJWT($token)
     {
         // Load environment variables if required
         EnvLoader::load();
@@ -41,6 +41,10 @@ class AuthHelper
 
         try {
             $decoded = JWT::decode($token, new Key($secretKey, 'HS256'));
+
+            $_SESSION['user_id'] = $decoded->data->id;
+            $_SESSION['role'] = $decoded->data->role;
+            
             return $decoded;
         } catch (\Exception $e) {
             error_log('Token error' . $e->getMessage());
@@ -58,17 +62,47 @@ class AuthHelper
         return $apiKey === $API_KEY;
     }
 
+
+    public static function verifyJWT() {
+        $response = ['success' => false, 'message' => ''];
+
+        $headers = getallheaders();
+        if(!isset($headers['Authorization']) || empty($headers['Authorization'])){
+            http_response_code(400);
+            $response['message'] = 'Token is required.';
+            ResponseHandler::sendJsonResponse($response);
+        }
+
+        $authHeader = $headers['Authorization'];
+        if(!str_starts_with($authHeader, 'Bearer ')){
+            http_response_code(400);
+            $response['message'] = "Invalid token. Are you missing 'Bearer '?";
+            ResponseHandler::sendJsonResponse($response);
+        }
+
+        $token = substr($authHeader, 7);
+
+        if(!self::validateJWT($token)){
+            http_response_code(401);
+            $response['message'] = 'Unauthorized: Have you logged in?';
+            ResponseHandler::sendJsonResponse($response);
+        }
+    }
+
     public static function verifyAPIKey()
     {
         $response = ['success' => false, 'message' => ''];
 
-        if (!isset($_SERVER['HTTP_X_API_KEY']) || empty($_SERVER['HTTP_X_API_KEY'])) {
+        $headers = getallheaders();
+
+        #die(print_r($headers));
+        if (!isset($headers['x-api-key']) || empty($headers['x-api-key'])) {
             http_response_code(400);
             $response['message'] = 'API Key is required.';
             ResponseHandler::sendJsonResponse($response);
         }
 
-        if (!self::validateAPIKey(apiKey: $_SERVER['HTTP_X_API_KEY'])) {
+        if (!self::validateAPIKey(apiKey: $headers['x-api-key'])) {
             http_response_code(401);
             $response['message'] = 'Unauthorized: Invalid API Key.';
             ResponseHandler::sendJsonResponse($response);
