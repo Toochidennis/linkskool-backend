@@ -37,7 +37,7 @@ switch ($routeInfo[0]) {
 
     case Dispatcher::METHOD_NOT_ALLOWED:
         http_response_code(405);
-        $response['message'] = 'Method not allowed. umm';
+        $response['message'] = 'Method not allowed.';
         ResponseHandler::sendJsonResponse($response);
         break;
 

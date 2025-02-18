@@ -4,7 +4,7 @@ namespace V3\App\Models;
 
 use V3\App\Utilities\QueryExecutor;
 
-class SchoolSettingsModel extends QueryExecutor
+class SchoolSettings extends QueryExecutor
 {
     private $table;
 

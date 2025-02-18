@@ -2,12 +2,13 @@
 
 namespace V3\App\Models;
 
+use PDO;
 use V3\App\Utilities\QueryExecutor;
 
-class StudentModel extends QueryExecutor {
+class Student extends QueryExecutor {
     private $table;
 
-    public function __construct(\PDO $pdo){
+    public function __construct(PDO $pdo){
         parent::__construct($pdo);
         $this->table = 'students_record';
     }
@@ -16,4 +17,7 @@ class StudentModel extends QueryExecutor {
         return parent::insert($this->table, $data);
     }
 
+    public function updateStudent(array $data, array $conditions){
+        return parent::update($this->table, $data, $conditions);
+    }
 }

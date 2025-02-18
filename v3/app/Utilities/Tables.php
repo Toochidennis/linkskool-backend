@@ -80,6 +80,7 @@ class Tables{
         'students_transfer_table',
         'tax_rates',
         'transactions',
-        'ward'
+        'ward',
+        'registration_tracker'
     ];
 }
