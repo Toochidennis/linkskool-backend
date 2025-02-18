@@ -17,7 +17,7 @@ class QueryExecutor
         #die( $table);
 
         if (!in_array($table, Tables::ALLOWED_TABLES)) {
-            throw new \InvalidArgumentException("Request not allowed");
+            throw new \InvalidArgumentException("Request not allowed for table $table");
         }
     }
 
@@ -28,10 +28,14 @@ class QueryExecutor
         $placeholders = implode(", ", array_fill(0, count($data), "?"));
 
         $stmt = $this->pdo->prepare("INSERT INTO `$table` ($columns) VALUES ($placeholders);");
-        return $stmt->execute(array_values($data));
+        if ($stmt->execute(array_values($data))) {
+            return $this->pdo->lastInsertId();
+        }
+
+        return false;
     }
 
-    public function select($table)
+    public function select(string $table)
     {
         $this->validateTable($table);
         $stmt = $this->pdo->prepare("SELECT * FROM `$table`");
@@ -39,7 +43,7 @@ class QueryExecutor
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function update($table, $data, $conditions)
+    public function update(string $table, array $data, array $conditions)
     {
         $this->validateTable($table);
         $setClauses = [];
@@ -60,10 +64,10 @@ class QueryExecutor
         return $stmt->execute(array_merge(array_values($data), array_values($conditions)));
     }
 
-    public function delete($table, $conditions)
+    public function delete(string $table, array $conditions)
     {
         $this->validateTable($table);
-        
+
         $whereClauses = [];
         foreach ($conditions as $column => $value) {
             $whereClauses[] = "`$column` = ?";
@@ -74,7 +78,11 @@ class QueryExecutor
         return $stmt->execute(array_values($conditions));
     }
 
-    public function findBy($table, $columns = [], $conditions = [], $limit = null)
+    public function findBy(
+        string $table, 
+        array $columns = [], 
+        array $conditions = [], 
+        int $limit = 0)
     {
         $this->validateTable($table);
 
@@ -92,7 +100,7 @@ class QueryExecutor
         }
 
         // Add LIMIT clause if provided
-        $limitClause = $limit ? "LIMIT $limit" : '';
+        $limitClause = ($limit !== 0) ? "LIMIT $limit" : '';
 
         $query = "SELECT $columnsList FROM `$table` $whereClause $limitClause";
 
@@ -104,11 +112,11 @@ class QueryExecutor
 
 
     public function queryWithJoins(
-        $table,
-        $columns = [],
-        $joins = [],
-        $conditions = [],
-        $limit = null
+        string $table,
+        array $columns = [],
+        array $joins = [],
+        array $conditions = [],
+        int $limit = 0
     ) {
         $columnsList = !empty($columns) ? implode(", ", $columns) : "*";
 
@@ -129,7 +137,7 @@ class QueryExecutor
         }
         $whereClause = !empty($whereParts) ? ' WHERE ' . implode(' AND ', $whereParts) : '';
 
-        $limitClause = $limit ? "LIMIT $limit" : '';
+        $limitClause = ($limit !== 0) ? "LIMIT $limit" : '';
 
         // Combine all parts into the full query.
         $query .= "$whereClause $limitClause";

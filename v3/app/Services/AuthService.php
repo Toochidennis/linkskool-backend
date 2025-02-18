@@ -1,11 +1,13 @@
 <?php
 
-namespace V3\App\Utilities;
+namespace V3\App\Services;
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use V3\App\Utilities\EnvLoader;
+use V3\App\Utilities\ResponseHandler;
 
-class AuthHelper
+class AuthService
 {
     // Generate JWT Token
     public static function generateJWT($userId, $name, $role)

@@ -3,7 +3,7 @@
 namespace V3\App\Controllers;
 
 use V3\App\Utilities\Sanitizer;
-use V3\App\Utilities\AuthHelper;
+use V3\App\Services\AuthService;
 use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\QueryExecutor;
 use V3\App\Utilities\ResponseHandler;
@@ -12,11 +12,11 @@ use V3\App\Utilities\DatabaseConnector;
 
 class AuthController
 {
-    private $this->response = ['success' => false, 'message' => '', 'data' => ''];
+    private $response = ['success' => false, 'message' => '', 'data' => ''];
 
     public function __construct()
     {
-        AuthHelper::verifyAPIKey();
+        AuthService::verifyAPIKey();
     }
 
     public function handleAuthRequest()
@@ -117,7 +117,7 @@ class AuthController
                     ResponseHandler::sendJsonResponse($this->response);
                 }
 
-                $token = AuthHelper::generateJWT(userId: $user['id'], name: $user['surname'], role: 'student');
+                $token = AuthService::generateJWT(userId: $user['id'], name: $user['surname'], role: 'student');
                 $this->response = ['success' => true, 'message' => 'Login successful', 'data' => ['token' => $token]];
                 ResponseHandler::sendJsonResponse($this->response);
             }
@@ -132,7 +132,7 @@ class AuthController
 
             switch ($user['access_level']) {
                 case 2:
-                    $token = AuthHelper::generateJWT(userId: $user['id'], name: $user['surname'], role: 'admin');
+                    $token = AuthService::generateJWT(userId: $user['id'], name: $user['surname'], role: 'admin');
                     $this->response = ['success' => true, 'message' => 'Login successful', 'data' => ['token' => $token]];
                     ResponseHandler::sendJsonResponse($this->response);
                 default:
