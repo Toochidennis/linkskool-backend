@@ -1,6 +1,6 @@
 <?php
 
-namespace   V3\App\Models;
+namespace V3\App\Models\Portal;
 
 use PDO;
 use V3\App\Utilities\QueryExecutor;

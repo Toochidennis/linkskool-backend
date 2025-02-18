@@ -1,19 +1,18 @@
 <?php
 
-namespace V3\App\Controllers;
+namespace V3\App\Controllers\Portal;
 
-use V3\App\Models\Staff;
-
-use V3\App\Utilities\Sanitizer;
-use V3\App\Utilities\AuthHelper;
+use V3\App\Models\Portal\Staff;
 use V3\App\Utilities\Permission;
-use V3\App\Services\AuthService;
-use V3\App\Services\StaffService;
-use V3\App\Models\SchoolSettings;
+
 use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
-use V3\App\Models\RegistrationTracker;
 use V3\App\Utilities\DatabaseConnector;
+use V3\App\Services\Portal\AuthService;
+use V3\App\Services\Portal\StaffService;
+use V3\App\Models\Portal\SchoolSettings;
+use V3\App\Models\Portal\RegistrationTracker;
+
 
 /**
  * Class StaffController
@@ -58,7 +57,7 @@ class StaffController
             ResponseHandler::sendJsonResponse($this->response);
         }
 
-        // Instantiate the service with the necessary models
+        // Instantiate the service with the necessary Models\Portal
         $this->staffService = new staffService(
             $this->staff,
             $this->schoolSettings,
@@ -66,13 +65,14 @@ class StaffController
         );
     }
 
+
     /**
      * Adds a new staff.
      */
     public function addStaff()
     {
         try {
-            $data = $this->validateAndGetData();
+            $data = $this->staffService->validateAndGetData(post: $this->post);
         } catch (\InvalidArgumentException $e) {
             http_response_code(400);
             $this->response['message'] = $e->getMessage();
@@ -128,9 +128,12 @@ class StaffController
                     ];
                 }, $results);
 
-                $this->response = ['success' => true, 'staff_record' => $staffDetails];
+                $this->response = ['success' => true, 'staff' => $staffDetails];
+            }else{
+                $this->response = ['success' => true, 'staff' => []];
             }
         } catch (\PDOException $e) {
+            http_response_code(500);
             $this->response['message'] = $e->getMessage();
         }
 
@@ -143,58 +146,5 @@ class StaffController
 
     public function deleteStaff($params) {}
 
-    /**
-     * Validates POST data and returns sanitized data or false on error.
-     *
-     * @return array|false
-     * @throws \InvalidArgumentException
-     */
-    private function validateAndGetData()
-    {
-        // Define an array for required fields with custom error messages
-        $requiredFields = [
-            'surname' => 'Surname is required.',
-            'first_name' => 'First name is required.',
-            'sex' => 'Gender is required.',
-        ];
-
-        $errors = [];
-
-        // Loop through required fields and check if they are empty
-        $errors = [];
-        foreach ($requiredFields as $field => $errorMessage) {
-            if (!isset($this->post[$field]) || empty($this->post[$field])) {
-                $errors[] = $errorMessage;
-            }
-        }
-
-        // Sanitize and set each input
-        $surname = Sanitizer::sanitizeInput($this->post['surname']);
-        $data =  [
-            "surname" => $surname,
-            "first_name" => Sanitizer::sanitizeInput($this->post['first_name']),
-            "middle" => Sanitizer::sanitizeInput($this->post['middle'] ?? ''),
-            "sex" => (int) Sanitizer::sanitizeInput($this->post['sex']),
-            //"birthdate" => Sanitizer::sanitizeInput($this->post['birthdate']),
-            // "email" => filter_var(Sanitizer::sanitizeInput($this->post['email'])),
-            // "guardian_name" => Sanitizer::sanitizeInput($this->post['guardian_name']),
-            // "guardian_email" => filter_var(Sanitizer::sanitizeInput($this->post['guardian_email']), FILTER_VALIDATE_EMAIL), // Validate email format
-            // "guardian_address" => Sanitizer::sanitizeInput($this->post['guardian_address']),
-            // "guardian_phone_no" => Sanitizer::sanitizeInput($this->post['guardian_phone_no']),
-            // "state_origin" => Sanitizer::sanitizeInput($this->post['state_origin']),
-            "access_level" => (int) Sanitizer::sanitizeInput($this->post['access_level']),
-            "password" => $this->staffService->generatePassword($surname)
-        ];
-
-        // Check for invalid email
-        // if (!$data["guardian_email"]) {
-        //     $errors[] = 'Invalid email address';
-        // }
-
-        if (!empty($errors)) {
-            throw new \InvalidArgumentException(implode(', ', $errors));
-        }
-
-        return $data;
-    }
+   
 }

@@ -1,12 +1,12 @@
 <?php
 
-namespace V3\App\Services;
+namespace V3\App\Services\Portal;
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use V3\App\Models\Staff;
-use V3\App\Models\Student;
+use V3\App\Models\Portal\Staff;
 use V3\App\Utilities\EnvLoader;
+use V3\App\Models\Portal\Student;
 use V3\App\Utilities\ResponseHandler;
 
 class AuthService
@@ -99,9 +99,7 @@ class AuthService
     // Generate JWT Token
     private function generateJWT($userId, $name, $role)
     {
-        // Load environment variables if required
         EnvLoader::load();
-
         $secretKey = getenv('JWT_SECRET_KEY');
         $issuedAt = time();
         $expirationTime = $issuedAt + 3600; // Token valid for 1 hour
@@ -124,11 +122,9 @@ class AuthService
     // Validate JWT Token
     private static function validateJWT($token)
     {
-        // Load environment variables if required
-        EnvLoader::load();
-        $secretKey = getenv('JWT_SECRET_KEY');
-
         try {
+            EnvLoader::load();
+            $secretKey = getenv('JWT_SECRET_KEY');
             $decoded = JWT::decode($token, new Key($secretKey, 'HS256'));
 
             $_SESSION['user_id'] = $decoded->data->id;
@@ -142,15 +138,12 @@ class AuthService
         }
     }
 
-    private static function validateAPIKey($apiKey)
+    private static function validateAPIKey($apiKey): bool
     {
-        // Load environment variables if required
         EnvLoader::load();
         $API_KEY = getenv('API_KEY');
-
-        return $apiKey === $API_KEY;
+        return hash_equals($API_KEY, $apiKey);
     }
-
 
     public static function verifyJWT()
     {

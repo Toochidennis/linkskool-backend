@@ -1,14 +1,14 @@
 <?php
 
-namespace V3\App\Controllers;
+namespace V3\App\Controllers\Portal;
 
-use V3\App\Models\Staff;
-use V3\App\Models\Student;
+use V3\App\Models\Portal\Staff;
 use V3\App\Utilities\Sanitizer;
-use V3\App\Services\AuthService;
+use V3\App\Models\Portal\Student;
 use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\QueryExecutor;
 use V3\App\Utilities\ResponseHandler;
+use V3\App\Services\Portal\AuthService;
 use V3\App\Utilities\DatabaseConnector;
 
 
