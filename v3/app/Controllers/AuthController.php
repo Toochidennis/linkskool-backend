@@ -2,6 +2,8 @@
 
 namespace V3\App\Controllers;
 
+use V3\App\Models\Staff;
+use V3\App\Models\Student;
 use V3\App\Utilities\Sanitizer;
 use V3\App\Services\AuthService;
 use V3\App\Utilities\DataExtractor;
@@ -12,7 +14,10 @@ use V3\App\Utilities\DatabaseConnector;
 
 class AuthController
 {
-    private $response = ['success' => false, 'message' => '', 'data' => ''];
+    private array $response = ['success' => false, 'message' => ''];
+    private Staff $staff;
+    private Student $student;
+
 
     public function __construct()
     {
@@ -26,6 +31,7 @@ class AuthController
             
             if(!isset($post['username'], $post['password'], $post['token'])){
                 $this->response['message'] = 'Invalid JSON payload. Ensure that all fields are provided.';
+                http_response_code(400);
                 ResponseHandler::sendJsonResponse($this->response);
             }
 
@@ -34,19 +40,12 @@ class AuthController
             $token = Sanitizer::sanitizeInput($post['token']);
 
             if (empty($username) || empty($password) || empty($token)) {
-                http_response_code(400);
                 $this->response['message'] = 'Invalid input. All fields are required.';
+                http_response_code(400);
                 ResponseHandler::sendJsonResponse($this->response);
             }
 
             $pdo = DatabaseConnector::connect();
-
-            if (!$pdo) {
-                http_response_code(500);
-                $this->response['message'] = 'Unable to connect to the database.';
-                ResponseHandler::sendJsonResponse($this->response);
-            }
-
             $queryExecutor = new QueryExecutor($pdo);
 
             // Fetch school data by token
@@ -57,90 +56,45 @@ class AuthController
             );
 
             if (!empty($result)) {
-                $dbName = $result['database_name'];
-                $schoolName = $result['school_name'];
+                $dbname = $result['database_name'];
+                //$schoolName = $result['school_name'];
+                $schoolDb = DatabaseConnector::connect(dbname: $dbname);
 
-                $schoolDb = DatabaseConnector::connect(dbname: $dbName);
-
-                if (!$schoolDb) {
-                    http_response_code(500);
-                    $this->response['message'] = 'Unable to connect to the school database.';
-                    ResponseHandler::sendJsonResponse($this->response);
-                }
-
-                $this->login(username: $username, password: $password, schoolName: $schoolName, db: $schoolDb);
+                $this->login(username: $username, password: $password, db: $schoolDb);
             } else {
                 http_response_code(404);
                 $this->response['message'] = 'School not found';
                 ResponseHandler::sendJsonResponse($this->response);
             }
         } catch (\Exception $e) {
-            http_response_code(500);
             $this->response['message'] =  $e->getMessage();
+            http_response_code(500);
             ResponseHandler::sendJsonResponse($this->response);
         }
     }
 
 
-    // Login: Verify user credentials and generate JWT
-    public function login($username, $password, $schoolName, $db)
+    /**
+     * Delegating user authentication to auth service.
+     *
+     * @param string $username
+     * @param string $password
+     * @param \PDO   $db
+     */
+    public function login(string $username, string $password, \PDO $db)
     {
         try {
-            $queryExecutor = new QueryExecutor($db);
-            $user = $queryExecutor->findBy(table: 'staff_record', conditions: ['staff_no' => $username], limit: 1);
+            $authService = new AuthService($db);
+            $result = $authService->login($username, $password);
 
-            if (!$user) {
-                $user = $queryExecutor->queryWithJoins(
-                    table: 'students_record',
-                    joins: [
-                        [
-                            'table' => 'class_table',
-                            'condition' => 'students_record.student_class = class_table.id',
-                            'type' => 'INNER'
-                        ]
-                    ],
-                    conditions: ['registration_no' => $username],
-                    limit: 1
-                );
-
-                if (!$user) {
-                    http_response_code(404);
-                    $this->response['message'] = 'User not found.';
-                    ResponseHandler::sendJsonResponse($this->response);
-                }
-
-                $passwordHash = password_hash($user['password'], PASSWORD_DEFAULT);
-
-                if (!password_verify($password, $passwordHash)) {
-                    http_response_code(401);
-                    $this->response['message'] = 'Invalid password.';
-                    ResponseHandler::sendJsonResponse($this->response);
-                }
-
-                $token = AuthService::generateJWT(userId: $user['id'], name: $user['surname'], role: 'student');
-                $this->response = ['success' => true, 'message' => 'Login successful', 'data' => ['token' => $token]];
-                ResponseHandler::sendJsonResponse($this->response);
-            }
-
-            $passwordHash = password_hash($user['password'], PASSWORD_DEFAULT);
-
-            if (!password_verify($password, $passwordHash)) {
-                http_response_code(401);
-                $this->response['message'] = 'Invalid password.';
-                ResponseHandler::sendJsonResponse($this->response);
-            }
-
-            switch ($user['access_level']) {
-                case 2:
-                    $token = AuthService::generateJWT(userId: $user['id'], name: $user['surname'], role: 'admin');
-                    $this->response = ['success' => true, 'message' => 'Login successful', 'data' => ['token' => $token]];
-                    ResponseHandler::sendJsonResponse($this->response);
-                default:
-                    http_response_code(403);
-                    $this->response['message'] = 'Forbidden';
-                    ResponseHandler::sendJsonResponse($this->response);
-            }
+            $this->response = [
+                'success' => true,
+                'message' => 'Login successful',
+                'token'   => $result['token']
+            ];
+            ResponseHandler::sendJsonResponse($this->response);
         } catch (\Exception $e) {
+            http_response_code(401);
             $this->response['message'] = $e->getMessage();
             ResponseHandler::sendJsonResponse($this->response);
         }
@@ -151,3 +105,16 @@ class AuthController
         echo "Hi";
     }
 }
+
+// $student = $queryExecutor->queryWithJoins(
+//     table: 'students_record',
+//     joins: [
+//         [
+//             'table' => 'class_table',
+//             'condition' => 'students_record.student_class = class_table.id',
+//             'type' => 'INNER'
+//         ]
+//     ],
+//     conditions: ['registration_no' => $username],
+//     limit: 1
+// );

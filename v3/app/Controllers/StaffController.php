@@ -2,33 +2,33 @@
 
 namespace V3\App\Controllers;
 
-use V3\App\Models\Student;
+use V3\App\Models\Staff;
+
 use V3\App\Utilities\Sanitizer;
 use V3\App\Utilities\AuthHelper;
 use V3\App\Utilities\Permission;
 use V3\App\Services\AuthService;
+use V3\App\Services\StaffService;
 use V3\App\Models\SchoolSettings;
 use V3\App\Utilities\DataExtractor;
-use V3\App\Services\StudentService;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Models\RegistrationTracker;
 use V3\App\Utilities\DatabaseConnector;
 
 /**
- * Class StudentController
+ * Class StaffController
  *
- * Handles student-related operations.
+ * Handles staff-related operations.
  */
 
-class StudentController
+class StaffController
 {
     private array $post;
-    private Student $student;
+    private Staff $staff;
     private SchoolSettings $schoolSettings;
     private RegistrationTracker $regTracker;
-    private StudentService $studentService;
+    private StaffService $staffService;
     private array $response = ['success' => false, 'message' => ''];
-
 
     public function __construct()
     {
@@ -49,7 +49,7 @@ class StudentController
 
         if (!empty($dbname)) {
             $db = DatabaseConnector::connect(dbname: $dbname);
-            $this->student = new Student(pdo: $db);
+            $this->staff = new Staff(pdo: $db);
             $this->schoolSettings = new SchoolSettings($db);
             $this->regTracker = new RegistrationTracker($db);
         } else {
@@ -59,17 +59,17 @@ class StudentController
         }
 
         // Instantiate the service with the necessary models
-        $this->studentService = new StudentService(
-            $this->student,
+        $this->staffService = new staffService(
+            $this->staff,
             $this->schoolSettings,
             $this->regTracker
         );
     }
 
     /**
-     * Adds a new student.
+     * Adds a new staff.
      */
-    public function addStudent()
+    public function addStaff()
     {
         try {
             $data = $this->validateAndGetData();
@@ -80,17 +80,17 @@ class StudentController
         }
 
         try {
-            $studentId = $this->student->insertStudent($data);
-            if ($studentId) {
-                $success = $this->studentService->generateRegistrationNumber($studentId);
+            $staffId = $this->staff->insertStaff($data);
+            if ($staffId) {
+                $success = $this->staffService->generateRegistrationNumber($staffId);
                 if ($success) {
                     $this->response = [
                         'success' => true,
-                        'message' => 'Student added successfully.',
-                        'student_id' => $studentId
+                        'message' => 'Staff added successfully.',
+                        'staff_id' => $staffId
                     ];
                 } else {
-                    throw new \Exception('Failed to generate registration number.');
+                    throw new \Exception('Failed to generate staff number.');
                 }
             }
         } catch (\PDOException $e) {
@@ -104,38 +104,31 @@ class StudentController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    /**
-     * Get students record.
-     */
-    public function getStudents()
+    public function getStaff()
     {
         try {
-            $results = $this->student->getStudents(columns: [
+            $results = $this->staff->getStaff(columns: [
                 'id',
                 'picture_ref',
                 'surname',
                 'first_name',
                 'middle',
-                'registration_no',
-                'student_class',
-                'student_level'
+                'staff_no'
             ]);
 
             if ($results) {
-                $studentDetails = array_map(function ($row) {
+                $staffDetails = array_map(function ($row) {
                     return [
                         'id' => $row['id'],
-                        'picture_url' => $row['picture_ref'],
+                        'profile_url' => $row['picture_ref'],
                         'surname' => $row['surname'],
                         'first_name' => $row['first_name'],
                         'middle' => $row['middle'],
-                        'registration_no' => $row['registration_no'],
-                        'student_class' => $row['student_class'],
-                        'student_level' => $row['student_level']
+                        'staff_no' => $row['staff_no'],
                     ];
                 }, $results);
 
-                $this->response = ['success' => true, 'students_record' => $studentDetails];
+                $this->response = ['success' => true, 'staff_record' => $staffDetails];
             }
         } catch (\PDOException $e) {
             $this->response['message'] = $e->getMessage();
@@ -144,12 +137,11 @@ class StudentController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function getStudentById(array $vars)
-    {
-        echo print_r($vars);
-    }
+    public function getStaffById(array $params) {}
 
-    public function deleteStudent($id) {}
+    public function updateStaff() {}
+
+    public function deleteStaff($params) {}
 
     /**
      * Validates POST data and returns sanitized data or false on error.
@@ -164,8 +156,6 @@ class StudentController
             'surname' => 'Surname is required.',
             'first_name' => 'First name is required.',
             'sex' => 'Gender is required.',
-            'student_class' => 'Class is required.',
-            'student_level' => 'Level is required.',
         ];
 
         $errors = [];
@@ -192,9 +182,8 @@ class StudentController
             // "guardian_address" => Sanitizer::sanitizeInput($this->post['guardian_address']),
             // "guardian_phone_no" => Sanitizer::sanitizeInput($this->post['guardian_phone_no']),
             // "state_origin" => Sanitizer::sanitizeInput($this->post['state_origin']),
-            "student_level" => Sanitizer::sanitizeInput($this->post['student_level']),
-            "student_class" => Sanitizer::sanitizeInput($this->post['student_class']),
-            "password" => $this->studentService->generatePassword($surname)
+            "access_level" => (int) Sanitizer::sanitizeInput($this->post['access_level']),
+            "password" => $this->staffService->generatePassword($surname)
         ];
 
         // Check for invalid email
