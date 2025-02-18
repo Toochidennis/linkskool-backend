@@ -8,10 +8,21 @@ use V3\App\Utilities\ResponseHandler;
 $response = ['success' => false, 'message' => ''];
 
 $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
+    // Login routes
     $r->addRoute('POST', '/auth/login', ['AuthController', 'handleAuthRequest']);
     $r->addRoute('POST', '/auth/logout', ['AuthController', 'logout']);
+
+    // Student routes
     $r->addRoute('POST', '/student/addStudent', ['StudentController', 'addStudent']);
-    $r->addRoute('GET', '/student/getStudent/{id}', ['StudentController', 'getStudentById']);
+    $r->addRoute('GET', '/student/students', ['StudentController', 'getStudents']);
+    $r->addRoute('GET', '/student/student/{id}', ['StudentController', 'getStudentById']);
+
+    // Staff routes
+    $r->addRoute('POST', '/staff/addStaff', ['StaffController', 'addStaff']);
+    $r->addRoute('GET', '/staff/staff', ['StaffController', 'getStaff']);
+    $r->addRoute('GET', '/staff/{id}', ['StaffController', 'getStaffById']);
+
+    
 });
 
 // Fetch method and URI
