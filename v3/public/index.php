@@ -8,21 +8,20 @@ use V3\App\Utilities\ResponseHandler;
 $response = ['success' => false, 'message' => ''];
 
 $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
+    /**  Portal routes  */
     // Login routes
-    $r->addRoute('POST', '/auth/login', ['AuthController', 'handleAuthRequest']);
-    $r->addRoute('POST', '/auth/logout', ['AuthController', 'logout']);
-
+    $r->addRoute('POST', '/auth/login', ['Portal\AuthController', 'handleAuthRequest']);
+    $r->addRoute('POST', '/auth/logout', ['Portal\AuthController', 'logout']);
     // Student routes
-    $r->addRoute('POST', '/student/addStudent', ['StudentController', 'addStudent']);
-    $r->addRoute('GET', '/student/students', ['StudentController', 'getStudents']);
-    $r->addRoute('GET', '/student/student/{id}', ['StudentController', 'getStudentById']);
-
+    $r->addRoute('POST', '/student/addStudent', ['Portal\StudentController', 'addStudent']);
+    $r->addRoute('GET', '/student/students', ['Portal\StudentController', 'getStudents']);
+    $r->addRoute('GET', '/student/student/{id}', ['portal\StudentController', 'getStudentById']);
     // Staff routes
-    $r->addRoute('POST', '/staff/addStaff', ['StaffController', 'addStaff']);
-    $r->addRoute('GET', '/staff/staff', ['StaffController', 'getStaff']);
-    $r->addRoute('GET', '/staff/{id}', ['StaffController', 'getStaffById']);
+    $r->addRoute('POST', '/staff/addStaff', ['Portal\StaffController', 'addStaff']);
+    $r->addRoute('GET', '/staff/staff', ['Portal\StaffController', 'getStaff']);
+    $r->addRoute('GET', '/staff/{id}', ['Portal\StaffController', 'getStaffById']);
 
-    
+
 });
 
 // Fetch method and URI

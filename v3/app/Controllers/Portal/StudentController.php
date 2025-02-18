@@ -1,18 +1,19 @@
 <?php
 
-namespace V3\App\Controllers;
+namespace V3\App\Controllers\Portal;
 
-use V3\App\Models\Student;
+
 use V3\App\Utilities\Sanitizer;
 use V3\App\Utilities\AuthHelper;
 use V3\App\Utilities\Permission;
-use V3\App\Services\AuthService;
-use V3\App\Models\SchoolSettings;
+use V3\App\Models\Portal\Student;
 use V3\App\Utilities\DataExtractor;
-use V3\App\Services\StudentService;
 use V3\App\Utilities\ResponseHandler;
-use V3\App\Models\RegistrationTracker;
 use V3\App\Utilities\DatabaseConnector;
+use V3\App\Services\Portal\AuthService;
+use V3\App\Models\Portal\SchoolSettings;
+use V3\App\Services\Portal\StudentService;
+use V3\App\Models\Portal\RegistrationTracker;
 
 /**
  * Class StudentController
@@ -50,19 +51,19 @@ class StudentController
         if (!empty($dbname)) {
             $db = DatabaseConnector::connect(dbname: $dbname);
             $this->student = new Student(pdo: $db);
-            $this->schoolSettings = new SchoolSettings($db);
-            $this->regTracker = new RegistrationTracker($db);
+            $this->schoolSettings = new SchoolSettings(pdo: $db);
+            $this->regTracker = new RegistrationTracker(pdo: $db);
         } else {
             $this->response['message'] = '_db is required.';
 
-            ResponseHandler::sendJsonResponse($this->response);
+            ResponseHandler::sendJsonResponse(response: $this->response);
         }
 
-        // Instantiate the service with the necessary models
+        // Instantiate the service with the necessary Models\Portal
         $this->studentService = new StudentService(
-            $this->student,
-            $this->schoolSettings,
-            $this->regTracker
+            student: $this->student,
+            schoolSettings: $this->schoolSettings,
+            regTracker: $this->regTracker
         );
     }
 
@@ -72,17 +73,17 @@ class StudentController
     public function addStudent()
     {
         try {
-            $data = $this->validateAndGetData();
+            $data = $this->studentService->validateAndGetData(post: $this->post);
         } catch (\InvalidArgumentException $e) {
-            http_response_code(400);
+            http_response_code(response_code: 400);
             $this->response['message'] = $e->getMessage();
-            ResponseHandler::sendJsonResponse($this->response);
+            ResponseHandler::sendJsonResponse(response: $this->response);
         }
 
         try {
             $studentId = $this->student->insertStudent($data);
             if ($studentId) {
-                $success = $this->studentService->generateRegistrationNumber($studentId);
+                $success = $this->studentService->generateRegistrationNumber(studentId: $studentId);
                 if ($success) {
                     $this->response = [
                         'success' => true,
@@ -94,14 +95,14 @@ class StudentController
                 }
             }
         } catch (\PDOException $e) {
-            http_response_code(500);
+            http_response_code(response_code: 500);
             $this->response['message'] = $e->getMessage();
         } catch (\Exception $e) {
-            http_response_code(500);
+            http_response_code(response_code: 500);
             $this->response['message'] = $e->getMessage();
         }
 
-        ResponseHandler::sendJsonResponse($this->response);
+        ResponseHandler::sendJsonResponse(response: $this->response);
     }
 
     /**
@@ -135,9 +136,12 @@ class StudentController
                     ];
                 }, $results);
 
-                $this->response = ['success' => true, 'students_record' => $studentDetails];
+                $this->response = ['success' => true, 'students' => $studentDetails];
+            }else{
+                $this->response = ['success' => true, 'students' => []];
             }
         } catch (\PDOException $e) {
+            http_response_code(500);
             $this->response['message'] = $e->getMessage();
         }
 
@@ -150,62 +154,4 @@ class StudentController
     }
 
     public function deleteStudent($id) {}
-
-    /**
-     * Validates POST data and returns sanitized data or false on error.
-     *
-     * @return array|false
-     * @throws \InvalidArgumentException
-     */
-    private function validateAndGetData()
-    {
-        // Define an array for required fields with custom error messages
-        $requiredFields = [
-            'surname' => 'Surname is required.',
-            'first_name' => 'First name is required.',
-            'sex' => 'Gender is required.',
-            'student_class' => 'Class is required.',
-            'student_level' => 'Level is required.',
-        ];
-
-        $errors = [];
-
-        // Loop through required fields and check if they are empty
-        $errors = [];
-        foreach ($requiredFields as $field => $errorMessage) {
-            if (!isset($this->post[$field]) || empty($this->post[$field])) {
-                $errors[] = $errorMessage;
-            }
-        }
-
-        // Sanitize and set each input
-        $surname = Sanitizer::sanitizeInput($this->post['surname']);
-        $data =  [
-            "surname" => $surname,
-            "first_name" => Sanitizer::sanitizeInput($this->post['first_name']),
-            "middle" => Sanitizer::sanitizeInput($this->post['middle'] ?? ''),
-            "sex" => (int) Sanitizer::sanitizeInput($this->post['sex']),
-            //"birthdate" => Sanitizer::sanitizeInput($this->post['birthdate']),
-            // "email" => filter_var(Sanitizer::sanitizeInput($this->post['email'])),
-            // "guardian_name" => Sanitizer::sanitizeInput($this->post['guardian_name']),
-            // "guardian_email" => filter_var(Sanitizer::sanitizeInput($this->post['guardian_email']), FILTER_VALIDATE_EMAIL), // Validate email format
-            // "guardian_address" => Sanitizer::sanitizeInput($this->post['guardian_address']),
-            // "guardian_phone_no" => Sanitizer::sanitizeInput($this->post['guardian_phone_no']),
-            // "state_origin" => Sanitizer::sanitizeInput($this->post['state_origin']),
-            "student_level" => Sanitizer::sanitizeInput($this->post['student_level']),
-            "student_class" => Sanitizer::sanitizeInput($this->post['student_class']),
-            "password" => $this->studentService->generatePassword($surname)
-        ];
-
-        // Check for invalid email
-        // if (!$data["guardian_email"]) {
-        //     $errors[] = 'Invalid email address';
-        // }
-
-        if (!empty($errors)) {
-            throw new \InvalidArgumentException(implode(', ', $errors));
-        }
-
-        return $data;
-    }
 }

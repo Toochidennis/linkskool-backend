@@ -2,25 +2,52 @@
 
 namespace V3\App\Utilities;
 
+use PDO;
+use InvalidArgumentException;
+
+/**
+ * Class QueryExecutor
+ *
+ * Provides a set of methods to perform common database operations such as
+ * insert, select, update, delete, and complex queries with joins.
+ */
 class QueryExecutor
 {
-    private $pdo;
+    /**
+     * @var PDO The PDO instance for database interaction.
+     */
+    private PDO $pdo;
 
-    public function __construct(\PDO $pdo)
+    /**
+     * QueryExecutor constructor.
+     *
+     * @param PDO $pdo The PDO instance connected to the database.
+     */
+    public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
     }
 
-
-    private function validateTable(string $table)
+    /**
+     * Validates if the provided table name is allowed for operations.
+     *
+     * @param string $table The name of the table to validate.
+     * @throws InvalidArgumentException If the table is not in the list of allowed tables.
+     */
+    private function validateTable(string $table): void
     {
-        #die( $table);
-
         if (!in_array($table, Tables::ALLOWED_TABLES)) {
-            throw new \InvalidArgumentException("Request not allowed for table $table");
+            throw new InvalidArgumentException("Request not allowed for table $table");
         }
     }
 
+    /**
+     * Inserts a new record into the specified table.
+     *
+     * @param string $table The name of the table where the record will be inserted.
+     * @param array $data An associative array where keys are column names and values are the corresponding values to insert.
+     * @return bool|string The ID of the inserted record on success, or false on failure.
+     */
     public function insert(string $table, array $data)
     {
         $this->validateTable($table);
@@ -35,15 +62,29 @@ class QueryExecutor
         return false;
     }
 
+    /**
+     * Retrieves all records from the specified table.
+     *
+     * @param string $table The name of the table to select from.
+     * @return array An array of associative arrays representing the fetched records.
+     */
     public function select(string $table)
     {
         $this->validateTable($table);
         $stmt = $this->pdo->prepare("SELECT * FROM `$table`");
         $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function update(string $table, array $data, array $conditions)
+    /**
+     * Updates records in the specified table based on given conditions.
+     *
+     * @param string $table The name of the table to update.
+     * @param array $data An associative array where keys are column names to update and values are the new values.
+     * @param array $conditions An associative array where keys are column names and values are the conditions for the update.
+     * @return bool True on success, false on failure.
+     */
+    public function update(string $table, array $data, array $conditions): bool
     {
         $this->validateTable($table);
         $setClauses = [];
@@ -64,7 +105,14 @@ class QueryExecutor
         return $stmt->execute(array_merge(array_values($data), array_values($conditions)));
     }
 
-    public function delete(string $table, array $conditions)
+    /**
+     * Deletes records from the specified table based on given conditions.
+     *
+     * @param string $table The name of the table to delete from.
+     * @param array $conditions An associative array where keys are column names and values are the conditions for the deletion.
+     * @return bool True on success, false on failure.
+     */
+    public function delete(string $table, array $conditions): bool
     {
         $this->validateTable($table);
 
@@ -78,18 +126,25 @@ class QueryExecutor
         return $stmt->execute(array_values($conditions));
     }
 
+    /**
+     * Finds records in the specified table based on given conditions.
+     *
+     * @param string $table The name of the table to search in.
+     * @param array $columns An array of column names to retrieve. Defaults to all columns.
+     * @param array $conditions An associative array where keys are column names and values are the conditions for the search.
+     * @param int $limit The maximum number of records to retrieve. Defaults to 0 (no limit).
+     * @return array|false An array of associative arrays representing the fetched records, a single associative array if limit is 1, or false on failure.
+     */
     public function findBy(
-        string $table, 
-        array $columns = [], 
-        array $conditions = [], 
-        int $limit = 0)
-    {
+        string $table,
+        array $columns = [],
+        array $conditions = [],
+        int $limit = 0
+    ) {
         $this->validateTable($table);
 
-        // Validate columns
         $columnsList = !empty($columns) ? implode(", ", $columns) : "*";
 
-        // Add conditions if provided
         $whereClause = '';
         if (!empty($conditions)) {
             $whereParts = [];
@@ -99,7 +154,6 @@ class QueryExecutor
             $whereClause = 'WHERE ' . implode(' AND ', $whereParts);
         }
 
-        // Add LIMIT clause if provided
         $limitClause = ($limit !== 0) ? "LIMIT $limit" : '';
 
         $query = "SELECT $columnsList FROM `$table` $whereClause $limitClause";
@@ -107,9 +161,22 @@ class QueryExecutor
         $stmt = $this->pdo->prepare($query);
         $stmt->execute(array_values($conditions));
 
-        return $limit === 1 ? $stmt->fetch(\PDO::FETCH_ASSOC) : $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $limit === 1 ? $stmt->fetch(PDO::FETCH_ASSOC) : $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Executes a complex query with joins.
+     *
+     * @param string $table The primary table to query from.
+     * @param array $columns An array of column names to retrieve. Defaults to all columns.
+     * @param array $joins An array of join definitions, each containing:
+     *                     - 'table': The table to join with.
+     *                     - 'condition': The join condition.
+     *                     - 'type' (optional): The type of join (e.g., 'INNER', 'LEFT'). Defaults to 'INNER'.
+     * @param array $conditions An associative array where keys are column names and values are the conditions for the search.
+     * @param int $limit The maximum number of records to retrieve. Defaults to 0 (no limit).
+     * @return array|bool
+     */
 
     public function queryWithJoins(
         string $table,
@@ -124,7 +191,7 @@ class QueryExecutor
         $query = "SELECT $columnsList FROM `$table`";
         foreach ($joins as $index => $join) {
             if (!isset($join['table'], $join['condition'])) {
-                throw new \InvalidArgumentException("Invalid join data at index $index. Each join must include 'table' and 'condition'.");
+                throw new InvalidArgumentException("Invalid join data at index $index. Each join must include 'table' and 'condition'.");
             }
             $joinType = !empty($join['type']) ? $join['type'] : 'INNER';
             $query .= " $joinType JOIN `{$join['table']}` ON {$join['condition']}";
@@ -147,6 +214,6 @@ class QueryExecutor
         $stmt->execute(array_values($conditions));
 
         // Return the result.
-        return $limit === 1 ? $stmt->fetch(\PDO::FETCH_ASSOC) : $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $limit === 1 ? $stmt->fetch(PDO::FETCH_ASSOC) : $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
