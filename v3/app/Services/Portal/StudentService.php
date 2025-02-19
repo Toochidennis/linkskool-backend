@@ -110,6 +110,7 @@ class StudentService
 
         // Sanitize and set each input
         $surname = Sanitizer::sanitizeInput($post['surname']);
+        
         $data =  [
             "surname" => $surname,
             "first_name" => Sanitizer::sanitizeInput($post['first_name']),

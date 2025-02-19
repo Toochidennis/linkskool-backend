@@ -16,10 +16,10 @@ class LevelController{
     private LevelService $levelService;
 
     public function __construct(){
-        $this->init();
+        $this->initialize();
     }
 
-    private function init()
+    private function initialize()
     {
         AuthService::verifyAPIKey();
         AuthService::verifyJWT();

@@ -34,10 +34,10 @@ class StaffController
         AuthService::verifyAPIKey();
         AuthService::verifyJWT();
 
-        $this->init();
+        $this->initialize();
     }
 
-    private function init()
+    private function initialize()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->post = DataExtractor::extractPostData();
