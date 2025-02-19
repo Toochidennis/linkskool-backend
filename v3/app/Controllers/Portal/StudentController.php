@@ -33,14 +33,14 @@ class StudentController
 
     public function __construct()
     {
+        $this->initialize();
+    }
+
+    private function initialize()
+    {
         AuthService::verifyAPIKey();
         AuthService::verifyJWT();
 
-        $this->init();
-    }
-
-    private function init()
-    {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->post = DataExtractor::extractPostData();
             $dbname = $this->post['_db'] ?? '';
@@ -55,7 +55,7 @@ class StudentController
             $this->regTracker = new RegistrationTracker(pdo: $db);
         } else {
             $this->response['message'] = '_db is required.';
-
+            http_response_code(401);
             ResponseHandler::sendJsonResponse(response: $this->response);
         }
 
