@@ -2,10 +2,18 @@
 
 namespace V3\App\Services\Portal;
 
+use InvalidArgumentException;
+use V3\App\Models\Portal\Result;
 use V3\App\Utilities\Sanitizer;
 
 class CourseRegistrationService
 {
+    private Result $result;
+
+    public function __construct(\PDO $pdo)
+    {
+        $this->result = new Result($pdo);
+    }
 
     /**
      * Validates the provided POST data and returns sanitized data along with the type.
@@ -16,40 +24,170 @@ class CourseRegistrationService
      *
      * @param array $post The POST data to validate.
      * @return array|false Returns an associative array with 'type' and 'data' keys on success, or false on failure.
-     * @throws \InvalidArgumentException if required fields are missing.
+     * @throws InvalidArgumentException if required fields are missing.
      */
     public function validateAndGetData(array $post)
     {
-        if (!isset($post['class']) && !isset($post['students'])) {
-            throw new \InvalidArgumentException('Either class or students must be provided.');
+        $requiredField = [
+            'type' => 'Type of registration is required',
+            'courses' => 'courses is required',
+            'year' => 'year is required',
+            'term' => 'term is required',
+            'class_id' => 'class_id is required',
+        ];
+
+        $errors = [];
+        foreach ($requiredField as $field => $errorMessage) {
+            if (!isset($post[$field]) || empty($post[$field])) {
+                $errors[] = $errorMessage;
+            }
         }
 
-        if (!isset($post['courses'])) {
-            throw new \InvalidArgumentException('courses is required.');
-        }
-        if (!isset($post['year'])) {
-            throw new \InvalidArgumentException('year is required.');
-        }
-        if (!isset($post['term'])) {
-            throw new \InvalidArgumentException('term is required.');
+        if (!empty($errors)) {
+            throw new InvalidArgumentException(implode(', ', $errors));
         }
 
         $sanitizedData = Sanitizer::sanitizeInput($post);
 
-        // Determine the type based on provided keys.
-        if (isset($sanitizedData['class']) && !empty($sanitizedData['class'])) {
-            return [
-                'type' => 'class',
-                'data' => $sanitizedData
-            ];
-        } else if (isset($sanitizedData['students']) && !empty($sanitizedData['students'])) {
-            return [
-                'type' => 'single',
-                'data' => $sanitizedData
-            ];
+        return $sanitizedData;
+    }
+
+    /**
+     * Validates and cleans data for duplicate registration.
+     *
+     * Expects 'year', 'term', and 'class_id' to be provided.
+     *
+     * @param array $post The POST data to validate.
+     * @return array Returns the sanitized data.
+     * @throws InvalidArgumentException if any required field is missing or empty.
+     */
+    public function validateAndCleanData(array $post)
+    {
+        $requiredField = [
+            'year' => 'year is required',
+            'term' => 'term is required',
+            'class_id' => 'class_id is required',
+        ];
+
+        $errors = [];
+        foreach ($requiredField as $field => $errorMessage) {
+            if (!isset($post[$field]) || empty($post[$field])) {
+                $errors[] = $errorMessage;
+            }
         }
 
-        // If neither condition met, return false (this line might never be reached due to exceptions above).
-        return false;
+        if (!empty($errors)) {
+            throw new InvalidArgumentException(implode(', ', $errors));
+        }
+
+        $sanitizedData = Sanitizer::sanitizeInput($post);
+
+        return $sanitizedData;
+    }
+
+    /**
+     * Registers courses for each student.
+     *
+     * @param array $students  Array of student IDs.
+     * @param array $courses   Array of course IDs.
+     * @param string $term     The academic term.
+     * @param string $year     The academic year.
+     * @param mixed $classId   The class identifier.
+     *
+     * @return bool Returns true if registration is successful for all students.
+     */
+    public function register($students, $courses, $term, $year, $classId)
+    {
+        $index = 0;
+
+        foreach ($students as $student) {
+            foreach ($courses as $course) {
+                $studentId = is_array($student) ? $student['student_id'] : $student;
+                $courseId = is_array($course) ? $course['course_id'] : $course;
+
+                $count = $this->result->countCourseRegistrations(
+                    conditions: [
+                        'year' => $year,
+                        'term' => $term,
+                        'reg_no' => $studentId,
+                        'class' => $classId,
+                        'course' => $courseId
+                    ]
+                );
+
+                // ResponseHandler::sendJsonResponse(['message'=>$count]);
+
+                if ($count === 0) {
+                    $this->result->registerCourse(data: [
+                        'year' => $year,
+                        'term' => $term,
+                        'reg_no' => $studentId,
+                        'class' => $classId,
+                        'course' => $courseId
+                    ]);
+                }
+            }
+            $index++;
+        }
+
+        // After registration, synchronize any outdated courses.
+        $this->deleteRegisteredCourses(
+            students: $students,
+            newCourses: $courses,
+            term: $term,
+            year: $year,
+            classId: $classId
+        );
+
+        return $index === count($students) ? true : false;
+    }
+
+    /**
+     * Synchronizes course registrations by removing any courses that are
+     * currently registered for a student but are not in the new list.
+     *
+     * For each student, this method:
+     *   1. Retrieves the current list of registered course IDs.
+     *   2. Determines which course IDs in that list are not present in the new registration.
+     *   3. Deletes those outdated registrations.
+     *
+     * @param array  $students   Array of student records (each containing at least an 'id' key).
+     * @param array  $newCourses Array of new course IDs that should be registered.
+     * @param string $term       The academic term.
+     * @param string $year       The academic year.
+     * @param mixed  $classId    The class identifier.
+     *
+     * @return bool True if all deletions were successful; false otherwise.
+     */
+    private function deleteRegisteredCourses($students, $newCourses, $term, $year, $classId)
+    {
+        $allSuccess = true;
+
+        foreach ($students as $student) {
+            // Extract the student ID; if the student record is just an ID, use it directly.
+            $studentId = is_array($student) ? $student['student_id'] : $student;
+
+            $newCoursesFlat = array_map(
+                fn($course) => $course['course_id'],
+                $newCourses
+            );
+
+            $result = $this->result->deleteRegisteredCourses(
+                conditions: [
+                    'reg_no' => $studentId,
+                    'class'  => $classId,
+                    'term'   => $term,
+                    'year'   => $year
+                ],
+                notInColumn: 'course',
+                notInValues: $newCoursesFlat
+            );
+
+            if (!$result) {
+                $allSuccess = false;
+            }
+        }
+
+        return $allSuccess;
     }
 }

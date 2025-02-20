@@ -94,9 +94,6 @@ class StudentController
                     throw new \Exception('Failed to generate registration number.');
                 }
             }
-        } catch (\PDOException $e) {
-            http_response_code(response_code: 500);
-            $this->response['message'] = $e->getMessage();
         } catch (\Exception $e) {
             http_response_code(response_code: 500);
             $this->response['message'] = $e->getMessage();
