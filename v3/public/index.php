@@ -18,8 +18,11 @@ $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('GET', '/student/student/{id}', ['portal\StudentController', 'getStudentById']);
     // Staff routes
     $r->addRoute('POST', '/staff/addStaff', ['Portal\StaffController', 'addStaff']);
-    $r->addRoute('GET', '/staff/staff', ['Portal\StaffController', 'getStaff']);
+    $r->addRoute('GET', '/staff/getStaff', ['Portal\StaffController', 'getStaff']);
     $r->addRoute('GET', '/staff/{id}', ['Portal\StaffController', 'getStaffById']);
+
+    $r->addRoute('POST', '/course/registerCourses', ['Portal\CourseRegistrationController', 'registerCourses']);
+    $r->addRoute('POST', '/course/copyRegistration', ['Portal\CourseRegistrationController', 'duplicateRegistration']);
 
 
 });

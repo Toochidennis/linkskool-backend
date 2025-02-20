@@ -84,7 +84,7 @@ class QueryExecutor
      * @param array $conditions An associative array where keys are column names and values are the conditions for the update.
      * @return bool True on success, false on failure.
      */
-    public function update(string $table, array $data, array $conditions): bool
+    public function update(string $table, array $data, array $conditions)
     {
         $this->validateTable($table);
         $setClauses = [];
@@ -126,76 +126,77 @@ class QueryExecutor
     //     return $stmt->execute(array_values($conditions));
     // }
 
+
     /**
- * Deletes records from a table based on specified conditions, with an optional NOT IN clause.
- *
- * If both a $notInColumn and a non-empty $notInValues array are provided, the query will
- * exclude records where the value in $notInColumn is present in $notInValues.
- *
- * Example usage:
- * <code>
- * // Delete records matching only conditions:
- * $conditions = [
- *     'student_id' => 123,
- *     'term'       => 'Fall',
- *     'year'       => 2025
- * ];
- * $result = $queryExecutor->deleteRecords('course_registrations', $conditions);
- *
- * // Delete records with an additional NOT IN clause:
- * $conditions = [
- *     'student_id' => 123,
- *     'term'       => 'Fall',
- *     'year'       => 2025
- * ];
- * $notInColumn = 'course_id';
- * $notInValues = [1, 2, 3];
- * $result = $queryExecutor->deleteRecords('course_registrations', $conditions, $notInColumn, $notInValues);
- * </code>
- *
- * @param string $table        The name of the table to delete records from.
- * @param array  $conditions   (Optional) Associative array where keys are column names and values are values to match.
- * @param string $notInColumn  (Optional) Column name to apply a NOT IN condition.
- * @param array  $notInValues  (Optional) Array of values that should not be present in $notInColumn.
- *
- * @return bool True on successful deletion, false otherwise.
- *
- * @throws \InvalidArgumentException If the table is not allowed or if no conditions are provided.
- */
-public function deleteRecords(
-    string $table,
-    array $conditions = [],
-    string $notInColumn = '',
-    array $notInValues = []
-): bool {
-    // Validate that the table is allowed.
-    $this->validateTable($table);
+     * Deletes records from a table based on specified conditions, with an optional NOT IN clause.
+     *
+     * If both a $notInColumn and a non-empty $notInValues array are provided, the query will
+     * exclude records where the value in $notInColumn is present in $notInValues.
+     *
+     * Example usage:
+     * <code>
+     * // Delete records matching only conditions:
+     * $conditions = [
+     *     'student_id' => 123,
+     *     'term'       => 'Fall',
+     *     'year'       => 2025
+     * ];
+     * $result = $queryExecutor->deleteRecords('course_registrations', $conditions);
+     *
+     * // Delete records with an additional NOT IN clause:
+     * $conditions = [
+     *     'student_id' => 123,
+     *     'term'       => 'Fall',
+     *     'year'       => 2025
+     * ];
+     * $notInColumn = 'course_id';
+     * $notInValues = [1, 2, 3];
+     * $result = $queryExecutor->deleteRecords('course_registrations', $conditions, $notInColumn, $notInValues);
+     * </code>
+     *
+     * @param string $table        The name of the table to delete records from.
+     * @param array  $conditions   (Optional) Associative array where keys are column names and values are values to match.
+     * @param string $notInColumn  (Optional) Column name to apply a NOT IN condition.
+     * @param array  $notInValues  (Optional) Array of values that should not be present in $notInColumn.
+     *
+     * @return bool True on successful deletion, false otherwise.
+     *
+     * @throws \InvalidArgumentException If the table is not allowed or if no conditions are provided.
+     */
+    public function deleteRecords(
+        string $table,
+        array $conditions = [],
+        string $notInColumn = '',
+        array $notInValues = []
+    ) {
+        // Validate that the table is allowed.
+        $this->validateTable($table);
 
-    $whereClauses = [];
-    $params = [];
+        $whereClauses = [];
+        $params = [];
 
-    // Build equality conditions if provided.
-    foreach ($conditions as $column => $value) {
-        $whereClauses[] = "`$column` = ?";
-        $params[] = $value;
+        // Build equality conditions if provided.
+        foreach ($conditions as $column => $value) {
+            $whereClauses[] = "`$column` = ?";
+            $params[] = $value;
+        }
+
+        // If both $notInColumn and non-empty $notInValues are provided, add a NOT IN clause.
+        if (!empty($notInColumn) && !empty($notInValues)) {
+            $placeholders = implode(", ", array_fill(0, count($notInValues), "?"));
+            $whereClauses[] = "`$notInColumn` NOT IN ($placeholders)";
+            $params = array_merge($params, $notInValues);
+        }
+
+        // Ensure that there is at least one condition to avoid deleting all records accidentally.
+        if (empty($whereClauses)) {
+            throw new InvalidArgumentException("No conditions provided for deletion. Refusing to delete all records.");
+        }
+
+        $query = "DELETE FROM `$table` WHERE " . implode(" AND ", $whereClauses);
+        $stmt = $this->pdo->prepare($query);
+        return $stmt->execute($params);
     }
-
-    // If both $notInColumn and non-empty $notInValues are provided, add a NOT IN clause.
-    if (!empty($notInColumn) && !empty($notInValues)) {
-        $placeholders = implode(", ", array_fill(0, count($notInValues), "?"));
-        $whereClauses[] = "`$notInColumn` NOT IN ($placeholders)";
-        $params = array_merge($params, $notInValues);
-    }
-
-    // Ensure that there is at least one condition to avoid deleting all records accidentally.
-    if (empty($whereClauses)) {
-        throw new InvalidArgumentException("No conditions provided for deletion. Refusing to delete all records.");
-    }
-
-    $query = "DELETE FROM `$table` WHERE " . implode(" AND ", $whereClauses);
-    $stmt = $this->pdo->prepare($query);
-    return $stmt->execute($params);
-}
 
     /**
      * Finds records in the specified table based on given conditions.
@@ -286,5 +287,23 @@ public function deleteRecords(
 
         // Return the result.
         return $limit === 1 ? $stmt->fetch(PDO::FETCH_ASSOC) : $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countByCondition($table, $conditions = [])
+    {
+        $this->validateTable($table);
+
+        $query = "SELECT COUNT(*) FROM `$table`";
+        if (!empty($conditions)) {
+            $whereClauses = [];
+            foreach ($conditions as $column => $value) {
+                $whereClauses[] = "`$column` = ?";
+            }
+            $query .= " WHERE " . implode(" AND ", $whereClauses);
+        }
+
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute(array_values($conditions));
+        return $stmt->fetchColumn();
     }
 }

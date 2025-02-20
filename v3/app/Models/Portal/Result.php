@@ -19,9 +19,9 @@ class Result extends QueryExecutor
         return parent::insert(table: $this->table, data: $data);
     }
 
-    public function isCourseIsRegistered(array $conditions)
+    public function countCourseRegistrations(array $conditions)
     {
-        return parent::findBy(table: $this->table, conditions: $conditions);
+        return parent::countByCondition($this->table, $conditions);
     }
 
     public function insertResult(array $data, array $conditions)
@@ -29,8 +29,18 @@ class Result extends QueryExecutor
         return parent::update(table: $this->table, data: $data, conditions: $conditions);
     }
 
-    public function unregisterCourse(array $conditions): bool
+    public function getRegisteredCourses(array $columns, array $conditions)
     {
-        return parent::delete($this->table, conditions: $conditions);
+        return parent::findBy(table: $this->table, columns: $columns, conditions: $conditions);
+    }
+
+    public function deleteRegisteredCourses(array $conditions, string $notInColumn = '', array $notInValues = [])
+    {
+        return parent::deleteRecords(
+            table: $this->table,
+            conditions: $conditions,
+            notInColumn: $notInColumn,
+            notInValues: $notInValues
+        );
     }
 }
