@@ -3,42 +3,51 @@
 namespace V3\App\Services\Portal;
 
 use InvalidArgumentException;
-use V3\App\Models\Portal\Result;
+use V3\App\Models\Portal\CourseRegistration;
+use V3\App\Utilities\ResponseHandler;
 use V3\App\Utilities\Sanitizer;
 
 class CourseRegistrationService
 {
-    private Result $result;
+    private CourseRegistration $courseRegistration;
 
     public function __construct(\PDO $pdo)
     {
-        $this->result = new Result($pdo);
+        $this->courseRegistration = new CourseRegistration($pdo);
     }
 
     /**
-     * Validates the provided POST data and returns sanitized data along with the type.
+     * Validates the provided data data and returns sanitized data along with the type.
      *
-     * Expects either a 'class_id' or a 'student_id' and a 'course_id' to be set.
-     * If a 'class_id' is provided, it treats the registration as for a class.
-     * If a 'student_id' is provided, it treats the registration as for a single student.
+     * Expects 'year', 'term', 'type', 'courses', and 'class_id' to be provided.
      *
-     * @param array $post The POST data to validate.
-     * @return array|false Returns an associative array with 'type' and 'data' keys on success, or false on failure.
+     * @param array $data The data to validate.
      * @throws InvalidArgumentException if required fields are missing.
      */
-    public function validateAndGetData(array $post)
+    public function validateAndGetData(array $data, string $destination = "")
     {
-        $requiredField = [
-            'type' => 'Type of registration is required',
-            'courses' => 'courses is required',
-            'year' => 'year is required',
-            'term' => 'term is required',
-            'class_id' => 'class_id is required',
-        ];
+        $requiredFields = match ($destination) {
+            'terms' => [
+                'year' => 'year is required',
+                'class_id' => 'class_id is required',
+            ],
+            'duplicate' =>  [
+                'year' => 'year is required',
+                'term' => 'term is required',
+                'class_id' => 'class_id is required',
+            ],
+            default => [
+                'type' => 'Type of registration is required',
+                'courses' => 'courses is required',
+                'year' => 'year is required',
+                'term' => 'term is required',
+                'class_id' => 'class_id is required',
+            ]
+        };
 
         $errors = [];
-        foreach ($requiredField as $field => $errorMessage) {
-            if (!isset($post[$field]) || empty($post[$field])) {
+        foreach ($requiredFields as $field => $errorMessage) {
+            if (!isset($data[$field]) || empty($data[$field])) {
                 $errors[] = $errorMessage;
             }
         }
@@ -47,42 +56,7 @@ class CourseRegistrationService
             throw new InvalidArgumentException(implode(', ', $errors));
         }
 
-        $sanitizedData = Sanitizer::sanitizeInput($post);
-
-        return $sanitizedData;
-    }
-
-    /**
-     * Validates and cleans data for duplicate registration.
-     *
-     * Expects 'year', 'term', and 'class_id' to be provided.
-     *
-     * @param array $post The POST data to validate.
-     * @return array Returns the sanitized data.
-     * @throws InvalidArgumentException if any required field is missing or empty.
-     */
-    public function validateAndCleanData(array $post)
-    {
-        $requiredField = [
-            'year' => 'year is required',
-            'term' => 'term is required',
-            'class_id' => 'class_id is required',
-        ];
-
-        $errors = [];
-        foreach ($requiredField as $field => $errorMessage) {
-            if (!isset($post[$field]) || empty($post[$field])) {
-                $errors[] = $errorMessage;
-            }
-        }
-
-        if (!empty($errors)) {
-            throw new InvalidArgumentException(implode(', ', $errors));
-        }
-
-        $sanitizedData = Sanitizer::sanitizeInput($post);
-
-        return $sanitizedData;
+        return Sanitizer::sanitizeInput($data);
     }
 
     /**
@@ -105,7 +79,7 @@ class CourseRegistrationService
                 $studentId = is_array($student) ? $student['student_id'] : $student;
                 $courseId = is_array($course) ? $course['course_id'] : $course;
 
-                $count = $this->result->countCourseRegistrations(
+                $count = $this->courseRegistration->countCourseRegistrations(
                     conditions: [
                         'year' => $year,
                         'term' => $term,
@@ -115,10 +89,8 @@ class CourseRegistrationService
                     ]
                 );
 
-                // ResponseHandler::sendJsonResponse(['message'=>$count]);
-
                 if ($count === 0) {
-                    $this->result->registerCourse(data: [
+                    $this->courseRegistration->registerCourse(data: [
                         'year' => $year,
                         'term' => $term,
                         'reg_no' => $studentId,
@@ -172,7 +144,7 @@ class CourseRegistrationService
                 $newCourses
             );
 
-            $result = $this->result->deleteRegisteredCourses(
+            $courseRegistration = $this->courseRegistration->deleteRegisteredCourses(
                 conditions: [
                     'reg_no' => $studentId,
                     'class'  => $classId,
@@ -183,7 +155,7 @@ class CourseRegistrationService
                 notInValues: $newCoursesFlat
             );
 
-            if (!$result) {
+            if (!$courseRegistration) {
                 $allSuccess = false;
             }
         }
