@@ -3,18 +3,18 @@
 namespace V3\App\Controllers\Portal;
 
 use Exception;
-use V3\App\Models\Portal\Result;
+use V3\App\Models\Portal\CourseRegistration;
 use V3\App\Services\Portal\CourseRegistrationService;
 use V3\App\Utilities\DatabaseConnector;
 use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Models\Portal\Student;
-
+use V3\App\Utilities\Sanitizer;
 
 class CourseRegistrationController
 {
     private CourseRegistrationService $registrationService;
-    private Result $result;
+    private CourseRegistration $courseRegistration;
     private array $post;
     private Student $student;
     private array $response = ['success' => false];
@@ -31,14 +31,14 @@ class CourseRegistrationController
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->post = DataExtractor::extractPostData();
-            $dbname = $this->post['_db'] ?? '';
+            $dbname = Sanitizer::sanitizeInput($this->post['_db'] ?? '');
         } else {
-            $dbname = $_GET['_db'] ?? '';
+            $dbname = Sanitizer::sanitizeInput($_GET['_db'] ?? '');
         }
 
         if (!empty($dbname)) {
             $db = DatabaseConnector::connect(dbname: $dbname);
-            $this->result = new Result(pdo: $db);
+            $this->courseRegistration = new CourseRegistration(pdo: $db);
             $this->student = new Student(pdo: $db);
             $this->registrationService = new CourseRegistrationService(pdo: $db);
         } else {
@@ -54,7 +54,7 @@ class CourseRegistrationController
     public function registerCourses()
     {
         try {
-            $data = $this->registrationService->validateAndGetData(post: $this->post);
+            $data = $this->registrationService->validateAndGetData(data: $this->post);
         } catch (\InvalidArgumentException $e) {
             http_response_code(response_code: 400);
             $this->response['message'] = $e->getMessage();
@@ -62,35 +62,33 @@ class CourseRegistrationController
         }
 
         try {
-            if ($data) {
-                $courses = $data['courses'];
-                $classId = $data['class_id'];
+            $courses = $data['courses'];
+            $classId = $data['class_id'];
 
-                if ($data['type'] === 'class') {
-                    $students = $this->student->getStudents(columns: ['id AS student_id'], conditions: ['student_class' => $classId]);
-                }
-
-                $register = ($data['type'] === 'class') ?
-                    $this->registrationService->register(
-                        $students,
-                        $courses,
-                        $data['term'],
-                        $data['year'],
-                        $classId
-                    )
-                    :
-                    $this->registrationService->register(
-                        $data['students'],
-                        $courses,
-                        $data['term'],
-                        $data['year'],
-                        $classId
-                    );
-
-                $this->response = $register ?
-                    ['success' => true, 'message' => 'Courses registered successfully']
-                    : ['success' => false, 'message' => 'Failed to register courses'];
+            if ($data['type'] === 'class') {
+                $students = $this->student->getStudents(columns: ['id AS student_id'], conditions: ['student_class' => $classId]);
             }
+
+            $register = ($data['type'] === 'class') ?
+                $this->registrationService->register(
+                    $students,
+                    $courses,
+                    $data['term'],
+                    $data['year'],
+                    $classId
+                )
+                :
+                $this->registrationService->register(
+                    $data['students'],
+                    $courses,
+                    $data['term'],
+                    $data['year'],
+                    $classId
+                );
+
+            $this->response = $register ?
+                ['success' => true, 'message' => 'Courses registered successfully']
+                : ['success' => false, 'message' => 'Failed to register courses'];
         } catch (Exception $e) {
             http_response_code(response_code: 500);
             $this->response['message'] = $e->getMessage();
@@ -99,7 +97,49 @@ class CourseRegistrationController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function fetchRegisteredCourses() {}
+    public function getRegistrationTerms(array $params)
+    {
+        try {
+            // Validate and clean the input data.
+            $data = $this->registrationService->validateAndGetData($params, destination: 'terms');
+        } catch (\InvalidArgumentException $e) {
+            http_response_code(400);
+            $this->response['message'] = $e->getMessage();
+            ResponseHandler::sendJsonResponse($this->response);
+        }
+
+        try {
+            $formatted = [];
+            // Fetch existing registrations for the class.
+            $registrations = $this->courseRegistration->getRecords(
+                columns: ['year', 'term'],
+                conditions: ['class' => $data['class_id']]
+            );
+
+            foreach ($registrations as $registration) {
+                $year = $registration['year'];
+                $term = $registration['term'];
+
+                // Group by year
+                if (!isset($formatted[$year])) {
+                    $formatted[$year] = ['terms' => []];
+                }
+
+                if (!isset($formatted[$year]['terms'][$term])) {
+                    $formatted[$year]['terms'] = [];
+                }
+                $formatted[$year]['terms'][] = $term;
+            }
+
+            $this->response = ['success' => true, 'sessions' => $formatted];
+        } catch (\PDOException $e) {
+            http_response_code(500);
+            $this->response['message'] = $e->getMessage();
+        }
+
+        ResponseHandler::sendJsonResponse($this->response);
+    }
+
 
     /**
      * Duplicates course registrations for a class if the academic year remains unchanged.
@@ -108,17 +148,17 @@ class CourseRegistrationController
      * 1. Validates and cleans the input data using the registration service.
      * 2. Fetches the current registered courses for the specified class.
      * 3. Checks if the current academic year matches the new data.
-     * 4. Extracts unique student IDs and course IDs from the current registrations.
+     * 4. Remove duplicates from the current registrations.
      * 5. Calls the registration service to register courses for these students.
-     * 6. Sends a JSON response with the result.
+     * 6. Sends a JSON response with the courseRegistration.
      *
      * @return void
      */
-    public function duplicateRegistration(): void
+    public function duplicateRegistration()
     {
         try {
             // Validate and clean the input data.
-            $data = $this->registrationService->validateAndCleanData($this->post);
+            $data = $this->registrationService->validateAndGetData($this->post, destination: 'duplicate');
         } catch (\InvalidArgumentException $e) {
             http_response_code(400);
             $this->response['message'] = $e->getMessage();
@@ -127,7 +167,7 @@ class CourseRegistrationController
 
         try {
             // Fetch existing registrations for the class.
-            $oldRegistrations = $this->result->getRegisteredCourses(
+            $oldRegistrations = $this->courseRegistration->getRecords(
                 columns: ['year', 'course AS course_id', 'reg_no AS student_id'],
                 conditions: ['class' => $data['class_id']]
             );
@@ -148,21 +188,22 @@ class CourseRegistrationController
                 ResponseHandler::sendJsonResponse($this->response);
             }
 
-            // Extract student IDs from the current registrations.
-            $students = array_map(
-                fn($registration) => ['student_id' => $registration['student_id']],
-                $oldRegistrations
-            );
-
-            // Extract course IDs. 
-            $courses = array_map(
-                fn($registration) => ['course_id' => $registration['course_id']],
-                $oldRegistrations
-            );
-
             // Remove duplicates if any.
-            $courses = array_values(array_unique($courses));
-            $students = array_values(array_unique($students));
+            $uniqueStudentIds = array_unique(array_column($oldRegistrations, 'student_id'));
+            $students = [];
+            foreach ($uniqueStudentIds as $studentId) {
+                $students[] = [
+                    'student_id' => $studentId
+                ];
+            }
+
+            $uniqueCourseIds =  array_unique(array_column($oldRegistrations, 'course_id'));
+            $courses = [];
+            foreach ($uniqueCourseIds as $courseId) {
+                $courses[] = [
+                    'course_id' => $courseId
+                ];
+            }
 
             // Call the registration service to duplicate the registrations.
             $register = $this->registrationService->register(
@@ -175,8 +216,8 @@ class CourseRegistrationController
 
             // Set response based on registration success.
             $this->response = $register
-                ? ['success' => true, 'message' => 'Courses registered successfully']
-                : ['success' => false, 'message' => 'Failed to register courses'];
+                ? ['success' => true, 'message' => 'Registration copied successfully']
+                : ['success' => false, 'message' => 'Failed to copy registration'];
         } catch (\PDOException $e) {
             http_response_code(500);
             $this->response['message'] = $e->getMessage();
