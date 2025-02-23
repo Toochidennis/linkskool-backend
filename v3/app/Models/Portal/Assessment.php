@@ -11,7 +11,7 @@ class Assessment extends QueryExecutor
     public function __construct(\PDO $pdo)
     {
         parent::__construct($pdo);
-        $this->table = '';
+        $this->table = 'assessment_table';
     }
 
 
