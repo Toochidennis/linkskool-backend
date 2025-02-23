@@ -2,51 +2,38 @@
 
 namespace V3\App\Controllers\Portal;
 
+use V3\App\Controllers\BaseController;
 use V3\App\Models\Portal\ClassModel;
-use V3\App\Utilities\DataExtractor;
+use V3\App\Traits\ValidationTrait;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Utilities\DatabaseConnector;
-use V3\App\Services\Portal\AuthService;
 use V3\App\Services\Portal\ClassService;
 
-class ClassController{
-    private array $response = ['success' => false, 'message' => ''];
-    private array $post;
+class ClassController extends BaseController
+{
+
     private ClassModel $classModel;
     private ClassService $classService;
+    use ValidationTrait;
 
-    public function __construct(){
+    public function __construct()
+    {
+        parent::__construct();
         $this->initialize();
     }
 
     private function initialize()
     {
-        AuthService::verifyAPIKey();
-        AuthService::verifyJWT();
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->post = DataExtractor::extractPostData();
-            $dbname = $this->post['_db'] ?? '';
-        } else {
-            $dbname = $_GET['_db'] ?? '';
-        }
-
-        if (!empty($dbname)) {
-            $db = DatabaseConnector::connect(dbname: $dbname);
-            $this->classModel = new ClassModel(pdo: $db);
-        } else {
-            $this->response['message'] = '_db is required.';
-            http_response_code(401);
-            ResponseHandler::sendJsonResponse(response: $this->response);
-        }
-
+        $this->classModel = new ClassModel(pdo: $this->pdo);
         $this->classService = new ClassService();
     }
 
     public function addClass()
     {
+        $requiredFields = ['class_name', 'level'];
+
         try {
-            $data = $this->classService->validateAndGetData(post: $this->post);
+            $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
         } catch (\InvalidArgumentException $e) {
             http_response_code(400);
             $this->response['message'] = $e->getMessage();
@@ -89,7 +76,7 @@ class ClassController{
                 }, $result);
 
                 $this->response = ['success' => true, 'classes' => $classes];
-            }else{
+            } else {
                 $this->response = ['success' => true, 'classes' => []];
             }
         } catch (\PDOException $e) {
@@ -103,5 +90,4 @@ class ClassController{
     public function getClassById() {}
 
     public function deleteClass() {}
-    
 }

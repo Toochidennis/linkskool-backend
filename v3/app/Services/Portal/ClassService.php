@@ -28,10 +28,6 @@ class ClassService{
             throw new \InvalidArgumentException(implode(', ', $errors));
         }
 
-        return [
-            'class_name' => Sanitizer::sanitizeInput($post['class_name']),
-            'level' => Sanitizer::sanitizeInput($post['level']),
-            'form_teacher' => Sanitizer::sanitizeInput($post['form_teacher'] ?? '')
-        ];
+        Sanitizer::sanitizeInput($post);
     }
 }

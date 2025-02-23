@@ -2,15 +2,12 @@
 
 namespace V3\App\Controllers\Portal;
 
-
-use V3\App\Utilities\Sanitizer;
-use V3\App\Utilities\AuthHelper;
 use V3\App\Utilities\Permission;
 use V3\App\Models\Portal\Student;
-use V3\App\Utilities\DataExtractor;
+use V3\App\Traits\ValidationTrait;
 use V3\App\Utilities\ResponseHandler;
+use V3\App\Controllers\BaseController;
 use V3\App\Utilities\DatabaseConnector;
-use V3\App\Services\Portal\AuthService;
 use V3\App\Models\Portal\SchoolSettings;
 use V3\App\Services\Portal\StudentService;
 use V3\App\Models\Portal\RegistrationTracker;
@@ -22,44 +19,35 @@ use V3\App\Models\Portal\RegistrationTracker;
  */
 
 class StudentController
+extends BaseController
 {
-    private array $post;
     private Student $student;
     private SchoolSettings $schoolSettings;
     private RegistrationTracker $regTracker;
     private StudentService $studentService;
-    private array $response = ['success' => false, 'message' => ''];
+
+    use ValidationTrait;
 
 
     public function __construct()
     {
-        $this->initialize();
+        parent::__construct();
+        $this->initializeDatabaseAndServices();
     }
 
-    private function initialize()
+    /**
+     * Initializes the database connection and service instances.
+     *
+     * Expects the request to contain a valid '_db' parameter.
+     *
+     * @param string $dbname The database name extracted from the request.
+     * @return void
+     */
+    private function initializeDatabaseAndServices()
     {
-        AuthService::verifyAPIKey();
-        AuthService::verifyJWT();
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->post = DataExtractor::extractPostData();
-            $dbname = $this->post['_db'] ?? '';
-        } else {
-            $dbname = $_GET['_db'] ?? '';
-        }
-
-        if (!empty($dbname)) {
-            $db = DatabaseConnector::connect(dbname: $dbname);
-            $this->student = new Student(pdo: $db);
-            $this->schoolSettings = new SchoolSettings(pdo: $db);
-            $this->regTracker = new RegistrationTracker(pdo: $db);
-        } else {
-            $this->response['message'] = '_db is required.';
-            http_response_code(401);
-            ResponseHandler::sendJsonResponse(response: $this->response);
-        }
-
-        // Instantiate the service with the necessary Models\Portal
+        $this->student = new Student(pdo: $this->pdo);
+        $this->schoolSettings = new SchoolSettings(pdo: $this->pdo);
+        $this->regTracker = new RegistrationTracker(pdo: $this->pdo);
         $this->studentService = new StudentService(
             student: $this->student,
             schoolSettings: $this->schoolSettings,
@@ -72,8 +60,17 @@ class StudentController
      */
     public function addStudent()
     {
+        // Define an array for required fields with custom error messages
+        $requiredFields = [
+            'surname',
+            'first_name',
+            'sex',
+            'student_class',
+            'student_level'
+        ];
+
         try {
-            $data = $this->studentService->validateAndGetData(post: $this->post);
+            $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
         } catch (\InvalidArgumentException $e) {
             http_response_code(response_code: 400);
             $this->response['message'] = $e->getMessage();
@@ -93,6 +90,11 @@ class StudentController
                 } else {
                     throw new \Exception('Failed to generate registration number.');
                 }
+            }else{
+                $this->response = [
+                    'message' => 'Failed to add student',
+                    'student_id' => $studentId
+                ];
             }
         } catch (\Exception $e) {
             http_response_code(response_code: 500);
@@ -134,7 +136,7 @@ class StudentController
                 }, $results);
 
                 $this->response = ['success' => true, 'students' => $studentDetails];
-            }else{
+            } else {
                 $this->response = ['success' => true, 'students' => []];
             }
         } catch (\PDOException $e) {

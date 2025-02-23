@@ -4,7 +4,6 @@ namespace V3\App\Controllers\Portal;
 
 use V3\App\Models\Portal\Staff;
 use V3\App\Utilities\Permission;
-
 use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Utilities\DatabaseConnector;
