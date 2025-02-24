@@ -25,6 +25,13 @@ $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('GET', '/portal/courses/registrations', ['Portal\CourseRegistrationController', 'fetchRegisteredCourses']);
     $r->addRoute('GET', '/portal/courses/registrations/terms', ['Portal\CourseRegistrationController', 'getRegistrationTerms']);
     $r->addRoute('POST', '/portal/courses/registrations/duplicate', ['Portal\CourseRegistrationController', 'duplicateRegistration']);
+
+    $r->addRoute('POST', '/portal/assessments', ['Portal\AssessmentController', 'addAssessment']);
+    $r->addRoute('GET', '/portal/assessments', ['Portal\AssessmentController', 'fetchAssessments']);
+    $r->addRoute('GET', '/portal/assessments/{level}', ['Portal\AssessmentController', 'fetchAssessmentById']);
+
+    $r->addRoute('POST', '/portal/grades', ['Portal\GradeController', 'addGrade']);
+    $r->addRoute('GET', '/portal/grades', ['Portal\GradeController', 'fetchGrades']);
 });
 
 // Fetch method and URI
