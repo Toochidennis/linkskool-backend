@@ -7,6 +7,7 @@ use V3\App\Utilities\DatabaseConnector;
 use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Services\Portal\AuthService;
+use V3\App\Utilities\Sanitizer;
 
 abstract class BaseController
 {
@@ -46,14 +47,17 @@ abstract class BaseController
 
         // Extract the database name based on request method.
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->post = DataExtractor::extractPostData();
+            $this->post = Sanitizer::sanitizeInput(DataExtractor::extractPostData());
             $dbname = $this->post['_db'] ?? '';
         } else {
-            $dbname = $_GET['_db'] ?? '';
+            $get = Sanitizer::sanitizeInput($_GET);
+            $dbname = $get['_db'] ?? '';
         }
 
+       // ResponseHandler::sendJsonResponse(['message'=>$dbname]);
+
         // Validate that _db is provided.
-        if (empty($this->dbname)) {
+        if (empty($dbname)) {
             http_response_code(400);
             $this->response['message'] = '_db is required.';
             ResponseHandler::sendJsonResponse($this->response);

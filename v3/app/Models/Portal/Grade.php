@@ -4,29 +4,26 @@ namespace V3\App\Models\Portal;
 
 use V3\App\Utilities\QueryExecutor;
 
-class Assessment extends QueryExecutor
-{
+class Grade extends QueryExecutor{
     private string $table;
 
-    public function __construct(\PDO $pdo)
-    {
+    public function __construct(\PDO $pdo){
         parent::__construct($pdo);
-        $this->table = 'assessment_table';
+        $this->table = 'score_grade_table';
     }
 
-
-    public function insertAssessment(array $data)
+    public function insertGrade(array $data)
     {
         return parent::insert(table: $this->table, data: $data);
     }
 
-    public function updateAssessment(array $data, array $conditions)
+    public function updateGrade(array $data, array $conditions)
     {
         return parent::update(table: $this->table, data: $data, conditions: $conditions);
     }
 
     /**
-     * Retrieves assessment records from the database.
+     * Retrieves grades records from the database.
      *
      * @param array $columns    (Optional) An array of column names to retrieve.
      *                          If empty, all columns will be retrieved.
@@ -38,13 +35,8 @@ class Assessment extends QueryExecutor
      *
      * @return array|false Returns an array of matching records, or false on failure.
      */
-    public function getAssessments(array $columns = [], array $conditions = [], int $limit = 0)
+    public function getGrades(array $columns = [], array $conditions = [], int $limit = 0)
     {
         return parent::findBy($this->table, columns: $columns, conditions: $conditions, limit: $limit);
-    }
-
-    public function fetchAssessments(array $columns = [], array $joins = [], array $conditions = [])
-    {
-        return parent::queryWithJoins(table: "$this->table", columns: $columns, joins: $joins, conditions: $conditions);
     }
 }

@@ -3,24 +3,27 @@
 namespace V3\App\Controllers\Portal;
 
 use Exception;
+use V3\App\Controllers\BaseController;
 use V3\App\Models\Portal\CourseRegistration;
 use V3\App\Services\Portal\CourseRegistrationService;
+use V3\App\Traits\ValidationTrait;
 use V3\App\Utilities\DatabaseConnector;
 use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Models\Portal\Student;
 use V3\App\Utilities\Sanitizer;
 
-class CourseRegistrationController
+class CourseRegistrationController extends BaseController
 {
     private CourseRegistrationService $registrationService;
     private CourseRegistration $courseRegistration;
-    private array $post;
     private Student $student;
-    private array $response = ['success' => false];
+
+    use ValidationTrait;
 
     public function __construct()
     {
+        parent::__construct();
         $this->initialize();
     }
 
@@ -29,23 +32,9 @@ class CourseRegistrationController
      */
     public function initialize()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->post = DataExtractor::extractPostData();
-            $dbname = Sanitizer::sanitizeInput($this->post['_db'] ?? '');
-        } else {
-            $dbname = Sanitizer::sanitizeInput($_GET['_db'] ?? '');
-        }
-
-        if (!empty($dbname)) {
-            $db = DatabaseConnector::connect(dbname: $dbname);
-            $this->courseRegistration = new CourseRegistration(pdo: $db);
-            $this->student = new Student(pdo: $db);
-            $this->registrationService = new CourseRegistrationService(pdo: $db);
-        } else {
-            $this->response['message'] = '_db is required.';
-            http_response_code(400);
-            ResponseHandler::sendJsonResponse(response: $this->response);
-        }
+        $this->courseRegistration = new CourseRegistration(pdo: $this->pdo);
+        $this->student = new Student(pdo: $this->pdo);
+        $this->registrationService = new CourseRegistrationService(pdo: $this->pdo);
     }
 
     /**
@@ -54,7 +43,7 @@ class CourseRegistrationController
     public function registerCourses()
     {
         try {
-            $data = $this->registrationService->validateAndGetData(data: $this->post);
+            $data = $this->validateData(data: $this->post);
         } catch (\InvalidArgumentException $e) {
             http_response_code(response_code: 400);
             $this->response['message'] = $e->getMessage();

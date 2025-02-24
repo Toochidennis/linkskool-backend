@@ -3,51 +3,29 @@
 namespace V3\App\Controllers\Portal;
 
 use V3\App\Models\Portal\Course;
-use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
-use V3\App\Utilities\DatabaseConnector;
-use V3\App\Services\Portal\AuthService;
+use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\CourseService;
-
 
 /**
  * Class CourseController
  *
  * Handles course-related operations.
  */
-class CourseController
+class CourseController extends BaseController
 {
-    private array $response = ['success' => false, 'message' => ''];
-    private array $post;
     private Course $course;
     private CourseService $courseService;
 
     public function __construct()
     {
+        parent::__construct();
         $this->initialize();
     }
 
     private function initialize()
     {
-        AuthService::verifyAPIKey();
-        AuthService::verifyJWT();
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->post = DataExtractor::extractPostData();
-            $dbname = $this->post['_db'] ?? '';
-        } else {
-            $dbname = $_GET['_db'] ?? '';
-        }
-
-        if (!empty($dbname)) {
-            $db = DatabaseConnector::connect(dbname: $dbname);
-            $this->course = new Course(pdo: $db);
-        } else {
-            $this->response['message'] = '_db is required.';
-            http_response_code(401);
-            ResponseHandler::sendJsonResponse(response: $this->response);
-        }
-
+        $this->course = new Course(pdo: $this->pdo);
         $this->courseService = new CourseService();
     }
 
@@ -86,19 +64,15 @@ class CourseController
         try {
             $result = $this->course->getCourses();
 
-            if ($result) {
-                $courses  = array_map(function ($row) {
-                    return [
-                        'id' => $row['id'],
-                        'course_name' => $row['course_name'],
-                        'course_code' => $row['course_code']
-                    ];
-                }, $result);
+            $courses  = array_map(function ($row) {
+                return [
+                    'id' => $row['id'],
+                    'course_name' => $row['course_name'],
+                    'course_code' => $row['course_code']
+                ];
+            }, $result);
 
-                $this->response = ['success' => true, 'courses' => $courses];
-            }else{
-                $this->response = ['success' => true, 'courses' => []];
-            }
+            $this->response = ['success' => true, 'courses' => $courses];
         } catch (\PDOException $e) {
             http_response_code(500);
             $this->response['message'] = $e->getMessage();

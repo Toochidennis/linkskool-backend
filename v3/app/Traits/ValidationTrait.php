@@ -38,7 +38,7 @@ trait ValidationTrait
             throw new InvalidArgumentException(implode(', ', $errors));
         }
 
-        // Optionally, sanitize the data
-        return Sanitizer::sanitizeInput($data);
+        unset($data['_db']);
+        return $data;
     }
 }
