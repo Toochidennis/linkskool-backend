@@ -47,7 +47,24 @@ class AttendanceController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function updateAttendance() {}
+    public function updateAttendance()
+    {
+        $this->attendance::INSERT_REQUIRED[] = 'id';
+        $data = $this->validateData($this->post,  $this->attendance::INSERT_REQUIRED);
+
+        try {
+            $isUpdated = $this->attendance->updateAttendance($data, ['id' => $data['id']]);
+
+            $this->response = $isUpdated ?
+                ['success' => true, 'message' => 'Attendance updated successfully']
+                : ['success' => false, 'message' => 'Failed to update attendance'];
+        } catch (Exception $e) {
+            http_response_code(response_code: 500);
+            $this->response['message'] = $e->getMessage();
+        }
+
+        ResponseHandler::sendJsonResponse($this->response);
+    }
 
     /**
      * Returns attendance data based on provided filters.
@@ -63,7 +80,7 @@ class AttendanceController extends BaseController
     {
         $data = $this->validateData($params, $this->attendance::GET_FULL_REQUIRED);
         try {
-           $result =  $this->attendance->getAttendance(
+            $result =  $this->attendance->getAttendance(
                 columns: ['id', 'count', 'date', 'register'],
                 conditions: [
                     'class' => $data['class'],
@@ -98,13 +115,30 @@ class AttendanceController extends BaseController
         $data = $this->validateData($params, $this->attendance::GET_SUMMARY_REQUIRED);
         try {
             $result = $this->attendance->getAttendance(
-                columns: [ 'id', 'count', 'date'],
+                columns: ['id', 'count', 'date'],
                 conditions: [
                     'class' => $data['class'],
                     'course' => $data['course'],
                     'year' => $data['year'],
                     'term' => $data['term']
                 ]
+            );
+
+            $this->response = ['success' => true, 'attendance_records' => $result];
+        } catch (Exception $e) {
+            http_response_code(response_code: 500);
+            $this->response['message'] = $e->getMessage();
+        }
+        ResponseHandler::sendJsonResponse($this->response);
+    }
+
+    public function getAttendanceById(array $params)
+    {
+        $data = $this->validateData($params, ['id']);
+        try {
+            $result = $this->attendance->getAttendance(
+                columns: ['id', 'count', 'date', 'register'],
+                conditions: ['id' => $data['id']]
             );
 
             $this->response = ['success' => true, 'attendance_records' => $result];

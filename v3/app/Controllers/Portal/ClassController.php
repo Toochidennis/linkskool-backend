@@ -2,11 +2,10 @@
 
 namespace V3\App\Controllers\Portal;
 
-use V3\App\Controllers\BaseController;
-use V3\App\Models\Portal\ClassModel;
 use V3\App\Traits\ValidationTrait;
+use V3\App\Models\Portal\ClassModel;
 use V3\App\Utilities\ResponseHandler;
-use V3\App\Utilities\DatabaseConnector;
+use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\ClassService;
 
 class ClassController extends BaseController
@@ -32,13 +31,7 @@ class ClassController extends BaseController
     {
         $requiredFields = ['class_name', 'level'];
 
-        try {
-            $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
-        } catch (\InvalidArgumentException $e) {
-            http_response_code(400);
-            $this->response['message'] = $e->getMessage();
-            ResponseHandler::sendJsonResponse(response: $this->response);
-        }
+        $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
 
         try {
             $success = $this->classModel->insertClass(data: $data);
