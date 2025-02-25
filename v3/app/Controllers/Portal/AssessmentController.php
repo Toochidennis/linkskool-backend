@@ -15,7 +15,6 @@ class AssessmentController extends BaseController
     private Assessment $assessment;
     private AssessmentService $assessmentService;
 
-
     public function __construct()
     {
         parent::__construct();
@@ -30,19 +29,7 @@ class AssessmentController extends BaseController
 
     public function addAssessment()
     {
-        $requiredFields = [
-            'assesment_name',
-            'max_score',
-            'level'
-        ];
-
-        try {
-            $data = $this->validateData($this->post, $requiredFields);
-        } catch (\InvalidArgumentException $e) {
-            http_response_code(response_code: 400);
-            $this->response['message'] = $e->getMessage();
-            ResponseHandler::sendJsonResponse(response: $this->response);
-        }
+        $data = $this->validateData($this->post, $this->assessment->requiredFields);
 
         try {
             $assessmentId = $this->assessment->insertAssessment($data);

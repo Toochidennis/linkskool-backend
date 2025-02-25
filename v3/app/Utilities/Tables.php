@@ -11,6 +11,7 @@ class Tables{
         'allowance',
         'allowance_table',
         'assessment_table',
+        'attendance',
         'card_data',
         'class_table',
         'comment_table',

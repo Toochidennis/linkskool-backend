@@ -8,6 +8,8 @@ class Assessment extends QueryExecutor
 {
     private string $table;
 
+    public array $requiredFields = ['assesment_name','max_score','level'];
+
     public function __construct(\PDO $pdo)
     {
         parent::__construct($pdo);
