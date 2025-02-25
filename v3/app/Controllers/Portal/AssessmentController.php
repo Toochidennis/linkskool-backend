@@ -50,7 +50,9 @@ class AssessmentController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function updateAssessment() {}
+    public function updateAssessment() {
+       
+    }
 
     public function fetchAssessments(array $params)
     {

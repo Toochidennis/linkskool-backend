@@ -3,6 +3,7 @@
 namespace V3\App\Controllers\Portal;
 
 use V3\App\Models\Portal\Course;
+use V3\App\Traits\ValidationTrait;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\CourseService;
@@ -16,6 +17,8 @@ class CourseController extends BaseController
 {
     private Course $course;
     private CourseService $courseService;
+
+    use ValidationTrait;
 
     public function __construct()
     {

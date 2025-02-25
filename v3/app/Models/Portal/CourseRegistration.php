@@ -24,11 +24,6 @@ class CourseRegistration extends QueryExecutor
         return parent::countByCondition($this->table, $conditions);
     }
 
-    public function insertResult(array $data, array $conditions)
-    {
-        return parent::update(table: $this->table, data: $data, conditions: $conditions);
-    }
-
     public function getRecords(array $columns = [], array $conditions = [])
     {
         return parent::findBy(table: $this->table, columns: $columns, conditions: $conditions);
