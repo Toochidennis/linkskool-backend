@@ -3,9 +3,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
+use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\ResponseHandler;
 
-$response = ['success' => false ];
+$response = ['success' => false];
 
 $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     /**  Portal routes  */
@@ -22,9 +23,10 @@ $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('GET', '/portal/staff/{id}', ['Portal\StaffController', 'getStaffById']);
 
     $r->addRoute('POST', '/portal/courses/registrations', ['Portal\CourseRegistrationController', 'registerCourses']);
+    $r->addRoute('POST', '/portal/courses/registrations/class', ['Portal\CourseRegistrationController', 'registerClassCourses']);
+    $r->addRoute('POST', '/portal/courses/registrations/duplicate', ['Portal\CourseRegistrationController', 'duplicateRegistration']);
     $r->addRoute('GET', '/portal/courses/registrations', ['Portal\CourseRegistrationController', 'fetchRegisteredCourses']);
     $r->addRoute('GET', '/portal/courses/registrations/terms', ['Portal\CourseRegistrationController', 'getRegistrationTerms']);
-    $r->addRoute('POST', '/portal/courses/registrations/duplicate', ['Portal\CourseRegistrationController', 'duplicateRegistration']);
 
     $r->addRoute('POST', '/portal/assessments', ['Portal\AssessmentController', 'addAssessment']);
     $r->addRoute('GET', '/portal/assessments', ['Portal\AssessmentController', 'fetchAssessments']);
@@ -67,12 +69,14 @@ $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
 switch ($routeInfo[0]) {
     case Dispatcher::NOT_FOUND:
         $response['message'] = 'Route not found.';
-        ResponseHandler::sendJsonResponse($response, 404);
+        http_response_code(HttpStatus::NOT_FOUND);
+        ResponseHandler::sendJsonResponse($response);
         break;
 
     case Dispatcher::METHOD_NOT_ALLOWED:
         $response['message'] = 'Method not allowed.';
-        ResponseHandler::sendJsonResponse($response, 405);
+        http_response_code(HttpStatus::METHOD_NOT_ALLOWED);
+        ResponseHandler::sendJsonResponse($response);
         break;
 
     case Dispatcher::FOUND:
@@ -91,7 +95,8 @@ switch ($routeInfo[0]) {
             (new $controller())->$method($vars);
         } else {
             $response['message'] = 'Invalid handler';
-            ResponseHandler::sendJsonResponse($response, 500);
+            http_response_code(HttpStatus::SERVICE_UNAVAILABLE);
+            ResponseHandler::sendJsonResponse($response);
         }
         break;
 }

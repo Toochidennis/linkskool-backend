@@ -3,20 +3,21 @@
 namespace V3\App\Controllers\Portal;
 
 use Exception;
-use V3\App\Controllers\BaseController;
+use V3\App\Utilities\HttpStatus;
+use V3\App\Models\Portal\Student;
 use V3\App\Traits\ValidationTrait;
 use V3\App\Utilities\ResponseHandler;
-use V3\App\Models\Portal\Student;
+use V3\App\Controllers\BaseController;
 use V3\App\Models\Portal\CourseRegistration;
 use V3\App\Services\Portal\CourseRegistrationService;
 
 class CourseRegistrationController extends BaseController
 {
-    private CourseRegistrationService $registrationService;
-    private CourseRegistration $courseRegistration;
-    private Student $student;
-
     use ValidationTrait;
+    private Student $student;
+    private CourseRegistration $courseRegistration;
+    private CourseRegistrationService $registrationService;
+
 
     public function __construct()
     {
@@ -37,16 +38,20 @@ class CourseRegistrationController extends BaseController
     /**
      * Handles course registration.
      */
-    public function registerCourses()
+    public function registerCourses(string $type = '')
     {
-        $data = $this->validateData(data: $this->post, requiredFields: CourseRegistration::INSERT_REQUIRED);
+        $requiredFields = ['courses', 'year', 'term', 'class_id'];
+        $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
 
         try {
             $courses = $data['courses'];
             $classId = $data['class_id'];
 
-            if ($data['type'] === 'class') {
-                $students = $this->student->getStudents(columns: ['id AS student_id'], conditions: ['student_class' => $classId]);
+            if ($type === 'class') {
+                $students = $this->student
+                    ->select(['id AS student_id'])
+                    ->where('student_class', '=', $classId)
+                    ->get();
             }
 
             $register = ($data['type'] === 'class') ?
@@ -70,30 +75,30 @@ class CourseRegistrationController extends BaseController
                 ['success' => true, 'message' => 'Courses registered successfully']
                 : ['success' => false, 'message' => 'Failed to register courses'];
         } catch (Exception $e) {
-            http_response_code(response_code: 500);
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 
         ResponseHandler::sendJsonResponse($this->response);
     }
 
+    public function registerClassCourses()
+    {
+        $this->registerCourses(type: 'class');
+    }
+
     public function getRegistrationTerms(array $params)
     {
-        try {
-            // Validate and clean the input data.
-            $data = $this->registrationService->validateAndGetData($params, destination: 'terms');
-        } catch (\InvalidArgumentException $e) {
-            $this->response['message'] = $e->getMessage();
-            ResponseHandler::sendJsonResponse($this->response, 400);
-        }
+        $requiredFields = ['year', 'class_id'];
+        $data = $this->validateData($params, $requiredFields);
 
         try {
             $formatted = [];
             // Fetch existing registrations for the class.
-            $registrations = $this->courseRegistration->getRecords(
-                columns: ['year', 'term'],
-                conditions: ['class' => $data['class_id']]
-            );
+            $registrations = $this->courseRegistration
+                ->select(columns: ['year', 'term'])
+                ->where('class', '=', $data['class_id'])
+                ->get();
 
             foreach ($registrations as $registration) {
                 $year = $registration['year'];
@@ -111,14 +116,13 @@ class CourseRegistrationController extends BaseController
             }
 
             $this->response = ['success' => true, 'sessions' => $formatted];
-        } catch (\PDOException $e) {
-            http_response_code(500);
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 
         ResponseHandler::sendJsonResponse($this->response);
     }
-
 
     /**
      * Duplicates course registrations for a class if the academic year remains unchanged.
@@ -135,25 +139,19 @@ class CourseRegistrationController extends BaseController
      */
     public function duplicateRegistration()
     {
-        try {
-            // Validate and clean the input data.
-            $data = $this->registrationService->validateAndGetData($this->post, destination: 'duplicate');
-        } catch (\InvalidArgumentException $e) {
-            http_response_code(400);
-            $this->response['message'] = $e->getMessage();
-            ResponseHandler::sendJsonResponse($this->response);
-        }
+        $requiredFields = ['year', 'term', 'class_id'];
+        $data = $this->validateData($this->post, $requiredFields);
 
         try {
             // Fetch existing registrations for the class.
-            $oldRegistrations = $this->courseRegistration->getRecords(
-                columns: ['year', 'course AS course_id', 'reg_no AS student_id'],
-                conditions: ['class' => $data['class_id']]
-            );
+            $oldRegistrations = $this->courseRegistration
+                ->select(columns: ['year', 'course AS course_id', 'reg_no AS student_id'])
+                ->where('class', '=', $data['class_id'])
+                ->get();
 
             // Check if there are any existing registrations.
             if (empty($oldRegistrations)) {
-                http_response_code(404);
+                http_response_code(HttpStatus::NOT_FOUND);
                 $this->response['message'] = 'No existing registrations found to duplicate.';
                 ResponseHandler::sendJsonResponse($this->response);
             }
@@ -162,7 +160,7 @@ class CourseRegistrationController extends BaseController
             $oldYear = $oldRegistrations[0]['year'];
             $newYear = $data['year'];
             if ($oldYear !== $newYear) {
-                http_response_code(400);
+                http_response_code(HttpStatus::BAD_REQUEST);
                 $this->response['message'] = "Cannot duplicate registrations: academic year mismatch (existing: $oldYear, new: $newYear).";
                 ResponseHandler::sendJsonResponse($this->response);
             }
@@ -176,7 +174,7 @@ class CourseRegistrationController extends BaseController
                 ];
             }
 
-            $uniqueCourseIds =  array_unique(array_column($oldRegistrations, 'course_id'));
+            $uniqueCourseIds = array_unique(array_column($oldRegistrations, 'course_id'));
             $courses = [];
             foreach ($uniqueCourseIds as $courseId) {
                 $courses[] = [
@@ -197,11 +195,8 @@ class CourseRegistrationController extends BaseController
             $this->response = $register
                 ? ['success' => true, 'message' => 'Registration copied successfully']
                 : ['success' => false, 'message' => 'Failed to copy registration'];
-        } catch (\PDOException $e) {
-            http_response_code(500);
-            $this->response['message'] = $e->getMessage();
         } catch (Exception $e) {
-            http_response_code(500);
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 
