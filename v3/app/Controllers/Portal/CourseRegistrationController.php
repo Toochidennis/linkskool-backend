@@ -4,14 +4,11 @@ namespace V3\App\Controllers\Portal;
 
 use Exception;
 use V3\App\Controllers\BaseController;
-use V3\App\Models\Portal\CourseRegistration;
-use V3\App\Services\Portal\CourseRegistrationService;
 use V3\App\Traits\ValidationTrait;
-use V3\App\Utilities\DatabaseConnector;
-use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Models\Portal\Student;
-use V3\App\Utilities\Sanitizer;
+use V3\App\Models\Portal\CourseRegistration;
+use V3\App\Services\Portal\CourseRegistrationService;
 
 class CourseRegistrationController extends BaseController
 {
@@ -42,13 +39,7 @@ class CourseRegistrationController extends BaseController
      */
     public function registerCourses()
     {
-        try {
-            $data = $this->validateData(data: $this->post);
-        } catch (\InvalidArgumentException $e) {
-            http_response_code(response_code: 400);
-            $this->response['message'] = $e->getMessage();
-            ResponseHandler::sendJsonResponse(response: $this->response);
-        }
+        $data = $this->validateData(data: $this->post, requiredFields: CourseRegistration::INSERT_REQUIRED);
 
         try {
             $courses = $data['courses'];
@@ -92,9 +83,8 @@ class CourseRegistrationController extends BaseController
             // Validate and clean the input data.
             $data = $this->registrationService->validateAndGetData($params, destination: 'terms');
         } catch (\InvalidArgumentException $e) {
-            http_response_code(400);
             $this->response['message'] = $e->getMessage();
-            ResponseHandler::sendJsonResponse($this->response);
+            ResponseHandler::sendJsonResponse($this->response, 400);
         }
 
         try {

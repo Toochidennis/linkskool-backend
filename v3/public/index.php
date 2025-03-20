@@ -5,7 +5,7 @@ use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
 use V3\App\Utilities\ResponseHandler;
 
-$response = ['success' => false, 'message' => ''];
+$response = ['success' => false ];
 
 $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     /**  Portal routes  */
@@ -66,15 +66,13 @@ $uri = str_replace('/api3/v3', '', $uri);
 $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
 switch ($routeInfo[0]) {
     case Dispatcher::NOT_FOUND:
-        http_response_code(404);
         $response['message'] = 'Route not found.';
-        ResponseHandler::sendJsonResponse($response);
+        ResponseHandler::sendJsonResponse($response, 404);
         break;
 
     case Dispatcher::METHOD_NOT_ALLOWED:
-        http_response_code(405);
         $response['message'] = 'Method not allowed.';
-        ResponseHandler::sendJsonResponse($response);
+        ResponseHandler::sendJsonResponse($response, 405);
         break;
 
     case Dispatcher::FOUND:
@@ -92,9 +90,8 @@ switch ($routeInfo[0]) {
         if (class_exists($controller) && method_exists($controller, $method)) {
             (new $controller())->$method($vars);
         } else {
-            http_response_code(500);
             $response['message'] = 'Invalid handler';
-            ResponseHandler::sendJsonResponse($response);
+            ResponseHandler::sendJsonResponse($response, 500);
         }
         break;
 }

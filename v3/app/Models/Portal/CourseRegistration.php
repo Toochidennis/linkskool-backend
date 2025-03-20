@@ -8,6 +8,14 @@ class CourseRegistration extends QueryExecutor
 {
     private string $table;
 
+    public const INSERT_REQUIRED = [
+        'type' => 'Type of registration is required',
+        'courses' => 'courses is required',
+        'year' => 'year is required',
+        'term' => 'term is required',
+        'class_id' => 'class_id is required'
+    ];
+
     public function __construct(\PDO $pdo)
     {
         parent::__construct($pdo);

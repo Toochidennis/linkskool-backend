@@ -45,12 +45,12 @@ class CourseAssignmentController extends BaseController
             $assignments = $this->courseAssignment->getAssignedCourses(
                 columns: [
                     'staff_course_table.*',
-                    'class_table.id',
-                    'class_table.class_name',
-                    'class_table.level',
                     'course_table.id',
                     'course_table.course_name',
                     'course_table.course_code',
+                    'class_table.id',
+                    'class_table.class_name',
+                    'class_table.level',
                     'level_table.level_name'
                 ],
                 joins: [
@@ -71,9 +71,9 @@ class CourseAssignmentController extends BaseController
                     ]
                 ],
                 conditions: [
-                    'ref_no' => $data['ref_no'],
-                    'year' => $data['year'],
-                    'term'=> $data['term']
+                    'staff_course_table.ref_no' => $data['ref_no'],
+                    'staff_course_table.year' => $data['year'],
+                    'staff_course_table.term'=> $data['term']
                 ]
             );
 

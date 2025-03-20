@@ -4,7 +4,6 @@ namespace V3\App\Services\Portal;
 
 use InvalidArgumentException;
 use V3\App\Models\Portal\CourseRegistration;
-use V3\App\Utilities\ResponseHandler;
 use V3\App\Utilities\Sanitizer;
 
 class CourseRegistrationService

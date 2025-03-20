@@ -56,9 +56,8 @@ trait ValidationTrait
         try {
             return $this->validate($data, $requiredFields);
         } catch (InvalidArgumentException $e) {
-            http_response_code(response_code: 400);
             $response = ['success' => false, 'message' => $e->getMessage()];
-            ResponseHandler::sendJsonResponse(response: $response);
+            ResponseHandler::sendJsonResponse(response: $response, responseCode: 400);
         }
     }
 }
