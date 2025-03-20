@@ -2,32 +2,19 @@
 
 namespace V3\App\Models\Portal;
 
-use V3\App\Utilities\QueryExecutor;
+use PDO;
+use V3\App\Models\BaseModel;
 
-class RegistrationTracker extends QueryExecutor
+class RegistrationTracker extends BaseModel
 {
-    private $table;
+    protected string $table = 'registration_tracker';
 
-    public function __construct(\PDO $pdo)
+    public function __construct(PDO $pdo)
     {
         parent::__construct($pdo);
-        $this->table = 'registration_tracker';
+        $this->table($this->table);
     }
 
-    public function insertRegNumber(array $data)
-    {
-        return parent::insert(table:$this->table, data:$data);
-    }
-
-    public function updateRegNumber(array $data, array $conditions)
-    {
-        return parent::update(table:$this->table, data:$data, conditions:$conditions);
-    }
-
-    public function getStudentLastRegNumber()
-    {
-        return parent::findBy(table: $this->table, columns: ['id, student_reg_number'], limit: 1);
-    }
 
     public function getStaffLastRegNumber()
     {

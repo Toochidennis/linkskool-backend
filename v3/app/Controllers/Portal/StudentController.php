@@ -3,6 +3,7 @@
 namespace V3\App\Controllers\Portal;
 
 use Exception;
+use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\Permission;
 use V3\App\Models\Portal\Student;
 use V3\App\Traits\ValidationTrait;
@@ -11,7 +12,6 @@ use V3\App\Controllers\BaseController;
 use V3\App\Models\Portal\SchoolSettings;
 use V3\App\Services\Portal\StudentService;
 use V3\App\Models\Portal\RegistrationTracker;
-use V3\App\Utilities\HttpStatus;
 
 /**
  * Class StudentController
@@ -48,7 +48,7 @@ extends BaseController
         $this->student = new Student(pdo: $this->pdo);
         $this->schoolSettings = new SchoolSettings(pdo: $this->pdo);
         $this->regTracker = new RegistrationTracker(pdo: $this->pdo);
-        $this->studentService = new StudentService($this->pdo       );
+        $this->studentService = new StudentService($this->pdo);
     }
 
     /**
