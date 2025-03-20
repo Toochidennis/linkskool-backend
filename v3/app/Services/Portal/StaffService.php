@@ -2,16 +2,17 @@
 
 namespace V3\App\Services\Portal;
 
-use V3\App\Models\Portal\Staff;
+use PDO;
 use V3\App\Utilities\Sanitizer;
+use V3\App\Models\Portal\Staff;
 use V3\App\Models\Portal\SchoolSettings;
 use V3\App\Models\Portal\RegistrationTracker;
 
 class StaffService
 {
+    private Staff $staff;
     private SchoolSettings $schoolSettings;
     private RegistrationTracker $regTracker;
-    private Staff $staff;
 
     /**
      * staffRegistrationService constructor.
@@ -20,11 +21,11 @@ class StaffService
      * @param SchoolSettings  $schoolSettings
      * @param RegistrationTracker $regTracker
      */
-    public function __construct(Staff $staff, SchoolSettings $schoolSettings, RegistrationTracker $regTracker)
+    public function __construct(PDO $pdo)
     {
-        $this->staff = $staff;
-        $this->schoolSettings = $schoolSettings;
-        $this->regTracker = $regTracker;
+        $this->staff = new Staff(pdo: $pdo);
+        $this->schoolSettings = new SchoolSettings($pdo);
+        $this->regTracker = new RegistrationTracker($pdo);
     }
 
     /**
@@ -35,8 +36,9 @@ class StaffService
      */
     public function generateRegistrationNumber(int $staffId): bool
     {
-        $prefixResult = $this->schoolSettings->getStaffPrefix();
-        $regResult = $this->regTracker->getStaffLastRegNumber();
+        $prefixResult = $this->schoolSettings->select(['staff_prefix'])->first();
+        $regResult = $this->regTracker->select(['id', 'staff_reg_number'])->first();
+
         $newNumber = '001';
 
         if ($prefixResult) {
@@ -53,17 +55,17 @@ class StaffService
         }
 
         // Update the staff's registration number
-        $updateStaffStmt = $this->staff->updateStaff(
-            data: ['staff_no' => $staffRegNumber],
-            conditions: ['id' => $staffId]
-        );
+        $updateStaffStmt = $this->staff
+            ->where('id', '=', $staffId)
+            ->update(['staff_no' => $staffRegNumber]);
 
         // Update (or insert) the last used registration number in the tracker
         $regStmt = $regResult ?
-            $this->regTracker->updateRegNumber(
-                data: ['staff_reg_number' => $newNumber],
-                conditions: ['id' => $regResult['id']]
-            ) : $this->regTracker->insertRegNumber(data: ['staff_reg_number' => $newNumber]);
+            $this->regTracker
+            ->where('id', '=', $regResult['id'])
+            ->update(['staff_reg_number' => $newNumber])
+            :
+            $this->regTracker->insert(data: ['staff_reg_number' => $newNumber]);
 
         return $updateStaffStmt && $regStmt;
     }

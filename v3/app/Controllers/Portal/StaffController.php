@@ -2,16 +2,13 @@
 
 namespace V3\App\Controllers\Portal;
 
+use Exception;
+use V3\App\Controllers\BaseController;
 use V3\App\Models\Portal\Staff;
 use V3\App\Utilities\Permission;
-use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
-use V3\App\Utilities\DatabaseConnector;
-use V3\App\Services\Portal\AuthService;
 use V3\App\Services\Portal\StaffService;
-use V3\App\Models\Portal\SchoolSettings;
-use V3\App\Models\Portal\RegistrationTracker;
-
+use V3\App\Utilities\HttpStatus;
 
 /**
  * Class StaffController
@@ -19,67 +16,32 @@ use V3\App\Models\Portal\RegistrationTracker;
  * Handles staff-related operations.
  */
 
-class StaffController
+class StaffController extends BaseController
 {
-    private array $post;
     private Staff $staff;
-    private SchoolSettings $schoolSettings;
-    private RegistrationTracker $regTracker;
     private StaffService $staffService;
-    private array $response = ['success' => false, 'message' => ''];
 
     public function __construct()
     {
-        AuthService::verifyAPIKey();
-        AuthService::verifyJWT();
-
+        parent::__construct();
         $this->initialize();
     }
 
     private function initialize()
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->post = DataExtractor::extractPostData();
-            $dbname = $this->post['_db'] ?? '';
-        } else {
-            $dbname = $_GET['_db'] ?? '';
-        }
-
-        if (!empty($dbname)) {
-            $db = DatabaseConnector::connect(dbname: $dbname);
-            $this->staff = new Staff(pdo: $db);
-            $this->schoolSettings = new SchoolSettings($db);
-            $this->regTracker = new RegistrationTracker($db);
-        } else {
-            $this->response['message'] = '_db is required.';
-
-            ResponseHandler::sendJsonResponse($this->response);
-        }
-
-        // Instantiate the service with the necessary Models\Portal
-        $this->staffService = new staffService(
-            $this->staff,
-            $this->schoolSettings,
-            $this->regTracker
-        );
+        $this->staff = new Staff(pdo: $this->pdo);
+        $this->staffService = new StaffService($this->pdo);
     }
-
 
     /**
      * Adds a new staff.
      */
     public function addStaff()
     {
-        try {
-            $data = $this->staffService->validateAndGetData(post: $this->post);
-        } catch (\InvalidArgumentException $e) {
-            http_response_code(400);
-            $this->response['message'] = $e->getMessage();
-            ResponseHandler::sendJsonResponse($this->response);
-        }
+        $data = $this->staffService->validateAndGetData(post: $this->post);
 
         try {
-            $staffId = $this->staff->insertStaff($data);
+            $staffId = $this->staff->insert($data);
             if ($staffId) {
                 $success = $this->staffService->generateRegistrationNumber($staffId);
                 if ($success) {
@@ -89,14 +51,16 @@ class StaffController
                         'staff_id' => $staffId
                     ];
                 } else {
-                    throw new \Exception('Failed to generate staff number.');
+                    throw new Exception('Failed to generate staff number.');
                 }
+            }else{
+                $this->response = [
+                    'success' => false,
+                    'message' => 'Failed to register staff.'
+                ];
             }
-        } catch (\PDOException $e) {
-            http_response_code(500);
-            $this->response['message'] = $e->getMessage();
-        } catch (\Exception $e) {
-            http_response_code(500);
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 
@@ -106,33 +70,27 @@ class StaffController
     public function getStaff()
     {
         try {
-            $results = $this->staff->getStaff(columns: [
+            $results = $this->staff->select(columns: [
                 'id',
                 'picture_ref',
                 'surname',
                 'first_name',
                 'middle',
                 'staff_no'
-            ]);
+            ])->get();
 
-            if ($results) {
-                $staffDetails = array_map(function ($row) {
-                    return [
-                        'id' => $row['id'],
-                        'profile_url' => $row['picture_ref'],
-                        'surname' => $row['surname'],
-                        'first_name' => $row['first_name'],
-                        'middle' => $row['middle'],
-                        'staff_no' => $row['staff_no'],
-                    ];
-                }, $results);
+            $staffDetails = array_map(fn($row) => [
+                'id' => $row['id'],
+                'profile_url' => $row['picture_ref'],
+                'surname' => $row['surname'],
+                'first_name' => $row['first_name'],
+                'middle' => $row['middle'],
+                'staff_no' => $row['staff_no'],
+            ], $results);
 
-                $this->response = ['success' => true, 'staff' => $staffDetails];
-            }else{
-                $this->response = ['success' => true, 'staff' => []];
-            }
-        } catch (\PDOException $e) {
-            http_response_code(500);
+            $this->response = ['success' => true, 'staff' => $staffDetails];
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 
@@ -144,6 +102,4 @@ class StaffController
     public function updateStaff() {}
 
     public function deleteStaff($params) {}
-
-   
 }

@@ -3,6 +3,7 @@
 namespace V3\App\Services\Portal;
 
 use PDO;
+use Exception;
 use V3\App\Utilities\Sanitizer;
 use V3\App\Models\Portal\Student;
 use V3\App\Models\Portal\SchoolSettings;
@@ -10,9 +11,9 @@ use V3\App\Models\Portal\RegistrationTracker;
 
 class StudentService
 {
+    private Student $student;
     private SchoolSettings $schoolSettings;
     private RegistrationTracker $regTracker;
-    private Student $student;
 
     /**
      * StudentRegistrationService constructor.
@@ -36,8 +37,9 @@ class StudentService
      */
     public function generateRegistrationNumber(int $studentId): bool
     {
-        $prefixResult = $this->schoolSettings->getStudentPrefix();
-        $regResult = $this->regTracker->getStudentLastRegNumber();
+        $prefixResult = $this->schoolSettings->select(['student_prefix'])->first();
+        $regResult = $this->regTracker->select(['id, student_reg_number'])->first();
+
         $newNumber = '001';
 
         if ($prefixResult) {
@@ -58,13 +60,14 @@ class StudentService
             ->where('id', '=', $studentId)
             ->update(data: ['registration_no' => $studentRegNumber]);
 
-
         // Update (or insert) the last used registration number in the tracker
         $regStmt = $regResult ?
-            $this->regTracker->updateRegNumber(
-                data: ['student_reg_number' => $newNumber],
-                conditions: ['id' => $regResult['id']]
-            ) : $this->regTracker->insertRegNumber(data: ['student_reg_number' => $newNumber]);
+            $this->regTracker
+            ->where('id', '=', $newNumber)
+            ->update(['student_reg_number' => $newNumber])
+            :
+            $this->regTracker
+            ->insert(['student_reg_number' => $newNumber]);
 
         return $updateStudentStmt && $regStmt;
     }
@@ -74,7 +77,7 @@ class StudentService
      *
      * @param string $surname
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public function generatePassword(string $surname): string
     {
@@ -95,7 +98,7 @@ class StudentService
             'first_name' => 'First name is required.',
             'sex' => 'Gender is required.',
             'student_class' => 'Class is required.',
-            'student_level' => 'Level is required.',
+            'student_level' => 'Level is required.'
         ];
 
         $errors = [];

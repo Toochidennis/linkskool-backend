@@ -3,31 +3,15 @@
 namespace V3\App\Models\Portal;
 
 use PDO;
-use V3\App\Utilities\QueryExecutor;
+use V3\App\Models\BaseModel;
 
-class Staff extends QueryExecutor
+class Staff extends BaseModel
 {
-
-    private string $table;
+    protected string $table = 'staff_record';
 
     public function __construct(PDO $pdo)
     {
         parent::__construct($pdo);
-        $this->table = 'staff_record';
-    }
-
-    public function insertStaff(array $data)
-    {
-        return parent::insert($this->table, $data);
-    }
-
-    public function updateStaff(array $data, array $conditions)
-    {
-        return parent::update($this->table, $data, $conditions);
-    }
-
-    public function getStaff(array $columns = [], array $conditions = [], int $limit = 0)
-    {
-        return parent::findBy($this->table, columns: $columns, conditions: $conditions, limit: $limit);
+        $this->table($this->table);
     }
 }
