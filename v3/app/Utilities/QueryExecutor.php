@@ -272,7 +272,7 @@ class QueryExecutor
         // Build the WHERE clause.
         $whereParts = [];
         foreach ($conditions as $key => $value) {
-            $whereParts[] = "`$key` = ?";
+            $whereParts[] = "{$this->quoteIdentifier($key)} = ?";
         }
         $whereClause = !empty($whereParts) ? ' WHERE ' . implode(' AND ', $whereParts) : '';
 
@@ -289,6 +289,18 @@ class QueryExecutor
         return $limit === 1 ? $stmt->fetch(PDO::FETCH_ASSOC) : $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    private function quoteIdentifier($identifier)
+    {
+        // If the identifier already contains backticks, assume it's already quoted.
+        if (strpos($identifier, '`') !== false) {
+            return $identifier;
+        }
+        if (strpos($identifier, '.') !== false) {
+            $parts = explode('.', $identifier);
+            return '`' . implode('`.`', $parts) . '`';
+        }
+        return "`$identifier`";
+    }
     public function countByCondition($table, $conditions = [])
     {
         $this->validateTable($table);
