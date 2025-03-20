@@ -2,15 +2,16 @@
 
 namespace V3\App\Controllers\Portal;
 
+use Exception;
 use V3\App\Utilities\Permission;
 use V3\App\Models\Portal\Student;
 use V3\App\Traits\ValidationTrait;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Controllers\BaseController;
-use V3\App\Utilities\DatabaseConnector;
 use V3\App\Models\Portal\SchoolSettings;
 use V3\App\Services\Portal\StudentService;
 use V3\App\Models\Portal\RegistrationTracker;
+use V3\App\Utilities\HttpStatus;
 
 /**
  * Class StudentController
@@ -21,18 +22,17 @@ use V3\App\Models\Portal\RegistrationTracker;
 class StudentController
 extends BaseController
 {
+    use ValidationTrait;
     private Student $student;
     private SchoolSettings $schoolSettings;
     private RegistrationTracker $regTracker;
     private StudentService $studentService;
 
-    use ValidationTrait;
-
 
     public function __construct()
     {
         parent::__construct();
-        $this->initializeDatabaseAndServices();
+        $this->initialize();
     }
 
     /**
@@ -43,16 +43,12 @@ extends BaseController
      * @param string $dbname The database name extracted from the request.
      * @return void
      */
-    private function initializeDatabaseAndServices()
+    private function initialize()
     {
         $this->student = new Student(pdo: $this->pdo);
         $this->schoolSettings = new SchoolSettings(pdo: $this->pdo);
         $this->regTracker = new RegistrationTracker(pdo: $this->pdo);
-        $this->studentService = new StudentService(
-            student: $this->student,
-            schoolSettings: $this->schoolSettings,
-            regTracker: $this->regTracker
-        );
+        $this->studentService = new StudentService($this->pdo       );
     }
 
     /**
@@ -60,7 +56,6 @@ extends BaseController
      */
     public function addStudent()
     {
-        // Define an array for required fields with custom error messages
         $requiredFields = [
             'surname',
             'first_name',
@@ -68,36 +63,30 @@ extends BaseController
             'student_class',
             'student_level'
         ];
+        $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
 
         try {
-            $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
-        } catch (\InvalidArgumentException $e) {
-            http_response_code(response_code: 400);
-            $this->response['message'] = $e->getMessage();
-            ResponseHandler::sendJsonResponse(response: $this->response);
-        }
-
-        try {
-            $studentId = $this->student->insertStudent($data);
+            $studentId = $this->student->insert($data);
             if ($studentId) {
                 $success = $this->studentService->generateRegistrationNumber(studentId: $studentId);
-                if ($success) {
-                    $this->response = [
-                        'success' => true,
-                        'message' => 'Student added successfully.',
-                        'student_id' => $studentId
-                    ];
-                } else {
-                    throw new \Exception('Failed to generate registration number.');
-                }
-            }else{
-                $this->response = [
-                    'message' => 'Failed to add student',
+
+                $this->response = $success ? [
+                    'success' => true,
+                    'message' => 'Student added successfully.',
                     'student_id' => $studentId
+                ] :
+                    [
+                        'success' => false,
+                        'message' => 'Failed to generate registration number.'
+                    ];
+            } else {
+                $this->response = [
+                    'success' => false,
+                    'message' => 'Failed to add student'
                 ];
             }
-        } catch (\Exception $e) {
-            http_response_code(response_code: 500);
+        } catch (Exception $e) {
+            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 
@@ -110,37 +99,36 @@ extends BaseController
     public function getStudents()
     {
         try {
-            $results = $this->student->getStudents(columns: [
-                'id',
-                'picture_ref',
-                'surname',
-                'first_name',
-                'middle',
-                'registration_no',
-                'student_class',
-                'student_level'
-            ]);
+            $results = $this->student
+                ->select(columns: [
+                    'id',
+                    'picture_ref',
+                    'surname',
+                    'first_name',
+                    'middle',
+                    'registration_no',
+                    'student_class',
+                    'student_level'
+                ])->get();
 
             if ($results) {
-                $studentDetails = array_map(function ($row) {
-                    return [
-                        'id' => $row['id'],
-                        'picture_url' => $row['picture_ref'],
-                        'surname' => $row['surname'],
-                        'first_name' => $row['first_name'],
-                        'middle' => $row['middle'],
-                        'registration_no' => $row['registration_no'],
-                        'student_class' => $row['student_class'],
-                        'student_level' => $row['student_level']
-                    ];
-                }, $results);
+                $studentDetails = array_map(fn($row) => [
+                    'id' => $row['id'],
+                    'picture_url' => $row['picture_ref'],
+                    'surname' => $row['surname'],
+                    'first_name' => $row['first_name'],
+                    'middle' => $row['middle'],
+                    'registration_no' => $row['registration_no'],
+                    'student_class' => $row['student_class'],
+                    'student_level' => $row['student_level']
+                ], $results);
 
                 $this->response = ['success' => true, 'students' => $studentDetails];
             } else {
                 $this->response = ['success' => true, 'students' => []];
             }
         } catch (\PDOException $e) {
-            http_response_code(500);
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 

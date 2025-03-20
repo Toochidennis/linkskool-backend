@@ -3,6 +3,7 @@
 namespace V3\App\Traits;
 
 use InvalidArgumentException;
+use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\ResponseHandler;
 
 trait ValidationTrait
@@ -52,12 +53,12 @@ trait ValidationTrait
      */
     public function validateData(array $data, array $requiredFields = [])
     {
-
         try {
             return $this->validate($data, $requiredFields);
         } catch (InvalidArgumentException $e) {
             $response = ['success' => false, 'message' => $e->getMessage()];
-            ResponseHandler::sendJsonResponse(response: $response, responseCode: 400);
+            http_response_code(HttpStatus::BAD_REQUEST);
+            ResponseHandler::sendJsonResponse(response: $response);
         }
     }
 }

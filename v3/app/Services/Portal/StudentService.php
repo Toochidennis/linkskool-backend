@@ -2,6 +2,7 @@
 
 namespace V3\App\Services\Portal;
 
+use PDO;
 use V3\App\Utilities\Sanitizer;
 use V3\App\Models\Portal\Student;
 use V3\App\Models\Portal\SchoolSettings;
@@ -20,11 +21,11 @@ class StudentService
      * @param SchoolSettings  $schoolSettings
      * @param RegistrationTracker $regTracker
      */
-    public function __construct(Student $student, SchoolSettings $schoolSettings, RegistrationTracker $regTracker)
+    public function __construct(PDO $pdo)
     {
-        $this->student = $student;
-        $this->schoolSettings = $schoolSettings;
-        $this->regTracker = $regTracker;
+        $this->student = new Student($pdo);
+        $this->schoolSettings = new SchoolSettings($pdo);
+        $this->regTracker = new RegistrationTracker($pdo);
     }
 
     /**
@@ -53,10 +54,10 @@ class StudentService
         }
 
         // Update the student's registration number
-        $updateStudentStmt = $this->student->updateStudent(
-            data: ['registration_no' => $studentRegNumber],
-            conditions: ['id' => $studentId]
-        );
+        $updateStudentStmt = $this->student
+            ->where('id', '=', $studentId)
+            ->update(data: ['registration_no' => $studentRegNumber]);
+
 
         // Update (or insert) the last used registration number in the tracker
         $regStmt = $regResult ?
@@ -80,7 +81,6 @@ class StudentService
         return substr($surname, 0, 4) . rand(10000, 90000);
     }
 
-    
     /**
      * Validates POST data and returns sanitized data or false on error.
      *
@@ -110,7 +110,7 @@ class StudentService
 
         // Sanitize and set each input
         $surname = Sanitizer::sanitizeInput($post['surname']);
-        
+
         $data =  [
             "surname" => $surname,
             "first_name" => Sanitizer::sanitizeInput($post['first_name']),

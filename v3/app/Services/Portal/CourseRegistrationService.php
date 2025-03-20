@@ -2,60 +2,16 @@
 
 namespace V3\App\Services\Portal;
 
-use InvalidArgumentException;
+use PDO;
 use V3\App\Models\Portal\CourseRegistration;
-use V3\App\Utilities\Sanitizer;
 
 class CourseRegistrationService
 {
     private CourseRegistration $courseRegistration;
 
-    public function __construct(\PDO $pdo)
+    public function __construct(PDO $pdo)
     {
         $this->courseRegistration = new CourseRegistration($pdo);
-    }
-
-    /**
-     * Validates the provided data data and returns sanitized data along with the type.
-     *
-     * Expects 'year', 'term', 'type', 'courses', and 'class_id' to be provided.
-     *
-     * @param array $data The data to validate.
-     * @throws InvalidArgumentException if required fields are missing.
-     */
-    public function validateAndGetData(array $data, string $destination = "")
-    {
-        $requiredFields = match ($destination) {
-            'terms' => [
-                'year' => 'year is required',
-                'class_id' => 'class_id is required',
-            ],
-            'duplicate' =>  [
-                'year' => 'year is required',
-                'term' => 'term is required',
-                'class_id' => 'class_id is required',
-            ],
-            default => [
-                'type' => 'Type of registration is required',
-                'courses' => 'courses is required',
-                'year' => 'year is required',
-                'term' => 'term is required',
-                'class_id' => 'class_id is required',
-            ]
-        };
-
-        $errors = [];
-        foreach ($requiredFields as $field => $errorMessage) {
-            if (!isset($data[$field]) || empty($data[$field])) {
-                $errors[] = $errorMessage;
-            }
-        }
-
-        if (!empty($errors)) {
-            throw new InvalidArgumentException(implode(', ', $errors));
-        }
-
-        return Sanitizer::sanitizeInput($data);
     }
 
     /**
@@ -78,24 +34,23 @@ class CourseRegistrationService
                 $studentId = is_array($student) ? $student['student_id'] : $student;
                 $courseId = is_array($course) ? $course['course_id'] : $course;
 
-                $count = $this->courseRegistration->countCourseRegistrations(
-                    conditions: [
-                        'year' => $year,
-                        'term' => $term,
-                        'reg_no' => $studentId,
-                        'class' => $classId,
-                        'course' => $courseId
-                    ]
-                );
+                $exists = $this->courseRegistration
+                    ->where('year', '=', $year)
+                    ->where('term', '=', $term)
+                    ->where('reg_no', '=', $studentId)
+                    ->where('class', '=', $classId)
+                    ->where('course', '=', $courseId)
+                    ->exists();
 
-                if ($count === 0) {
-                    $this->courseRegistration->registerCourse(data: [
-                        'year' => $year,
-                        'term' => $term,
-                        'reg_no' => $studentId,
-                        'class' => $classId,
-                        'course' => $courseId
-                    ]);
+                if ($exists) {
+                    $this->courseRegistration
+                        ->insert(data: [
+                            'year' => $year,
+                            'term' => $term,
+                            'reg_no' => $studentId,
+                            'class' => $classId,
+                            'course' => $courseId
+                        ]);
                 }
             }
             $index++;
@@ -143,16 +98,13 @@ class CourseRegistrationService
                 $newCourses
             );
 
-            $courseRegistration = $this->courseRegistration->deleteRegisteredCourses(
-                conditions: [
-                    'reg_no' => $studentId,
-                    'class'  => $classId,
-                    'term'   => $term,
-                    'year'   => $year
-                ],
-                notInColumn: 'course',
-                notInValues: $newCoursesFlat
-            );
+            $courseRegistration = $this->courseRegistration
+                ->where('year', '=', $year)
+                ->where('term', '=', $term)
+                ->where('reg_no', '=', $studentId)
+                ->where('class', '=', $classId)
+                ->notIn('course', $newCoursesFlat)
+                ->delete();
 
             if (!$courseRegistration) {
                 $allSuccess = false;
