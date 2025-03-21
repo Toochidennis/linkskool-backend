@@ -14,10 +14,4 @@ class RegistrationTracker extends BaseModel
         parent::__construct($pdo);
         $this->table($this->table);
     }
-
-
-    public function getStaffLastRegNumber()
-    {
-        return parent::findBy(table: $this->table, columns: ['id, staff_reg_number'], limit: 1);
-    }
 }
