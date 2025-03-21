@@ -64,6 +64,7 @@ extends BaseController
             'student_level'
         ];
         $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
+        $data['password'] = $this->studentService->generatePassword($data['surname']);
 
         try {
             $studentId = $this->student->insert($data);

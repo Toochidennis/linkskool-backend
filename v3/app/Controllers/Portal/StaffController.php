@@ -3,12 +3,13 @@
 namespace V3\App\Controllers\Portal;
 
 use Exception;
-use V3\App\Controllers\BaseController;
 use V3\App\Models\Portal\Staff;
+use V3\App\Utilities\HttpStatus;
+use V3\App\Traits\ValidationTrait;
 use V3\App\Utilities\Permission;
 use V3\App\Utilities\ResponseHandler;
+use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\StaffService;
-use V3\App\Utilities\HttpStatus;
 
 /**
  * Class StaffController
@@ -18,6 +19,7 @@ use V3\App\Utilities\HttpStatus;
 
 class StaffController extends BaseController
 {
+    use ValidationTrait;
     private Staff $staff;
     private StaffService $staffService;
 
@@ -38,7 +40,9 @@ class StaffController extends BaseController
      */
     public function addStaff()
     {
-        $data = $this->staffService->validateAndGetData(post: $this->post);
+        $requiredFields = ['surname', 'first_name','sex'];
+        $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
+        $data['password'] = $this->staffService->generatePassword($data['surname']);
 
         try {
             $staffId = $this->staff->insert($data);
