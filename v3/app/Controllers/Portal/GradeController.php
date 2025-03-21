@@ -2,8 +2,10 @@
 
 namespace V3\App\Controllers\Portal;
 
+use Exception;
 use V3\App\Models\Portal\Grade;
 use V3\App\Traits\ValidationTrait;
+use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Controllers\BaseController;
 
@@ -27,17 +29,10 @@ class GradeController extends BaseController
     public function addGrade()
     {
         $requiredFields = ['grade_symbol', 'start', 'remark'];
+        $data = $this->validateData($this->post, $requiredFields);
 
         try {
-            $data = $this->validateData($this->post, $requiredFields);
-        } catch (\InvalidArgumentException $e) {
-            http_response_code(response_code: 400);
-            $this->response['message'] = $e->getMessage();
-            ResponseHandler::sendJsonResponse(response: $this->response);
-        }
-
-        try {
-            $assessmentId = $this->grade->insertGrade($data);
+            $assessmentId = $this->grade->insert($data);
 
             $this->response = $assessmentId ? [
                 'success' => true,
@@ -47,8 +42,8 @@ class GradeController extends BaseController
                 'success' => false,
                 'message' => 'Failed to add grade'
             ];
-        } catch (\Exception $e) {
-            http_response_code(response_code: 500);
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 
@@ -58,20 +53,18 @@ class GradeController extends BaseController
     public function fetchGrades()
     {
         try {
-            $result = $this->grade->getGrades();
+            $result = $this->grade->get();
 
-            $grades  = array_map(function ($row) {
-                return [
-                    'id' => $row['id'],
-                    'grade_symbol' => $row['grade_symbol'],
-                    'start' => $row['start'],
-                    'remark' => $row['remark']
-                ];
-            }, $result);
+            $grades  = array_map(fn($row) => [
+                'id' => $row['id'],
+                'grade_symbol' => $row['grade_symbol'],
+                'start' => $row['start'],
+                'remark' => $row['remark']
+            ], $result);
 
             $this->response = ['success' => true, 'grades' => $grades];
-        } catch (\PDOException $e) {
-            http_response_code(500);
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 

@@ -2,43 +2,16 @@
 
 namespace V3\App\Models\Portal;
 
-use V3\App\Utilities\QueryExecutor;
+use PDO;
+use V3\App\Models\BaseModel;
 
-class Attendance extends QueryExecutor
+class Attendance extends BaseModel
 {
-    private string $table;
-
-    public const INSERT_REQUIRED = [
-        'year',
-        'term',
-        'staff_id',
-        'count',
-        'class',
-        'course',
-        'register',
-        'date'
-    ];
-
-    public const GET_FULL_REQUIRED = ['course', 'class', 'date'];
-    public const GET_SUMMARY_REQUIRED = ['course', 'class', 'term', 'year'];
-
-    public function __construct(\PDO $pdo)
+    protected string $table = 'attendance';
+    
+    public function __construct(PDO $pdo)
     {
         parent::__construct($pdo);
-        $this->table = 'attendance';
-    }
-
-    public function insertAttendance(array $data)
-    {
-        return parent::insert(table: $this->table, data: $data);
-    }
-
-    public function updateAttendance(array $data, array $conditions)
-    {
-        return parent::update(table: $this->table, data: $data, conditions: $conditions);
-    }
-    public function getAttendance(array $columns = [], array $conditions = [], int $limit = 0)
-    {
-        return parent::findBy($this->table, columns: $columns, conditions: $conditions, limit: $limit);
+        $this->table($this->table);
     }
 }

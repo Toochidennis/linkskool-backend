@@ -7,6 +7,7 @@ use V3\App\Utilities\DatabaseConnector;
 use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Services\Portal\AuthService;
+use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\Sanitizer;
 
 abstract class BaseController
@@ -58,7 +59,7 @@ abstract class BaseController
 
         // Validate that _db is provided.
         if (empty($dbname)) {
-            http_response_code(400);
+            http_response_code(HttpStatus::BAD_REQUEST);
             $this->response['message'] = '_db is required.';
             ResponseHandler::sendJsonResponse($this->response);
         }

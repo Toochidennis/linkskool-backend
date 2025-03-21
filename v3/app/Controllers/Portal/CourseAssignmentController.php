@@ -3,11 +3,12 @@
 namespace V3\App\Controllers\Portal;
 
 use Exception;
-use V3\App\Controllers\BaseController;
-use V3\App\Models\Portal\CourseAssignment;
 use V3\App\Traits\PermissionTrait;
 use V3\App\Traits\ValidationTrait;
+use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\ResponseHandler;
+use V3\App\Controllers\BaseController;
+use V3\App\Models\Portal\CourseAssignment;
 
 class CourseAssignmentController extends BaseController
 {
@@ -24,13 +25,23 @@ class CourseAssignmentController extends BaseController
 
     public function createAssignment()
     {
-        $data = $this->validateData($this->post, $this->courseAssignment::INSERT_REQUIRED);
+        $requiredFields = ['year', 'term', 'ref_no', 'class', 'course'];
+        $data = $this->validateData($this->post, $requiredFields);
 
         try {
-            $assignmentId = $this->courseAssignment->assignCourse($data);
-            $this->response = ['success' => true, 'message' => 'Course assigned successfully', 'id' => $assignmentId];
+            $assignmentId = $this->courseAssignment->insert($data);
+
+            $this->response = $assignmentId ?
+                [
+                    'success' => true,
+                    'message' => 'Course assigned successfully',
+                ] :
+                [
+                    'success' => false,
+                    'message' => 'Failed to assign course',
+                ];
         } catch (Exception $e) {
-            http_response_code(500);
+            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 
@@ -39,47 +50,34 @@ class CourseAssignmentController extends BaseController
 
     public function getAssignments(array $params)
     {
-        $data = $this->validateData($params, $this->courseAssignment::GET_REQUIRED);
+        $requiredFields = ['year', 'term', 'ref_no'];
+        $data = $this->validateData($params, $requiredFields);
 
         try {
-            $assignments = $this->courseAssignment->getAssignedCourses(
-                columns: [
-                    'staff_course_table.*',
-                    'course_table.id',
-                    'course_table.course_name',
-                    'course_table.course_code',
-                    'class_table.id',
-                    'class_table.class_name',
-                    'class_table.level',
-                    'level_table.level_name'
-                ],
-                joins: [
-                    [
-                        'table' => 'course_table',
-                        'condition' => 'staff_course_table.course = course_table.id',
-                        'type' => 'INNER'
-                    ],
-                    [
-                        'table' => 'class_table',
-                        'condition' => 'staff_course_table.class = class_table.id',
-                        'type' => 'INNER'
-                    ],
-                    [
-                        'table' => 'level_table',
-                        'condition' => 'class_table.level = level_table.id',
-                        'type' => 'INNER'
+            $assignments = $this->courseAssignment
+                ->select(
+                    columns: [
+                        'staff_course_table.*',
+                        'course_table.id',
+                        'course_table.course_name',
+                        'course_table.course_code',
+                        'class_table.id',
+                        'class_table.class_name',
+                        'class_table.level',
+                        'level_table.level_name'
                     ]
-                ],
-                conditions: [
-                    'staff_course_table.ref_no' => $data['ref_no'],
-                    'staff_course_table.year' => $data['year'],
-                    'staff_course_table.term'=> $data['term']
-                ]
-            );
+                )
+                ->join('course_table', 'staff_course_table.course = course_table.id')
+                ->join('class_table', 'staff_course_table.class = class_table.id')
+                ->join('level_table', 'class_table.level = level_table.id')
+                ->where('staff_course_table.ref_no', '=', $data['ref_no'])
+                ->where('staff_course_table.year', '=', $data['year'])
+                ->where('staff_course_table.term', '=', $data['term'])
+                ->get();
 
-            $this->response = ['success'=>true, 'assigned_courses'=>$assignments];
+            $this->response = ['success' => true, 'assigned_courses' => $assignments];
         } catch (Exception $e) {
-            http_response_code(500);
+            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 

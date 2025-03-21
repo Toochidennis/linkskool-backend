@@ -2,70 +2,48 @@
 
 namespace V3\App\Controllers\Portal;
 
+use Exception;
+use V3\App\Controllers\BaseController;
 use V3\App\Models\Portal\Level;
-use V3\App\Utilities\DataExtractor;
+use V3\App\Traits\ValidationTrait;
+use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\ResponseHandler;
-use V3\App\Utilities\DatabaseConnector;
-use V3\App\Services\Portal\AuthService;
-use V3\App\Services\Portal\LevelService;
 
-class LevelController{
-    private array $response = ['success' => false, 'message' => ''];
-    private array $post;
+class LevelController extends BaseController
+{
+    use ValidationTrait;
     private Level $level;
-    private LevelService $levelService;
 
-    public function __construct(){
+    public function __construct()
+    {
+        parent::__construct();
         $this->initialize();
     }
 
     private function initialize()
     {
-        AuthService::verifyAPIKey();
-        AuthService::verifyJWT();
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->post = DataExtractor::extractPostData();
-            $dbname = $this->post['_db'] ?? '';
-        } else {
-            $dbname = $_GET['_db'] ?? '';
-        }
-
-        if (!empty($dbname)) {
-            $db = DatabaseConnector::connect(dbname: $dbname);
-            $this->level = new Level(pdo: $db);
-        } else {
-            $this->response['message'] = '_db is required.';
-            http_response_code(401);
-            ResponseHandler::sendJsonResponse(response: $this->response);
-        }
-
-        $this->levelService = new LevelService();
+        $this->level = new Level(pdo: $this->pdo);
     }
 
-    
     public function addLevel()
     {
-        try {
-            $data = $this->levelService->validateAndGetData(post: $this->post);
-        } catch (\InvalidArgumentException $e) {
-            http_response_code(400);
-            $this->response['message'] = $e->getMessage();
-            ResponseHandler::sendJsonResponse(response: $this->response);
-        }
+        $requiredFields = ['level_name', 'school_type', 'rank'];
+        $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
 
         try {
-            $success = $this->level->insertLevel(data: $data);
-            $this->response = [
-                'success' => true,
-                'message' => 'level added successfully.',
-                'level_id' => $success
-            ];
-        } catch (\PDOException $e) {
-            http_response_code(500);
-            $this->response['message'] = $e->getMessage();
-        } catch (\Exception $e) {
-            http_response_code(500);
+            $levelId = $this->level->insert(data: $data);
+
+            $this->response = $levelId ?
+                [
+                    'success' => true,
+                    'message' => 'Level added successfully.'
+                ] :
+                [
+                    'success' => false,
+                    'message' => 'Failed to add level.'
+                ];
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 
@@ -77,24 +55,18 @@ class LevelController{
     public function getLevels()
     {
         try {
-            $result = $this->level->getLevels();
+            $result = $this->level->get();
 
-            if ($result) {
-                $levels  = array_map(function ($row) {
-                    return [
-                        'id' => $row['id'],
-                        'level_name' => $row['level_name'],
-                        'school_type' => $row['school_type'],
-                        'rank' => $row['rank']
-                    ];
-                }, $result);
+            $levels  = array_map(fn($row) => [
+                'id' => $row['id'],
+                'level_name' => $row['level_name'],
+                'school_type' => $row['school_type'],
+                'rank' => $row['rank']
+            ], $result);
 
-                $this->response = ['success' => true, 'levels' => $levels];
-            }else{
-                $this->response = ['success' => true, 'levels' => []];
-            }
-        } catch (\PDOException $e) {
-            http_response_code(500);
+            $this->response = ['success' => true, 'levels' => $levels];
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 

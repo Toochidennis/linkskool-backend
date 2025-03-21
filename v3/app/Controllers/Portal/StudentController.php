@@ -112,22 +112,18 @@ extends BaseController
                     'student_level'
                 ])->get();
 
-            if ($results) {
-                $studentDetails = array_map(fn($row) => [
-                    'id' => $row['id'],
-                    'picture_url' => $row['picture_ref'],
-                    'surname' => $row['surname'],
-                    'first_name' => $row['first_name'],
-                    'middle' => $row['middle'],
-                    'registration_no' => $row['registration_no'],
-                    'student_class' => $row['student_class'],
-                    'student_level' => $row['student_level']
-                ], $results);
+            $studentDetails = array_map(fn($row) => [
+                'id' => $row['id'],
+                'picture_url' => $row['picture_ref'],
+                'surname' => $row['surname'],
+                'first_name' => $row['first_name'],
+                'middle' => $row['middle'],
+                'registration_no' => $row['registration_no'],
+                'student_class' => $row['student_class'],
+                'student_level' => $row['student_level']
+            ], $results);
 
-                $this->response = ['success' => true, 'students' => $studentDetails];
-            } else {
-                $this->response = ['success' => true, 'students' => []];
-            }
+            $this->response = ['success' => true, 'students' => $studentDetails];
         } catch (\PDOException $e) {
             http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();

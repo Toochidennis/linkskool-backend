@@ -2,22 +2,20 @@
 
 namespace V3\App\Controllers\Portal;
 
-use V3\App\Models\Portal\Staff;
+use Exception;
+use PDO;
 use V3\App\Utilities\Sanitizer;
-use V3\App\Models\Portal\Student;
+use V3\App\Utilities\HttpStatus;
+use V3\App\Models\Portal\AuthModel;
 use V3\App\Utilities\DataExtractor;
-use V3\App\Utilities\QueryExecutor;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Services\Portal\AuthService;
 use V3\App\Utilities\DatabaseConnector;
 
-
 class AuthController
 {
     private array $response = ['success' => false, 'message' => ''];
-    private Staff $staff;
-    private Student $student;
-
+    private AuthModel $authModel;
 
     public function __construct()
     {
@@ -31,7 +29,7 @@ class AuthController
             
             if(!isset($post['username'], $post['password'], $post['token'])){
                 $this->response['message'] = 'Invalid JSON payload. Ensure that all fields are provided.';
-                http_response_code(400);
+                http_response_code(HttpStatus::BAD_REQUEST);
                 ResponseHandler::sendJsonResponse($this->response);
             }
 
@@ -41,19 +39,18 @@ class AuthController
 
             if (empty($username) || empty($password) || empty($token)) {
                 $this->response['message'] = 'Invalid input. All fields are required.';
-                http_response_code(400);
+                http_response_code(HttpStatus::BAD_REQUEST);
                 ResponseHandler::sendJsonResponse($this->response);
             }
 
             $pdo = DatabaseConnector::connect();
-            $queryExecutor = new QueryExecutor($pdo);
+            $this->authModel = new AuthModel($pdo);
 
             // Fetch school data by token
-            $result = $queryExecutor->findBy(
-                table: 'school_data',
-                conditions: ['token' => $token],
-                limit: 1
-            );
+            $result = $this->authModel
+                ->where('token', '=', $token)
+                ->first();
+
 
             if (!empty($result)) {
                 $dbname = $result['database_name'];
@@ -62,26 +59,25 @@ class AuthController
 
                 $this->login(username: $username, password: $password, db: $schoolDb);
             } else {
-                http_response_code(404);
+                http_response_code(HttpStatus::NOT_FOUND);
                 $this->response['message'] = 'School not found';
                 ResponseHandler::sendJsonResponse($this->response);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->response['message'] =  $e->getMessage();
-            http_response_code(500);
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             ResponseHandler::sendJsonResponse($this->response);
         }
     }
-
 
     /**
      * Delegating user authentication to auth service.
      *
      * @param string $username
      * @param string $password
-     * @param \PDO   $db
+     * @param PDO $db
      */
-    public function login(string $username, string $password, \PDO $db)
+    public function login(string $username, string $password, PDO $db)
     {
         try {
             $authService = new AuthService($db);
@@ -93,8 +89,8 @@ class AuthController
                 'token'   => $result['token']
             ];
             ResponseHandler::sendJsonResponse($this->response);
-        } catch (\Exception $e) {
-            http_response_code(401);
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::UNAUTHORIZED);
             $this->response['message'] = $e->getMessage();
             ResponseHandler::sendJsonResponse($this->response);
         }
@@ -105,16 +101,3 @@ class AuthController
         echo "Hi";
     }
 }
-
-// $student = $queryExecutor->queryWithJoins(
-//     table: 'students_record',
-//     joins: [
-//         [
-//             'table' => 'class_table',
-//             'condition' => 'students_record.student_class = class_table.id',
-//             'type' => 'INNER'
-//         ]
-//     ],
-//     conditions: ['registration_no' => $username],
-//     limit: 1
-// );
