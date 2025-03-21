@@ -2,11 +2,12 @@
 
 namespace V3\App\Controllers\Portal;
 
+use Exception;
 use V3\App\Models\Portal\Course;
+use V3\App\Utilities\HttpStatus;
 use V3\App\Traits\ValidationTrait;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Controllers\BaseController;
-use V3\App\Services\Portal\CourseService;
 
 /**
  * Class CourseController
@@ -16,7 +17,6 @@ use V3\App\Services\Portal\CourseService;
 class CourseController extends BaseController
 {
     private Course $course;
-    private CourseService $courseService;
 
     use ValidationTrait;
 
@@ -29,31 +29,27 @@ class CourseController extends BaseController
     private function initialize()
     {
         $this->course = new Course(pdo: $this->pdo);
-        $this->courseService = new CourseService();
     }
 
     public function addCourse()
     {
-        try {
-            $data = $this->courseService->validateAndGetData(post: $this->post);
-        } catch (\InvalidArgumentException $e) {
-            http_response_code(400);
-            $this->response['message'] = $e->getMessage();
-            ResponseHandler::sendJsonResponse(response: $this->response);
-        }
+        $requiredFields = ['course_name', 'course_code'];
+        $data = $this->validateData($this->post, $requiredFields);
 
         try {
-            $success = $this->course->insertCourse(data: $data);
-            $this->response = [
-                'success' => true,
-                'message' => 'Course added successfully.',
-                'course_id' => $success
-            ];
-        } catch (\PDOException $e) {
-            http_response_code(500);
-            $this->response['message'] = $e->getMessage();
-        } catch (\Exception $e) {
-            http_response_code(500);
+            $courseId = $this->course->insert($data);
+
+            $this->response = $courseId ?
+                [
+                    'success' => true,
+                    'message' => 'Course added successfully.',
+                ] :
+                [
+                    'success' => false,
+                    'message' => 'Failed to add course',
+                ];
+        } catch (Exception $e) {
+            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 
@@ -65,19 +61,17 @@ class CourseController extends BaseController
     public function getCourses()
     {
         try {
-            $result = $this->course->getCourses();
+            $result = $this->course->get();
 
-            $courses  = array_map(function ($row) {
-                return [
-                    'id' => $row['id'],
-                    'course_name' => $row['course_name'],
-                    'course_code' => $row['course_code']
-                ];
-            }, $result);
+            $courses  = array_map(fn($row) => [
+                'id' => $row['id'],
+                'course_name' => $row['course_name'],
+                'course_code' => $row['course_code']
+            ], $result);
 
             $this->response = ['success' => true, 'courses' => $courses];
-        } catch (\PDOException $e) {
-            http_response_code(500);
+        } catch (Exception $e) {
+            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 

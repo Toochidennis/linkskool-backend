@@ -122,8 +122,9 @@ class QueryBuilder
      */
     public function get(): array
     {
-        $query = "SELECT " . implode(", ", $this->selectColumns) . " FROM `$this->table`";
-
+        $columns = empty($this->selectColumns) ? '*' : implode(", ", $this->selectColumns);
+        $query = "SELECT $columns FROM `$this->table`";
+        
         if (!empty($this->joins)) {
             $query .= " " . implode(" ", $this->joins);
         }

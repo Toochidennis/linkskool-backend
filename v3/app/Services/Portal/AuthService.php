@@ -2,11 +2,14 @@
 
 namespace V3\App\Services\Portal;
 
+use PDO;
+use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use V3\App\Models\Portal\Staff;
 use V3\App\Utilities\EnvLoader;
 use V3\App\Models\Portal\Student;
+use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\ResponseHandler;
 
 class AuthService
@@ -17,9 +20,9 @@ class AuthService
     /**
      * AuthenticationService constructor.
      *
-     * @param \PDO $db A PDO connection to the school database.
+     * @param PDO $db A PDO connection to the school database.
      */
-    public function __construct(\PDO $db)
+    public function __construct(PDO $db)
     {
         $this->staffModel = new Staff($db);
         $this->studentModel = new Student($db);
@@ -32,27 +35,26 @@ class AuthService
      * @param string $password The password provided by the user.
      *
      * @return array Returns an array containing the generated token, the user role, and user data.
-     * @throws \Exception If the user is not found or the password is invalid.
+     * @throws Exception If the user is not found or the password is invalid.
      */
     public function login(string $username, string $password): array
     {
         // Try fetching the staff record
-        $staff = $this->staffModel->getStaff(
-            columns: ['id', 'staff_no', 'surname', 'access_level', 'password'],
-            conditions: ['staff_no' => $username],
-            limit: 1
-        );
+        $staff = $this->staffModel
+            ->select(columns: ['id', 'staff_no', 'surname', 'access_level', 'password'])
+            ->where('staff_no', '=', $username)
+            ->first();
 
         if ($staff) {
             if (!$this->verifyPassword($staff['password'], $password)) {
-                throw new \Exception('Invalid password.');
+                throw new Exception('Invalid password.');
             }
 
             // Determine role based on access level.
             $role = match ($staff['access_level']) {
                 2 => 'admin',
                 1, 3 => 'staff',
-                default => throw new \Exception('Forbidden'),
+                default => throw new Exception('Forbidden'),
             };
 
             $token = $this->generateJWT(
@@ -69,18 +71,17 @@ class AuthService
         }
 
         // If no staff record, try fetching the student record.
-        $student = $this->studentModel->getStudents(
-            columns: ['id', 'registration_no', 'surname', 'password'],
-            conditions: ['registration_no' => $username],
-            limit: 1
-        );
+        $student = $this->studentModel
+            ->select(columns: ['id', 'registration_no', 'surname', 'password'])
+            ->where('registration_no', '=', $username)
+            ->first();
 
         if (!$student) {
-            throw new \Exception('User not found.');
+            throw new Exception('User not found.');
         }
 
         if (!$this->verifyPassword($student['password'], $password)) {
-            throw new \Exception('Invalid password.');
+            throw new Exception('Invalid password.');
         }
 
         $token = $this->generateJWT(
@@ -131,9 +132,9 @@ class AuthService
             $_SESSION['role'] = $decoded->data->role;
 
             return $decoded;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::BAD_REQUEST);
             error_log('Token error' . $e->getMessage());
-
             ResponseHandler::sendJsonResponse(['success' => false, 'message' => 'Invalid or expired token']);
         }
     }
@@ -151,14 +152,14 @@ class AuthService
 
         $headers = getallheaders();
         if (!isset($headers['Authorization']) || empty($headers['Authorization'])) {
-            http_response_code(400);
+            http_response_code(HttpStatus::BAD_REQUEST);
             $response['message'] = 'Token is required.';
             ResponseHandler::sendJsonResponse($response);
         }
 
         $authHeader = $headers['Authorization'];
         if (!str_starts_with($authHeader, 'Bearer ')) {
-            http_response_code(400);
+            http_response_code(HttpStatus::BAD_REQUEST);
             $response['message'] = "Invalid token. Are you missing 'Bearer '?";
             ResponseHandler::sendJsonResponse($response);
         }
@@ -166,7 +167,7 @@ class AuthService
         $token = substr($authHeader, 7);
 
         if (!self::validateJWT($token)) {
-            http_response_code(401);
+            http_response_code(HttpStatus::UNAUTHORIZED);
             $response['message'] = 'Unauthorized: Have you logged in?';
             ResponseHandler::sendJsonResponse($response);
         }
@@ -180,13 +181,13 @@ class AuthService
 
         #die(print_r($headers));
         if (!isset($headers['x-api-key']) || empty($headers['x-api-key'])) {
-            http_response_code(400);
+            http_response_code(HttpStatus::BAD_REQUEST);
             $response['message'] = 'API Key is required.';
             ResponseHandler::sendJsonResponse($response);
         }
 
         if (!self::validateAPIKey(apiKey: $headers['x-api-key'])) {
-            http_response_code(401);
+            http_response_code(HttpStatus::UNAUTHORIZED);
             $response['message'] = 'Unauthorized: Invalid API Key.';
             ResponseHandler::sendJsonResponse($response);
         }

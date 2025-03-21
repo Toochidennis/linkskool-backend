@@ -6,6 +6,7 @@ use Exception;
 use V3\App\Controllers\BaseController;
 use V3\App\Models\Portal\Attendance;
 use V3\App\Traits\ValidationTrait;
+use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\ResponseHandler;
 
 class AttendanceController extends BaseController
@@ -26,10 +27,22 @@ class AttendanceController extends BaseController
 
     public function addAttendance()
     {
-        $data = $this->validateData($this->post, $this->attendance::INSERT_REQUIRED);
+
+        $requiredFields = [
+            'year',
+            'term',
+            'staff_id',
+            'count',
+            'class',
+            'course',
+            'register',
+            'date'
+        ];
+        
+        $data = $this->validateData($this->post, $requiredFields);
 
         try {
-            $attendanceId = $this->attendance->insertAttendance($data);
+            $attendanceId = $this->attendance->insert($data);
 
             $this->response = $attendanceId ? [
                 'success' => true,
@@ -40,7 +53,7 @@ class AttendanceController extends BaseController
                 'message' => 'Failed to add attendance'
             ];
         } catch (Exception $e) {
-            http_response_code(response_code: 500);
+            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 
@@ -49,17 +62,30 @@ class AttendanceController extends BaseController
 
     public function updateAttendance()
     {
-        $this->attendance::INSERT_REQUIRED[] = 'id';
-        $data = $this->validateData($this->post,  $this->attendance::INSERT_REQUIRED);
+        $requiredFields = [
+            'id',
+            'year',
+            'term',
+            'staff_id',
+            'count',
+            'class',
+            'course',
+            'register',
+            'date'
+        ];
+
+        $data = $this->validateData($this->post,  $requiredFields);
 
         try {
-            $isUpdated = $this->attendance->updateAttendance($data, ['id' => $data['id']]);
+            $isUpdated = $this->attendance
+                ->where('id', '=', $data['id'])
+                ->update($data);
 
             $this->response = $isUpdated ?
                 ['success' => true, 'message' => 'Attendance updated successfully']
                 : ['success' => false, 'message' => 'Failed to update attendance'];
         } catch (Exception $e) {
-            http_response_code(response_code: 500);
+            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
 
@@ -78,20 +104,20 @@ class AttendanceController extends BaseController
      */
     public function getAttendance(array $params)
     {
-        $data = $this->validateData($params, $this->attendance::GET_FULL_REQUIRED);
+        $requiredFields = ['course', 'class', 'date'];
+        $data = $this->validateData($params, $requiredFields);
+
         try {
-            $result =  $this->attendance->getAttendance(
-                columns: ['id', 'count', 'date', 'register'],
-                conditions: [
-                    'class' => $data['class'],
-                    'course' => $data['course'],
-                    'date' => $data['date']
-                ]
-            );
+            $result =  $this->attendance
+                ->select(columns: ['id', 'count', 'date', 'register'])
+                ->where('class', '=', $data['class'])
+                ->where('course', '=', $data['course'])
+                ->where('date', '=', $data['date'])
+                ->get();
 
             $this->response = ['success' => true, 'attendance_records' => $result];
         } catch (Exception $e) {
-            http_response_code(response_code: 500);
+            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
         ResponseHandler::sendJsonResponse($this->response);
@@ -112,21 +138,21 @@ class AttendanceController extends BaseController
      */
     public function getAttendanceSummary($params)
     {
-        $data = $this->validateData($params, $this->attendance::GET_SUMMARY_REQUIRED);
+        $requiredFields = ['course', 'class', 'term', 'year'];
+        $data = $this->validateData($params, $requiredFields);
+
         try {
-            $result = $this->attendance->getAttendance(
-                columns: ['id', 'count', 'date'],
-                conditions: [
-                    'class' => $data['class'],
-                    'course' => $data['course'],
-                    'year' => $data['year'],
-                    'term' => $data['term']
-                ]
-            );
+            $result = $this->attendance
+                ->select(columns: ['id', 'count', 'date'])
+                ->where('class', '=', $data['class'])
+                ->where('course', '=', $data['course'])
+                ->where('year', '=', $data['year'])
+                ->where('term', '=', $data['term'])
+                ->get();
 
             $this->response = ['success' => true, 'attendance_records' => $result];
         } catch (Exception $e) {
-            http_response_code(response_code: 500);
+            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
         ResponseHandler::sendJsonResponse($this->response);
@@ -135,15 +161,16 @@ class AttendanceController extends BaseController
     public function getAttendanceById(array $params)
     {
         $data = $this->validateData($params, ['id']);
+
         try {
-            $result = $this->attendance->getAttendance(
-                columns: ['id', 'count', 'date', 'register'],
-                conditions: ['id' => $data['id']]
-            );
+            $result = $this->attendance
+                ->select(columns: ['id', 'count', 'date', 'register'])
+                ->where('id', '=', $data['id'])
+                ->get();
 
             $this->response = ['success' => true, 'attendance_records' => $result];
         } catch (Exception $e) {
-            http_response_code(response_code: 500);
+            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
         ResponseHandler::sendJsonResponse($this->response);
