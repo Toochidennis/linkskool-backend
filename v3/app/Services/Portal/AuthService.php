@@ -103,7 +103,7 @@ class AuthService
         EnvLoader::load();
         $secretKey = getenv('JWT_SECRET_KEY');
         $issuedAt = time();
-        $expirationTime = $issuedAt + 3600; // Token valid for 1 hour
+        $expirationTime = $issuedAt + 2592000; // Token valid for 30 days
 
         $payload = [
             'iss' => 'linkskool.com', // Issuer
