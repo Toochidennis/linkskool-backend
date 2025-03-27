@@ -26,8 +26,8 @@ class AuthController
     {
         try {
             $post = DataExtractor::extractPostData();
-            
-            if(!isset($post['username'], $post['password'], $post['token'])){
+
+            if (!isset($post['username'], $post['password'], $post['token'])) {
                 $this->response['message'] = 'Invalid JSON payload. Ensure that all fields are provided.';
                 http_response_code(HttpStatus::BAD_REQUEST);
                 ResponseHandler::sendJsonResponse($this->response);
@@ -50,7 +50,6 @@ class AuthController
             $result = $this->authModel
                 ->where('token', '=', $token)
                 ->first();
-
 
             if (!empty($result)) {
                 $dbname = $result['database_name'];
@@ -82,6 +81,8 @@ class AuthController
         try {
             $authService = new AuthService($db);
             $result = $authService->login($username, $password);
+
+            
 
             $this->response = [
                 'success' => true,

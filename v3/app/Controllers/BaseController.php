@@ -43,8 +43,8 @@ abstract class BaseController
      */
     public function __construct()
     {
-        //AuthService::verifyAPIKey();
-        //AuthService::verifyJWT();
+        AuthService::verifyAPIKey();
+        AuthService::verifyJWT();
 
         // Extract the database name based on request method.
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -47,7 +47,6 @@ class AttendanceController extends BaseController
             $this->response = $attendanceId ? [
                 'success' => true,
                 'message' => 'Attendance added successfully.',
-                'assessment_id' => $attendanceId
             ] : [
                 'success' => false,
                 'message' => 'Failed to add attendance'

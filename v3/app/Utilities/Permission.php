@@ -4,7 +4,7 @@ namespace V3\App\Utilities;
 
 class Permission {
     private static array $permissions = [
-        'admin' => ['create_student', 'view_student', 'update_student', 'delete_student', 'take_attendance', 'create_course', '...'],
+        'admin' => ['create_student', 'view_student', 'update_student', 'delete_student', 'take_attendance', 'create_course'],
         'staff' => ['view_student', 'take_attendance', 'update_attendance', 'view_course'],
         'student' => ['view_student']
     ];
