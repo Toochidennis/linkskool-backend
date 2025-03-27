@@ -6,26 +6,35 @@ use PDO;
 use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use V3\App\Models\Portal\Staff;
 use V3\App\Utilities\EnvLoader;
-use V3\App\Models\Portal\Student;
+use V3\App\Models\Portal\Level;
+use V3\App\Models\Portal\Staff;
 use V3\App\Utilities\HttpStatus;
+use V3\App\Models\Portal\Student;
+use V3\App\Models\Portal\ClassModel;
 use V3\App\Utilities\ResponseHandler;
+use V3\App\Models\Portal\SchoolSettings;
 
 class AuthService
 {
+    private Level $level;
     private Staff $staffModel;
     private Student $studentModel;
+    private ClassModel $classModel;
+    private SchoolSettings $schoolSettings;
 
     /**
      * AuthenticationService constructor.
      *
      * @param PDO $db A PDO connection to the school database.
      */
-    public function __construct(PDO $db)
+    public function __construct(PDO $pdo)
     {
-        $this->staffModel = new Staff($db);
-        $this->studentModel = new Student($db);
+        $this->staffModel = new Staff($pdo);
+        $this->studentModel = new Student($pdo);
+        $this->level = new Level($pdo);
+        $this->classModel = new ClassModel($pdo);
+        $this->schoolSettings = new SchoolSettings($pdo);
     }
 
     /**
@@ -39,62 +48,99 @@ class AuthService
      */
     public function login(string $username, string $password): array
     {
-        // Try fetching the staff record
+        // Attempt login as staff
         $staff = $this->staffModel
             ->select(columns: ['id', 'staff_no', 'surname', 'access_level', 'password'])
             ->where('staff_no', '=', $username)
             ->first();
 
-        if ($staff) {
-            if (!$this->verifyPassword($staff['password'], $password)) {
-                throw new Exception('Invalid password.');
-            }
-
-            // Determine role based on access level.
-            $role = match ($staff['access_level']) {
-                2 => 'admin',
-                1, 3 => 'staff',
-                default => throw new Exception('Forbidden'),
-            };
-
-            $token = $this->generateJWT(
-                userId: $staff['id'],
+        if ($staff && $this->verifyPassword($staff['password'], $password)) {
+            return $this->generateLoginResponse(
+                id: $staff['id'],
                 name: $staff['surname'],
-                role: $role
+                accessLevel: $staff['access_level']
             );
-
-            return [
-                'token' => $token,
-                'role'  => $role,
-                'user'  => $staff
-            ];
         }
 
-        // If no staff record, try fetching the student record.
+        // Attempt login as student
         $student = $this->studentModel
             ->select(columns: ['id', 'registration_no', 'surname', 'password'])
             ->where('registration_no', '=', $username)
             ->first();
 
-        if (!$student) {
-            throw new Exception('User not found.');
+        if ($student && $this->verifyPassword($student['password'], $password)) {
+
+            return [
+                'token' => $this->generateJWT($student['id'], $student['surname'], 'student'),
+                'role'  => 'student',
+                'data'  => $student
+            ];
         }
 
-        if (!$this->verifyPassword($student['password'], $password)) {
-            throw new Exception('Invalid password.');
-        }
+        throw new Exception('Invalid credentials.');
+    }
 
-        $token = $this->generateJWT(
-            userId: $student['id'],
-            name: $student['surname'],
-            role: 'student'
-        );
+    /**
+     * Generates a login response based on the user's ID and access level.
+     *
+     * This function determines the user's role based on the given access level
+     * and fetches the corresponding data for the user (admin or staff).
+     * It also generates a JWT token for authentication.
+     *
+     * @param int    $id          The unique identifier of the user.
+     * @param string $name        The name of the user.
+     * @param int    $accessLevel The access level of the user (1, 2, or 3).
+     *
+     * @throws Exception If the access level is not recognized.
+     *
+     * @return array The response containing user data and a JWT token.
+     */
+
+    private function generateLoginResponse(int $id, string $name, int $accessLevel)
+    {
+        $role = match ($accessLevel) {
+            2 => 'admin',
+            1, 3 => 'staff',
+            default => throw new Exception('Forbidden'),
+        };
+
+        $data = match ($role) {
+            'admin' => $this->getAdminData($id),
+            'staff' => $this->getStaffData($id),
+            default => [],
+        };
 
         return [
-            'token' => $token,
-            'role'  => 'student',
-            'user'  => $student
+            'data'  => $data,
+            'token' => $this->generateJWT(userId: $id, name: $name, role: $role)
         ];
+    }
+
+    private function getAdminData(int $id): array
+    {
+        return [
+            'profile' => $this->staffModel
+                ->select(["CONCAT(surname, ' ', first_name, ' ', middle) AS name", 'email'])
+                ->where('id', '=', $id)
+                ->first() + ['role' => 'admin'],
+
+            'settings' => $this->schoolSettings
+                ->select(['name AS school_name', 'year', 'term'])
+                ->first() ?? [],
+
+            'classes' => $this->classModel
+                ->select(['id', 'class_name', 'level AS level_id', 'form_teacher'])
+                ->get() ?? [],
+
+            'levels' => $this->level
+                ->select(['id', 'level_name'])
+                ->get() ?? [],
+        ];
+    }
+
+    private function getStaffData($id)
+    {
+        return [];
     }
 
     // Generate JWT Token

@@ -4,9 +4,9 @@ namespace V3\App\Controllers\Portal;
 
 use Exception;
 use PDO;
-use V3\App\Utilities\Sanitizer;
 use V3\App\Utilities\HttpStatus;
 use V3\App\Models\Portal\AuthModel;
+use V3\App\Traits\ValidationTrait;
 use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Services\Portal\AuthService;
@@ -16,6 +16,7 @@ class AuthController
 {
     private array $response = ['success' => false, 'message' => ''];
     private AuthModel $authModel;
+    use ValidationTrait;
 
     public function __construct()
     {
@@ -27,36 +28,27 @@ class AuthController
         try {
             $post = DataExtractor::extractPostData();
 
-            if (!isset($post['username'], $post['password'], $post['token'])) {
-                $this->response['message'] = 'Invalid JSON payload. Ensure that all fields are provided.';
-                http_response_code(HttpStatus::BAD_REQUEST);
-                ResponseHandler::sendJsonResponse($this->response);
-            }
-
-            $username = Sanitizer::sanitizeInput($post['username']);
-            $password = Sanitizer::sanitizeInput($post['password']);
-            $token = Sanitizer::sanitizeInput($post['token']);
-
-            if (empty($username) || empty($password) || empty($token)) {
-                $this->response['message'] = 'Invalid input. All fields are required.';
-                http_response_code(HttpStatus::BAD_REQUEST);
-                ResponseHandler::sendJsonResponse($this->response);
-            }
+            $requiredFields = ['username', 'password', 'school_code'];
+            $data = $this->validateData($post, $requiredFields);
 
             $pdo = DatabaseConnector::connect();
             $this->authModel = new AuthModel($pdo);
 
             // Fetch school data by token
             $result = $this->authModel
-                ->where('token', '=', $token)
+                ->where('token', '=', $data['school_code'])
                 ->first();
 
             if (!empty($result)) {
-                $dbname = $result['database_name'];
-                //$schoolName = $result['school_name'];
+                $dbname = "aalmgzmy_" . $result['database_name'];
                 $schoolDb = DatabaseConnector::connect(dbname: $dbname);
 
-                $this->login(username: $username, password: $password, db: $schoolDb);
+                $this->login(
+                    username: $data['username'],
+                    password: $data['password'],
+                    db: $schoolDb,
+                    dbname: $dbname
+                );
             } else {
                 http_response_code(HttpStatus::NOT_FOUND);
                 $this->response['message'] = 'School not found';
@@ -75,19 +67,22 @@ class AuthController
      * @param string $username
      * @param string $password
      * @param PDO $db
+     * @param string dbname
      */
-    public function login(string $username, string $password, PDO $db)
-    {
+    public function login(
+        string $username,
+        string $password,
+        PDO $db,
+        string $dbname
+    ) {
         try {
             $authService = new AuthService($db);
-            $result = $authService->login($username, $password);
-
-            
+            $loginResponse = $authService->login($username, $password);
 
             $this->response = [
                 'success' => true,
                 'message' => 'Login successful',
-                'token'   => $result['token']
+                'response'   => $loginResponse + ['_db' => $dbname]
             ];
             ResponseHandler::sendJsonResponse($this->response);
         } catch (Exception $e) {
@@ -96,6 +91,7 @@ class AuthController
             ResponseHandler::sendJsonResponse($this->response);
         }
     }
+
 
     public function logout()
     {
