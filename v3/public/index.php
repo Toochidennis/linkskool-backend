@@ -16,6 +16,7 @@ $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     // Student routes
     $r->addRoute('POST', '/portal/students', ['Portal\StudentController', 'addStudent']);
     $r->addRoute('GET', '/portal/students', ['Portal\StudentController', 'getStudents']);
+    $r->addRoute('GET', '/portal/students/class', ['Portal\StudentController', 'getStudentsByClass']);
     $r->addRoute('GET', '/portal/students/{id}', ['Portal\StudentController', 'getStudentById']);
     // Staff routes
     $r->addRoute('POST', '/portal/staff', ['Portal\StaffController', 'addStaff']);
@@ -35,9 +36,13 @@ $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('POST', '/portal/grades', ['Portal\GradeController', 'addGrade']);
     $r->addRoute('GET', '/portal/grades', ['Portal\GradeController', 'fetchGrades']);
 
-    $r->addRoute('POST', '/portal/attendance', ['Portal\AttendanceController', 'addAttendance']);
-    $r->addRoute('PUT', '/portal/attendance', ['Portal\AttendanceController', 'updateAttendance']);
+    $r->addRoute('POST', '/portal/attendance/class', ['Portal\AttendanceController', 'addClassAttendance']);
+    $r->addRoute('POST', '/portal/attendance/course', ['Portal\AttendanceController', 'addCourseAttendance']);
+    $r->addRoute('PUT', '/portal/attendance/class', ['Portal\AttendanceController', 'updateClassAttendance']);
+    $r->addRoute('PUT', '/portal/attendance/course', ['Portal\AttendanceController', 'updateCourseAttendance']);
     $r->addRoute('GET', '/portal/attendance', ['Portal\AttendanceController', 'getAttendance']);
+    $r->addRoute('GET', '/portal/attendance/class', ['Portal\AttendanceController', 'getClassAttendance']);
+    $r->addRoute('GET', '/portal/attendance/course', ['Portal\AttendanceController', 'getCourseAttendance']);
     $r->addRoute('GET', '/portal/attendance/summary', ['Portal\AttendanceController', 'getAttendanceSummary']);
     $r->addRoute('GET', '/portal/attendance/{id}', ['Portal\AttendanceController', 'getAttendanceById']);
 
