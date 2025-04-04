@@ -124,7 +124,7 @@ extends BaseController
             ], $results);
 
             $this->response = ['success' => true, 'students' => $studentDetails];
-        } catch (\PDOException $e) {
+        } catch (Exception $e) {
             http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
@@ -135,6 +135,26 @@ extends BaseController
     public function getStudentById(array $vars)
     {
         echo print_r($vars);
+    }
+
+    public function getStudentsByClass(array $vars)
+    {
+        $requiredFields = ['class_id'];
+        $data = $this->validateData(data: $vars, requiredFields: $requiredFields);
+
+        try {
+            $results = $this->student
+                ->select(columns: ['id', "CONCAT(surname, ' ', first_name, ' ', middle) AS name"])
+                ->where("student_class", '=', $data['class_id'])
+                ->get();
+
+            $this->response = ['success' => true, 'students' => $results];
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
+            $this->response['message'] = $e->getMessage();
+        }
+
+        ResponseHandler::sendJsonResponse($this->response);
     }
 
     public function deleteStudent($id) {}

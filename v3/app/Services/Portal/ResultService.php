@@ -14,7 +14,6 @@ class ResultService{
     public function __construct(Result $result){
         $this->result = $result;
     }
-
     
     public function record($student_scores, $term, $year, $classId, $courseId){
 
