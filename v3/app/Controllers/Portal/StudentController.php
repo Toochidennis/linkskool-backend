@@ -97,33 +97,22 @@ extends BaseController
     /**
      * Get students record.
      */
-    public function getStudents()
+    public function getAllStudents()
     {
         try {
             $results = $this->student
                 ->select(columns: [
                     'id',
-                    'picture_ref',
+                    'picture_ref AS picture_url',
                     'surname',
                     'first_name',
                     'middle',
                     'registration_no',
-                    'student_class',
-                    'student_level'
+                    'student_class AS class_id',
+                    'student_level AS level_id'
                 ])->get();
 
-            $studentDetails = array_map(fn($row) => [
-                'id' => $row['id'],
-                'picture_url' => $row['picture_ref'],
-                'surname' => $row['surname'],
-                'first_name' => $row['first_name'],
-                'middle' => $row['middle'],
-                'registration_no' => $row['registration_no'],
-                'student_class' => $row['student_class'],
-                'student_level' => $row['student_level']
-            ], $results);
-
-            $this->response = ['success' => true, 'students' => $studentDetails];
+            $this->response = ['success' => true, 'students' => $results];
         } catch (Exception $e) {
             http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
@@ -139,16 +128,38 @@ extends BaseController
 
     public function getStudentsByClass(array $vars)
     {
-        $requiredFields = ['class_id'];
-        $data = $this->validateData(data: $vars, requiredFields: $requiredFields);
+        $data = $this->validateData(data: $vars, requiredFields: ['id']);
 
         try {
             $results = $this->student
-                ->select(columns: ['id', "CONCAT(surname, ' ', first_name, ' ', middle) AS name"])
-                ->where("student_class", '=', $data['class_id'])
+                ->select(columns: ['id', "CONCAT(surname, ' ', first_name, ' ', middle) AS student_name"])
+                ->where("student_class AS class_id", '=', $data['id'])
                 ->get();
 
             $this->response = ['success' => true, 'students' => $results];
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
+            $this->response['message'] = $e->getMessage();
+        }
+
+        ResponseHandler::sendJsonResponse($this->response);
+    }
+
+    public function getClassRegisteredStudents(array $vars)
+    {
+        $data = $this->validateData($vars, ['id', 'term', 'year']);
+        try {
+            $result  = $this->student
+                ->rawQuery(
+                    query: "SELECT students_record.id, 
+                        concat(surname,' ', first_name,' ', middle) AS student_name, 
+                        COUNT(rt.course) AS course_count FROM students_record 
+                        LEFT JOIN result_table rt ON students_record.id = rt.reg_no 
+                        AND rt.term = ? AND rt.year = ? WHERE students_record.student_class = ?
+                        GROUP BY students_record.id, student_name",
+                    bindings: [$data['term'], $data['year'], $data['id']]
+                );
+            $this->response = ['success' => true, 'registered_students' => $result];
         } catch (Exception $e) {
             http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();

@@ -38,38 +38,19 @@ class CourseRegistrationController extends BaseController
     /**
      * Handles course registration.
      */
-    public function registerCourses(string $type = '')
+    public function registerStudentCourses(array $vars)
     {
         $requiredFields = ['courses', 'year', 'term', 'class_id'];
         $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
 
         try {
-            $courses = $data['courses'];
-            $classId = $data['class_id'];
-
-            if ($type === 'class') {
-                $students = $this->student
-                    ->select(['id AS student_id'])
-                    ->where('student_class', '=', $classId)
-                    ->get();
-            }
-
-            $register = ($data['type'] === 'class') ?
-                $this->registrationService->register(
-                    $students,
-                    $courses,
-                    $data['term'],
-                    $data['year'],
-                    $classId
-                )
-                :
-                $this->registrationService->register(
-                    $data['students'],
-                    $courses,
-                    $data['term'],
-                    $data['year'],
-                    $classId
-                );
+            $register = $this->registrationService->register(
+                $data['students'],
+                $data['courses'],
+                $data['term'],
+                $data['year'],
+                $data['class_id']
+            );
 
             $this->response = $register ?
                 ['success' => true, 'message' => 'Courses registered successfully']
@@ -82,9 +63,36 @@ class CourseRegistrationController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function registerClassCourses()
+    public function registerClassCourses(array $vars)
     {
-        $this->registerCourses(type: 'class');
+        $requiredFields = ['courses', 'year', 'term', 'class_id'];
+        $data = $this->validateData(data: $this->post + ['class_id' => $vars['id']], requiredFields: $requiredFields);
+
+        try {
+            $students = $this->student
+                ->select(['id AS student_id'])
+                ->where('student_class', '=', $data['class_id'])
+                ->get();
+
+            if ($students) {
+                $register = $this->registrationService->register(
+                    $students,
+                    $data['courses'],
+                    $data['term'],
+                    $data['year'],
+                    $data['class_id']
+                );
+
+                $this->response = $register ?
+                    ['success' => true, 'message' => 'Courses registered successfully']
+                    : ['success' => false, 'message' => 'Failed to register courses'];
+            }
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
+            $this->response['message'] = $e->getMessage();
+        }
+
+        ResponseHandler::sendJsonResponse($this->response);
     }
 
     public function getRegistrationTerms(array $params)
@@ -137,10 +145,10 @@ class CourseRegistrationController extends BaseController
      *
      * @return void
      */
-    public function duplicateRegistration()
+    public function duplicateRegistration(array $vars)
     {
         $requiredFields = ['year', 'term', 'class_id'];
-        $data = $this->validateData($this->post, $requiredFields);
+        $data = $this->validateData($this->post + ['class_id'=> $vars['id']], $requiredFields);
 
         try {
             // Fetch existing registrations for the class.
