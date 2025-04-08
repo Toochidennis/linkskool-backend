@@ -18,8 +18,10 @@ class QueryBuilder
     private array $whereConditions = [];
     private array $bindings = [];
     private array $joins = [];
-    private string $orderBy = '';
+    private string $groupBy = '';
+    private array $orderBy = [];
     private string $limit = '';
+
 
     /**
      * Constructor to initialize the PDO instance.
@@ -77,17 +79,42 @@ class QueryBuilder
     }
 
     /**
-     * Adds an ORDER BY clause to the query.
+     * Adds one or more ORDER BY clauses to the query.
      *
-     * @param string $column The column to order by.
-     * @param string $direction The sorting direction (ASC or DESC).
+     * @param string|array $columns The column or array of column => direction pairs.
+     * @param string|null $direction The direction for a single column (ASC or DESC).
      * @return self
      */
-    public function orderBy(string $column, string $direction = 'ASC'): self
+    public function orderBy(string|array $columns, ?string $direction = 'ASC'): self
     {
-        $this->orderBy = "ORDER BY `$column` $direction";
+        if (is_array($columns)) {
+            foreach ($columns as $column => $dir) {
+                $this->orderBy[] = "`$column` " . strtoupper($dir);
+            }
+        } else {
+            $this->orderBy[] = "`$columns` " . strtoupper($direction);
+        }
+
         return $this;
     }
+
+
+    /**
+     * Adds a GROUP BY clause to the query.
+     *
+     * @param string|array $columns The column(s) to group by.
+     * @return self
+     */
+    public function groupBy(string|array $columns): self
+    {
+        if (is_array($columns)) {
+            $this->groupBy = "GROUP BY " . implode(', ', array_map(fn($col) => "`$col`", $columns));
+        } else {
+            $this->groupBy = "GROUP BY `$columns`";
+        }
+        return $this;
+    }
+
 
     /**
      * Limits the number of rows returned by the query.
@@ -124,20 +151,24 @@ class QueryBuilder
     {
         $columns = empty($this->selectColumns) ? '*' : implode(", ", $this->selectColumns);
         $query = "SELECT $columns FROM `$this->table`";
-        
+
         if (!empty($this->joins)) {
             $query .= " " . implode(" ", $this->joins);
         }
         if (!empty($this->whereConditions)) {
             $query .= " WHERE " . implode(" AND ", $this->whereConditions);
         }
-        if ($this->orderBy) {
-            $query .= " " . $this->orderBy;
+        if ($this->groupBy) {
+            $query .= " " . $this->groupBy;
+        }
+        if (!empty($this->orderBy)) {
+            $query .= " ORDER BY " . implode(', ', $this->orderBy);
         }
         if ($this->limit) {
             $query .= " " . $this->limit;
         }
 
+        die($query);
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($this->bindings);
 

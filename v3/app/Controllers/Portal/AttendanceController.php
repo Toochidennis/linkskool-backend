@@ -19,7 +19,7 @@ class AttendanceController extends BaseController
         $this->attendanceService = new AttendanceService($this->pdo);
     }
 
-    public function addClassAttendance()
+    public function addClassAttendance(array $vars)
     {
         $requiredFields = [
             'year',
@@ -31,12 +31,12 @@ class AttendanceController extends BaseController
             'date'
         ];
 
-        $data = $this->validateData($this->post, $requiredFields);
+        $data = $this->validateData($this->post + ['class' => $vars['id']], $requiredFields);
         $this->response = $this->attendanceService->addAttendance($data, false);
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function addCourseAttendance()
+    public function addCourseAttendance(array $vars)
     {
         $requiredFields = [
             'year',
@@ -49,12 +49,12 @@ class AttendanceController extends BaseController
             'date'
         ];
 
-        $data = $this->validateData($this->post, $requiredFields);
+        $data = $this->validateData($this->post + ['course' => $vars['id']], $requiredFields);
         $this->response = $this->attendanceService->addAttendance($data, true);
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function updateClassAttendance()
+    public function updateClassAttendance(array $vars)
     {
         $requiredFields = [
             'id',
@@ -66,12 +66,12 @@ class AttendanceController extends BaseController
             'register',
             'date'
         ];
-        $data = $this->validateData($this->post, $requiredFields);
+        $data = $this->validateData($this->post + ['id' => $vars['id']], $requiredFields);
         $this->response = $this->attendanceService->updateAttendance($data);
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function updateCourseAttendance()
+    public function updateCourseAttendance(array $vars)
     {
         $requiredFields = [
             'id',
@@ -84,7 +84,7 @@ class AttendanceController extends BaseController
             'date'
         ];
 
-        $data = $this->validateData($this->post, $requiredFields);
+        $data = $this->validateData($this->post + ['id' => $vars['id']], $requiredFields);
         $this->response = $this->attendanceService->updateAttendance($data);
         ResponseHandler::sendJsonResponse($this->response);
     }
@@ -101,9 +101,9 @@ class AttendanceController extends BaseController
      */
     public function getClassAttendance(array $params)
     {
-        $data = $this->validateData($params, ['class_id', 'date']);
+        $data = $this->validateData($params, ['id', 'date']);
         $this->response = $this->attendanceService
-            ->getAttendance(['class' => $data['class_id'], 'date' => $data['date']]);
+            ->getAttendance(['class' => $data['id'], 'date' => $data['date']]);
         ResponseHandler::sendJsonResponse($this->response);
     }
 
@@ -111,10 +111,10 @@ class AttendanceController extends BaseController
     {
         $data = $this->validateData(
             $params,
-            ['course_id', 'class_id', 'date']
+            ['id', 'class_id', 'date']
         );
         $this->response = $this->attendanceService->getAttendance([
-            'class' => $data['class_id'],
+            'class' => $data['id'],
             'course' => $data['course_id'],
             'date' => $data['date']
         ]);
@@ -132,17 +132,18 @@ class AttendanceController extends BaseController
      * @param array $params
      * @return void
      */
-    public function getAttendanceSummary($params)
+    public function getAllAttendance($params)
     {
         $data = $this->validateData(
             $params,
             ['class_id', 'term', 'year']
         );
-        $this->response = $this->attendanceService->getAttendance([
-            'class' => $data['class_id'],
-            'year' => $data['year'],
-            'term' => $data['term']
-        ]);
+        $this->response = $this->attendanceService
+            ->getAttendance([
+                'class' => $data['class_id'],
+                'year' => $data['year'],
+                'term' => $data['term']
+            ]);
         ResponseHandler::sendJsonResponse($this->response);
     }
 

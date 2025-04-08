@@ -62,14 +62,34 @@ class CourseController extends BaseController
     {
         try {
             $result = $this->course->get();
+            $this->response = ['success' => true, 'courses' => $result];
+        } catch (Exception $e) {
+            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
+            $this->response['message'] = $e->getMessage();
+        }
 
-            $courses  = array_map(fn($row) => [
-                'id' => $row['id'],
-                'course_name' => $row['course_name'],
-                'course_code' => $row['course_code']
-            ], $result);
+        ResponseHandler::sendJsonResponse($this->response);
+    }
 
-            $this->response = ['success' => true, 'courses' => $courses];
+    public function getStudentRegisteredCourses(array $vars)
+    {
+        $data = $this->validateData($vars, ['id', 'class_id', 'term', 'year']);
+
+        try {
+            $result = $this->course
+                ->rawQuery(
+                    query: "SELECT c.id, c.course_name FROM course_table c 
+                        INNER JOIN result_table rt ON c.id = rt.course 
+                        AND rt.term = ? AND rt.year = ? AND
+                        rt.class = ? WHERE rt.reg_no = ?",
+                    bindings: [
+                        $data['term'],
+                        $data['year'],
+                        $data['class_id'],
+                        $data['id']
+                    ]
+                );
+                $this->response = ['success' => true, 'registered_courses' => $result];
         } catch (Exception $e) {
             http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();

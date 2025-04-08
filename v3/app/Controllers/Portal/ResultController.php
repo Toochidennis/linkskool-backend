@@ -22,18 +22,60 @@ class ResultController extends BaseController
         $this->result = new Result($this->pdo);
     }
 
-    public function addResult()
+    // public function addResult()
+    // {
+    //     $requiredFields = ['year', 'class_id', 'term', 'course_id', 'student_grades'];
+    //     $data = $this->validateData($this->post, $requiredFields);
+
+    //     try {
+    //         $update = $this->
+    //     } catch (Exception $e) {
+    //         http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
+    //         $this->response['message'] = $e->getMessage();
+    //     }
+
+    //     ResponseHandler::sendJsonResponse($this->response);
+    // }
+
+    public function getResultTermsByStudent(array $vars)
     {
-        $requiredFields = ['year', 'class_id', 'term', 'course_id', 'student_grades'];
-        $data = $this->validateData($this->post, $requiredFields);
+        $data = $this->validateData(data: $vars, requiredFields: ['id']);
 
         try {
-            $update = $this->
+            $terms = $this->result
+                ->select(columns: [
+                    'reg_no',
+                    'class class_id',
+                    'year',
+                    'term',
+                    "avg(result_table.total) AS average_score"
+                ])
+                ->where('reg_no', $data['id'])
+                ->where('total', 'IS  NOT', null)
+                ->groupBy(['year', 'term'])
+                ->orderBy(['year' => 'DESC', 'term' => 'ASC'])
+                ->get();
+
+            $structured = [];
+
+            foreach ($terms as $row) {
+                $year = $row['year'];
+
+                if (!isset($structured[$year])) {
+                    $structured[$year] = ['terms' => []];
+                }
+
+                $structured[$year]['terms'][] = [
+                    'term' => (int) $row['term'],
+                    'average_score' => number_format((float)$row['average_score'], 2)
+                ];
+            }
+
+            $this->response = ['success' => true, 'result_terms' => $structured];
         } catch (Exception $e) {
             http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();
         }
-
         ResponseHandler::sendJsonResponse($this->response);
     }
 }
