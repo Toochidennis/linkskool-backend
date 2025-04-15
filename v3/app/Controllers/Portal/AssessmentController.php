@@ -21,11 +21,6 @@ class AssessmentController extends BaseController
     public function __construct()
     {
         parent::__construct();
-        $this->initialize();
-    }
-
-    private function initialize()
-    {
         $this->assessment = new Assessment($this->pdo);
     }
 
@@ -53,13 +48,10 @@ class AssessmentController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function updateAssessment() {}
+    public function updateAssessment(array $args) {}
 
-    public function fetchAssessments(array $params)
+    public function getAllAssessments()
     {
-        $requiredFields = ['level'];
-        $data = $this->validateData($params, $requiredFields);
-
         try {
             $assessments = $this->assessment
                 ->select(
@@ -73,7 +65,6 @@ class AssessmentController extends BaseController
                     ]
                 )
                 ->join('level_table', 'assessment_table.level = level_table.id')
-                ->where('level', '=', $data['level_id'])
                 ->get();
 
             $formatted = [];
@@ -104,6 +95,11 @@ class AssessmentController extends BaseController
         }
 
         ResponseHandler::sendJsonResponse($this->response);
+    }
+
+    public function getAssessmentById(array $args)
+    {
+        $data = $this->validateData(data: $args, requiredFields: ['level_id']);
     }
 
     public function deleteAssessment(array $params) {}
