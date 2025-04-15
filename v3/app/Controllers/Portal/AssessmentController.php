@@ -26,11 +26,17 @@ class AssessmentController extends BaseController
 
     public function addAssessment()
     {
-        $requiredFields = ['assesment_name', 'max_score', 'level'];
+        $requiredFields = ['assessment_name', 'max_score', 'level_id'];
         $data = $this->validateData($this->post, $requiredFields);
 
+        $formattedData = [
+            'assesment_name' => $data['assessment_name'],
+            'max_score' => $data['max_score'],
+            'level' => $data['level_id'],
+        ];
+
         try {
-            $assessmentId = $this->assessment->insert($data);
+            $assessmentId = $this->assessment->insert(data: $formattedData);
 
             $this->response = $assessmentId ? [
                 'success' => true,

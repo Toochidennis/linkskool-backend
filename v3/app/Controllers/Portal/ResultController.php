@@ -22,20 +22,20 @@ class ResultController extends BaseController
         $this->result = new Result($this->pdo);
     }
 
-    // public function addResult()
-    // {
-    //     $requiredFields = ['year', 'class_id', 'term', 'course_id', 'student_grades'];
-    //     $data = $this->validateData($this->post, $requiredFields);
+    public function addResult()
+    {
+        $requiredFields = ['year', 'class_id', 'term', 'course_id', 'student_grades'];
+        $data = $this->validateData($this->post, $requiredFields);
 
-    //     try {
-    //         $update = $this->
-    //     } catch (Exception $e) {
-    //         http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-    //         $this->response['message'] = $e->getMessage();
-    //     }
+        try {
+            $update = $this->
+        } catch (Exception $e) {
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
+            $this->response['message'] = $e->getMessage();
+        }
 
-    //     ResponseHandler::sendJsonResponse($this->response);
-    // }
+        ResponseHandler::sendJsonResponse($this->response);
+    }
 
     public function getResultTermsByStudent(array $vars)
     {

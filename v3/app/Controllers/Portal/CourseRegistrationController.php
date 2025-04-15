@@ -40,12 +40,12 @@ class CourseRegistrationController extends BaseController
      */
     public function registerStudentCourses(array $vars)
     {
-        $requiredFields = ['courses', 'year', 'term', 'class_id'];
-        $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
+        $requiredFields = ['courses', 'year', 'term', 'class_id', 'student_id'];
+        $data = $this->validateData(data: $this->post + ['student_id' => $vars['id']], requiredFields: $requiredFields);
 
         try {
             $register = $this->registrationService->register(
-                $data['students'],
+                $data['student_id'],
                 $data['courses'],
                 $data['term'],
                 $data['year'],
@@ -53,7 +53,7 @@ class CourseRegistrationController extends BaseController
             );
 
             $this->response = $register ?
-                ['success' => true, 'message' => 'Courses registered successfully']
+                ['success' => true, 'message' => 'Course(s) registered successfully']
                 : ['success' => false, 'message' => 'Failed to register courses'];
         } catch (Exception $e) {
             http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
@@ -66,7 +66,10 @@ class CourseRegistrationController extends BaseController
     public function registerClassCourses(array $vars)
     {
         $requiredFields = ['courses', 'year', 'term', 'class_id'];
-        $data = $this->validateData(data: $this->post + ['class_id' => $vars['id']], requiredFields: $requiredFields);
+        $data = $this->validateData(
+            data: $this->post + ['class_id' => $vars['id']],
+            requiredFields: $requiredFields
+        );
 
         try {
             $students = $this->student
@@ -84,7 +87,7 @@ class CourseRegistrationController extends BaseController
                 );
 
                 $this->response = $register ?
-                    ['success' => true, 'message' => 'Courses registered successfully']
+                    ['success' => true, 'message' => 'Course(s) registered successfully']
                     : ['success' => false, 'message' => 'Failed to register courses'];
             }
         } catch (Exception $e) {
@@ -148,7 +151,10 @@ class CourseRegistrationController extends BaseController
     public function duplicateRegistration(array $vars)
     {
         $requiredFields = ['year', 'term', 'class_id'];
-        $data = $this->validateData($this->post + ['class_id'=> $vars['id']], $requiredFields);
+        $data = $this->validateData(
+            data: $this->post + ['class_id' => $vars['id']],
+            requiredFields: $requiredFields
+        );
 
         try {
             // Fetch existing registrations for the class.
