@@ -133,7 +133,7 @@ extends BaseController
         try {
             $results = $this->student
                 ->select(columns: ['id', "CONCAT(surname, ' ', first_name, ' ', middle) AS student_name"])
-                ->where("student_class AS class_id", '=', $data['id'])
+                ->where("student_class", '=', $data['id'])
                 ->get();
 
             $this->response = ['success' => true, 'students' => $results];

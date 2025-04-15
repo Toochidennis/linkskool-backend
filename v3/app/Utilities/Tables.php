@@ -1,7 +1,9 @@
 <?php
+
 namespace V3\App\Utilities;
 
-class Tables{
+class Tables
+{
     public const ALLOWED_TABLES = [
         'account_chart',
         'account_type',

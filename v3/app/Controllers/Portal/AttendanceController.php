@@ -2,9 +2,9 @@
 
 namespace V3\App\Controllers\Portal;
 
-use V3\App\Controllers\BaseController;
 use V3\App\Traits\ValidationTrait;
 use V3\App\Utilities\ResponseHandler;
+use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\AttendanceService;
 
 
@@ -49,44 +49,18 @@ class AttendanceController extends BaseController
             'date'
         ];
 
-        $data = $this->validateData($this->post + ['course' => $vars['id']], $requiredFields);
-        $this->response = $this->attendanceService->addAttendance($data, true);
-        ResponseHandler::sendJsonResponse($this->response);
+        $data = $this->validateData(data: $this->post + ['course' => $vars['id']], requiredFields: $requiredFields);
+        $this->response = $this->attendanceService->addAttendance(data: $data, isCourse: true);
+        ResponseHandler::sendJsonResponse(response: $this->response);
     }
 
-    public function updateClassAttendance(array $vars)
+    public function updateAttendance(array $vars)
     {
-        $requiredFields = [
-            'id',
-            'year',
-            'term',
-            'staff_id',
-            'count',
-            'class',
-            'register',
-            'date'
-        ];
-        $data = $this->validateData($this->post + ['id' => $vars['id']], $requiredFields);
-        $this->response = $this->attendanceService->updateAttendance($data);
-        ResponseHandler::sendJsonResponse($this->response);
-    }
-
-    public function updateCourseAttendance(array $vars)
-    {
-        $requiredFields = [
-            'id',
-            'year',
-            'term',
-            'staff_id',
-            'count',
-            'class',
-            'register',
-            'date'
-        ];
-
-        $data = $this->validateData($this->post + ['id' => $vars['id']], $requiredFields);
-        $this->response = $this->attendanceService->updateAttendance($data);
-        ResponseHandler::sendJsonResponse($this->response);
+        $requiredFields = ['staff_id', 'count', 'register'];
+        $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
+        $id = (int) $vars['id'];
+        $this->response = $this->attendanceService->updateAttendance(data: $data, id: $id);
+        ResponseHandler::sendJsonResponse(response: $this->response);
     }
 
     /**
@@ -99,25 +73,35 @@ class AttendanceController extends BaseController
      *
      * @param array $params
      */
-    public function getClassAttendance(array $params)
+    public function getClassAttendance(array $vars)
     {
-        $data = $this->validateData($params, ['id', 'date']);
+        $data = $this->validateData(data: $vars, requiredFields: ['id', 'date']);
         $this->response = $this->attendanceService
-            ->getAttendance(['class' => $data['id'], 'date' => $data['date']]);
-        ResponseHandler::sendJsonResponse($this->response);
+            ->getAttendance(
+                filters: [
+                    'class' => $data['id'],
+                    'date' => $data['date']
+                ],
+                singleRecord: true
+            );
+        ResponseHandler::sendJsonResponse(response: $this->response);
     }
 
-    public function getCourseAttendance(array $params)
+    public function getCourseAttendance(array $vars)
     {
         $data = $this->validateData(
-            $params,
+            $vars,
             ['id', 'class_id', 'date']
         );
-        $this->response = $this->attendanceService->getAttendance([
-            'class' => $data['id'],
-            'course' => $data['course_id'],
-            'date' => $data['date']
-        ]);
+        $this->response = $this->attendanceService
+            ->getAttendance(
+                [
+                    'class' => $data['class_id'],
+                    'course' => $data['id'],
+                    'date' => $data['date']
+                ],
+                singleRecord: true
+            );
         ResponseHandler::sendJsonResponse($this->response);
     }
 
@@ -139,11 +123,14 @@ class AttendanceController extends BaseController
             ['class_id', 'term', 'year']
         );
         $this->response = $this->attendanceService
-            ->getAttendance([
-                'class' => $data['class_id'],
-                'year' => $data['year'],
-                'term' => $data['term']
-            ]);
+            ->getAttendance(
+                columns: ['id', 'count', 'date'],
+                filters: [
+                    'class' => $data['class_id'],
+                    'year' => $data['year'],
+                    'term' => $data['term']
+                ]
+            );
         ResponseHandler::sendJsonResponse($this->response);
     }
 

@@ -1,4 +1,5 @@
 <?php
+header("Access-Control-Allow-Origin: *");
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use FastRoute\Dispatcher;
@@ -19,14 +20,13 @@ $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('GET', '/portal/students/{id}/course-registrations', ['Portal\CourseController', 'getStudentRegisteredCourses']);
     $r->addRoute('GET', '/portal/students', ['Portal\StudentController', 'getAllStudents']);
     $r->addRoute('GET', '/portal/students/{id}/result-terms', ['Portal\ResultController', 'getResultTermsByStudent']);
-    $r->addRoute('GET', '/portal/students/{id}', ['Portal\StudentController', 'getStudentById']);
+    $r->addRoute('GET', '/portal/students/{id:\d+}', ['Portal\StudentController', 'getStudentById']);
 
     // Class routes
     $r->addRoute('POST', '/portal/classes/{id}/attendance', ['Portal\AttendanceController', 'addClassAttendance']);
     $r->addRoute('POST', '/portal/classes/{id}/course-registrations', ['Portal\CourseRegistrationController', 'registerClassCourses']);
-    $r->addRoute('POST', '/portal/courses/{id}/course-registrations/duplicate', ['Portal\CourseRegistrationController', 'duplicateRegistration']);
-    $r->addRoute('PUT', '/portal/classes/{id}/attendance', ['Portal\AttendanceController', 'updateClassAttendance']);
-    $r->addRoute('GET', '/portal/classes/{id}/attendance', ['Portal\StudentController', 'getClassAttendance']);
+    $r->addRoute('POST', '/portal/classes/{id}/course-registrations/duplicate', ['Portal\CourseRegistrationController', 'duplicateRegistration']);
+    $r->addRoute('GET', '/portal/classes/{id}/attendance', ['Portal\AttendanceController', 'getClassAttendance']);
     $r->addRoute('GET', '/portal/classes/{id}/students', ['Portal\StudentController', 'getStudentsByClass']);
     $r->addRoute('GET', '/portal/classes/{id}/registered-students', ['Portal\StudentController', 'getClassRegisteredStudents']);
 
@@ -36,6 +36,7 @@ $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('GET', '/portal/staff/{id}', ['Portal\StaffController', 'getStaffById']);
 
     // course routes
+    $r->addRoute('POST', '/portal/courses/{id}/attendance', ['Portal\AttendanceController', 'addCourseAttendance']);
     $r->addRoute('GET', '/portal/course-registrations ', ['Portal\CourseRegistrationController', 'getAllCourseRegistrations']);
     $r->addRoute('GET', '/portal/course-registrations/terms', ['Portal\CourseRegistrationController', 'getRegistrationTerms']);
     $r->addRoute('GET', '/portal/courses/{id}/attendance', ['Portal\AttendanceController', 'getCourseAttendance']);
@@ -47,8 +48,9 @@ $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('POST', '/portal/grades', ['Portal\GradeController', 'addGrade']);
     $r->addRoute('GET', '/portal/grades', ['Portal\GradeController', 'fetchGrades']);
 
+    $r->addRoute('PUT', '/portal/attendance/{id:\d+}', ['Portal\AttendanceController', 'updateAttendance']);
     $r->addRoute('GET', '/portal/attendance', ['Portal\AttendanceController', 'getAllAttendance']);
-    $r->addRoute('GET', '/portal/attendance/{id}', ['Portal\AttendanceController', 'getAttendanceById']);
+    $r->addRoute('GET', '/portal/attendance/{id:\d+}', ['Portal\AttendanceController', 'getAttendanceById']);
 
     $r->addRoute('GET', '/portal/course-assignments', ['Portal\CourseAssignmentController', 'getAssignments']);
 });
