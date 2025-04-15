@@ -52,7 +52,7 @@ class ResultController extends BaseController
                 ])
                 ->where('reg_no', $data['id'])
                 ->where('total', 'IS  NOT', null)
-                ->groupBy(['year', 'term'])
+                ->groupBy(['class', 'year', 'term'])
                 ->orderBy(['year' => 'DESC', 'term' => 'ASC'])
                 ->get();
 

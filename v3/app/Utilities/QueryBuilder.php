@@ -16,6 +16,8 @@ class QueryBuilder
     private string $table;
     private array $selectColumns = ['*'];
     private array $whereConditions = [];
+    private array $whereBindings = [];
+    private array $updateBindings = [];
     private array $bindings = [];
     private array $joins = [];
     private string $groupBy = '';
@@ -74,7 +76,7 @@ class QueryBuilder
         }
 
         $this->whereConditions[] = "`$column` $operator ?";
-        $this->bindings[] = $value;
+        $this->whereBindings[] = $value;
         return $this;
     }
 
@@ -168,9 +170,8 @@ class QueryBuilder
             $query .= " " . $this->limit;
         }
 
-        die($query);
         $stmt = $this->pdo->prepare($query);
-        $stmt->execute($this->bindings);
+        $stmt->execute($this->whereBindings);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -220,13 +221,14 @@ class QueryBuilder
         $setClauses = [];
         foreach ($data as $column => $value) {
             $setClauses[] = "`$column` = ?";
-            $this->bindings[] = $value;
+            $this->updateBindings[] = $value;
         }
 
         $query = "UPDATE `$this->table` SET " . implode(", ", $setClauses) . " WHERE " . implode(" AND ", $this->whereConditions);
         $stmt = $this->pdo->prepare($query);
 
-        return $stmt->execute($this->bindings);
+        $allBindings = array_merge($this->updateBindings, $this->whereBindings);
+        return $stmt->execute($allBindings);
     }
 
     public function notIn(string $column, array $values): self
@@ -237,7 +239,7 @@ class QueryBuilder
 
         $placeholders = implode(", ", array_fill(0, count($values), "?"));
         $this->whereConditions[] = "`$column` NOT IN ($placeholders)";
-        $this->bindings = array_merge($this->bindings, $values);
+        $this->whereBindings = array_merge($this->whereBindings, $values);
 
         return $this;
     }
@@ -256,7 +258,7 @@ class QueryBuilder
         $query = "DELETE FROM `$this->table` WHERE " . implode(" AND ", $this->whereConditions);
         $stmt = $this->pdo->prepare($query);
 
-        return $stmt->execute($this->bindings);
+        return $stmt->execute($this->whereBindings);
     }
 
     /**
@@ -271,7 +273,7 @@ class QueryBuilder
             $query .= " WHERE " . implode(" AND ", $this->whereConditions);
         }
         $stmt = $this->pdo->prepare($query);
-        $stmt->execute($this->bindings);
+        $stmt->execute($this->whereBindings);
         return (int) $stmt->fetchColumn();
     }
 

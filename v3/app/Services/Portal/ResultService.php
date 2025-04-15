@@ -4,24 +4,23 @@ namespace V3\App\Services\Portal;
 
 use V3\App\Models\Portal\Result;
 
-class ResultService{
+class ResultService
+{
     private Result $result;
 
-    private $grades = [
-        
-    ];
+    private $grades = [];
 
-    public function __construct(Result $result){
+    public function __construct(Result $result)
+    {
         $this->result = $result;
     }
-    
-    public function record($student_scores, $term, $year, $classId, $courseId){
 
-        foreach($student_scores as $student_score){
+    public function record($student_scores, $term, $year, $classId, $courseId)
+    {
+
+        foreach ($student_scores as $student_score) {
             $studentId = $student_score['student_id'];
             $scores = $student_score['scores'];
-
-
         }
         
     }
