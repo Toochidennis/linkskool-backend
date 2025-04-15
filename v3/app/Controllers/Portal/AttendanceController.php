@@ -137,7 +137,7 @@ class AttendanceController extends BaseController
     public function getAttendanceById(array $params)
     {
         $data = $this->validateData($params, ['id']);
-        $this->response = $this->attendanceService->getAttendance(['id' => $data['id']]);
+        $this->response = $this->attendanceService->getAttendance(['id' => $data['id']], singleRecord:true);
         ResponseHandler::sendJsonResponse($this->response);
     }
 }

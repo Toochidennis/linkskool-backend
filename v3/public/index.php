@@ -42,8 +42,8 @@ $dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('GET', '/portal/courses/{id}/attendance', ['Portal\AttendanceController', 'getCourseAttendance']);
 
     $r->addRoute('POST', '/portal/assessments', ['Portal\AssessmentController', 'addAssessment']);
-    $r->addRoute('GET', '/portal/assessments', ['Portal\AssessmentController', 'fetchAssessments']);
-    $r->addRoute('GET', '/portal/assessments/{level}', ['Portal\AssessmentController', 'fetchAssessmentById']);
+    $r->addRoute('GET', '/portal/assessments', ['Portal\AssessmentController', 'getAllAssessments']);
+    $r->addRoute('GET', '/portal/assessments/{id:\d+}', ['Portal\AssessmentController', 'getAssessmentById']);
 
     $r->addRoute('POST', '/portal/grades', ['Portal\GradeController', 'addGrade']);
     $r->addRoute('GET', '/portal/grades', ['Portal\GradeController', 'fetchGrades']);
