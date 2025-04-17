@@ -7,7 +7,7 @@ use V3\App\Models\BaseModel;
 
 class CourseAssignment extends BaseModel
 {
-    protected string $table ='staff_course_table';
+    protected string $table = 'staff_course_table';
 
     public function __construct(PDO $pdo)
     {

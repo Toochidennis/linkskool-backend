@@ -84,5 +84,7 @@ class CourseAssignmentController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function deleteAssignment() {}
+    public function deleteAssignment()
+    {
+    }
 }

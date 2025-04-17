@@ -6,14 +6,16 @@ use PDO;
 
 class DatabaseConnector
 {
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     public static function connect($dbname = '')
     {
         // Load environment variables if required
         EnvLoader::load();
 
-        # Database configurations
+        // Database configurations
         $dbHost = getenv('DB_HOST');
         $dbName = empty($dbname) ? getenv('DB_NAME') : $dbname;
         $dbUser = getenv('DB_USER');

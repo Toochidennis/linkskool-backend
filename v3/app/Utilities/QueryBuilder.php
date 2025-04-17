@@ -7,7 +7,7 @@ use InvalidArgumentException;
 
 /**
  * Class QueryBuilder
- * 
+ *
  * A utility class for building and executing SQL queries using PDO.
  */
 class QueryBuilder
@@ -38,7 +38,7 @@ class QueryBuilder
     /**
      * Sets the table for the query.
      *
-     * @param string $table The name of the table.
+     * @param  string $table The name of the table.
      * @return self
      */
     public function table(string $table): self
@@ -51,7 +51,7 @@ class QueryBuilder
     /**
      * Specifies the columns to select in a query.
      *
-     * @param array $columns The columns to select.
+     * @param  array $columns The columns to select.
      * @return self
      */
     public function select(array $columns = ['*']): self
@@ -63,9 +63,9 @@ class QueryBuilder
     /**
      * Adds a WHERE condition to the query.
      *
-     * @param string $column The column name.
-     * @param mixed $operator The comparison operator or value if omitted.
-     * @param mixed|null $value The value to compare against.
+     * @param  string     $column   The column name.
+     * @param  mixed      $operator The comparison operator or value if omitted.
+     * @param  mixed|null $value    The value to compare against.
      * @return self
      */
     public function where(string $column, $operator, $value = null): self
@@ -83,8 +83,8 @@ class QueryBuilder
     /**
      * Adds one or more ORDER BY clauses to the query.
      *
-     * @param string|array $columns The column or array of column => direction pairs.
-     * @param string|null $direction The direction for a single column (ASC or DESC).
+     * @param  string|array $columns   The column or array of column => direction pairs.
+     * @param  string|null  $direction The direction for a single column (ASC or DESC).
      * @return self
      */
     public function orderBy(string|array $columns, ?string $direction = 'ASC'): self
@@ -104,7 +104,7 @@ class QueryBuilder
     /**
      * Adds a GROUP BY clause to the query.
      *
-     * @param string|array $columns The column(s) to group by.
+     * @param  string|array $columns The column(s) to group by.
      * @return self
      */
     public function groupBy(string|array $columns): self
@@ -121,7 +121,7 @@ class QueryBuilder
     /**
      * Limits the number of rows returned by the query.
      *
-     * @param int $limit The number of rows to return.
+     * @param  int $limit The number of rows to return.
      * @return self
      */
     public function limit(int $limit): self
@@ -133,9 +133,9 @@ class QueryBuilder
     /**
      * Adds a JOIN clause to the query.
      *
-     * @param string $table The table to join.
-     * @param string $condition The join condition.
-     * @param string $type The type of join (INNER, LEFT, RIGHT, etc.).
+     * @param  string $table     The table to join.
+     * @param  string $condition The join condition.
+     * @param  string $type      The type of join (INNER, LEFT, RIGHT, etc.).
      * @return self
      */
     public function join(string $table, string $condition, string $type = 'INNER'): self
@@ -191,7 +191,7 @@ class QueryBuilder
     /**
      * Inserts data into the table.
      *
-     * @param array $data The data to insert.
+     * @param  array $data The data to insert.
      * @return int|false The last inserted ID or false on failure.
      */
     public function insert(array $data)
@@ -209,7 +209,7 @@ class QueryBuilder
     /**
      * Updates records in the table.
      *
-     * @param array $data The columns and values to update.
+     * @param  array $data The columns and values to update.
      * @return bool True on success, false otherwise.
      */
     public function update(array $data): bool
@@ -290,8 +290,8 @@ class QueryBuilder
     /**
      * Executes a raw SQL query with optional parameter bindings.
      *
-     * @param string $query The raw SQL query to execute.
-     * @param array $bindings An array of values to bind to the query parameters.
+     * @param  string $query    The raw SQL query to execute.
+     * @param  array  $bindings An array of values to bind to the query parameters.
      * @return array The result set as an associative array.
      */
     public function rawQuery(string $query, array $bindings = []): array
@@ -304,7 +304,7 @@ class QueryBuilder
     /**
      * Validates whether the provided table name is allowed.
      *
-     * @param string $table The name of the table to validate.
+     * @param  string $table The name of the table to validate.
      * @throws InvalidArgumentException If the table is not allowed.
      */
     private function validateTable(string $table): void

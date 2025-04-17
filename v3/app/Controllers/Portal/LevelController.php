@@ -12,6 +12,7 @@ use V3\App\Utilities\ResponseHandler;
 class LevelController extends BaseController
 {
     use ValidationTrait;
+
     private Level $level;
 
     public function __construct()
@@ -50,19 +51,24 @@ class LevelController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function updateLevel() {}
+    public function updateLevel()
+    {
+    }
 
     public function getLevels()
     {
         try {
             $result = $this->level->get();
 
-            $levels  = array_map(fn($row) => [
+            $levels  = array_map(
+                fn($row) => [
                 'id' => $row['id'],
                 'level_name' => $row['level_name'],
                 'school_type' => $row['school_type'],
                 'rank' => $row['rank']
-            ], $result);
+                ],
+                $result
+            );
 
             $this->response = ['success' => true, 'levels' => $levels];
         } catch (Exception $e) {
@@ -73,7 +79,11 @@ class LevelController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function getLevelById() {}
+    public function getLevelById()
+    {
+    }
 
-    public function deleteLevel() {}
+    public function deleteLevel()
+    {
+    }
 }
