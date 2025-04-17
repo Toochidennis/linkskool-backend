@@ -12,9 +12,10 @@ use V3\App\Utilities\ResponseHandler;
 
 class ResultController extends BaseController
 {
-    private Result $result;
     use ValidationTrait;
     use PermissionTrait;
+
+    private Result $result;
 
     public function __construct()
     {
@@ -43,13 +44,15 @@ class ResultController extends BaseController
 
         try {
             $terms = $this->result
-                ->select(columns: [
+                ->select(
+                    columns: [
                     'reg_no',
                     'class class_id',
                     'year',
                     'term',
                     "avg(result_table.total) AS average_score"
-                ])
+                    ]
+                )
                 ->where('reg_no', $data['id'])
                 ->where('total', 'IS  NOT', null)
                 ->groupBy(['class', 'year', 'term'])

@@ -17,11 +17,11 @@ class CourseRegistrationService
     /**
      * Registers courses for each student.
      *
-     * @param array $students  Array of student IDs.
-     * @param array $courses   Array of course IDs.
+     * @param array  $students Array of student IDs.
+     * @param array  $courses  Array of course IDs.
      * @param string $term     The academic term.
      * @param string $year     The academic year.
-     * @param mixed $classId   The class identifier.
+     * @param mixed  $classId  The class identifier.
      *
      * @return bool Returns true if registration is successful for all students.
      */
@@ -44,13 +44,15 @@ class CourseRegistrationService
 
                 if ($exists) {
                     $this->courseRegistration
-                        ->insert(data: [
+                        ->insert(
+                            data: [
                             'year' => $year,
                             'term' => $term,
                             'reg_no' => $studentId,
                             'class' => $classId,
                             'course' => $courseId
-                        ]);
+                            ]
+                        );
                 }
             }
             $index++;

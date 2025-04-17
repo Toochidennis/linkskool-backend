@@ -22,6 +22,5 @@ class ResultService
             $studentId = $student_score['student_id'];
             $scores = $student_score['scores'];
         }
-        
     }
 }

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * This file handles course registration logic
+ *
+ * PHP version 7.4+
+ *
+ * @category Controller
+ * @package  LinkSkool
+ * @author   ToochiDennis <dennistoochukwu@gmail.com>
+ * @license  MIT License
+ * @link     https://linkskool.example.com
+ */
+
 namespace V3\App\Controllers\Portal;
 
 use Exception;
@@ -14,10 +26,10 @@ use V3\App\Services\Portal\CourseRegistrationService;
 class CourseRegistrationController extends BaseController
 {
     use ValidationTrait;
+
     private Student $student;
     private CourseRegistration $courseRegistration;
     private CourseRegistrationService $registrationService;
-
 
     public function __construct()
     {
@@ -26,7 +38,8 @@ class CourseRegistrationController extends BaseController
     }
 
     /**
-     * Initializes the controller by extracting POST/GET data and connecting to the database.
+     * Initializes the controller by extracting POST/GET
+     * data and connecting to the database.
      */
     public function initialize()
     {
@@ -217,5 +230,7 @@ class CourseRegistrationController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function unregisterCourses() {}
+    public function unregisterCourses()
+    {
+    }
 }

@@ -64,9 +64,9 @@ class AuthController
     /**
      * Delegating user authentication to auth service.
      *
-     * @param string $username
-     * @param string $password
-     * @param PDO $db
+     * @param string        $username
+     * @param string        $password
+     * @param PDO           $db
      * @param string dbname
      */
     public function login(
