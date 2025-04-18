@@ -16,9 +16,9 @@ use V3\App\Controllers\BaseController;
  */
 class CourseController extends BaseController
 {
-    private Course $course;
-
     use ValidationTrait;
+
+    private Course $course;
 
     public function __construct()
     {
