@@ -105,7 +105,7 @@ class AssessmentController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function getAssessmentById(array $args)
+    public function getAssessmentByLevel(array $args)
     {
         $data = $this->validateData(data: $args, requiredFields: ['level_id']);
     }

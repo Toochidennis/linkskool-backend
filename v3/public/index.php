@@ -1,6 +1,7 @@
 <?php
 
 header("Access-Control-Allow-Origin: *");
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use FastRoute\Dispatcher;
@@ -56,9 +57,8 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/attendance', ['Portal\AttendanceController', 'getAllAttendance']);
         $r->addRoute('GET', '/portal/attendance/{id:\d+}', ['Portal\AttendanceController', 'getAttendanceById']);
 
-        $r->addRoute('GET', '/portal/course-assignments', ['Portal\CourseAssignmentController', 'getAssignments']);
-    }
-);
+    $r->addRoute('GET', '/portal/course-assignments', ['Portal\CourseAssignmentController', 'getAssignments']);
+});
 
 // Fetch method and URI
 $httpMethod = $_SERVER['REQUEST_METHOD'];
