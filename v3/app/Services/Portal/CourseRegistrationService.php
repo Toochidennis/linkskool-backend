@@ -97,7 +97,7 @@ class CourseRegistrationService
             $studentId = is_array($student) ? $student['student_id'] : $student;
 
             $newCoursesFlat = array_map(
-                fn($course) => 
+                fn($course) =>
                 is_array($course) ? $course['course_id'] : $course,
                 $newCourses
             );

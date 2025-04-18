@@ -266,7 +266,7 @@ class QueryBuilder
      *
      * @return int The total count of rows matching the conditions.
      */
-    public function count()
+    public function count(): int
     {
         $query = "SELECT COUNT(*) FROM `$this->table`";
         if (!empty($this->whereConditions)) {

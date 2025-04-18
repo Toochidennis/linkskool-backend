@@ -29,7 +29,7 @@ class ResultController extends BaseController
         $data = $this->validateData($this->post, $requiredFields);
 
         try {
-            $update = $this->
+            //$update = $this->
         } catch (Exception $e) {
             http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();

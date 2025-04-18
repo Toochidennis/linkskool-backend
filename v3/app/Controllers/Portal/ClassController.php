@@ -11,8 +11,9 @@ use V3\App\Controllers\BaseController;
 
 class ClassController extends BaseController
 {
-    private ClassModel $classModel;
     use ValidationTrait;
+
+    private ClassModel $classModel;
 
     public function __construct()
     {
