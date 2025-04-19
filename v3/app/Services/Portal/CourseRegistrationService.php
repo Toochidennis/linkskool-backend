@@ -43,6 +43,8 @@ class CourseRegistrationService
                     ->where('course', '=', $courseId)
                     ->exists();
 
+                die($exists);
+
                 if ($exists) {
                     $this->courseRegistration
                         ->insert(

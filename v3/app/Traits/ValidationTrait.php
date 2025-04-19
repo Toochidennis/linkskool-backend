@@ -25,16 +25,19 @@ trait ValidationTrait
      * @param array $fields Associative array defining required and optional fields.
      *
      * @return array The sanitized data.
-     * @throws \InvalidArgumentException if any required field is missing or empty.
+     * @throws InvalidArgumentException if any required field is missing or empty.
      */
     private function validate(array $data, array $requiredFields = []): array
     {
         $errors = [];
-        foreach ($requiredFields as $field) {
-            if (!isset($data[$field]) || empty($data[$field])) {
-                $errors[] = "$field is required.";
+        foreach ($requiredFields as $fieldPath) {
+            $value = $this->getNestedValue($data, explode('.', $fieldPath));
+
+            if ($value === null || empty($value)) {
+                $errors[] = "$fieldPath is required.";
             }
         }
+
         if (!empty($errors)) {
             throw new InvalidArgumentException(implode(', ', $errors));
         }
@@ -44,14 +47,50 @@ trait ValidationTrait
     }
 
     /**
+     * Retrieves a value from a multi-dimensional array using a path of keys.
+     *
+     * This method supports deep access into nested arrays using a sequence of keys.
+     * It's typically used for validating nested input structures (e.g., user.profile.name).
+     *
+     * Example usage:
+     * ```php
+     * $data = [
+     *     'user' => [
+     *         'profile' => [
+     *             'name' => 'ToochiDennis'
+     *         ]
+     *     ]
+     * ];
+     *
+     * $value = $this->getNestedValue($data, ['user', 'profile', 'name']); // Returns 'ToochiDennis'
+     * ```
+     *
+     * @param array $data The input array to traverse.
+     * @param array $path An ordered list of keys representing the path to the target value.
+     *
+     * @return mixed|null Returns the value if found, or null if any part of the path doesn't exist.
+     */
+    private function getNestedValue(array $data, array $path)
+    {
+        foreach ($path as $key) {
+            if (!is_array($data) || !array_key_exists($key, $data)) {
+                return null;
+            }
+            $data = $data[$key];
+        }
+        return $data;
+    }
+
+    /**
      * Validates the provided data. If validation fails, sends a JSON error response.
      *
      * @param array $data           The data to validate.
      * @param array $requiredFields An array of required field names.
      *
-     * @return array|null Returns the sanitized data if validation passes; otherwise, sends an error response and returns null.
+     * @return array|null Returns the sanitized data if validation passes; otherwise,
+     *  sends an error response and returns null.
      */
-    public function validateData(array $data, array $requiredFields = [])
+    public function validateData(array $data, array $requiredFields = []): array
     {
         try {
             return $this->validate($data, $requiredFields);
