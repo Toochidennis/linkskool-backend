@@ -121,7 +121,7 @@ class AssessmentController extends BaseController
                     ]
                 )
                 ->join('level_table', 'assessment_table.level = level_table.id')
-                ->where('level', '=',  $data['level_id'])
+                ->where('level', '=', $data['level_id'])
                 ->get();
 
             $formatted = [];
