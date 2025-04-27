@@ -1,4 +1,15 @@
 <?php
+/**
+ * This file handles course registration logic
+ *
+ * PHP version 7.4+
+ *
+ * @category Controller
+ * @package  LinkSkool
+ * @author   ToochiDennis <dennistoochukwu@gmail.com>
+ * @license  MIT License
+ * @link     https://linkskool.example.com
+ */
 
 namespace V3\App\Controllers\Portal;
 
@@ -40,13 +51,13 @@ class CourseRegistrationController extends BaseController
      */
     public function registerStudentCourses(array $vars)
     {
-        $requiredFields = ['courses', 'year', 'term', 'class_id', 'student_id'];
+        $requiredFields = ['registered_courses', 'year', 'term', 'class_id', 'student_id'];
         $data = $this->validateData(data: $this->post + ['student_id' => $vars['id']], requiredFields: $requiredFields);
 
         try {
             $register = $this->registrationService->register(
                 $data['student_id'],
-                $data['courses'],
+                $data['registered_courses'],
                 $data['term'],
                 $data['year'],
                 $data['class_id']
@@ -100,7 +111,7 @@ class CourseRegistrationController extends BaseController
 
     public function getRegistrationTerms(array $params)
     {
-        $requiredFields = ['year', 'class_id'];
+        $requiredFields = ['class_id'];
         $data = $this->validateData($params, $requiredFields);
 
         try {

@@ -266,7 +266,7 @@ class QueryBuilder
      *
      * @return int The total count of rows matching the conditions.
      */
-    public function count(): int
+    public function count()
     {
         $query = "SELECT COUNT(*) FROM `$this->table`";
         if (!empty($this->whereConditions)) {
@@ -274,7 +274,7 @@ class QueryBuilder
         }
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($this->whereBindings);
-        return (int) $stmt->fetchColumn();
+        return  $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -282,9 +282,9 @@ class QueryBuilder
      *
      * @return bool True if at least one row exists, otherwise false.
      */
-    public function exists(): bool
+    public function exists()
     {
-        return $this->count() > 0;
+        return $this->count();
     }
 
     /**

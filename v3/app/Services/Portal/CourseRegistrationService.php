@@ -27,6 +27,7 @@ class CourseRegistrationService
      */
     public function register($students, $courses, $term, $year, $classId)
     {
+        $students = !is_array($students) ? ['student_id' => $students] : $students;
         $index = 0;
 
         foreach ($students as $student) {
@@ -41,6 +42,9 @@ class CourseRegistrationService
                     ->where('class', '=', $classId)
                     ->where('course', '=', $courseId)
                     ->exists();
+
+                    print_r($exists);
+                die("Exits? " . $exists);
 
                 if ($exists) {
                     $this->courseRegistration
@@ -94,7 +98,8 @@ class CourseRegistrationService
             $studentId = is_array($student) ? $student['student_id'] : $student;
 
             $newCoursesFlat = array_map(
-                fn($course) => $course['course_id'],
+                fn($course) => 
+                is_array($course) ? $course['course_id'] : $course,
                 $newCourses
             );
 

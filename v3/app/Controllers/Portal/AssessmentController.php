@@ -103,9 +103,53 @@ class AssessmentController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function getAssessmentById(array $args)
+    public function getAssessmentByLevel(array $args)
     {
         $data = $this->validateData(data: $args, requiredFields: ['level_id']);
+        try {
+            $assessments = $this->assessment
+                ->select(
+                    columns: [
+                        'assessment_table.id',
+                        'assessment_table.assesment_name AS assessment_name',
+                        'assessment_table.max_score',
+                        'assessment_table.type',
+                        'level_table.id AS level_id',
+                        'level_table.level_name'
+                    ]
+                )
+                ->join('level_table', 'assessment_table.level = level_table.id')
+                ->where('level', '=',  $data['level_id'])
+                ->get();
+
+            $formatted = [];
+
+            foreach ($assessments as $assessment) {
+                $levelName = $assessment['level_name'];
+                $levelId = $assessment['level_id'];
+
+                if (!isset($formatted[$levelName])) {
+                    $formatted[$levelName] = [];
+                }
+
+                if (!isset($formatted[$levelName]['level_id'])) {
+                    $formatted[$levelName] = ['level_id' => $levelId, 'level_name' => $levelName];
+                }
+
+                $formatted[$levelName]['assessments'][] = [
+                    'id' => $assessment['id'],
+                    'assessment_name' => $assessment['assessment_name'],
+                    'type' => $assessment['type']
+                ];
+            }
+
+            $this->response = ['success' => true, 'response' => $formatted];
+        } catch (PDOException $e) {
+            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
+            $this->response['message'] = $e->getMessage();
+        }
+
+        ResponseHandler::sendJsonResponse($this->response);
     }
 
     public function deleteAssessment(array $params) {}
