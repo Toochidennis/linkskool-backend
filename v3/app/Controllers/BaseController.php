@@ -20,7 +20,7 @@ abstract class BaseController
     /**
      * @var string The database name extracted from the request.
      */
-   // protected string $dbname;
+    // protected string $dbname;
 
     /**
      * @var PDO The database connection name.
@@ -55,7 +55,7 @@ abstract class BaseController
             $dbname = $get['_db'] ?? '';
         }
 
-       // ResponseHandler::sendJsonResponse(['message'=>$dbname]);
+        // ResponseHandler::sendJsonResponse(['message'=>$dbname]);
 
         // Validate that _db is provided.
         if (empty($dbname)) {

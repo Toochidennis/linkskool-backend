@@ -1,4 +1,5 @@
 <?php
+
 namespace V3\App\Traits;
 
 use V3\App\Utilities\Permission;

@@ -11,10 +11,10 @@ use V3\App\Utilities\ResponseHandler;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\AssessmentService;
 
-
 class AssessmentController extends BaseController
 {
     use ValidationTrait;
+
     private Assessment $assessment;
     private AssessmentService $assessmentService;
 
@@ -54,7 +54,9 @@ class AssessmentController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function updateAssessment(array $args) {}
+    public function updateAssessment(array $args)
+    {
+    }
 
     public function getAllAssessments()
     {
@@ -152,5 +154,7 @@ class AssessmentController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function deleteAssessment(array $params) {}
+    public function deleteAssessment(array $params)
+    {
+    }
 }

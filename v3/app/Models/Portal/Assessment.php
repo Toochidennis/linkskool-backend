@@ -7,12 +7,11 @@ use V3\App\Models\BaseModel;
 
 class Assessment extends BaseModel
 {
-    protected string $table ='assessment_table';
+    protected string $table = 'assessment_table';
 
     public function __construct(PDO $pdo)
     {
         parent::__construct($pdo);
         $this->table($this->table);
     }
-
 }

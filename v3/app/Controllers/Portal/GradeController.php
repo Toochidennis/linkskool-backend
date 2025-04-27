@@ -11,8 +11,8 @@ use V3\App\Controllers\BaseController;
 
 class GradeController extends BaseController
 {
-
     use ValidationTrait;
+
     private Grade $grade;
 
     public function __construct()
@@ -55,12 +55,15 @@ class GradeController extends BaseController
         try {
             $result = $this->grade->get();
 
-            $grades  = array_map(fn($row) => [
+            $grades  = array_map(
+                fn($row) => [
                 'id' => $row['id'],
                 'grade_symbol' => $row['grade_symbol'],
                 'start' => $row['start'],
                 'remark' => $row['remark']
-            ], $result);
+                ],
+                $result
+            );
 
             $this->response = ['success' => true, 'grades' => $grades];
         } catch (Exception $e) {
@@ -71,5 +74,7 @@ class GradeController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function deleteGrade(array $params) {}
+    public function deleteGrade(array $params)
+    {
+    }
 }

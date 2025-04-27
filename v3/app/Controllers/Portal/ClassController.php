@@ -11,8 +11,9 @@ use V3\App\Controllers\BaseController;
 
 class ClassController extends BaseController
 {
-    private ClassModel $classModel;
     use ValidationTrait;
+
+    private ClassModel $classModel;
 
     public function __construct()
     {
@@ -45,19 +46,24 @@ class ClassController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function updateClass() {}
+    public function updateClass()
+    {
+    }
 
     public function getClasses()
     {
         try {
             $result = $this->classModel->get();
 
-            $classes  = array_map(fn($row) => [
+            $classes  = array_map(
+                fn($row) => [
                 'id' => $row['id'],
                 'class_name' => $row['class_name'],
                 'level' => $row['level'],
                 'form_teacher' => $row['form_teacher']
-            ], $result);
+                ],
+                $result
+            );
 
             $this->response = ['success' => true, 'classes' => $classes];
         } catch (Exception $e) {
@@ -68,7 +74,11 @@ class ClassController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function getClassById() {}
+    public function getClassById()
+    {
+    }
 
-    public function deleteClass() {}
+    public function deleteClass()
+    {
+    }
 }

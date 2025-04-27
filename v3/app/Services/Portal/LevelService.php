@@ -6,6 +6,7 @@ use V3\App\Utilities\Sanitizer;
 
 class LevelService
 {
-    public function __construct() {}
-
+    public function __construct()
+    {
+    }
 }

@@ -2,7 +2,8 @@
 
 namespace V3\App\Utilities;
 
-class HttpStatus {
+class HttpStatus
+{
     public const OK = 200;
     public const CREATED = 201;
     public const BAD_REQUEST = 400;

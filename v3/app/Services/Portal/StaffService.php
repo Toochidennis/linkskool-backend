@@ -17,8 +17,8 @@ class StaffService
     /**
      * staffRegistrationService constructor.
      *
-     * @param staff         $staff
-     * @param SchoolSettings  $schoolSettings
+     * @param staff               $staff
+     * @param SchoolSettings      $schoolSettings
      * @param RegistrationTracker $regTracker
      */
     public function __construct(PDO $pdo)
@@ -31,7 +31,7 @@ class StaffService
     /**
      * Generate and update the registration number for a given staff.
      *
-     * @param int $staffId
+     * @param  int $staffId
      * @return bool
      */
     public function generateRegistrationNumber(int $staffId): bool
@@ -73,7 +73,7 @@ class StaffService
     /**
      * Generates a hashed password using the staff's surname as a seed.
      *
-     * @param string $surname
+     * @param  string $surname
      * @return string
      * @throws Exception
      */
