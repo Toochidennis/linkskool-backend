@@ -7,11 +7,11 @@ use V3\App\Utilities\ResponseHandler;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\AttendanceService;
 
-
 class AttendanceController extends BaseController
 {
-    private AttendanceService $attendanceService;
     use ValidationTrait;
+
+    private AttendanceService $attendanceService;
 
     public function __construct()
     {
@@ -112,8 +112,8 @@ class AttendanceController extends BaseController
      * - class_id
      * - term
      * - year
-     * 
-     * @param array $params
+     *
+     * @param  array $params
      * @return void
      */
     public function getAllAttendance($params)

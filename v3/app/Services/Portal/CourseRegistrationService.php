@@ -17,11 +17,11 @@ class CourseRegistrationService
     /**
      * Registers courses for each student.
      *
-     * @param array $students  Array of student IDs.
-     * @param array $courses   Array of course IDs.
+     * @param array  $students Array of student IDs.
+     * @param array  $courses  Array of course IDs.
      * @param string $term     The academic term.
      * @param string $year     The academic year.
-     * @param mixed $classId   The class identifier.
+     * @param mixed  $classId  The class identifier.
      *
      * @return bool Returns true if registration is successful for all students.
      */
@@ -43,18 +43,19 @@ class CourseRegistrationService
                     ->where('course', '=', $courseId)
                     ->exists();
 
-                    print_r($exists);
-                die("Exits? " . $exists);
+                die($exists);
 
                 if ($exists) {
                     $this->courseRegistration
-                        ->insert(data: [
+                        ->insert(
+                            data: [
                             'year' => $year,
                             'term' => $term,
                             'reg_no' => $studentId,
                             'class' => $classId,
                             'course' => $courseId
-                        ]);
+                            ]
+                        );
                 }
             }
             $index++;
@@ -98,7 +99,7 @@ class CourseRegistrationService
             $studentId = is_array($student) ? $student['student_id'] : $student;
 
             $newCoursesFlat = array_map(
-                fn($course) => 
+                fn($course) =>
                 is_array($course) ? $course['course_id'] : $course,
                 $newCourses
             );

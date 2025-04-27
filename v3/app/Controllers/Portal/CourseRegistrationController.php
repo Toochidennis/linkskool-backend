@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file handles course registration logic
  *
@@ -25,10 +26,10 @@ use V3\App\Services\Portal\CourseRegistrationService;
 class CourseRegistrationController extends BaseController
 {
     use ValidationTrait;
+
     private Student $student;
     private CourseRegistration $courseRegistration;
     private CourseRegistrationService $registrationService;
-
 
     public function __construct()
     {
@@ -37,7 +38,8 @@ class CourseRegistrationController extends BaseController
     }
 
     /**
-     * Initializes the controller by extracting POST/GET data and connecting to the database.
+     * Initializes the controller by extracting POST/GET
+     * data and connecting to the database.
      */
     public function initialize()
     {
@@ -47,20 +49,36 @@ class CourseRegistrationController extends BaseController
     }
 
     /**
-     * Handles course registration.
-     */
+    * Handles course registration.
+    * Fields are defined using dot notation to support validation of nested data.
+    *
+    * For example:
+    * 'user.profile.name' will validate $data['user']['profile']['name'].
+    */
     public function registerStudentCourses(array $vars)
     {
-        $requiredFields = ['registered_courses', 'year', 'term', 'class_id', 'student_id'];
-        $data = $this->validateData(data: $this->post + ['student_id' => $vars['id']], requiredFields: $requiredFields);
+        $requiredFields = [
+            'course_registration',
+            'course_registration.registered_courses',
+            'course_registration.registered_courses.course_id',
+            'course_registration.registered_courses.course_name',
+            'course_registration.class_id',
+            'course_registration.term',
+            'course_registration.year',
+            'student_id'
+        ];
+        $data = $this->validateData(
+            data: $this->post + ['student_id' => $vars['id']],
+            requiredFields: $requiredFields
+        );
 
         try {
             $register = $this->registrationService->register(
                 $data['student_id'],
-                $data['registered_courses'],
-                $data['term'],
-                $data['year'],
-                $data['class_id']
+                $data['course_registration']['registered_courses'],
+                $data['course_registration']['term'],
+                $data['course_registration']['year'],
+                $data['course_registration']['class_id']
             );
 
             $this->response = $register ?
@@ -228,5 +246,7 @@ class CourseRegistrationController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function unregisterCourses() {}
+    public function unregisterCourses()
+    {
+    }
 }

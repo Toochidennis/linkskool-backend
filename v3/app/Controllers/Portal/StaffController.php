@@ -20,6 +20,7 @@ use V3\App\Services\Portal\StaffService;
 class StaffController extends BaseController
 {
     use ValidationTrait;
+
     private Staff $staff;
     private StaffService $staffService;
 
@@ -57,7 +58,7 @@ class StaffController extends BaseController
                 } else {
                     throw new Exception('Failed to generate staff number.');
                 }
-            }else{
+            } else {
                 $this->response = [
                     'success' => false,
                     'message' => 'Failed to register staff.'
@@ -74,23 +75,28 @@ class StaffController extends BaseController
     public function getStaff()
     {
         try {
-            $results = $this->staff->select(columns: [
+            $results = $this->staff->select(
+                columns: [
                 'id',
                 'picture_ref',
                 'surname',
                 'first_name',
                 'middle',
                 'staff_no'
-            ])->get();
+                ]
+            )->get();
 
-            $staffDetails = array_map(fn($row) => [
+            $staffDetails = array_map(
+                fn($row) => [
                 'id' => $row['id'],
                 'profile_url' => $row['picture_ref'],
                 'surname' => $row['surname'],
                 'first_name' => $row['first_name'],
                 'middle' => $row['middle'],
                 'staff_no' => $row['staff_no'],
-            ], $results);
+                ],
+                $results
+            );
 
             $this->response = ['success' => true, 'staff' => $staffDetails];
         } catch (Exception $e) {
@@ -101,9 +107,15 @@ class StaffController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function getStaffById(array $params) {}
+    public function getStaffById(array $params)
+    {
+    }
 
-    public function updateStaff() {}
+    public function updateStaff()
+    {
+    }
 
-    public function deleteStaff($params) {}
+    public function deleteStaff($params)
+    {
+    }
 }

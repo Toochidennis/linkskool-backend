@@ -98,8 +98,9 @@ class AttendanceService
                     $result['register'] = json_decode($result['register'], true);
                 } elseif (!$singleRecord && $result) {
                     foreach ($result as $record) {
-                        if (isset($record['register']))
+                        if (isset($record['register'])) {
                             $record->register = json_decode($record->register, true);
+                        }
                     }
                 }
             }

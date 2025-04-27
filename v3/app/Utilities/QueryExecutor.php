@@ -31,7 +31,7 @@ class QueryExecutor
     /**
      * Validates if the provided table name is allowed for operations.
      *
-     * @param string $table The name of the table to validate.
+     * @param  string $table The name of the table to validate.
      * @throws InvalidArgumentException If the table is not in the list of allowed tables.
      */
     private function validateTable(string $table): void
@@ -44,8 +44,8 @@ class QueryExecutor
     /**
      * Inserts a new record into the specified table.
      *
-     * @param string $table The name of the table where the record will be inserted.
-     * @param array $data An associative array where keys are column names and values are the corresponding values to insert.
+     * @param  string $table The name of the table where the record will be inserted.
+     * @param  array  $data  An associative array where keys are column names and values are the corresponding values to insert.
      * @return bool|string The ID of the inserted record on success, or false on failure.
      */
     public function insert(string $table, array $data)
@@ -65,7 +65,7 @@ class QueryExecutor
     /**
      * Retrieves all records from the specified table.
      *
-     * @param string $table The name of the table to select from.
+     * @param  string $table The name of the table to select from.
      * @return array An array of associative arrays representing the fetched records.
      */
     public function select(string $table)
@@ -79,9 +79,9 @@ class QueryExecutor
     /**
      * Updates records in the specified table based on given conditions.
      *
-     * @param string $table The name of the table to update.
-     * @param array $data An associative array where keys are column names to update and values are the new values.
-     * @param array $conditions An associative array where keys are column names and values are the conditions for the update.
+     * @param  string $table      The name of the table to update.
+     * @param  array  $data       An associative array where keys are column names to update and values are the new values.
+     * @param  array  $conditions An associative array where keys are column names and values are the conditions for the update.
      * @return bool True on success, false on failure.
      */
     public function update(string $table, array $data, array $conditions)
@@ -154,10 +154,10 @@ class QueryExecutor
      * $result = $queryExecutor->deleteRecords('course_registrations', $conditions, $notInColumn, $notInValues);
      * </code>
      *
-     * @param string $table        The name of the table to delete records from.
-     * @param array  $conditions   (Optional) Associative array where keys are column names and values are values to match.
-     * @param string $notInColumn  (Optional) Column name to apply a NOT IN condition.
-     * @param array  $notInValues  (Optional) Array of values that should not be present in $notInColumn.
+     * @param string $table       The name of the table to delete records from.
+     * @param array  $conditions  (Optional) Associative array where keys are column names and values are values to match.
+     * @param string $notInColumn (Optional) Column name to apply a NOT IN condition.
+     * @param array  $notInValues (Optional) Array of values that should not be present in $notInColumn.
      *
      * @return bool True on successful deletion, false otherwise.
      *
@@ -201,10 +201,10 @@ class QueryExecutor
     /**
      * Finds records in the specified table based on given conditions.
      *
-     * @param string $table The name of the table to search in.
-     * @param array $columns An array of column names to retrieve. Defaults to all columns.
-     * @param array $conditions An associative array where keys are column names and values are the conditions for the search.
-     * @param int $limit The maximum number of records to retrieve. Defaults to 0 (no limit).
+     * @param  string $table      The name of the table to search in.
+     * @param  array  $columns    An array of column names to retrieve. Defaults to all columns.
+     * @param  array  $conditions An associative array where keys are column names and values are the conditions for the search.
+     * @param  int    $limit      The maximum number of records to retrieve. Defaults to 0 (no limit).
      * @return array|false An array of associative arrays representing the fetched records, a single associative array if limit is 1, or false on failure.
      */
     public function findBy(
@@ -239,14 +239,15 @@ class QueryExecutor
     /**
      * Executes a complex query with joins.
      *
-     * @param string $table The primary table to query from.
-     * @param array $columns An array of column names to retrieve. Defaults to all columns.
-     * @param array $joins An array of join definitions, each containing:
-     *                     - 'table': The table to join with.
-     *                     - 'condition': The join condition.
-     *                     - 'type' (optional): The type of join (e.g., 'INNER', 'LEFT'). Defaults to 'INNER'.
-     * @param array $conditions An associative array where keys are column names and values are the conditions for the search.
-     * @param int $limit The maximum number of records to retrieve. Defaults to 0 (no limit).
+     * @param  string $table      The primary table to query from.
+     * @param  array  $columns    An array of column names to retrieve. Defaults to all columns.
+     * @param  array  $joins      An array of join definitions, each containing:
+     *                            - 'table': The table to join with. -
+     *                            'condition': The join condition. - 'type'
+     *                            (optional): The type of join (e.g., 'INNER',
+     *                            'LEFT'). Defaults to 'INNER'.
+     * @param  array  $conditions An associative array where keys are column names and values are the conditions for the search.
+     * @param  int    $limit      The maximum number of records to retrieve. Defaults to 0 (no limit).
      * @return array|bool
      */
 

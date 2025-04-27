@@ -17,8 +17,8 @@ class StudentService
     /**
      * StudentRegistrationService constructor.
      *
-     * @param Student         $student
-     * @param SchoolSettings  $schoolSettings
+     * @param Student             $student
+     * @param SchoolSettings      $schoolSettings
      * @param RegistrationTracker $regTracker
      */
     public function __construct(PDO $pdo)
@@ -31,7 +31,7 @@ class StudentService
     /**
      * Generate and update the registration number for a given student.
      *
-     * @param int $studentId
+     * @param  int $studentId
      * @return bool
      */
     public function generateRegistrationNumber(int $studentId): bool
@@ -74,7 +74,7 @@ class StudentService
     /**
      * Generates a hashed password using the student's surname as a seed.
      *
-     * @param string $surname
+     * @param  string $surname
      * @return string
      * @throws Exception
      */

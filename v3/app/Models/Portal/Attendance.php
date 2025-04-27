@@ -8,7 +8,7 @@ use V3\App\Models\BaseModel;
 class Attendance extends BaseModel
 {
     protected string $table = 'attendance';
-    
+
     public function __construct(PDO $pdo)
     {
         parent::__construct($pdo);

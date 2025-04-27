@@ -69,7 +69,6 @@ class AuthService
             ->first();
 
         if ($student && $this->verifyPassword($student['password'], $password)) {
-
             return [
                 'token' => $this->generateJWT($student['id'], $student['surname'], 'student'),
                 'role'  => 'student',
@@ -225,7 +224,7 @@ class AuthService
 
         $headers = getallheaders();
 
-        #die(print_r($headers));
+        // die(print_r($headers));
         if (!isset($headers['x-api-key']) || empty($headers['x-api-key'])) {
             http_response_code(HttpStatus::BAD_REQUEST);
             $response['message'] = 'API Key is required.';

@@ -19,10 +19,10 @@ use V3\App\Models\Portal\RegistrationTracker;
  * Handles student-related operations.
  */
 
-class StudentController
-extends BaseController
+class StudentController extends BaseController
 {
     use ValidationTrait;
+
     private Student $student;
     private SchoolSettings $schoolSettings;
     private RegistrationTracker $regTracker;
@@ -40,7 +40,7 @@ extends BaseController
      *
      * Expects the request to contain a valid '_db' parameter.
      *
-     * @param string $dbname The database name extracted from the request.
+     * @param  string $dbname The database name extracted from the request.
      * @return void
      */
     private function initialize()
@@ -101,7 +101,8 @@ extends BaseController
     {
         try {
             $results = $this->student
-                ->select(columns: [
+                ->select(
+                    columns: [
                     'id',
                     'picture_ref AS picture_url',
                     'surname',
@@ -110,7 +111,8 @@ extends BaseController
                     'registration_no',
                     'student_class AS class_id',
                     'student_level AS level_id'
-                ])->get();
+                    ]
+                )->get();
 
             $this->response = ['success' => true, 'students' => $results];
         } catch (Exception $e) {
@@ -168,5 +170,7 @@ extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function deleteStudent($id) {}
+    public function deleteStudent($id)
+    {
+    }
 }

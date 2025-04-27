@@ -16,9 +16,9 @@ use V3\App\Controllers\BaseController;
  */
 class CourseController extends BaseController
 {
-    private Course $course;
-
     use ValidationTrait;
+
+    private Course $course;
 
     public function __construct()
     {
@@ -56,7 +56,9 @@ class CourseController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function updateCourse() {}
+    public function updateCourse()
+    {
+    }
 
     public function getCourses()
     {
@@ -98,7 +100,11 @@ class CourseController extends BaseController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function getCourseById() {}
+    public function getCourseById()
+    {
+    }
 
-    public function deleteCourse() {}
+    public function deleteCourse()
+    {
+    }
 }
