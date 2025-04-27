@@ -49,11 +49,11 @@ class CourseRegistrationService
                     $this->courseRegistration
                         ->insert(
                             data: [
-                            'year' => $year,
-                            'term' => $term,
-                            'reg_no' => $studentId,
-                            'class' => $classId,
-                            'course' => $courseId
+                                'year' => $year,
+                                'term' => $term,
+                                'reg_no' => $studentId,
+                                'class' => $classId,
+                                'course' => $courseId
                             ]
                         );
                 }
