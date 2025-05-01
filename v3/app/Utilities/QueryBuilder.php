@@ -75,7 +75,11 @@ class QueryBuilder
             $operator = '=';
         }
 
-        $this->whereConditions[] = "`$column` $operator ?";
+        $parts = explode('.', $column);
+        $quotedParts = array_map(fn($part) => "`$part`", $parts);
+        $quotedColumn = implode('.', $quotedParts);
+
+        $this->whereConditions[] = "$quotedColumn $operator ?";
         $this->whereBindings[] = $value;
         return $this;
     }
@@ -172,8 +176,10 @@ class QueryBuilder
 
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($this->whereBindings);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->reset();
+        return $result;
     }
 
     /**
@@ -200,10 +206,8 @@ class QueryBuilder
         $placeholders = implode(", ", array_fill(0, count($data), "?"));
         $stmt = $this->pdo->prepare("INSERT INTO `$this->table` ($columns) VALUES ($placeholders)");
 
-        if ($stmt->execute(array_values($data))) {
-            return $this->pdo->lastInsertId();
-        }
-        return false;
+        $this->reset();
+        return $stmt->execute(array_values($data)) ? $this->pdo->lastInsertId() : false;
     }
 
     /**
@@ -224,11 +228,17 @@ class QueryBuilder
             $this->updateBindings[] = $value;
         }
 
-        $query = "UPDATE `$this->table` SET " . implode(", ", $setClauses) . " WHERE " . implode(" AND ", $this->whereConditions);
+        $query = "UPDATE `$this->table` SET " .
+            implode(", ", $setClauses) .
+            " WHERE " .
+            implode(" AND ", $this->whereConditions);
         $stmt = $this->pdo->prepare($query);
 
         $allBindings = array_merge($this->updateBindings, $this->whereBindings);
-        return $stmt->execute($allBindings);
+        $result = $stmt->execute($allBindings);
+
+        $this->reset();
+        return $result;
     }
 
     public function notIn(string $column, array $values): self
@@ -257,8 +267,10 @@ class QueryBuilder
 
         $query = "DELETE FROM `$this->table` WHERE " . implode(" AND ", $this->whereConditions);
         $stmt = $this->pdo->prepare($query);
+        $result = $stmt->execute($this->whereBindings);
 
-        return $stmt->execute($this->whereBindings);
+        $this->reset();
+        return $result;
     }
 
     /**
@@ -266,7 +278,7 @@ class QueryBuilder
      *
      * @return int The total count of rows matching the conditions.
      */
-    public function count()
+    public function count(): int
     {
         $query = "SELECT COUNT(*) FROM `$this->table`";
         if (!empty($this->whereConditions)) {
@@ -274,7 +286,10 @@ class QueryBuilder
         }
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($this->whereBindings);
-        return  $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $count = $stmt->fetchColumn();
+
+        $this->reset();
+        return $count;
     }
 
     /**
@@ -282,9 +297,20 @@ class QueryBuilder
      *
      * @return bool True if at least one row exists, otherwise false.
      */
-    public function exists()
+    public function exists(): bool
     {
-        return $this->count();
+        $query = "SELECT EXISTS(SELECT 1 FROM `$this->table`";
+        if (!empty($this->whereConditions)) {
+            $query .= " WHERE " . implode(" AND ", $this->whereConditions);
+        }
+        $query .= ")";
+
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute($this->whereBindings);
+        $exists =  (bool) $stmt->fetchColumn();
+
+        $this->reset();
+        return $exists;
     }
 
     /**
@@ -312,5 +338,22 @@ class QueryBuilder
         if (!in_array($table, Tables::ALLOWED_TABLES)) {
             throw new InvalidArgumentException("Request not allowed for table $table");
         }
+    }
+
+    /**
+     * Reset variables
+     * @return void
+     */
+    private function reset(): void
+    {
+        $this->selectColumns = ['*'];
+        $this->whereConditions = [];
+        $this->whereBindings = [];
+        $this->updateBindings = [];
+        $this->bindings = [];
+        $this->joins = [];
+        $this->groupBy = '';
+        $this->orderBy = [];
+        $this->limit = '';
     }
 }

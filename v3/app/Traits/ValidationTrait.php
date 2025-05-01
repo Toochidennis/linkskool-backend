@@ -30,12 +30,10 @@ trait ValidationTrait
     private function validate(array $data, array $requiredFields = []): array
     {
         $errors = [];
-        foreach ($requiredFields as $fieldPath) {
-            $value = $this->getNestedValue($data, explode('.', $fieldPath));
 
-            if ($value === null || empty($value)) {
-                $errors[] = "$fieldPath is required.";
-            }
+        foreach ($requiredFields as $fieldPath) {
+            $segments = explode('.', $fieldPath);
+            $this->checkField($data, $segments, $fieldPath, $errors);
         }
 
         if (!empty($errors)) {
@@ -46,41 +44,36 @@ trait ValidationTrait
         return $data;
     }
 
-    /**
-     * Retrieves a value from a multi-dimensional array using a path of keys.
-     *
-     * This method supports deep access into nested arrays using a sequence of keys.
-     * It's typically used for validating nested input structures (e.g., user.profile.name).
-     *
-     * Example usage:
-     * ```php
-     * $data = [
-     *     'user' => [
-     *         'profile' => [
-     *             'name' => 'ToochiDennis'
-     *         ]
-     *     ]
-     * ];
-     *
-     * $value = $this->getNestedValue($data, ['user', 'profile', 'name']); // Returns 'ToochiDennis'
-     * ```
-     *
-     * @param array $data The input array to traverse.
-     * @param array $path An ordered list of keys representing the path to the target value.
-     *
-     * @return mixed|null Returns the value if found, or null if any part of the path doesn't exist.
-     */
-    private function getNestedValue(array $data, array $path)
+    private function checkField($data, array $segments, string $fullPath, array &$errors)
     {
-        foreach ($path as $key) {
-            if (!is_array($data) || !array_key_exists($key, $data)) {
-                return null;
-            }
-            $data = $data[$key];
-        }
-        return $data;
-    }
+        $current = $data;
 
+        foreach ($segments as $i => $segment) {
+            if ($segment === '*') {
+                if (!is_array($current)) {
+                    $errors[] = "$fullPath is required.";
+                    return;
+                }
+
+                foreach ($current as $item) {
+                    $this->checkField($item, array_slice($segments, $i + 1), $fullPath, $errors);
+                }
+                return; // handled all items
+            }
+
+            if (!is_array($current) || !array_key_exists($segment, $current)) {
+                $errors[] = "$fullPath is required.";
+                return;
+            }
+
+            $current = $current[$segment];
+        }
+
+        // Final value check
+        if ($current === null || (is_string($current) && trim($current) === '')) {
+            $errors[] = "$fullPath is required.";
+        }
+    }
     /**
      * Validates the provided data. If validation fails, sends a JSON error response.
      *

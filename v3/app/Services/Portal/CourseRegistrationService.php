@@ -43,21 +43,21 @@ class CourseRegistrationService
                     ->where('course', '=', $courseId)
                     ->exists();
 
-                die($exists);
-
                 if ($exists) {
-                    $this->courseRegistration
-                        ->insert(
-                            data: [
-                                'year' => $year,
-                                'term' => $term,
-                                'reg_no' => $studentId,
-                                'class' => $classId,
-                                'course' => $courseId
-                            ]
-                        );
+                    continue;
                 }
+
+                $this->courseRegistration->insert(
+                    data: [
+                        'year' => $year,
+                        'term' => $term,
+                        'reg_no' => $studentId,
+                        'class' => $classId,
+                        'course' => $courseId
+                    ]
+                );
             }
+
             $index++;
         }
 
@@ -70,7 +70,7 @@ class CourseRegistrationService
             classId: $classId
         );
 
-        return $index === count($students) ? true : false;
+        return $index === count($students);
     }
 
     /**

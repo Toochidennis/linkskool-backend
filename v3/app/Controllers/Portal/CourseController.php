@@ -79,18 +79,14 @@ class CourseController extends BaseController
 
         try {
             $result = $this->course
-                ->rawQuery(
-                    query: "SELECT c.id, c.course_name FROM course_table c 
-                        INNER JOIN result_table rt ON c.id = rt.course 
-                        AND rt.term = ? AND rt.year = ? AND
-                        rt.class = ? WHERE rt.reg_no = ?",
-                    bindings: [
-                        $data['term'],
-                        $data['year'],
-                        $data['class_id'],
-                        $data['id']
-                    ]
-                );
+                ->select(columns: ['course_table.id', 'course_table.course_name'])
+                ->join('result_table', 'course_table.id = result_table.course')
+                ->where('result_table.term', '=', $data['term'])
+                ->where('result_table.year', '=', $data['year'])
+                ->where('result_table.class', '=', $data['class_id'])
+                ->where('result_table.reg_no', '=', $data['id'])
+                ->get();
+
                 $this->response = ['success' => true, 'registered_courses' => $result];
         } catch (Exception $e) {
             http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
