@@ -49,24 +49,23 @@ class CourseRegistrationController extends BaseController
     }
 
     /**
-    * Handles course registration.
-    * Fields are defined using dot notation to support validation of nested data.
-    *
-    * For example:
-    * 'user.profile.name' will validate $data['user']['profile']['name'].
-    */
+     * Handles course registration.
+     * Fields are defined using dot notation to support validation of nested data.
+     *
+     * For example:
+     * 'user.profile.name' will validate $data['user']['profile']['name'].
+     */
     public function registerStudentCourses(array $vars)
     {
         $requiredFields = [
-            'course_registration',
-            'course_registration.registered_courses',
-            'course_registration.registered_courses.course_id',
-            'course_registration.registered_courses.course_name',
-            'course_registration.class_id',
-            'course_registration.term',
-            'course_registration.year',
+            'registered_courses',
+            'registered_courses.*.course_id',
+            'class_id',
+            'term',
+            'year',
             'student_id'
         ];
+
         $data = $this->validateData(
             data: $this->post + ['student_id' => $vars['id']],
             requiredFields: $requiredFields
@@ -75,10 +74,10 @@ class CourseRegistrationController extends BaseController
         try {
             $register = $this->registrationService->register(
                 $data['student_id'],
-                $data['course_registration']['registered_courses'],
-                $data['course_registration']['term'],
-                $data['course_registration']['year'],
-                $data['course_registration']['class_id']
+                $data['registered_courses'],
+                $data['term'],
+                $data['year'],
+                $data['class_id']
             );
 
             $this->response = $register ?
@@ -94,7 +93,14 @@ class CourseRegistrationController extends BaseController
 
     public function registerClassCourses(array $vars)
     {
-        $requiredFields = ['courses', 'year', 'term', 'class_id'];
+        $requiredFields = [
+            'registered_courses',
+            'registered_courses.*.course_id',
+            'class_id',
+            'term',
+            'year'
+        ];
+
         $data = $this->validateData(
             data: $this->post + ['class_id' => $vars['id']],
             requiredFields: $requiredFields
@@ -109,7 +115,7 @@ class CourseRegistrationController extends BaseController
             if ($students) {
                 $register = $this->registrationService->register(
                     $students,
-                    $data['courses'],
+                    $data['registered_courses'],
                     $data['term'],
                     $data['year'],
                     $data['class_id']
@@ -138,20 +144,23 @@ class CourseRegistrationController extends BaseController
             $registrations = $this->courseRegistration
                 ->select(columns: ['year', 'term'])
                 ->where('class', '=', $data['class_id'])
+                ->groupBy(['term', 'year'])
+                ->orderBy('year', 'DESC')
                 ->get();
 
             foreach ($registrations as $registration) {
                 $year = $registration['year'];
                 $term = $registration['term'];
 
+                if ($year === '0000') {
+                    continue;
+                }
+
                 // Group by year
                 if (!isset($formatted[$year])) {
                     $formatted[$year] = ['terms' => []];
                 }
 
-                if (!isset($formatted[$year]['terms'][$term])) {
-                    $formatted[$year]['terms'] = [];
-                }
                 $formatted[$year]['terms'][] = $term;
             }
 
@@ -179,64 +188,67 @@ class CourseRegistrationController extends BaseController
      */
     public function duplicateRegistration(array $vars)
     {
-        $requiredFields = ['year', 'term', 'class_id'];
-        $data = $this->validateData(
-            data: $this->post + ['class_id' => $vars['id']],
-            requiredFields: $requiredFields
-        );
+        $data = $this->validateData(data: $vars, requiredFields: ['id']);
+        $classId = $data['id'];
 
         try {
+            // Get the most recent registration (by year + term)
+            $lastReg = $this->courseRegistration
+                ->select(columns: ['year', 'term'])
+                ->where('class', '=', $classId)
+                ->orderBy(['year' => 'DESC', 'term' => 'DESC'])
+                ->first();
+
+            if (empty($lastReg)) {
+                http_response_code(HttpStatus::NOT_FOUND);
+                $this->response['message'] = 'No previous registrations found to duplicate.';
+                return ResponseHandler::sendJsonResponse($this->response);
+            }
+
+            $oldYear = $lastReg['year'];
+            $oldTerm = $lastReg['term'];
+
+            // Calculate the new year and term
+            $newTerm = $oldTerm < 3 ? $oldTerm + 1 : 1;
+            $newYear = $oldTerm < 3 ? $oldYear : $oldYear + 1;
+
             // Fetch existing registrations for the class.
             $oldRegistrations = $this->courseRegistration
-                ->select(columns: ['year', 'course AS course_id', 'reg_no AS student_id'])
-                ->where('class', '=', $data['class_id'])
+                ->select(columns: ['course AS course_id', 'reg_no AS student_id'])
+                ->where('class', '=', $classId)
+                ->where('year', '=', $oldYear)
+                ->where('term', '=', $oldTerm)
                 ->get();
 
-            // Check if there are any existing registrations.
             if (empty($oldRegistrations)) {
                 http_response_code(HttpStatus::NOT_FOUND);
                 $this->response['message'] = 'No existing registrations found to duplicate.';
                 ResponseHandler::sendJsonResponse($this->response);
             }
 
-            // Ensure that the academic year remains the same.
-            $oldYear = $oldRegistrations[0]['year'];
-            $newYear = $data['year'];
-            if ($oldYear !== $newYear) {
-                http_response_code(HttpStatus::BAD_REQUEST);
-                $this->response['message'] = "Cannot duplicate registrations: academic year mismatch (existing: $oldYear, new: $newYear).";
-                ResponseHandler::sendJsonResponse($this->response);
-            }
-
-            // Remove duplicates if any.
-            $uniqueStudentIds = array_unique(array_column($oldRegistrations, 'student_id'));
-            $students = [];
-            foreach ($uniqueStudentIds as $studentId) {
-                $students[] = [
-                    'student_id' => $studentId
-                ];
-            }
-
-            $uniqueCourseIds = array_unique(array_column($oldRegistrations, 'course_id'));
-            $courses = [];
-            foreach ($uniqueCourseIds as $courseId) {
-                $courses[] = [
-                    'course_id' => $courseId
-                ];
-            }
-
-            // Call the registration service to duplicate the registrations.
-            $register = $this->registrationService->register(
-                $students,
-                $courses,
-                $data['term'],
-                $oldYear,
-                $data['class_id']
+            // Extract unique students and courses
+            $students = array_map(
+                fn($id) => ['student_id' => $id],
+                array_unique(array_column($oldRegistrations, 'student_id'))
             );
+            $courses  = array_map(
+                fn($id) => ['course_id' => $id],
+                array_unique(array_column($oldRegistrations, 'course_id'))
+            );
+
+            // Register for new term/year
+            $register = $this->registrationService
+                ->register(
+                    $students,
+                    $courses,
+                    $newTerm,
+                    $newYear,
+                    $classId
+                );
 
             // Set response based on registration success.
             $this->response = $register
-                ? ['success' => true, 'message' => 'Registration copied successfully']
+                ? ['success' => true, 'message' => "Registration copied to Term $newTerm, $newYear"]
                 : ['success' => false, 'message' => 'Failed to copy registration'];
         } catch (Exception $e) {
             http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);

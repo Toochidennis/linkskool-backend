@@ -151,12 +151,12 @@ class StudentController extends BaseController
     {
         $data = $this->validateData($vars, ['id', 'term', 'year']);
         try {
-            $result  = $this->student
+            $result = $this->student
                 ->rawQuery(
-                    query: "SELECT students_record.id, 
-                        concat(surname,' ', first_name,' ', middle) AS student_name, 
-                        COUNT(rt.course) AS course_count FROM students_record 
-                        LEFT JOIN result_table rt ON students_record.id = rt.reg_no 
+                    query: "SELECT students_record.id,
+                        concat(surname,' ', first_name,' ', middle) AS student_name,
+                        COUNT(rt.course) AS course_count FROM students_record
+                        LEFT JOIN result_table rt ON students_record.id = rt.reg_no
                         AND rt.term = ? AND rt.year = ? WHERE students_record.student_class = ?
                         GROUP BY students_record.id, student_name",
                     bindings: [$data['term'], $data['year'], $data['id']]
