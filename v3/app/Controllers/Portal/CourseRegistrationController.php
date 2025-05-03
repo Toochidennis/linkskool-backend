@@ -3,13 +3,13 @@
 /**
  * This file handles course registration logic
  *
- * PHP version 7.4+
+ * PHP version 8.0+
  *
  * @category Controller
  * @package  LinkSkool
  * @author   ToochiDennis <dennistoochukwu@gmail.com>
  * @license  MIT License
- * @link     https://linkskool.example.com
+ * @link     https://linkskool.net
  */
 
 namespace V3\App\Controllers\Portal;
