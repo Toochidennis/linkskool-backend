@@ -127,8 +127,6 @@ class QueryBuilder
         return $this;
     }
 
-
-
     /**
      * Limits the number of rows returned by the query.
      *
@@ -198,7 +196,7 @@ class QueryBuilder
     {
         $this->limit(1);
         $result = $this->get();
-        return $result[0] ?? null;
+        return $result[0] ?? [];
     }
 
     /**

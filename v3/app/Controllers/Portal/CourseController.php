@@ -113,7 +113,7 @@ class CourseController extends BaseController
 
             $registeredCourses = array_map(
                 function ($row) {
-                    $row['average_score'] = round($row['average_score'] ??= 0, 2);
+                    $row['average_score'] = round($row['average_score'] ?? 0, 2);
                     return $row;
                 },
                 $registeredCourses
