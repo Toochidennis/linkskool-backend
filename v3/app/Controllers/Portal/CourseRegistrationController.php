@@ -8,7 +8,7 @@
  * @category Controller
  * @package  LinkSkool
  * @author   ToochiDennis <dennistoochukwu@gmail.com>
- * @license  MIT License
+ * @license  MIT
  * @link     https://linkskool.net
  */
 
@@ -80,15 +80,17 @@ class CourseRegistrationController extends BaseController
                 $data['class_id']
             );
 
-            $this->response = $register ?
-                ['success' => true, 'message' => 'Course(s) registered successfully']
-                : ['success' => false, 'message' => 'Failed to register courses'];
-        } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
-        }
+            if ($register) {
+                return $this->respond(
+                    ['success' => true, 'message' => 'Course(s) registered successfully'],
+                    HttpStatus::CREATED
+                );
+            }
 
-        ResponseHandler::sendJsonResponse($this->response);
+            return $this->respondError('Failed to register courses');
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
     }
 
     public function registerClassCourses(array $vars)
@@ -121,16 +123,18 @@ class CourseRegistrationController extends BaseController
                     $data['class_id']
                 );
 
-                $this->response = $register ?
-                    ['success' => true, 'message' => 'Course(s) registered successfully']
-                    : ['success' => false, 'message' => 'Failed to register courses'];
+                if ($register) {
+                    return $this->respond(
+                        ['success' => true, 'message' => 'Course(s) registered successfully'],
+                        HttpStatus::CREATED
+                    );
+                }
+
+                return $this->respondError('Failed to register courses');
             }
         } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            return $this->respondError($e->getMessage());
         }
-
-        ResponseHandler::sendJsonResponse($this->response);
     }
 
     public function getRegistrationTerms(array $params)
@@ -164,13 +168,10 @@ class CourseRegistrationController extends BaseController
                 $formatted[$year]['terms'][] = $term;
             }
 
-            $this->response = ['success' => true, 'sessions' => $formatted];
+            $this->respond(['success' => true, 'sessions' => $formatted]);
         } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            return $this->respondError($e->getMessage());
         }
-
-        ResponseHandler::sendJsonResponse($this->response);
     }
 
     /**
