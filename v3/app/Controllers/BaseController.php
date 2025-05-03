@@ -36,8 +36,10 @@ abstract class BaseController
      * Initializes the controller by verifying API key/JWT and extracting request data.
      *
      * This method:
-     * - Calls AuthService::verifyAPIKey() and AuthService::verifyJWT() to ensure that the request is authenticated.
-     * - Extracts the POST data (if the request method is POST) or the query parameters (if GET) to obtain the '_db' parameter.
+     * - Calls AuthService::verifyAPIKey() and AuthService::verifyJWT()
+     * to ensure that the request is authenticated.
+     * - Extracts the POST data (if the request method is POST) or the
+     * query parameters (if GET) to obtain the '_db' parameter.
      *
      * @return void
      */
@@ -67,5 +69,16 @@ abstract class BaseController
         $this->pdo = DatabaseConnector::connect(dbname: $dbname);
 
         $this->response = ['success' => false];
+    }
+
+    protected function respond(array $data = [], int $statusCode = HttpStatus::OK): void
+    {
+        http_response_code($statusCode);
+        ResponseHandler::sendJsonResponse($data);
+    }
+
+    protected function respondError(string $message, int $statusCode = HttpStatus::INTERNAL_SERVER_ERROR): void
+    {
+        $this->respond(['success' => false, 'message' => $message], $statusCode);
     }
 }

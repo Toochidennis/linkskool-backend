@@ -6,7 +6,6 @@ use Exception;
 use V3\App\Models\Portal\Course;
 use V3\App\Utilities\HttpStatus;
 use V3\App\Traits\ValidationTrait;
-use V3\App\Utilities\ResponseHandler;
 use V3\App\Controllers\BaseController;
 
 /**
@@ -39,21 +38,17 @@ class CourseController extends BaseController
         try {
             $courseId = $this->course->insert($data);
 
-            $this->response = $courseId ?
-                [
+            if ($courseId) {
+                return $this->respond([
                     'success' => true,
-                    'message' => 'Course added successfully.',
-                ] :
-                [
-                    'success' => false,
-                    'message' => 'Failed to add course',
-                ];
-        } catch (Exception $e) {
-            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
-        }
+                    'message' => 'Course added successfully.'
+                ], HttpStatus::CREATED);
+            }
 
-        ResponseHandler::sendJsonResponse($this->response);
+            return $this->respondError('Failed to create course');
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
     }
 
     public function updateCourse()
@@ -64,18 +59,18 @@ class CourseController extends BaseController
     {
         try {
             $result = $this->course->get();
-            $this->response = ['success' => true, 'courses' => $result];
+            $this->respond(['success' => true, 'courses' => $result]);
         } catch (Exception $e) {
-            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            return $this->respondError($e->getMessage());
         }
-
-        ResponseHandler::sendJsonResponse($this->response);
     }
 
     public function getStudentRegisteredCourses(array $vars)
     {
-        $data = $this->validateData($vars, ['id', 'class_id', 'term', 'year']);
+        $data = $this->validateData(
+            data: $vars,
+            requiredFields: ['id', 'class_id', 'term', 'year']
+        );
 
         try {
             $result = $this->course
@@ -87,13 +82,47 @@ class CourseController extends BaseController
                 ->where('result_table.reg_no', '=', $data['id'])
                 ->get();
 
-                $this->response = ['success' => true, 'registered_courses' => $result];
+            $this->respond(['success' => true, 'registered_courses' => $result]);
         } catch (Exception $e) {
-            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            return $this->respondError($e->getMessage());
         }
+    }
 
-        ResponseHandler::sendJsonResponse($this->response);
+    public function getClassRegisteredCourses(array $vars)
+    {
+        $data = $this->validateData(
+            data: $vars,
+            requiredFields: ['id', 'term', 'year']
+        );
+
+        try {
+            $registeredCourses = $this->course
+                ->select(
+                    columns: [
+                        'course_table.id',
+                        'course_table.course_name',
+                        'AVG(result_table.total) AS average_score'
+                    ]
+                )
+                ->join('result_table', 'course_table.id = result_table.course')
+                ->where('result_table.term', '=', $data['term'])
+                ->where('result_table.year', '=', $data['year'])
+                ->where('result_table.class', '=', $data['id'])
+                ->groupBy(['course_table.id', 'course_table.course_name'])
+                ->get();
+
+            $registeredCourses = array_map(
+                function ($row) {
+                    $row['average_score'] = round($row['average_score'] ??= 0, 2);
+                    return $row;
+                },
+                $registeredCourses
+            );
+
+            $this->respond(['success' => true, 'registered_courses' => $registeredCourses]);
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
     }
 
     public function getCourseById()

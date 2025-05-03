@@ -113,13 +113,20 @@ class QueryBuilder
      */
     public function groupBy(string|array $columns): self
     {
-        if (is_array($columns)) {
-            $this->groupBy = "GROUP BY " . implode(', ', array_map(fn($col) => "`$col`", $columns));
-        } else {
-            $this->groupBy = "GROUP BY `$columns`";
-        }
+        $wrap = function ($col) {
+            // Split qualified names like table.column
+            $parts = explode('.', $col);
+            // Wrap each part with backticks
+            return implode('.', array_map(fn($part) => "`$part`", $parts));
+        };
+
+        $this->groupBy = (is_array($columns)) ?
+            "GROUP BY " . implode(', ', array_map($wrap, $columns))
+            : "GROUP BY " . $wrap($columns);
+
         return $this;
     }
+
 
 
     /**
