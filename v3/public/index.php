@@ -59,6 +59,8 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/attendance/{id:\d+}', ['Portal\AttendanceController', 'getAttendanceById']);
 
         $r->addRoute('GET', '/portal/course-assignments', ['Portal\CourseAssignmentController', 'getAssignments']);
+
+        $r->addRoute('GET', '/portal/result/class/{class_id:\d+}/course/{course_id:\d+}', ['Portal\ClassCourseResultController', 'getCourseResultsForClass']);
     }
 );
 
