@@ -3,7 +3,7 @@
 /**
  * This class helps handles student's course result
  *
- * PHP version 8.0+
+ * PHP version 8.2+
  *
  * @category Service
  * @package Linkskool
@@ -22,12 +22,25 @@ class CourseResultService
     private Assessment $assessment;
     private Student $student;
 
+    /**
+     * CourseResultService constructor.
+     *
+     * @param \PDO $pdo PDO database connection instance.
+     */
     public function __construct(\PDO $pdo)
     {
         $this->assessment = new Assessment($pdo);
         $this->student = new Student($pdo);
     }
 
+    /**
+     * Retrieves a list of assessments for a given level.
+     * If no level-specific assessments exist, it falls back to default (no level).
+     *
+     * @param string $levelId The level ID to filter assessments by.
+     *
+     * @return array An array of assessments with their names and maximum scores.
+     */
     public function getAssessments(int $levelId)
     {
         $assessments = $this->assessment
@@ -49,6 +62,17 @@ class CourseResultService
         return $assessments;
     }
 
+    /**
+     * Fetches course results for students based on provided filters.
+     *
+     * @param array $filters An associative array containing:
+     *  - class_id: string
+     *  - course_id: string
+     *  - term: string
+     *  - year: string
+     *
+     * @return array An array of student result records including student info and raw result fields.
+     */
     public function getCourseResults(array $filters)
     {
         return $this->student
@@ -69,6 +93,18 @@ class CourseResultService
             ->get();
     }
 
+    /**
+     * Transforms raw student result data into structured assessment formats.
+     *
+     * - Uses legacy colon-delimited format if `new_result` is empty.
+     * - Uses decoded JSON if `new_result` is present.
+     * - Defaults to blank scores if no result is available.
+     *
+     * @param array $studentResults Raw result records from the database.
+     * @param array $assessments List of assessments with names and max scores.
+     *
+     * @return array A structured array of student results with assessment details.
+     */
     public function transformResults(array $studentResults, array $assessments)
     {
         return array_map(function ($row) use ($assessments) {
