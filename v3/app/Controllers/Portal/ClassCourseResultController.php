@@ -41,9 +41,13 @@ class ClassCourseResultController extends BaseController
             $service = new CourseResultService($this->pdo);
             $assessments = $service->getAssessments($data['level_id']);
             $rawResults = $service->getCourseResults($data);
+            $grades = $service->getGrades();
             $transformed = $service->transformResults($rawResults, $assessments);
 
-            return $this->respond(['success' => true, 'course_results' => $transformed]);
+            return $this->respond([
+                'success' => true,
+                'response' => ['course_results' => $transformed, 'grades' => $grades]
+            ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
