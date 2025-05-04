@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * This class helps handles student's course result
+ *
+ * PHP version 8.2+
+ *
+ * @category Controller
+ * @package Linkskool
+ * @author ToochiDennis <dennistoochukwu@gmail.com>
+ * @license MIT
+ * @link https://www.linkskool.net
+ */
+
 namespace V3\App\Controllers\Portal;
 
 use Exception;

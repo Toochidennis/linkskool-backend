@@ -15,12 +15,14 @@
 namespace V3\App\Services\Portal;
 
 use V3\App\Models\Portal\Assessment;
+use V3\App\Models\Portal\Grade;
 use V3\App\Models\Portal\Student;
 
 class CourseResultService
 {
     private Assessment $assessment;
     private Student $student;
+    private Grade $grade;
 
     /**
      * CourseResultService constructor.
@@ -31,6 +33,7 @@ class CourseResultService
     {
         $this->assessment = new Assessment($pdo);
         $this->student = new Student($pdo);
+        $this->grade = new Grade($pdo);
     }
 
     /**
@@ -82,7 +85,7 @@ class CourseResultService
                 'result_table.id AS result_id',
                 'result_table.result',
                 'result_table.new_result',
-                'result_table.comment'
+                'result_table.total'
             ])
             ->join('result_table', 'students_record.id = result_table.reg_no')
             ->where('result_table.class', '=', $filters['class_id'])
@@ -90,6 +93,14 @@ class CourseResultService
             ->where('result_table.term', '=', $filters['term'])
             ->where('result_table.course', '=', $filters['course_id'])
             ->orderBy('surname')
+            ->get();
+    }
+
+    public function getGrades()
+    {
+        return $this->grade
+            ->select(columns: ['grade_symbol', 'start'])
+            ->orderBy('start')
             ->get();
     }
 
@@ -115,7 +126,7 @@ class CourseResultService
                 foreach ($assessments as $index => $assess) {
                     $structured[] = [
                         'assessment_name' => $assess['assessment_name'],
-                        'score' => $splitScores[$index] ?? '',
+                        'score' => isset($splitScores[$index]) ? (int) $splitScores[$index] : '',
                         'max_score' => $assess['max_score']
                     ];
                 }
@@ -135,6 +146,7 @@ class CourseResultService
                 'student_name' => $row['student_name'],
                 'reg_no' => $row['reg_no'],
                 'result_id' => $row['result_id'],
+                'total_score' => $row['total'] !== null ? (float) $row['total'] : '',
                 'assessments' => $structured
             ];
         }, $studentResults);

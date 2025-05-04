@@ -49,7 +49,7 @@ abstract class BaseController
         AuthService::verifyJWT();
 
         // Extract the database name based on request method.
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT') {
             $this->post = Sanitizer::sanitizeInput(DataExtractor::extractPostData());
             $dbname = $this->post['_db'] ?? '';
         } else {
