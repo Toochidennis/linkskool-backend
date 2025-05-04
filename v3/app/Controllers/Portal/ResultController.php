@@ -8,7 +8,6 @@ use V3\App\Traits\ValidationTrait;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\ResultService;
 use V3\App\Utilities\HttpStatus;
-use V3\App\Utilities\ResponseHandler;
 
 class ResultController extends BaseController
 {
@@ -42,13 +41,10 @@ class ResultController extends BaseController
                 ]);
             }
 
-            return $this->respondError('Failed to add course results.');
+            return $this->respondError('Failed to add course results.', HttpStatus::BAD_REQUEST);
         } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            $this->respondError($e->getMessage());
         }
-
-        ResponseHandler::sendJsonResponse($this->response);
     }
 
     public function getResultTermsByStudent(array $vars)
