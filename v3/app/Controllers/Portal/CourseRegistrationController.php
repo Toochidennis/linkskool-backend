@@ -18,7 +18,6 @@ use Exception;
 use V3\App\Utilities\HttpStatus;
 use V3\App\Models\Portal\Student;
 use V3\App\Traits\ValidationTrait;
-use V3\App\Utilities\ResponseHandler;
 use V3\App\Controllers\BaseController;
 use V3\App\Models\Portal\CourseRegistration;
 use V3\App\Services\Portal\CourseRegistrationService;
@@ -87,7 +86,10 @@ class CourseRegistrationController extends BaseController
                 );
             }
 
-            return $this->respondError('Failed to register courses');
+            return $this->respondError(
+                'No courses were registered. Possibly already registered or invalid input.',
+                HttpStatus::BAD_REQUEST
+            );
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -109,29 +111,19 @@ class CourseRegistrationController extends BaseController
         );
 
         try {
-            $students = $this->student
-                ->select(['id AS student_id'])
-                ->where('student_class', '=', $data['class_id'])
-                ->get();
+            $register = $this->registrationService->registerClassCourses($data);
 
-            if ($students) {
-                $register = $this->registrationService->register(
-                    $students,
-                    $data['registered_courses'],
-                    $data['term'],
-                    $data['year'],
-                    $data['class_id']
+            if ($register) {
+                return $this->respond(
+                    ['success' => true, 'message' => 'Course(s) registered successfully'],
+                    HttpStatus::CREATED
                 );
-
-                if ($register) {
-                    return $this->respond(
-                        ['success' => true, 'message' => 'Course(s) registered successfully'],
-                        HttpStatus::CREATED
-                    );
-                }
-
-                return $this->respondError('Failed to register courses');
             }
+
+            return $this->respondError(
+                'No courses were registered. Possibly already registered or invalid input.',
+                HttpStatus::BAD_REQUEST
+            );
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -139,36 +131,11 @@ class CourseRegistrationController extends BaseController
 
     public function getRegistrationTerms(array $params)
     {
-        $requiredFields = ['class_id'];
-        $data = $this->validateData($params, $requiredFields);
+        $data = $this->validateData($params, ['class_id']);
 
         try {
-            $formatted = [];
-            // Fetch existing registrations for the class.
-            $registrations = $this->courseRegistration
-                ->select(columns: ['year', 'term'])
-                ->where('class', '=', $data['class_id'])
-                ->groupBy(['term', 'year'])
-                ->orderBy('year', 'DESC')
-                ->get();
-
-            foreach ($registrations as $registration) {
-                $year = $registration['year'];
-                $term = $registration['term'];
-
-                if ($year === '0000') {
-                    continue;
-                }
-
-                // Group by year
-                if (!isset($formatted[$year])) {
-                    $formatted[$year] = ['terms' => []];
-                }
-
-                $formatted[$year]['terms'][] = $term;
-            }
-
-            $this->respond(['success' => true, 'sessions' => $formatted]);
+            $sessions = $this->registrationService->getRegistrationTerms($data['class_id']);
+            $this->respond(['success' => true, 'sessions' => $sessions]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -190,73 +157,28 @@ class CourseRegistrationController extends BaseController
     public function duplicateRegistration(array $vars)
     {
         $data = $this->validateData(data: $vars, requiredFields: ['id']);
-        $classId = $data['id'];
 
         try {
-            // Get the most recent registration (by year + term)
-            $lastReg = $this->courseRegistration
-                ->select(columns: ['year', 'term'])
-                ->where('class', '=', $classId)
-                ->orderBy(['year' => 'DESC', 'term' => 'DESC'])
-                ->first();
+            $result = $this->registrationService
+                ->duplicateRegistrationForNextTerm($data['id']);
 
-            if (empty($lastReg)) {
-                http_response_code(HttpStatus::NOT_FOUND);
-                $this->response['message'] = 'No previous registrations found to duplicate.';
-                return ResponseHandler::sendJsonResponse($this->response);
-            }
-
-            $oldYear = $lastReg['year'];
-            $oldTerm = $lastReg['term'];
-
-            // Calculate the new year and term
-            $newTerm = $oldTerm < 3 ? $oldTerm + 1 : 1;
-            $newYear = $oldTerm < 3 ? $oldYear : $oldYear + 1;
-
-            // Fetch existing registrations for the class.
-            $oldRegistrations = $this->courseRegistration
-                ->select(columns: ['course AS course_id', 'reg_no AS student_id'])
-                ->where('class', '=', $classId)
-                ->where('year', '=', $oldYear)
-                ->where('term', '=', $oldTerm)
-                ->get();
-
-            if (empty($oldRegistrations)) {
-                http_response_code(HttpStatus::NOT_FOUND);
-                $this->response['message'] = 'No existing registrations found to duplicate.';
-                ResponseHandler::sendJsonResponse($this->response);
-            }
-
-            // Extract unique students and courses
-            $students = array_map(
-                fn($id) => ['student_id' => $id],
-                array_unique(array_column($oldRegistrations, 'student_id'))
-            );
-            $courses  = array_map(
-                fn($id) => ['course_id' => $id],
-                array_unique(array_column($oldRegistrations, 'course_id'))
-            );
-
-            // Register for new term/year
-            $register = $this->registrationService
-                ->register(
-                    $students,
-                    $courses,
-                    $newTerm,
-                    $newYear,
-                    $classId
+            if (!$result) {
+                return $this->respondError(
+                    message: 'No courses were registered. Possibly already registered or invalid input.',
+                    statusCode: HttpStatus::BAD_REQUEST
                 );
+            }
 
-            // Set response based on registration success.
-            $this->response = $register
-                ? ['success' => true, 'message' => "Registration copied to Term $newTerm, $newYear"]
-                : ['success' => false, 'message' => 'Failed to copy registration'];
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'message' => 'Course(s) registered successfully.'
+                ],
+                statusCode: HttpStatus::CREATED
+            );
         } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            return $this->respondError($e->getMessage());
         }
-
-        ResponseHandler::sendJsonResponse($this->response);
     }
 
     public function unregisterCourses()

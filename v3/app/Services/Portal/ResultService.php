@@ -107,12 +107,11 @@ class ResultService
     /**
      * Determines grade symbol, remark, and pass status based on score.
      *
-     * @param float|int|null $score The total score.
-     * @return array|null Returns an array with keys:
+     * @param float|int $score The total score.
+     * @return array Returns an array with keys:
      *                    - 'grade' (string)
      *                    - 'remark' (string)
      *                    - 'status' (int: 1=pass, 0=fail),
-     *                    or null if score is not provided.
      */
     private function getRemark($score)
     {
