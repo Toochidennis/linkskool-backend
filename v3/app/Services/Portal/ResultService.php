@@ -88,7 +88,7 @@ class ResultService
     private function getComment($score)
     {
         if (!is_numeric($score)) {
-            return null;
+            return '';
         }
 
         if ($score >= 80) {
