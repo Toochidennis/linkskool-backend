@@ -46,16 +46,4 @@ class ResultController extends BaseController
             $this->respondError($e->getMessage());
         }
     }
-
-    public function getResultTermsByStudent(array $vars)
-    {
-        $data = $this->validateData(data: $vars, requiredFields: ['id']);
-
-        try {
-            $terms = $this->service->getResultTerms($data);
-            return $this->respond(['success' => true, 'result_terms' => $terms]);
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
-    }
 }

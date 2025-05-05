@@ -151,4 +151,24 @@ class CourseResultService
             ];
         }, $studentResults);
     }
+
+    public function getRegistrationStatus(array $filters)
+    {
+        return $this->student
+            ->select(columns: [
+                'students_record.id',
+                "concat(surname,' ', first_name,' ', middle) AS student_name",
+                "COUNT(result_table.course) AS course_count",
+            ])
+            ->join(
+                table: 'result_table',
+                condition: "students_record.id = result_table.reg_no
+                        AND result_table.term = '{$filters['term']}' 
+                        AND result_table.year = '{$filters['year']}'",
+                type: 'LEFT'
+            )
+            ->where('students_record.student_class', '=', $filters['id'])
+            ->groupBy(['students_record.id', 'student_name'])
+            ->get();
+    }
 }
