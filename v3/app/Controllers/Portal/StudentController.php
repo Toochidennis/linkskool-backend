@@ -103,14 +103,14 @@ class StudentController extends BaseController
             $results = $this->student
                 ->select(
                     columns: [
-                    'id',
-                    'picture_ref AS picture_url',
-                    'surname',
-                    'first_name',
-                    'middle',
-                    'registration_no',
-                    'student_class AS class_id',
-                    'student_level AS level_id'
+                        'id',
+                        'picture_ref AS picture_url',
+                        'surname',
+                        'first_name',
+                        'middle',
+                        'registration_no',
+                        'student_class AS class_id',
+                        'student_level AS level_id'
                     ]
                 )->get();
 
@@ -139,30 +139,6 @@ class StudentController extends BaseController
                 ->get();
 
             $this->response = ['success' => true, 'students' => $results];
-        } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
-        }
-
-        ResponseHandler::sendJsonResponse($this->response);
-    }
-
-    public function getClassRegisteredStudents(array $vars)
-    {
-        $data = $this->validateData($vars, ['id', 'term', 'year']);
-        try {
-            $result = $this->student
-                ->select(columns:['students_record.id',
-                "concat(surname,' ', first_name,' ', middle) AS student_name",
-                "COUNT(result_table.course) AS course_count",
-                ])
-                ->join('result_table', 'students_record.id = result_table.reg_no', 'LEFT')
-                ->where('result_table.term', '=', $data['term'])
-                ->where('result_table.year', '=', $data['year'])
-                ->where('students_record.student_class', '=', $data['id'])
-                ->groupBy(['students_record.id', 'student_name'])
-                ->get();
-            $this->response = ['success' => true, 'registered_students' => $result];
         } catch (Exception $e) {
             http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             $this->response['message'] = $e->getMessage();

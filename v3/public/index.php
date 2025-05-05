@@ -1,6 +1,13 @@
 <?php
 
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -14,8 +21,9 @@ $response = ['success' => false];
 $dispatcher = FastRoute\simpleDispatcher(
     function (RouteCollector $r) {
         /**
-      * Portal routes
-    */
+         * Portal routes
+         */
+
         // Login routes
         $r->addRoute('POST', '/portal/auth/login', ['Portal\AuthController', 'handleAuthRequest']);
         $r->addRoute('POST', '/portal/auth/logout', ['Portal\AuthController', 'logout']);
@@ -24,7 +32,8 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('POST', '/portal/students/{id:\d+}/course-registrations', ['Portal\CourseRegistrationController', 'registerStudentCourses']);
         $r->addRoute('GET', '/portal/students/{id:\d+}/registered-courses', ['Portal\CourseController', 'getStudentRegisteredCourses']);
         $r->addRoute('GET', '/portal/students', ['Portal\StudentController', 'getAllStudents']);
-        $r->addRoute('GET', '/portal/students/{id}/result-terms', ['Portal\ResultController', 'getResultTermsByStudent']);
+        $r->addRoute('GET', '/portal/students/{id:\d+}/result-terms', ['Portal\StudentResultController', 'getResultTerms']);
+        $r->addRoute('GET', '/portal/students/{id:\d+}/result', ['Portal\ClassCourseResultController', 'getStudentResult']);
         $r->addRoute('GET', '/portal/students/{id:\d+}', ['Portal\StudentController', 'getStudentById']);
 
         // Class routes
@@ -33,8 +42,9 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('POST', '/portal/classes/{id:\d+}/course-registrations/duplicate', ['Portal\CourseRegistrationController', 'duplicateRegistration']);
         $r->addRoute('GET', '/portal/classes/{id:\d+}/attendance', ['Portal\AttendanceController', 'getClassAttendance']);
         $r->addRoute('GET', '/portal/classes/{id:\d+}/students', ['Portal\StudentController', 'getStudentsByClass']);
-        $r->addRoute('GET', '/portal/classes/{id:\d+}/registered-students', ['Portal\StudentController', 'getClassRegisteredStudents']);
+        $r->addRoute('GET', '/portal/classes/{id:\d+}/registered-students', ['Portal\ClassCourseResultController', 'getClassCourseRegistrationStatus']);
         $r->addRoute('GET', '/portal/classes/{id:\d+}/registered-courses', ['Portal\CourseController', 'getClassRegisteredCourses']);
+        $r->addRoute('GET', '/portal/classes/{class_id}/courses/{course_id}/results', ['Portal\ClassCourseResultController', 'getCourseResultsForClass']);
 
         // Staff routes
         $r->addRoute('POST', '/portal/staff', ['Portal\StaffController', 'addStaff']);
@@ -61,7 +71,6 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/course-assignments', ['Portal\CourseAssignmentController', 'getAssignments']);
 
         $r->addRoute('PUT', '/portal/result/class-result', ['Portal\ResultController', 'updateResult']);
-        $r->addRoute('GET', '/portal/result/class/{class_id:\d+}/course/{course_id:\d+}', ['Portal\ClassCourseResultController', 'getCourseResultsForClass']);
     }
 );
 
