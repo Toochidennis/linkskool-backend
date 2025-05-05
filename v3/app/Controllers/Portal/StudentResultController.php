@@ -33,6 +33,30 @@ class StudentResultController extends BaseController
 
     public function getStudentResult(array $vars)
     {
+        $data = $this->validateData(
+            data: $vars,
+            requiredFields: ['class_id', 'student_id', 'term', 'year', 'level_id']
+        );
+
+        try {
+            $studentResult = $this->service->getStudentResult($data);
+            $assessments = $this->service->getAssessments($data['level_id']);
+            $transformedResult = $this->service->transformResult($studentResult, $assessments);
+            $studentAverage = $this->service->calculateStudentAverage($studentResult);
+            $positionData = $this->service->getClassAverageAndPosition($data, $data['student_id']);
+
+            $this->respond([
+                'success' => true,
+                'student_result' =>  [
+                    'courses' => $transformedResult,
+                    'average' => $studentAverage,
+                    'position' => $positionData['position'],
+                    'total_students' => $positionData['total_students']
+                ]
+            ]);
+        } catch (Exception $e) {
+            $this->respondError($e->getMessage());
+        }
     }
 
     public function getResultTerms(array $vars)
