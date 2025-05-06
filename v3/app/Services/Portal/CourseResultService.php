@@ -162,9 +162,11 @@ class CourseResultService
             ])
             ->join(
                 table: 'result_table',
-                condition: "students_record.id = result_table.reg_no
-                        AND result_table.term = '{$filters['term']}' 
-                        AND result_table.year = '{$filters['year']}'",
+                condition: function ($join) use ($filters) {
+                    $join->on('students_record.id', '=', 'result_table.reg_no')
+                        ->on('result_table.term', '=', $filters['term'])
+                        ->on('result_table.year', '=', $filters['year']);
+                },
                 type: 'LEFT'
             )
             ->where('students_record.student_class', '=', $filters['id'])

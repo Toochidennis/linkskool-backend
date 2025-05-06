@@ -3,7 +3,7 @@
 namespace V3\App\Controllers;
 
 use PDO;
-use V3\App\Utilities\DatabaseConnector;
+use V3\App\Database\DatabaseConnector;
 use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Services\Portal\AuthService;

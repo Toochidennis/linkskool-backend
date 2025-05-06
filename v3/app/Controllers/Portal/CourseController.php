@@ -89,13 +89,14 @@ class CourseController extends BaseController
             $result = $this->course
                 ->select(columns: ['course_table.id', 'course_table.course_name'])
                 ->join(
-                    'result_table',
-                    "course_table.id = result_table.course
-                    AND result_table.term "
+                    table: 'result_table',
+                    condition: function ($join) use ($data) {
+                        $join->on('course_table.id', '=', 'result_table.course')
+                            ->on('result_table.term', '=', $data['term'])
+                            ->on('result_table.year', '=', $data['year'])
+                            ->on('result_table.class', '=', $data['class_id']);
+                    }
                 )
-                ->where('result_table.term', '=', $data['term'])
-                ->where('result_table.year', '=', $data['year'])
-                ->where('result_table.class', '=', $data['class_id'])
                 ->where('result_table.reg_no', '=', $data['id'])
                 ->get();
 

@@ -3,6 +3,7 @@
 namespace V3\App\Database;
 
 use PDO;
+use PDOException;
 use V3\App\Utilities\EnvLoader;
 use V3\App\Utilities\ResponseHandler;
 
@@ -27,7 +28,7 @@ class DatabaseConnector
             $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             return $pdo;
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             error_log("Database connection error: " . $e->getMessage());
 
             http_response_code(500);
