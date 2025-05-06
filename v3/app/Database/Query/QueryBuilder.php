@@ -192,7 +192,7 @@ class QueryBuilder
         }
 
         $stmt = $this->pdo->prepare($query);
-        $stmt->execute($this->whereBindings);
+        $stmt->execute(array_merge($this->bindings, $this->whereBindings));
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $this->reset();
