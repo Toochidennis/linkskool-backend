@@ -65,6 +65,7 @@ class CourseController extends BaseController
 
     public function updateCourse()
     {
+        // TODO
     }
 
     public function getCourses()
@@ -87,7 +88,11 @@ class CourseController extends BaseController
         try {
             $result = $this->course
                 ->select(columns: ['course_table.id', 'course_table.course_name'])
-                ->join('result_table', 'course_table.id = result_table.course')
+                ->join(
+                    'result_table',
+                    "course_table.id = result_table.course
+                    AND result_table.term "
+                )
                 ->where('result_table.term', '=', $data['term'])
                 ->where('result_table.year', '=', $data['year'])
                 ->where('result_table.class', '=', $data['class_id'])
@@ -139,9 +144,11 @@ class CourseController extends BaseController
 
     public function getCourseById()
     {
+        // TODO:
     }
 
     public function deleteCourse()
     {
+        // TODO:
     }
 }

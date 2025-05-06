@@ -4,19 +4,20 @@ namespace V3\App\Controllers\Portal;
 
 use Exception;
 use PDO;
+use V3\App\Database\DatabaseConnector;
 use V3\App\Utilities\HttpStatus;
 use V3\App\Models\Portal\AuthModel;
 use V3\App\Traits\ValidationTrait;
 use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
 use V3\App\Services\Portal\AuthService;
-use V3\App\Utilities\DatabaseConnector;
 
 class AuthController
 {
+    use ValidationTrait;
+    
     private array $response = ['success' => false, 'message' => ''];
     private AuthModel $authModel;
-    use ValidationTrait;
 
     public function __construct()
     {

@@ -1,9 +1,11 @@
 <?php
 
-namespace V3\App\Utilities;
+namespace V3\App\Database\Query;
 
+use Closure;
 use PDO;
 use InvalidArgumentException;
+use V3\App\Database\Tables;
 
 /**
  * Class QueryBuilder
@@ -147,9 +149,19 @@ class QueryBuilder
      * @param  string $type      The type of join (INNER, LEFT, RIGHT, etc.).
      * @return self
      */
-    public function join(string $table, string $condition, string $type = 'INNER'): self
+    public function join(string $table, Closure|string $condition, string $type = 'INNER'): self
     {
-        $this->joins[] = "$type JOIN `$table` ON $condition";
+        if ($condition instanceof Closure) {
+            $joinBuilder = new JoinBuilder();
+            $condition($joinBuilder);
+
+            $onClause = $joinBuilder->getClause();
+            $this->bindings = array_merge($this->bindings, $joinBuilder->bindings);
+        } else {
+            $onClause = $condition;
+        }
+
+        $this->joins[] = "$type JOIN `$table` ON $onClause";
         return $this;
     }
 

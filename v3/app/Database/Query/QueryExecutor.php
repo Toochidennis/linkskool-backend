@@ -36,7 +36,7 @@ class QueryExecutor
      */
     private function validateTable(string $table): void
     {
-        if (!in_array($table, Tables::ALLOWED_TABLES)) {
+        if (!in_array($table, \V3\App\Database\Tables::ALLOWED_TABLES)) {
             throw new InvalidArgumentException("Request not allowed for table $table");
         }
     }

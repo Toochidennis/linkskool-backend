@@ -1,8 +1,10 @@
 <?php
 
-namespace V3\App\Utilities;
+namespace V3\App\Database;
 
 use PDO;
+use V3\App\Utilities\EnvLoader;
+use V3\App\Utilities\ResponseHandler;
 
 class DatabaseConnector
 {
