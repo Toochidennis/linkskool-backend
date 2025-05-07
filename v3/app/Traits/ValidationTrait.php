@@ -6,26 +6,32 @@ use InvalidArgumentException;
 use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\ResponseHandler;
 
+/**
+ * Trait ValidationTrait
+ *
+ * Provides reusable data validation logic for nested arrays with optional support
+ * for wildcard keys (e.g., `students.*.name`) and null/empty value rejection.
+ */
 trait ValidationTrait
 {
     /**
-     * Validates data based on a list of fields.
+     * Validates the structure and presence of required fields in input data.
      *
-     * The $fields parameter is an associative array where keys are field names and
-     * values are booleans indicating whether the field is required (true) or optional (false).
+     * Each field is defined using dot notation to support nested validation,
+     * and `*` can be used as a wildcard to loop through arrays.
      *
-     * Example:
+     * Example of required fields:
      * [
-     *    'class_name'  => true,
-     *    'level'       => true,
-     *    'form_teacher'=> false
+     *    'class_name',               // Must exist and not be null/empty
+     *    'teacher.name',            // Nested structure must exist and not be empty
+     *    'students.*.id',           // Every student in the array must have a non-null, non-empty 'id'
      * ]
      *
-     * @param array $data   The input data to validate.
-     * @param array $fields Associative array defining required and optional fields.
+     * @param array $data The input data to validate (e.g., from a request body).
+     * @param array $requiredFields A list of dot-notated field paths that must exist and not be empty.
      *
-     * @return array The sanitized data.
-     * @throws InvalidArgumentException if any required field is missing or empty.
+     * @return array The validated and cleaned data.
+     * @throws InvalidArgumentException If any required field is missing or empty.
      */
     private function validate(array $data, array $requiredFields = []): array
     {
@@ -44,6 +50,16 @@ trait ValidationTrait
         return $data;
     }
 
+    /**
+     * Recursively checks if a specific field path exists and is not null/empty.
+     *
+     * Supports nested arrays and wildcard indexing (e.g., `items.*.price`).
+     *
+     * @param mixed  $data      The data being traversed (array or nested arrays).
+     * @param array  $segments  The exploded parts of the field path (e.g., ['students', '*', 'name']).
+     * @param string $fullPath  The original dot-notated field name (used for error messaging).
+     * @param array  &$errors   A reference to the errors array to collect validation issues.
+     */
     private function checkField($data, array $segments, string $fullPath, array &$errors)
     {
         $current = $data;
@@ -69,19 +85,23 @@ trait ValidationTrait
             $current = $current[$segment];
         }
 
-        // Final value check
-        if ($current === null || (is_string($current) && trim($current) === '')) {
-            $errors[] = "$fullPath is required.";
+        // Final value check: reject null, empty string, and empty array
+        if ($current === null || $current === '' || (is_array($current) && empty($current))) {
+            $errors[] = "$fullPath cannot be null or empty.";
         }
     }
+
     /**
-     * Validates the provided data. If validation fails, sends a JSON error response.
+     * Validates the provided data and automatically returns a JSON error response on failure.
      *
-     * @param array $data           The data to validate.
-     * @param array $requiredFields An array of required field names.
+     * Useful for controller-level data validation to avoid boilerplate try-catch code.
+     * If validation fails, it will send an HTTP 400 response with details and halt execution.
      *
-     * @return array|null Returns the sanitized data if validation passes; otherwise,
-     *  sends an error response and returns null.
+     * @param array $data           The request or payload data to validate.
+     * @param array $requiredFields An array of dot-notated required field names.
+     *
+     * @return array Returns the validated data if successful.
+     *               Otherwise, sends a JSON error response and halts further execution.
      */
     public function validateData(array $data, array $requiredFields = []): array
     {

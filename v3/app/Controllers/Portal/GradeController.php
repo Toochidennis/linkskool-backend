@@ -1,19 +1,32 @@
 <?php
 
+/**
+ * This class helps handle grades
+ *
+ * PHP 8.2+
+ *
+ * @category Controller
+ * @package Linkskool
+ * @author ToochiDennis <dennistoochukwu@gmail.com>
+ * @license MIT
+ * @link https://linkskool.net
+ */
+
 namespace V3\App\Controllers\Portal;
 
 use Exception;
 use V3\App\Models\Portal\Grade;
 use V3\App\Traits\ValidationTrait;
 use V3\App\Utilities\HttpStatus;
-use V3\App\Utilities\ResponseHandler;
 use V3\App\Controllers\BaseController;
+use V3\App\Services\Portal\GradeService;
 
 class GradeController extends BaseController
 {
     use ValidationTrait;
 
     private Grade $grade;
+    private GradeService $service;
 
     public function __construct()
     {
@@ -23,58 +36,71 @@ class GradeController extends BaseController
 
     private function initialize()
     {
-        $this->grade = new Grade(pdo: $this->pdo);
+        $this->service = new GradeService($this->pdo);
     }
 
-    public function addGrade()
+    public function addGrades()
     {
-        $requiredFields = ['grade_symbol', 'start', 'remark'];
+        $requiredFields = [
+            'grades',
+            'grades.*.symbol',
+            'grades.*.range',
+            'grades.*.remark'
+        ];
         $data = $this->validateData($this->post, $requiredFields);
 
         try {
-            $assessmentId = $this->grade->insert($data);
+            $inserted = $this->service->add($data['grades']);
 
-            $this->response = $assessmentId ? [
-                'success' => true,
-                'message' => 'Grade added successfully.',
-                'assessment_id' => $assessmentId
-            ] : [
-                'success' => false,
-                'message' => 'Failed to add grade'
-            ];
+            if ($inserted) {
+                return $this->respond(
+                    ['success' => true, 'message' => 'Grade(s) added successfully.'],
+                    HttpStatus::CREATED
+                );
+            }
+
+            return $this->respondError('Failed to add grade');
         } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            return $this->respondError($e->getMessage());
         }
-
-        ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function fetchGrades()
+    public function updateGrade(array $vars)
+    {
+        $requiredFields = ['id', 'symbol', 'range', 'remark'];
+        $data = $this->validateData($this->post + $vars, $requiredFields);
+
+        try {
+            $updated = $this->service->update($data);
+
+            if ($updated) {
+                return $this->respond(
+                    ['success' => true, 'message' => 'Grade updated successfully.']
+                );
+            }
+
+            return $this->respondError('Failed to update grade');
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
+
+    public function getGrades()
     {
         try {
-            $result = $this->grade->get();
+            $grades = $this->grade->get();
 
-            $grades  = array_map(
-                fn($row) => [
-                'id' => $row['id'],
-                'grade_symbol' => $row['grade_symbol'],
-                'start' => $row['start'],
-                'remark' => $row['remark']
-                ],
-                $result
-            );
-
-            $this->response = ['success' => true, 'grades' => $grades];
+            return $this->respond(['success' => true, 'grades' => $grades]);
         } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            return $this->respondError($e->getMessage());
         }
-
-        ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function deleteGrade(array $params)
+    public function deleteGrade(array $vars)
     {
+        $data = $this->validateData($vars, ['id']);
+        return $this->grade
+            ->where('id', '=', $data['id'])
+            ->delete();
     }
 }

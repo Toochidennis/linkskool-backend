@@ -1,0 +1,18 @@
+[2025-05-07 14:14:07] ERROR [2]: Undefined array key "courses" in C:\xampp\htdocs\api3\v3\app\Services\Portal\CourseRegistrationService.php on line 84
+Request: POST /api3/v3/portal/classes/71/course-registrations? from ::1
+
+[2025-05-07 14:14:07] ERROR [2]: foreach() argument must be of type array|object, null given in C:\xampp\htdocs\api3\v3\app\Services\Portal\CourseRegistrationService.php on line 108
+Request: POST /api3/v3/portal/classes/71/course-registrations? from ::1
+
+[2025-05-07 14:14:07] ERROR [2]: foreach() argument must be of type array|object, null given in C:\xampp\htdocs\api3\v3\app\Services\Portal\CourseRegistrationService.php on line 108
+Request: POST /api3/v3/portal/classes/71/course-registrations? from ::1
+
+[2025-05-07 14:14:07] ERROR [2]: foreach() argument must be of type array|object, null given in C:\xampp\htdocs\api3\v3\app\Services\Portal\CourseRegistrationService.php on line 108
+Request: POST /api3/v3/portal/classes/71/course-registrations? from ::1
+
+[2025-05-07 14:14:07] ERROR [2]: foreach() argument must be of type array|object, null given in C:\xampp\htdocs\api3\v3\app\Services\Portal\CourseRegistrationService.php on line 108
+Request: POST /api3/v3/portal/classes/71/course-registrations? from ::1
+
+[2025-05-07 14:14:07] EXCEPTION: array_map(): Argument #2 ($array) must be of type array, null given in C:\xampp\htdocs\api3\v3\app\Services\Portal\CourseRegistrationService.php on line 175
+Request: POST /api3/v3/portal/classes/71/course-registrations? from ::1
+
