@@ -16,6 +16,7 @@ use FastRoute\RouteCollector;
 use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\ResponseHandler;
 
+
 $response = ['success' => false];
 
 $dispatcher = FastRoute\simpleDispatcher(
@@ -61,8 +62,10 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/assessments', ['Portal\AssessmentController', 'getAllAssessments']);
         $r->addRoute('GET', '/portal/assessments/{id:\d+}', ['Portal\AssessmentController', 'getAssessmentById']);
 
-        $r->addRoute('POST', '/portal/grades', ['Portal\GradeController', 'addGrade']);
-        $r->addRoute('GET', '/portal/grades', ['Portal\GradeController', 'fetchGrades']);
+        $r->addRoute('POST', '/portal/grades', ['Portal\GradeController', 'addGrades']);
+        $r->addRoute('PUT', '/portal/grades/{id:\d+}', ['Portal\GradeController', 'updateGrade']);
+        $r->addRoute('GET', '/portal/grades', ['Portal\GradeController', 'getGrades']);
+        $r->addRoute('DELETE', '/portal/grades/{id:\d+}', ['Portal\GradeController', 'deleteGrade']);
 
         $r->addRoute('PUT', '/portal/attendance/{id:\d+}', ['Portal\AttendanceController', 'updateAttendance']);
         $r->addRoute('GET', '/portal/attendance', ['Portal\AttendanceController', 'getAllAttendance']);

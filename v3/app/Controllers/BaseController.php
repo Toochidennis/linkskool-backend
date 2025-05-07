@@ -74,7 +74,7 @@ abstract class BaseController
     protected function respond(array $data = [], int $statusCode = HttpStatus::OK): void
     {
         http_response_code($statusCode);
-        ResponseHandler::sendJsonResponse($data);
+        ResponseHandler::sendJsonResponse(['statusCode' => $statusCode] + $data);
     }
 
     protected function respondError(string $message, int $statusCode = HttpStatus::INTERNAL_SERVER_ERROR): void

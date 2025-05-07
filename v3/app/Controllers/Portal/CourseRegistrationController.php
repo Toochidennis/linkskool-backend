@@ -3,7 +3,7 @@
 /**
  * This file handles course registration logic
  *
- * PHP version 8.0+
+ * PHP version 8.2+
  *
  * @category Controller
  * @package  LinkSkool

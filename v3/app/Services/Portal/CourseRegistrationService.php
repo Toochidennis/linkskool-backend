@@ -2,10 +2,10 @@
 
 namespace V3\App\Services\Portal;
 
-use Exception;
 use PDO;
-use V3\App\Models\Portal\CourseRegistration;
+use Exception;
 use V3\App\Models\Portal\Student;
+use V3\App\Models\Portal\CourseRegistration;
 
 class CourseRegistrationService
 {
@@ -72,16 +72,20 @@ class CourseRegistrationService
     {
         $students = $this->student
             ->select(['id AS student_id'])
-            ->where('student_class', '=', $data['classId'])
+            ->where('student_class', '=', $data['class_id'])
             ->get();
 
-            return $this->register(
-                students: $students,
-                courses: $data['courses'],
-                term: $data['term'],
-                year: $data['year'],
-                classId: $data['class_id']
-            );
+        if (empty($students)) {
+            throw new Exception("There are no students in this class.");
+        }
+
+        return $this->register(
+            students: $students,
+            courses: $data['registered_courses'],
+            term: $data['term'],
+            year: $data['year'],
+            classId: $data['class_id']
+        );
     }
 
     /**

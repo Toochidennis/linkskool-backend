@@ -76,18 +76,34 @@ class StudentResultService
 
         foreach ($terms as $row) {
             $year = $row['year'];
+            $termValue = $row['term'];
+
+            if ($year === '0000') {
+                continue;
+            }
+
+            $termName = match ($termValue) {
+                1 => 'First Term',
+                2 => 'Second Term',
+                3 => 'Third Term',
+                default => 'Unknown Term'
+            };
 
             if (!isset($structured[$year])) {
-                $structured[$year] = ['terms' => []];
+                $structured[$year] = [
+                    'year' => (int) $year,
+                    'terms' => []
+                ];
             }
 
             $structured[$year]['terms'][] = [
-                'term' => (int) $row['term'],
-                'average_score' => number_format((float)$row['average_score'], 2)
+                'term_name' => $termName,
+                'term_value' => (int) $termValue,
+                'average_score' => (float) number_format((float)$row['average_score'], 2)
             ];
         }
 
-        return $structured;
+        return array_values($structured);
     }
 
     /**

@@ -10,6 +10,7 @@ use V3\App\Utilities\EnvLoader;
 use V3\App\Models\Portal\Level;
 use V3\App\Models\Portal\Staff;
 use V3\App\Utilities\HttpStatus;
+use V3\App\Models\Portal\Course;
 use V3\App\Models\Portal\Student;
 use V3\App\Models\Portal\ClassModel;
 use V3\App\Utilities\ResponseHandler;
@@ -18,6 +19,7 @@ use V3\App\Models\Portal\SchoolSettings;
 class AuthService
 {
     private Level $level;
+    private Course $course;
     private Staff $staffModel;
     private Student $studentModel;
     private ClassModel $classModel;
@@ -33,6 +35,7 @@ class AuthService
         $this->staffModel = new Staff($pdo);
         $this->studentModel = new Student($pdo);
         $this->level = new Level($pdo);
+        $this->course = new Course($pdo);
         $this->classModel = new ClassModel($pdo);
         $this->schoolSettings = new SchoolSettings($pdo);
     }
@@ -134,12 +137,20 @@ class AuthService
             'levels' => $this->level
                 ->select(['id', 'level_name'])
                 ->get() ?? [],
+            "courses" => $this->course
+                ->select(['id', 'course_name'])
+                ->get() ?? []
         ];
     }
 
     private function getStaffData($id)
     {
-        return [];
+        return [
+            'profile' => $this->staffModel
+                ->select(["CONCAT(surname, ' ', first_name, ' ', middle) AS name", 'email'])
+                ->where('id', '=', $id)
+                ->first() + ['role' => 'staff']
+        ];
     }
 
     // Generate JWT Token
@@ -222,7 +233,7 @@ class AuthService
     {
         $response = ['success' => false, 'message' => ''];
 
-        $headers = getallheaders();
+        $headers = array_change_key_case(getallheaders(), CASE_LOWER);
 
         // die(print_r($headers));
         if (!isset($headers['x-api-key']) || empty($headers['x-api-key'])) {
