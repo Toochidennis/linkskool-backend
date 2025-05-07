@@ -16,7 +16,6 @@ use FastRoute\RouteCollector;
 use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\ResponseHandler;
 
-
 $response = ['success' => false];
 
 $dispatcher = FastRoute\simpleDispatcher(
