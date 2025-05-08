@@ -58,8 +58,10 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/courses/{id}/attendance', ['Portal\AttendanceController', 'getCourseAttendance']);
 
         $r->addRoute('POST', '/portal/assessments', ['Portal\AssessmentController', 'addAssessments']);
+        $r->addRoute('PUT', '/portal/assessments/{id:\d+}', ['Portal\AssessmentController', 'updateAssessment']);
         $r->addRoute('GET', '/portal/assessments', ['Portal\AssessmentController', 'getAllAssessments']);
-        $r->addRoute('GET', '/portal/assessments/{level_id:\d+}', ['Portal\AssessmentController', 'getAssessmentById']);
+        $r->addRoute('GET', '/portal/assessments/{level_id:\d+}', ['Portal\AssessmentController', 'getAssessmentByLevel']);
+        $r->addRoute('DELETE', '/portal/assessments/{id:\d+}', ['Portal\AssessmentController', 'deleteAssessment']);
 
         $r->addRoute('POST', '/portal/grades', ['Portal\GradeController', 'addGrades']);
         $r->addRoute('PUT', '/portal/grades/{id:\d+}', ['Portal\GradeController', 'updateGrade']);
