@@ -37,6 +37,7 @@ class GradeController extends BaseController
     private function initialize()
     {
         $this->service = new GradeService($this->pdo);
+        $this->grade = new Grade($this->pdo);
     }
 
     public function addGrades()
@@ -99,8 +100,22 @@ class GradeController extends BaseController
     public function deleteGrade(array $vars)
     {
         $data = $this->validateData($vars, ['id']);
-        return $this->grade
-            ->where('id', '=', $data['id'])
-            ->delete();
+
+        try {
+            $delete = $this->grade
+                ->where('id', '=', $data['id'])
+                ->delete();
+
+            if ($delete) {
+                return $this->respond(['success' => true, 'message' => 'Grade deleted successfully']);
+            }
+
+            return $this->respondError(
+                'Failed to delete to grade',
+                HttpStatus::BAD_REQUEST
+            );
+        } catch (Exception $e) {
+            $this->respondError($e->getMessage());
+        }
     }
 }

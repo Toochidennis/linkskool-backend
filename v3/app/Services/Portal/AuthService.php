@@ -113,7 +113,7 @@ class AuthService
         };
 
         return [
-            'data'  => $data,
+            'data' => $data,
             'token' => $this->generateJWT(userId: $id, name: $name, role: $role)
         ];
     }
@@ -122,24 +122,24 @@ class AuthService
     {
         return [
             'profile' => $this->staffModel
-                ->select(["CONCAT(surname, ' ', first_name, ' ', middle) AS name", 'email'])
+                ->select(['id as staff_id', "CONCAT(surname, ' ', first_name, ' ', middle) AS name", 'email'])
                 ->where('id', '=', $id)
                 ->first() + ['role' => 'admin'],
 
             'settings' => $this->schoolSettings
                 ->select(['name AS school_name', 'year', 'term'])
-                ->first() ?? [],
+                ->first(),
 
             'classes' => $this->classModel
                 ->select(['id', 'class_name', 'level AS level_id', 'form_teacher'])
-                ->get() ?? [],
+                ->get(),
 
             'levels' => $this->level
                 ->select(['id', 'level_name'])
-                ->get() ?? [],
+                ->get(),
             "courses" => $this->course
                 ->select(['id', 'course_name'])
-                ->get() ?? []
+                ->get()
         ];
     }
 
