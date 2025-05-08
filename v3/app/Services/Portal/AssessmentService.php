@@ -11,7 +11,7 @@ class AssessmentService
 
     public function __construct(PDO $pdo)
     {
-        $assessment = new Assessment($pdo);
+        $this->assessment = new Assessment($pdo);
     }
 
     public function insertAssessment($assessments): bool
@@ -21,7 +21,8 @@ class AssessmentService
             [
                 'assesment_name' => $assess['assessment_name'],
                 'max_score' => $assess['max_score'],
-                'level' => $assess['level_id']
+                'level' => $assess['level_id'],
+                'type' => $assess['type']
             ],
             $assessments
         );
@@ -40,7 +41,16 @@ class AssessmentService
 
     public function updateAssessment($assessment)
     {
-        //TODO
+        $assess = [
+            'assesment_name' => $assessment['assessment_name'],
+            'max_score' => $assessment['max_score'],
+            'level' => $assessment['level_id'],
+            'type' => $assessment['type']
+        ];
+
+        return $this->assessment
+            ->where('id', '=', $assessment['id'])
+            ->update($assess);
     }
 
     public function getAssessments(int $levelId = 0)
@@ -56,7 +66,11 @@ class AssessmentService
                     'level_table.level_name'
                 ]
             )
-            ->join('level_table', 'assessment_table.level = level_table.id');
+            ->join(
+                'level_table',
+                'assessment_table.level = level_table.id',
+                'LEFT'
+            );
 
         if ($levelId != 0) {
             $assessments->where('level', '=', $levelId);
@@ -67,18 +81,11 @@ class AssessmentService
 
     public function transformAssessment($assessments)
     {
-        print_r($assessments);
-        die;
-
         $formatted = [];
 
         foreach ($assessments as $assessment) {
-            $levelName = $assessment['level_name'];
-            $levelId = $assessment['level_id'];
-
-            if (!isset($formatted[$levelName])) {
-                $formatted[$levelName] = [];
-            }
+            $levelName = $assessment['level_name'] ?? 0;
+            $levelId = $assessment['level_id'] ?? 0;
 
             if (!isset($formatted[$levelName]['level_id'])) {
                 $formatted[$levelName] = ['level_id' => $levelId, 'level_name' => $levelName];
@@ -90,6 +97,8 @@ class AssessmentService
                 'type' => $assessment['type']
             ];
         }
+
+        return array_values($formatted);
     }
 
     public function deleteAssessment($id): bool

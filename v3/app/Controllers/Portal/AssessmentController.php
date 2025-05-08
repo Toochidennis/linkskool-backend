@@ -27,7 +27,8 @@ class AssessmentController extends BaseController
             'assessments',
             'assessments.*.assessment_name',
             'assessments.*.max_score',
-            'assessments.*.level_id'
+            'assessments.*.level_id',
+            'assessments.*.type'
         ];
         $data = $this->validateData($this->post, $requiredFields);
 
@@ -47,13 +48,38 @@ class AssessmentController extends BaseController
         }
     }
 
-    public function updateAssessment(array $vars) {}
+    public function updateAssessment(array $vars)
+    {
+        $requiredFields = ['id', 'assessment_name', 'max_score', 'level_id', 'type'];
+        $data = $this->validateData($this->post + $vars, $requiredFields);
+
+        try {
+            $updated = $this->service->updateAssessment($data);
+
+            if ($updated) {
+                return $this->respond(
+                    ['success' => true, 'message' => 'Assessment updated successfully.']
+                );
+            }
+
+            return $this->respondError('Failed to update assessment');
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
 
     public function getAllAssessments()
     {
         try {
             $assessments = $this->service->getAssessments();
-        } catch (PDOException $e) {
+            $transformed = $this->service->transformAssessment($assessments);
+
+            if ($transformed) {
+                return $this->respond(['success' => true, 'assessments' => $transformed]);
+            }
+
+            return $this->respondError('Failed to fetch assessments');
+        } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
     }
@@ -61,8 +87,16 @@ class AssessmentController extends BaseController
     public function getAssessmentByLevel(array $vars)
     {
         $data = $this->validateData(data: $vars, requiredFields: ['level_id']);
+
         try {
-            $assessments = $this->service->getAssessments();
+            $assessments = $this->service->getAssessments($data['level_id']);
+            $transformed = $this->service->transformAssessment($assessments);
+
+            if ($transformed) {
+                return $this->respond(['success' => true, 'assessments' => $transformed]);
+            }
+
+            return $this->respondError('Failed to fetch assessments');
         } catch (PDOException $e) {
             return $this->respondError($e->getMessage());
         }
