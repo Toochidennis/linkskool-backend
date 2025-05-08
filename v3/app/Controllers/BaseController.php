@@ -45,40 +45,56 @@ abstract class BaseController
      */
     public function __construct()
     {
+        $this->response = ['success' => false];
+
         AuthService::verifyAPIKey();
         AuthService::verifyJWT();
 
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        $payload = match ($method) {
+            'POST', 'PUT', 'DELETE', 'PATCH' =>
+            Sanitizer::sanitizeInput(DataExtractor::extractPostData()),
+            'GET' => Sanitizer::sanitizeInput($_GET),
+            default => []
+        };
+
         // Extract the database name based on request method.
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'PUT') {
-            $this->post = Sanitizer::sanitizeInput(DataExtractor::extractPostData());
-            $dbname = $this->post['_db'] ?? '';
-        } else {
-            $get = Sanitizer::sanitizeInput($_GET);
-            $dbname = $get['_db'] ?? '';
-        }
-
-        // ResponseHandler::sendJsonResponse(['message'=>$dbname]);
-
-        // Validate that _db is provided.
-        if (empty($dbname)) {
+        if (empty($payload)) {
             http_response_code(HttpStatus::BAD_REQUEST);
-            $this->response['message'] = '_db is required.';
+            $this->response['message'] = 'Request payload can not be empty';
             ResponseHandler::sendJsonResponse($this->response);
         }
 
+        // Validate that _db is provided.
+        if (empty($payload['_db'])) {
+            http_response_code(HttpStatus::BAD_REQUEST);
+            $this->response['message'] = '_db field is required.';
+            ResponseHandler::sendJsonResponse($this->response);
+        }
+
+        $this->post = $payload;
+        $dbname = $this->post['_db'];
         $this->pdo = DatabaseConnector::connect(dbname: $dbname);
-
-        $this->response = ['success' => false];
     }
 
-    protected function respond(array $data = [], int $statusCode = HttpStatus::OK): void
-    {
+    protected function respond(
+        array $data = [],
+        int $statusCode = HttpStatus::OK
+    ): void {
         http_response_code($statusCode);
-        ResponseHandler::sendJsonResponse(['statusCode' => $statusCode] + $data);
+        ResponseHandler::sendJsonResponse(
+            ['statusCode' => $statusCode] + $data
+        );
     }
 
-    protected function respondError(string $message, int $statusCode = HttpStatus::INTERNAL_SERVER_ERROR): void
-    {
-        $this->respond(['success' => false, 'message' => $message], $statusCode);
+    protected function respondError(
+        string $message,
+        int $statusCode = HttpStatus::INTERNAL_SERVER_ERROR
+    ): void {
+        $this->respond(
+            ['success' => false, 'message' => $message],
+            $statusCode
+        );
     }
 }

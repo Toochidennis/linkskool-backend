@@ -283,11 +283,13 @@ class QueryBuilder
         }
 
         $query = "DELETE FROM `$this->table` WHERE " . implode(" AND ", $this->whereConditions);
+
         $stmt = $this->pdo->prepare($query);
-        $result = $stmt->execute($this->whereBindings);
+        $stmt->execute($this->whereBindings);
+        $affectedRows = $stmt->rowCount();
 
         $this->reset();
-        return $result;
+        return $affectedRows > 0;
     }
 
     /**

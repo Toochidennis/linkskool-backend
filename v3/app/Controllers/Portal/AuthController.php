@@ -15,7 +15,7 @@ use V3\App\Services\Portal\AuthService;
 class AuthController
 {
     use ValidationTrait;
-    
+
     private array $response = ['success' => false, 'message' => ''];
     private AuthModel $authModel;
 
@@ -56,7 +56,7 @@ class AuthController
                 ResponseHandler::sendJsonResponse($this->response);
             }
         } catch (Exception $e) {
-            $this->response['message'] =  $e->getMessage();
+            $this->response['message'] = $e->getMessage();
             http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             ResponseHandler::sendJsonResponse($this->response);
         }
@@ -68,7 +68,7 @@ class AuthController
      * @param string        $username
      * @param string        $password
      * @param PDO           $db
-     * @param string dbname
+     * @param string        $dbname
      */
     public function login(
         string $username,
@@ -83,7 +83,7 @@ class AuthController
             $this->response = [
                 'success' => true,
                 'message' => 'Login successful',
-                'response'   => $loginResponse + ['_db' => $dbname]
+                'response' => $loginResponse + ['_db' => $dbname]
             ];
             ResponseHandler::sendJsonResponse($this->response);
         } catch (Exception $e) {
@@ -92,7 +92,6 @@ class AuthController
             ResponseHandler::sendJsonResponse($this->response);
         }
     }
-
 
     public function logout()
     {
