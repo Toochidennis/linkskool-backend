@@ -17,18 +17,18 @@ namespace V3\App\Controllers\Portal;
 use Exception;
 use V3\App\Traits\ValidationTrait;
 use V3\App\Controllers\BaseController;
-use V3\App\Services\Portal\CourseResultService;
+use V3\App\Services\Portal\ClassCourseResultService;
 
 class ClassCourseResultController extends BaseController
 {
     use ValidationTrait;
 
-    private CourseResultService $service;
+    private ClassCourseResultService $service;
 
     public function __construct()
     {
         parent::__construct();
-        $this->service = new CourseResultService($this->pdo);
+        $this->service = new ClassCourseResultService($this->pdo);
     }
 
     public function getCourseResultsForClass(array $vars)

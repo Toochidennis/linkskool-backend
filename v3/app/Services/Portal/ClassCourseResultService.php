@@ -18,7 +18,7 @@ use V3\App\Models\Portal\Assessment;
 use V3\App\Models\Portal\Grade;
 use V3\App\Models\Portal\Student;
 
-class CourseResultService
+class ClassCourseResultService
 {
     private Assessment $assessment;
     private Student $student;
