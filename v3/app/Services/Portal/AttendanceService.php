@@ -3,8 +3,6 @@
 namespace V3\App\Services\Portal;
 
 use V3\App\Models\Portal\Attendance;
-use V3\App\Utilities\HttpStatus;
-use Exception;
 
 class AttendanceService
 {
@@ -43,18 +41,8 @@ class AttendanceService
 
         $data['register'] = json_encode($data['register'], JSON_UNESCAPED_UNICODE);
 
-        try {
-            $inserted = $this->attendance->insert($data);
-
-            return $inserted
-                ? ['success' => true, 'message' => 'Attendance added successfully.']
-                : ['success' => false, 'message' => 'Failed to add attendance'];
-        } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            return ['success' => false, 'message' => $e->getMessage()];
-        }
+        return $this->attendance->insert($data);
     }
-
 
     public function updateAttendance(array $data, int $id)
     {
@@ -64,18 +52,9 @@ class AttendanceService
 
         $data['register'] = json_encode($data['register'], JSON_UNESCAPED_UNICODE);
 
-        try {
-            $isUpdated = $this->attendance
-                ->where('id', '=', $id)
-                ->update($data);
-
-            return $isUpdated ?
-                ['success' => true, 'message' => 'Attendance updated successfully.'] :
-                ['success' => false, 'message' => 'Failed to update attendance'];
-        } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            return ['success' => false, 'message' => $e->getMessage()];
-        }
+        return $this->attendance
+            ->where('id', '=', $id)
+            ->update($data);
     }
 
     public function getAttendance(
@@ -83,32 +62,29 @@ class AttendanceService
         array $columns = ['id', 'count', 'date', 'register'],
         bool $singleRecord = false
     ) {
-        try {
-            $query = $this->attendance->select($columns);
+        $query = $this->attendance->select($columns);
 
-            // Apply filters
-            foreach ($filters as $key => $value) {
-                $query->where($key, '=', $value);
-            }
+        // Apply filters
+        foreach ($filters as $key => $value) {
+            $query->where($key, '=', $value);
+        }
 
-            $result = $singleRecord ? $query->first() : $query->get();
+        $result = $singleRecord ? $query->first() : $query->get();
 
-            if (in_array('register', $columns)) {
-                if ($singleRecord && $result) {
-                    $result['register'] = json_decode($result['register'], true);
-                } elseif (!$singleRecord && $result) {
-                    foreach ($result as $record) {
-                        if (isset($record['register'])) {
-                            $record->register = json_decode($record->register, true);
-                        }
+        if (in_array('register', $columns)) {
+            if ($singleRecord && $result) {
+                $result['register'] = json_decode($result['register'], true);
+            } elseif (!$singleRecord && $result) {
+                foreach ($result as $record) {
+                    if (isset($record['register'])) {
+                        $record->register = json_decode($record->register, true);
                     }
                 }
             }
-
-            return ['success' => true, 'attendance_records' => $result];
-        } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            return ['success' => false, 'message' => $e->getMessage()];
         }
+
+        return $result;
     }
+
+    
 }
