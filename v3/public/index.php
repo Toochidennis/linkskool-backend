@@ -27,6 +27,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         // Login routes
         $r->addRoute('POST', '/portal/auth/login', ['Portal\AuthController', 'handleAuthRequest']);
         $r->addRoute('POST', '/portal/auth/logout', ['Portal\AuthController', 'logout']);
+
         // Student routes
         $r->addRoute('POST', '/portal/students', ['Portal\StudentController', 'addStudent']);
         $r->addRoute('POST', '/portal/students/{id:\d+}/course-registrations', ['Portal\CourseRegistrationController', 'registerStudentCourses']);
@@ -71,7 +72,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('DELETE', '/portal/grades/{id:\d+}', ['Portal\GradeController', 'deleteGrade']);
 
         $r->addRoute('PUT', '/portal/attendance/{id:\d+}', ['Portal\AttendanceController', 'updateAttendance']);
-        $r->addRoute('GET', '/portal/attendance', ['Portal\AttendanceController', 'getAllAttendance']);
+        $r->addRoute('GET', '/portal/attendance', ['Portal\AttendanceController', 'getAttendanceHistory']);
         $r->addRoute('GET', '/portal/attendance/{id:\d+}', ['Portal\AttendanceController', 'getAttendanceById']);
 
         $r->addRoute('GET', '/portal/course-assignments', ['Portal\CourseAssignmentController', 'getAssignments']);
