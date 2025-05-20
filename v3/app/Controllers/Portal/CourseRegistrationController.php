@@ -28,7 +28,7 @@ class CourseRegistrationController extends BaseController
 
     private Student $student;
     private CourseRegistration $courseRegistration;
-    private CourseRegistrationService $registrationService;
+    private CourseRegistrationService $service;
 
     public function __construct()
     {
@@ -44,7 +44,7 @@ class CourseRegistrationController extends BaseController
     {
         $this->courseRegistration = new CourseRegistration(pdo: $this->pdo);
         $this->student = new Student(pdo: $this->pdo);
-        $this->registrationService = new CourseRegistrationService(pdo: $this->pdo);
+        $this->service = new CourseRegistrationService(pdo: $this->pdo);
     }
 
     /**
@@ -71,7 +71,7 @@ class CourseRegistrationController extends BaseController
         );
 
         try {
-            $register = $this->registrationService->register(
+            $register = $this->service->registerCourses(
                 $data['student_id'],
                 $data['registered_courses'],
                 $data['term'],
@@ -111,7 +111,7 @@ class CourseRegistrationController extends BaseController
         );
 
         try {
-            $register = $this->registrationService->registerClassCourses($data);
+            $register = $this->service->registerClassCourses($data);
 
             if ($register) {
                 return $this->respond(
@@ -129,12 +129,12 @@ class CourseRegistrationController extends BaseController
         }
     }
 
-    public function getRegistrationTerms(array $params)
+    public function getClassRegistrationTerms(array $params)
     {
         $data = $this->validateData($params, ['class_id']);
 
         try {
-            $sessions = $this->registrationService->getRegistrationTerms($data['class_id']);
+            $sessions = $this->service->getClassRegistrationTerms($data['class_id']);
             $this->respond(['success' => true, 'sessions' => $sessions]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
@@ -154,12 +154,12 @@ class CourseRegistrationController extends BaseController
      *
      * @return void
      */
-    public function duplicateRegistration(array $vars)
+    public function duplicateLastTermRegistrations(array $vars)
     {
         $data = $this->validateData(data: $vars, requiredFields: ['id']);
 
         try {
-            $result = $this->registrationService
+            $result = $this->service
                 ->duplicateRegistrationForNextTerm($data['id']);
 
             if (!$result) {
@@ -181,7 +181,82 @@ class CourseRegistrationController extends BaseController
         }
     }
 
+    public function getClassRegistrationHistory(array $vars)
+    {
+        $data = $this->validateData(data: $vars, requiredFields: ['class_id']);
+
+        try {
+            $history = $this->service->getClassRegistrationHistory((int) $data['class_id']);
+            $this->respond(['success' => true, 'data' => $history]);
+        } catch (Exception $e) {
+            $this->respondError($e->getMessage());
+        }
+    }
+
+    public function getRegisteredCoursesForClass(array $vars)
+    {
+        $data = $this->validateData(data: $vars, requiredFields: ['class_id', 'year', 'term']);
+        try {
+            $courses = $this->service->getClassRegisteredCourses($data);
+            $this->respond(['success' => true, 'data' => $courses]);
+        } catch (Exception $e) {
+            $this->respondError($e->getMessage());
+        }
+    }
+
+    public function getRegisteredCoursesWithAvgScores(array $vars)
+    {
+        $data = $this->validateData(data: $vars, requiredFields: ['year', 'term', 'class_id']);
+        try {
+            $result = $this->service->getClassRegisteredCoursesWithAverageScores($data);
+            $this->respond(['success' => true, 'data' => $result]);
+        } catch (Exception $e) {
+            $this->respondError($e->getMessage());
+        }
+    }
+
+    public function getStudentsForCourseInClass(array $vars)
+    {
+        $data = $this->validateData(
+            data: $vars,
+            requiredFields: ['class_id', 'course_id', 'year', 'term']
+        );
+
+        try {
+            $students = $this->service->getStudentsForCourseInClass($data);
+            $this->respond(['success' => true, 'data' => $students]);
+        } catch (Exception $e) {
+            $this->respondError($e->getMessage());
+        }
+    }
+
+    public function getCoursesRegisteredByStudent(array $vars)
+    {
+        $data = $this->validateData(
+            data: $vars,
+            requiredFields: ['class_id', 'student_id', 'year', 'term']
+        );
+        try {
+            $courses = $this->service->getCoursesRegisteredByStudent($data);
+            $this->respond(['success' => true, 'data' => $courses]);
+        } catch (Exception $e) {
+            $this->respondError($e->getMessage());
+        }
+    }
+
+    public function getStudentRegistrationStatusInClass(array $vars)
+    {
+        $data = $this->validateData($vars, ['class_id', 'term', 'year']);
+        try {
+            $result = $this->service->getStudentsRegistrationStatus($data);
+            $this->respond(['success' => true, 'registered_students' => $result]);
+        } catch (Exception $e) {
+            $this->respondError($e->getMessage());
+        }
+    }
+
     public function unregisterCourses()
     {
+        // TODO
     }
 }

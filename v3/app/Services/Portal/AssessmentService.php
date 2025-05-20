@@ -94,6 +94,7 @@ class AssessmentService
             $formatted[$levelName]['assessments'][] = [
                 'id' => $assessment['id'],
                 'assessment_name' => $assessment['assessment_name'],
+                'assessment_score' => $assessment['max_score'],
                 'type' => $assessment['type']
             ];
         }

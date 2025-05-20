@@ -97,15 +97,14 @@ class QueryBuilder
     {
         if (is_array($columns)) {
             foreach ($columns as $column => $dir) {
-                $this->orderBy[] = "`$column` " . strtoupper($dir);
+                $this->orderBy[] = $this->wrapIdentifier($column) . ' ' . strtoupper($dir);
             }
         } else {
-            $this->orderBy[] = "`$columns` " . strtoupper($direction);
+            $this->orderBy[] = $this->wrapIdentifier($columns) . ' ' . strtoupper($direction);
         }
 
         return $this;
     }
-
 
     /**
      * Adds a GROUP BY clause to the query.
@@ -115,16 +114,12 @@ class QueryBuilder
      */
     public function groupBy(string|array $columns): self
     {
-        $wrap = function ($col) {
-            // Split qualified names like table.column
-            $parts = explode('.', $col);
-            // Wrap each part with backticks
-            return implode('.', array_map(fn($part) => "`$part`", $parts));
-        };
-
-        $this->groupBy = (is_array($columns)) ?
-            "GROUP BY " . implode(', ', array_map($wrap, $columns))
-            : "GROUP BY " . $wrap($columns);
+        if (is_array($columns)) {
+            $wrapped = array_map(fn($col) => $this->wrapIdentifier($col), $columns);
+            $this->groupBy = "GROUP BY " . implode(', ', $wrapped);
+        } else {
+            $this->groupBy = "GROUP BY " . $this->wrapIdentifier($columns);
+        }
 
         return $this;
     }
@@ -357,6 +352,12 @@ class QueryBuilder
         if (!in_array($table, Tables::ALLOWED_TABLES)) {
             throw new InvalidArgumentException("Request not allowed for table $table");
         }
+    }
+
+    private function wrapIdentifier(string $identifier): string
+    {
+        $parts = explode('.', $identifier);
+        return implode('.', array_map(fn($part) => "`$part`", $parts));
     }
 
     /**

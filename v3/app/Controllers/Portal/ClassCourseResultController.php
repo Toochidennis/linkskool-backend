@@ -52,15 +52,4 @@ class ClassCourseResultController extends BaseController
             return $this->respondError($e->getMessage());
         }
     }
-
-    public function getClassCourseRegistrationStatus(array $vars)
-    {
-        $data = $this->validateData($vars, ['id', 'term', 'year']);
-        try {
-            $result = $this->service->getRegistrationStatus($data);
-            $this->respond(['success' => true, 'registered_students' => $result]);
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
-        }
-    }
 }

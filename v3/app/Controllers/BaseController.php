@@ -61,16 +61,18 @@ abstract class BaseController
 
         // Extract the database name based on request method.
         if (empty($payload)) {
-            http_response_code(HttpStatus::BAD_REQUEST);
-            $this->response['message'] = 'Request payload can not be empty';
-            ResponseHandler::sendJsonResponse($this->response);
+            $this->respondError(
+                'Request payload can not be empty',
+                HttpStatus::BAD_REQUEST
+            );
         }
 
         // Validate that _db is provided.
         if (empty($payload['_db'])) {
-            http_response_code(HttpStatus::BAD_REQUEST);
-            $this->response['message'] = '_db field is required.';
-            ResponseHandler::sendJsonResponse($this->response);
+            $this->respondError(
+                '_db field is required.',
+                HttpStatus::BAD_REQUEST
+            );
         }
 
         $this->post = $payload;

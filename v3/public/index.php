@@ -30,7 +30,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         // Student routes
         $r->addRoute('POST', '/portal/students', ['Portal\StudentController', 'addStudent']);
         $r->addRoute('POST', '/portal/students/{id:\d+}/course-registrations', ['Portal\CourseRegistrationController', 'registerStudentCourses']);
-        $r->addRoute('GET', '/portal/students/{id:\d+}/registered-courses', ['Portal\CourseController', 'getStudentRegisteredCourses']);
+        $r->addRoute('GET', '/portal/students/{student_id:\d+}/registered-courses', ['Portal\CourseRegistrationController', 'getCoursesRegisteredByStudent']);
         $r->addRoute('GET', '/portal/students', ['Portal\StudentController', 'getAllStudents']);
         $r->addRoute('GET', '/portal/students/{id:\d+}/result-terms', ['Portal\StudentResultController', 'getResultTerms']);
         $r->addRoute('GET', '/portal/students/{student_id:\d+}/result', ['Portal\StudentResultController', 'getStudentResult']);
@@ -39,11 +39,13 @@ $dispatcher = FastRoute\simpleDispatcher(
         // Class routes
         $r->addRoute('POST', '/portal/classes/{id:\d+}/attendance', ['Portal\AttendanceController', 'addClassAttendance']);
         $r->addRoute('POST', '/portal/classes/{id:\d+}/course-registrations', ['Portal\CourseRegistrationController', 'registerClassCourses']);
-        $r->addRoute('POST', '/portal/classes/{id:\d+}/course-registrations/duplicate', ['Portal\CourseRegistrationController', 'duplicateRegistration']);
+        $r->addRoute('POST', '/portal/classes/{id:\d+}/course-registrations/duplicate', ['Portal\CourseRegistrationController', 'duplicateLastTermRegistrations']);
+        $r->addRoute('GET', '/portal/classes/{class_id:\d+}/course-registrations/history', ['Portal\CourseRegistrationController', 'getClassRegistrationHistory']);
         $r->addRoute('GET', '/portal/classes/{id:\d+}/attendance', ['Portal\AttendanceController', 'getClassAttendance']);
         $r->addRoute('GET', '/portal/classes/{id:\d+}/students', ['Portal\StudentController', 'getStudentsByClass']);
-        $r->addRoute('GET', '/portal/classes/{id:\d+}/registered-students', ['Portal\ClassCourseResultController', 'getClassCourseRegistrationStatus']);
-        $r->addRoute('GET', '/portal/classes/{id:\d+}/registered-courses', ['Portal\CourseController', 'getClassRegisteredCourses']);
+        $r->addRoute('GET', '/portal/classes/{class_id:\d+}/registered-students', ['Portal\CourseRegistrationController', 'getStudentRegistrationStatusInClass']);
+        $r->addRoute('GET', '/portal/classes/{class_id:\d+}/registered-courses', ['Portal\CourseRegistrationController', 'getRegisteredCoursesForClass']);
+        $r->addRoute('GET', '/portal/classes/{class_id:\d+}/course-registrations/average-scores', ['Portal\CourseRegistrationController', 'getRegisteredCoursesWithAvgScores']);
         $r->addRoute('GET', '/portal/classes/{class_id}/courses/{course_id}/results', ['Portal\ClassCourseResultController', 'getCourseResultsForClass']);
 
         // Staff routes
@@ -53,8 +55,8 @@ $dispatcher = FastRoute\simpleDispatcher(
 
         // course routes
         $r->addRoute('POST', '/portal/courses/{id}/attendance', ['Portal\AttendanceController', 'addCourseAttendance']);
-        $r->addRoute('GET', '/portal/course-registrations ', ['Portal\CourseRegistrationController', 'getAllCourseRegistrations']);
-        $r->addRoute('GET', '/portal/course-registrations/terms', ['Portal\CourseRegistrationController', 'getRegistrationTerms']);
+        $r->addRoute('GET', '/portal/course-registrations/terms', ['Portal\CourseRegistrationController', 'getClassRegistrationTerms']);
+        $r->addRoute('GET', '/portal/courses/{course_id:\d+}/students', ['Portal\CourseRegistrationController', 'getStudentsForCourseInClass']);
         $r->addRoute('GET', '/portal/courses/{id}/attendance', ['Portal\AttendanceController', 'getCourseAttendance']);
 
         $r->addRoute('POST', '/portal/assessments', ['Portal\AssessmentController', 'addAssessments']);
