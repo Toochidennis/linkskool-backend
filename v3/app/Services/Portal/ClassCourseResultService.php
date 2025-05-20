@@ -15,7 +15,9 @@
 namespace V3\App\Services\Portal;
 
 use V3\App\Models\Portal\Assessment;
+use V3\App\Models\Portal\Course;
 use V3\App\Models\Portal\Grade;
+use V3\App\Models\Portal\Result;
 use V3\App\Models\Portal\Student;
 
 class ClassCourseResultService
@@ -23,6 +25,8 @@ class ClassCourseResultService
     private Assessment $assessment;
     private Student $student;
     private Grade $grade;
+    private Course $course;
+    private Result $result;
 
     /**
      * CourseResultService constructor.
@@ -34,6 +38,8 @@ class ClassCourseResultService
         $this->assessment = new Assessment($pdo);
         $this->student = new Student($pdo);
         $this->grade = new Grade($pdo);
+        $this->course = new Course($pdo);
+        $this->result = new Result($pdo);
     }
 
     /**
@@ -150,27 +156,5 @@ class ClassCourseResultService
                 'assessments' => $structured
             ];
         }, $studentResults);
-    }
-
-    public function getRegistrationStatus(array $filters)
-    {
-        return $this->student
-            ->select(columns: [
-                'students_record.id',
-                "concat(surname,' ', first_name,' ', middle) AS student_name",
-                "COUNT(result_table.course) AS course_count",
-            ])
-            ->join(
-                table: 'result_table',
-                condition: function ($join) use ($filters) {
-                    $join->on('students_record.id', '=', 'result_table.reg_no')
-                        ->on('result_table.term', '=', $filters['term'])
-                        ->on('result_table.year', '=', $filters['year']);
-                },
-                type: 'LEFT'
-            )
-            ->where('students_record.student_class', '=', $filters['id'])
-            ->groupBy(['students_record.id', 'student_name'])
-            ->get();
     }
 }
