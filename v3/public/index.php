@@ -72,7 +72,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('DELETE', '/portal/grades/{id:\d+}', ['Portal\GradeController', 'deleteGrade']);
 
         $r->addRoute('PUT', '/portal/attendance/{id:\d+}', ['Portal\AttendanceController', 'updateAttendance']);
-        $r->addRoute('GET', '/portal/attendance', ['Portal\AttendanceController', 'getAttendanceHistory']);
+        $r->addRoute('GET', '/portal/attendance/history', ['Portal\AttendanceController', 'getAttendanceHistory']);
         $r->addRoute('GET', '/portal/attendance/{id:\d+}', ['Portal\AttendanceController', 'getAttendanceById']);
 
         $r->addRoute('GET', '/portal/course-assignments', ['Portal\CourseAssignmentController', 'getAssignments']);

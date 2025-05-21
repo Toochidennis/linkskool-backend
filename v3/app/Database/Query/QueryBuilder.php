@@ -266,6 +266,19 @@ class QueryBuilder
         return $this;
     }
 
+    public function in(string $column, array $values): self
+    {
+        if (empty($values)) {
+            throw new InvalidArgumentException("Values for IN cannot be empty.");
+        }
+
+        $placeholders = implode(", ", array_fill(0, count($values), "?"));
+        $this->whereConditions[] = "`$column` IN ($placeholders)";
+        $this->whereBindings = array_merge($this->whereBindings, $values);
+
+        return $this;
+    }
+
     /**
      * Deletes records from the table.
      *

@@ -172,17 +172,8 @@ class AttendanceController extends BaseController
             $vars,
             ['class_id', 'term', 'year']
         );
-
         try {
-            $results = $this->attendanceService
-                ->getAttendance(
-                    columns: ['id', 'count', 'date'],
-                    filters: [
-                        'class' => $data['class_id'],
-                        'year' => $data['year'],
-                        'term' => $data['term']
-                    ]
-                );
+            $results = $this->attendanceService->getAttendanceHistory($data);
 
             return $this->respond(['success' => true, 'attendance_records' => $results]);
         } catch (Exception $e) {
@@ -194,7 +185,7 @@ class AttendanceController extends BaseController
     {
         $data = $this->validateData($params, ['id']);
         try {
-            $results = $this->attendanceService->getAttendance(['id' => $data['id']], singleRecord: true);
+            $results = $this->attendanceService->getAttendance($data, singleRecord: true);
             return $this->respond(['success' => true, 'attendance_records' => $results]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());

@@ -3,14 +3,17 @@
 namespace V3\App\Services\Portal;
 
 use V3\App\Models\Portal\Attendance;
+use V3\App\Models\Portal\Course;
 
 class AttendanceService
 {
     private Attendance $attendance;
+    private Course $course;
 
     public function __construct($pdo)
     {
         $this->attendance = new Attendance($pdo);
+        $this->course = new Course($pdo);
     }
 
     public function addAttendance(array $data, bool $isCourse = false)
@@ -86,5 +89,33 @@ class AttendanceService
         return $result;
     }
 
-    
+    public function getAttendanceHistory(array $filters)
+    {
+        $modFilters = [
+            'class' => $filters['class_id'],
+            'year' => $filters['year'],
+            'term' => $filters['term']
+        ];
+
+        $attendances = $this->getAttendance($modFilters, ['id', 'count', 'date', 'course']);
+        $uniqueIds = array_unique(array_filter(array_column($attendances, 'course')));
+        $courseIds = array_values($uniqueIds);
+
+        $fetchedCourses = $this->course
+            ->select(['id', 'course_name'])
+            ->in('id', $courseIds)
+            ->get();
+
+        $courseMap = [];
+        foreach ($fetchedCourses as $course) {
+            $courseMap[$course['id']] = $course['course_name'];
+        }
+
+        foreach ($attendances as &$att) {
+            $att['course_name'] = isset($att['course']) && isset($courseMap[$att['course']])
+                ? $courseMap[$att['course']]
+                : '';
+        }
+        return $attendances;
+    }
 }
