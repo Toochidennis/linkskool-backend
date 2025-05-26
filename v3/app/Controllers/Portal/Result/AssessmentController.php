@@ -1,6 +1,6 @@
 <?php
 
-namespace V3\App\Controllers\Portal;
+namespace V3\App\Controllers\Portal\Result;
 
 use Exception;
 use PDOException;

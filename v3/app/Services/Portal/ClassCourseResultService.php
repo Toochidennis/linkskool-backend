@@ -59,7 +59,7 @@ class ClassCourseResultService
             ->orderBy('id')
             ->get();
 
-        if (!$assessments) {
+        if (empty($assessments)) {
             $assessments = $this->assessment
                 ->select(columns: ['assesment_name AS assessment_name', 'max_score'])
                 ->where('type', '<>', 1)
@@ -127,7 +127,7 @@ class ClassCourseResultService
         return array_map(function ($row) use ($assessments) {
             $structured = [];
 
-            if (!empty($row['result']) && empty($row['new_result'])) {
+            if (!empty($row['result']) && $row['new_result'] === 'null') {
                 $splitScores = explode(':', $row['result']);
                 foreach ($assessments as $index => $assess) {
                     $structured[] = [
@@ -136,7 +136,7 @@ class ClassCourseResultService
                         'max_score' => $assess['max_score']
                     ];
                 }
-            } elseif (!empty($row['new_result'])) {
+            } elseif ($row['new_result'] !== 'null') {
                 $structured = json_decode($row['new_result'], true);
             } else {
                 foreach ($assessments as $assess) {
