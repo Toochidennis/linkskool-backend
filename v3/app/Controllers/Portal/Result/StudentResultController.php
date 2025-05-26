@@ -12,7 +12,7 @@
  * @link https://www.linkskool.net
  */
 
-namespace V3\App\Controllers\Portal;
+namespace V3\App\Controllers\Portal\Result;
 
 use Exception;
 use V3\App\Traits\ValidationTrait;
@@ -45,7 +45,7 @@ class StudentResultController extends BaseController
             $studentAverage = $this->service->calculateStudentAverage($studentResult);
             $positionData = $this->service->getClassAverageAndPosition($data, $data['student_id']);
 
-            $this->respond([
+            return $this->respond([
                 'success' => true,
                 'student_result' =>  [
                     'courses' => $transformedResult,
@@ -55,7 +55,7 @@ class StudentResultController extends BaseController
                 ]
             ]);
         } catch (Exception $e) {
-            $this->respondError($e->getMessage());
+            return $this->respondError($e->getMessage());
         }
     }
 

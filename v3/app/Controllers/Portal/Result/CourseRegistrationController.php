@@ -12,7 +12,7 @@
  * @link     https://linkskool.net
  */
 
-namespace V3\App\Controllers\Portal;
+namespace V3\App\Controllers\Portal\Result;
 
 use Exception;
 use V3\App\Utilities\HttpStatus;

@@ -84,6 +84,7 @@ class Tables
         'tax_rates',
         'transactions',
         'ward',
-        'registration_tracker'
+        'registration_tracker',
+        'syllabus'
     ];
 }
