@@ -79,11 +79,14 @@ $dispatcher = FastRoute\simpleDispatcher(
 
         $r->addRoute('PUT', '/portal/result/class-result', ['Portal\Result\ResultController', 'updateResult']);
 
-        // New endpoints
+        // Movies
         $r->addRoute('GET', '/public/movies/all', ['Explore\MovieController', 'getSampleFromAllCategories']);
         $r->addRoute('GET', '/public/movies/category/{cat}', ['Explore\MovieController', 'getByCategory']);
         $r->addRoute('GET', '/public/movies/genres', ['Explore\MovieController', 'getAllGenres']);
         $r->addRoute('GET', '/public/movies/genre/{id}', ['Explore\MovieController', 'getByGenre']);
+
+        // New endpoints
+        $r->addRoute('POST', '/portal/syllabus', ['Portal\ELearning\SyllabusController', 'createSyllabus']);
     }
 );
 
