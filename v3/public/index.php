@@ -48,6 +48,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/registered-courses', ['Portal\Result\CourseRegistrationController', 'getRegisteredCoursesForClass']);
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/course-registrations/average-scores', ['Portal\Result\CourseRegistrationController', 'getRegisteredCoursesWithAvgScores']);
         $r->addRoute('GET', '/portal/classes/{class_id}/courses/{course_id}/results', ['Portal\Result\ClassCourseResultController', 'getCourseResultsForClass']);
+        $r->addRoute('GET', '/portal/classes/{class_id}/students-result', ['Portal\Result\ClassCourseResultController', 'getStudentsResultForClass']);
 
         // Staff routes
         $r->addRoute('POST', '/portal/staff', ['Portal\StaffController', 'addStaff']);
@@ -78,7 +79,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/course-assignments', ['Portal\CourseAssignmentController', 'getAssignments']);
 
         $r->addRoute('PUT', '/portal/result/class-result', ['Portal\Result\ResultController', 'updateResult']);
-//08064095477
+
         // Movies
         $r->addRoute('GET', '/public/movies/all', ['Explore\MovieController', 'getSampleFromAllCategories']);
         $r->addRoute('GET', '/public/movies/category/{cat}', ['Explore\MovieController', 'getByCategory']);

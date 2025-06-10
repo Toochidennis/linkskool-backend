@@ -42,11 +42,32 @@ class ClassCourseResultController extends BaseController
             $assessments = $this->service->getAssessments($data['level_id']);
             $rawResults = $this->service->getCourseResults($data);
             $grades = $this->service->getGrades();
-            $transformed = $this->service->transformResults($rawResults, $assessments);
+            $transformed = $this->service->transformCourseResults($rawResults, $assessments);
 
             return $this->respond([
                 'success' => true,
                 'response' => ['course_results' => $transformed, 'grades' => $grades]
+            ]);
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
+
+    public function getStudentsResultForClass(array $vars)
+    {
+        $data = $this->validateData(
+            data: $vars,
+            requiredFields: ['class_id', 'term', 'year', 'level_id']
+        );
+
+        try {
+            $assessments = $this->service->getAssessments($data['level_id']);
+            $rawResults = $this->service->getStudentsResult($data);
+            $transformed = $this->service->transformStudentsResult($rawResults, $assessments);
+
+            return $this->respond([
+                'success' => true,
+                'response' => $transformed
             ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());

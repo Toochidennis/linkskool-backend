@@ -6,7 +6,7 @@ use V3\App\Models\BaseModel;
 
 class SyllabusModel extends BaseModel
 {
-    protected string $table = 'syllabus';
+    protected string $table = 'link';
 
     public function __construct(\PDO $pdo)
     {

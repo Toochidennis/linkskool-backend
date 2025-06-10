@@ -22,29 +22,27 @@ class SyllabusService
             'description' => $data['description'],
             'course_id' => $data['course_id'],
             'course_name' => $data['course_name'],
-            'level_id' => $data['level_id'],
-            'class_ids' => json_encode($data['class_ids']),
-            'creator_id' => $data['creator_id'],
-            'creator_role' => $data['creator_role'],
+            'level' => $data['level_id'],
+            'path_label' => json_encode($data['class_ids']),
+            'author_id' => $data['creator_id'],
+            'author_name' => $data['creator_role'],
             'term' => $data['term'],
-            'year' => $data['year'],
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s')
+            'upload_date' => date('Y-m-d H:i:s'),
         ];
 
-        if (!empty($data['teacher_id'])) {
-            $payload['teacher_id'] = $data['teacher_id'];
-        }
+        // if (!empty($data['teacher_id'])) {
+        //     $payload['teacher_id'] = $data['teacher_id'];
+        // }
 
-        if (!empty($data['image_base64'])) {
+        if (!empty($data['image'])) {
             // Extract the mime/type and the data
-            if (preg_match('/^data:(image\/\w+);base64,(.+)$/', $data['image_base64'], $matches)) {
+            if (preg_match('/^data:(image\/\w+);base64,(.+)$/', $data['image'], $matches)) {
                 [$full, $mime, $b64data] = $matches;
                 $ext = explode('/', $mime)[1];     // e.g. "png" from "image/png"
                 $binary = base64_decode($b64data);
 
                 // Prepare paths
-                $uploadDir = __DIR__ . '/../../public/assets/syllabus_images/';
+                $uploadDir = __DIR__ . '/../../public/assets/e_learning/';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0755, true);
                 }
@@ -58,7 +56,7 @@ class SyllabusService
                 }
 
                 // Store web-accessible path and original filename
-                $payload['image']      = '/assets/syllabus_images/' . $filename;
+                $payload['image']      = '/assets/e_learning/' . $filename;
                 $payload['image_name'] = $filename;
             } else {
                 throw new Exception("Invalid image_base64 format.");

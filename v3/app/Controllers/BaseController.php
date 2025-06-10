@@ -4,14 +4,16 @@ namespace V3\App\Controllers;
 
 use PDO;
 use V3\App\Database\DatabaseConnector;
+use V3\App\Traits\AuthenticatesRequests;
 use V3\App\Utilities\DataExtractor;
 use V3\App\Utilities\ResponseHandler;
-use V3\App\Services\Portal\AuthService;
 use V3\App\Utilities\HttpStatus;
 use V3\App\Utilities\Sanitizer;
 
 abstract class BaseController
 {
+    use AuthenticatesRequests;
+
     /**
      * @var array The extracted POST data (if any).
      */
@@ -47,8 +49,8 @@ abstract class BaseController
     {
         $this->response = ['success' => false];
 
-        AuthService::verifyAPIKey();
-        AuthService::verifyJWT();
+        self::verifyAPIKey();
+        self::verifyJWT();
 
         $method = $_SERVER['REQUEST_METHOD'];
 
