@@ -53,6 +53,7 @@ class AuthService
         $staff = $this->staffModel
             ->select(columns: ['id', 'staff_no', 'surname', 'access_level', 'password'])
             ->where('staff_no', '=', $username)
+            ->where('password', '=', $password)
             ->first();
 
         if ($staff && $this->verifyPassword($staff['password'], $password)) {
