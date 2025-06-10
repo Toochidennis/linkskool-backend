@@ -110,6 +110,29 @@ class ClassCourseResultService
             ->get();
     }
 
+    public function getStudentsResult(array $filters)
+    {
+        return $this->student
+            ->select(columns: [
+                "CONCAT(surname, ' ', first_name, ' ', middle) as student_name",
+                'students_record.registration_no AS reg_no',
+                'result_table.id AS result_id',
+                'course_table.course_name',
+                'result_table.result',
+                'result_table.new_result',
+                'result_table.total',
+                'result_table.remark',
+                'result_table.grade'
+            ])
+            ->join('result_table', 'students_record.id = result_table.reg_no')
+            ->join('course_table', 'course_table.id = result_table.course')
+            ->where('result_table.class', '=', $filters['class_id'])
+            ->where('result_table.year', '=', $filters['year'])
+            ->where('result_table.term', '=', $filters['term'])
+            ->orderBy('surname')
+            ->get();
+    }
+
     /**
      * Transforms raw student result data into structured assessment formats.
      *
@@ -122,12 +145,12 @@ class ClassCourseResultService
      *
      * @return array A structured array of student results with assessment details.
      */
-    public function transformResults(array $studentResults, array $assessments)
+    public function transformCourseResults(array $studentResults, array $assessments)
     {
         return array_map(function ($row) use ($assessments) {
             $structured = [];
 
-            if (!empty($row['result']) && $row['new_result'] === 'null') {
+            if (!empty($row['result']) && $row['new_result'] === null) {
                 $splitScores = explode(':', $row['result']);
                 foreach ($assessments as $index => $assess) {
                     $structured[] = [
@@ -136,7 +159,7 @@ class ClassCourseResultService
                         'max_score' => $assess['max_score']
                     ];
                 }
-            } elseif ($row['new_result'] !== 'null') {
+            } elseif ($row['new_result'] !== null) {
                 $structured = json_decode($row['new_result'], true);
             } else {
                 foreach ($assessments as $assess) {
@@ -156,5 +179,56 @@ class ClassCourseResultService
                 'assessments' => $structured
             ];
         }, $studentResults);
+    }
+
+    public function transformStudentsResult(array $studentResults, array $assessments)
+    {
+        $grouped = [];
+
+        foreach ($studentResults as $row) {
+            $studentKey = $row['reg_no'];
+
+            if (!isset($grouped[$studentKey])) {
+                $grouped[$studentKey] = [
+                    'student_name' => $row['student_name'],
+                    'reg_no' => $row['reg_no'],
+                    'subjects' => []
+                ];
+            }
+
+            // Build assessments structure
+            $structured = [];
+
+            if (!empty($row['result']) && $row['new_result'] === null) {
+                $splitScores = explode(':', $row['result']);
+                foreach ($assessments as $index => $assess) {
+                    $structured[] = [
+                        'assessment_name' => $assess['assessment_name'],
+                        'score' => isset($splitScores[$index]) ? (int) $splitScores[$index] : ''
+                    ];
+                }
+            } elseif ($row['new_result'] !== null) {
+                $structured = json_decode($row['new_result'], true);
+            } else {
+                continue;
+            }
+
+            // Append subject data
+            $grouped[$studentKey]['subjects'][] = [
+                'course_name' => $row['course_name'],
+                'total_score' => $row['total'] !== null ? (float) $row['total'] : '',
+                'assessments' => $structured,
+                'grade' => $row['grade'],
+                'remark' => $row['remark']
+            ];
+        }
+
+        // Filter out students with no subjects
+        $filtered = array_filter($grouped, function ($student) {
+            return !empty($student['subjects']);
+        });
+
+        // Convert associative array to indexed array
+        return array_values($filtered);
     }
 }

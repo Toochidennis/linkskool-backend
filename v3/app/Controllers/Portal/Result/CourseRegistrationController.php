@@ -129,9 +129,9 @@ class CourseRegistrationController extends BaseController
         }
     }
 
-    public function getClassRegistrationTerms(array $params)
+    public function getClassRegistrationTerms(array $vars)
     {
-        $data = $this->validateData($params, ['class_id']);
+        $data = $this->validateData($vars, ['class_id']);
 
         try {
             $sessions = $this->service->getClassRegistrationTerms($data['class_id']);
