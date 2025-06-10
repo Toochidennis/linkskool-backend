@@ -30,6 +30,7 @@ $dispatcher = FastRoute\simpleDispatcher(
 
         // Student routes
         $r->addRoute('POST', '/portal/students', ['Portal\StudentController', 'addStudent']);
+        $r->addRoute('POST', '/portal/students/result/comment', ['Portal\Result\ResultCommentController', 'store']);
         $r->addRoute('POST', '/portal/students/{id:\d+}/course-registrations', ['Portal\Result\CourseRegistrationController', 'registerStudentCourses']);
         $r->addRoute('GET', '/portal/students/{student_id:\d+}/registered-courses', ['Portal\Result\CourseRegistrationController', 'getCoursesRegisteredByStudent']);
         $r->addRoute('GET', '/portal/students', ['Portal\StudentController', 'getAllStudents']);
