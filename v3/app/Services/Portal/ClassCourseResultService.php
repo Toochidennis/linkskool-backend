@@ -114,6 +114,7 @@ class ClassCourseResultService
             ->select(columns: [
                 'students_record.id',
                 "CONCAT(surname, ' ', first_name, ' ', middle) as student_name",
+                'students_record.registration_no AS reg_no',
                 'course_table.course_name',
                 'result_table.result',
                 'result_table.new_result',
@@ -216,6 +217,7 @@ class ClassCourseResultService
                 $grouped[$studentKey] = [
                     'student_id' => $row['id'],
                     'student_name' => $row['student_name'],
+                    'reg_no' => $row['reg_no'],
                     'comment' => $comments[$studentKey] ?? '',
                     'subjects' => []
                 ];
