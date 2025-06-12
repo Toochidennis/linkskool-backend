@@ -14,10 +14,10 @@
 
 namespace V3\App\Services\Portal;
 
+use InvalidArgumentException;
 use V3\App\Models\Portal\Assessment;
-use V3\App\Models\Portal\Course;
 use V3\App\Models\Portal\Grade;
-use V3\App\Models\Portal\Result;
+use V3\App\Models\Portal\Results\ResultCommentModel;
 use V3\App\Models\Portal\Student;
 
 class ClassCourseResultService
@@ -25,8 +25,7 @@ class ClassCourseResultService
     private Assessment $assessment;
     private Student $student;
     private Grade $grade;
-    private Course $course;
-    private Result $result;
+    private ResultCommentModel $resultComment;
 
     /**
      * CourseResultService constructor.
@@ -38,8 +37,7 @@ class ClassCourseResultService
         $this->assessment = new Assessment($pdo);
         $this->student = new Student($pdo);
         $this->grade = new Grade($pdo);
-        $this->course = new Course($pdo);
-        $this->result = new Result($pdo);
+        $this->resultComment = new ResultCommentModel($pdo);
     }
 
     /**
@@ -114,9 +112,8 @@ class ClassCourseResultService
     {
         return $this->student
             ->select(columns: [
+                'students_record.id',
                 "CONCAT(surname, ' ', first_name, ' ', middle) as student_name",
-                'students_record.registration_no AS reg_no',
-                'result_table.id AS result_id',
                 'course_table.course_name',
                 'result_table.result',
                 'result_table.new_result',
@@ -133,6 +130,33 @@ class ClassCourseResultService
             ->get();
     }
 
+    public function getComments(array $filters)
+    {
+        $columns = match ($filters['role']) {
+            'admin' => ['reg_no', 'principal'],
+            'staff' => ['reg_no', 'form_teacher'],
+            default => []
+        };
+
+        if (empty($columns)) {
+            throw new InvalidArgumentException('Invalid role provided.');
+        }
+
+        $comments = [];
+        $results = $this->resultComment
+            ->select(columns: $columns)
+            ->where('year', '=', $filters['year'])
+            ->where('term', '=', $filters['term'])
+            ->get();
+
+        foreach ($results as $result) {
+            $comments[$result['reg_no']] = $filters['role'] === 'admin' ?
+                $result['principal'] : $result['form_teacher'];
+        }
+
+        return $comments;
+    }
+
     /**
      * Transforms raw student result data into structured assessment formats.
      *
@@ -145,7 +169,7 @@ class ClassCourseResultService
      *
      * @return array A structured array of student results with assessment details.
      */
-    public function transformCourseResults(array $studentResults, array $assessments)
+    public function transformCourseResults($studentResults, $assessments)
     {
         return array_map(function ($row) use ($assessments) {
             $structured = [];
@@ -181,17 +205,18 @@ class ClassCourseResultService
         }, $studentResults);
     }
 
-    public function transformStudentsResult(array $studentResults, array $assessments)
+    public function transformStudentsResult($studentResults, $assessments, $comments)
     {
         $grouped = [];
 
         foreach ($studentResults as $row) {
-            $studentKey = $row['reg_no'];
+            $studentKey = $row['id'];
 
             if (!isset($grouped[$studentKey])) {
                 $grouped[$studentKey] = [
+                    'student_id' => $row['id'],
                     'student_name' => $row['student_name'],
-                    'reg_no' => $row['reg_no'],
+                    'comment' => $comments[$studentKey] ?? '',
                     'subjects' => []
                 ];
             }
