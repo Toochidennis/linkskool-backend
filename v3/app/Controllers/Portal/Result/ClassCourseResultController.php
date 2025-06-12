@@ -57,13 +57,15 @@ class ClassCourseResultController extends BaseController
     {
         $data = $this->validateData(
             data: $vars,
-            requiredFields: ['class_id', 'term', 'year', 'level_id']
+            requiredFields: ['class_id', 'term', 'year', 'level_id', 'role']
         );
 
         try {
             $assessments = $this->service->getAssessments($data['level_id']);
             $rawResults = $this->service->getStudentsResult($data);
-            $transformed = $this->service->transformStudentsResult($rawResults, $assessments);
+            $comments = $this->service->getComments($data);
+            $transformed = $this->service
+                ->transformStudentsResult($rawResults, $assessments, $comments);
 
             return $this->respond([
                 'success' => true,
