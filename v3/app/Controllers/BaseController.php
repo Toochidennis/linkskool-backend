@@ -79,6 +79,7 @@ abstract class BaseController
 
         $this->post = $payload;
         $dbname = $this->post['_db'];
+        $_SESSION['_db'] = $dbname;
         $this->pdo = DatabaseConnector::connect(dbname: $dbname);
     }
 
