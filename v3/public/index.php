@@ -1,5 +1,9 @@
 <?php
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
@@ -50,6 +54,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/course-registrations/average-scores', ['Portal\Result\CourseRegistrationController', 'getRegisteredCoursesWithAvgScores']);
         $r->addRoute('GET', '/portal/classes/{class_id}/courses/{course_id}/results', ['Portal\Result\ClassCourseResultController', 'getCourseResultsForClass']);
         $r->addRoute('GET', '/portal/classes/{class_id}/students-result', ['Portal\Result\ClassCourseResultController', 'getStudentsResultForClass']);
+        $r->addRoute('GET', '/portal/classes/{class_id}/composite-result', ['Portal\Result\ClassCourseResultController', 'getClassCompositeResult']);
 
         // Staff routes
         $r->addRoute('POST', '/portal/staff', ['Portal\StaffController', 'addStaff']);

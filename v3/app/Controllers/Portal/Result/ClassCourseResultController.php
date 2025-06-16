@@ -56,7 +56,7 @@ class ClassCourseResultController extends BaseController
     public function getStudentsResultForClass(array $vars)
     {
         $data = $this->validateData(
-            data: $vars,
+            data: $vars + ['role' => $_SESSION['role']],
             requiredFields: ['class_id', 'term', 'year', 'level_id', 'role']
         );
 
@@ -71,6 +71,21 @@ class ClassCourseResultController extends BaseController
                 'success' => true,
                 'response' => $transformed
             ]);
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
+
+    public function getClassCompositeResult(array $vars)
+    {
+        $data = $this->validateData(
+            data: $vars,
+            requiredFields: ['class_id', 'term', 'year', 'level_id']
+        );
+
+        try {
+            $results = $this->service->fetchCompositeResult($data);
+            $transformed = $this->service->transformCompositeResult($results);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }

@@ -158,6 +158,26 @@ class ClassCourseResultService
         return $comments;
     }
 
+    public function fetchCompositeResult(array $filters)
+    {
+        return $this->student
+            ->select(columns: [
+                "CONCAT(surname, ' ', first_name, ' ', middle) as student_name",
+                'students_record.registration_no AS reg_no',
+                'course_table.course_name',
+                'result_table.total',
+                'result_table.remark',
+                'result_table.grade'
+            ])
+            ->join('result_table', 'students_record.id = result_table.reg_no')
+            ->join('course_table', 'course_table.id = result_table.course')
+            ->where('result_table.class', '=', $filters['class_id'])
+            ->where('result_table.year', '=', $filters['year'])
+            ->where('result_table.term', '=', $filters['term'])
+            ->orderBy('surname')
+            ->get();
+    }
+
     /**
      * Transforms raw student result data into structured assessment formats.
      *
@@ -251,11 +271,14 @@ class ClassCourseResultService
         }
 
         // Filter out students with no subjects
-        $filtered = array_filter($grouped, function ($student) {
-            return !empty($student['subjects']);
-        });
+        $filtered = array_filter($grouped, fn($student) => !empty($student['subjects']));
 
         // Convert associative array to indexed array
         return array_values($filtered);
+    }
+
+    public function transformCompositeResult($results)
+    {
+        var_dump($results);
     }
 }
