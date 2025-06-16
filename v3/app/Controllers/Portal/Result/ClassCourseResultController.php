@@ -85,7 +85,9 @@ class ClassCourseResultController extends BaseController
 
         try {
             $results = $this->service->fetchCompositeResult($data);
-            $transformed = $this->service->transformCompositeResult($results);
+            $registeredCourses = $this->service->getFormattedRegisteredCourses($data);
+            $transformed = $this->service->transformCompositeResult($results, $registeredCourses);
+            return $this->respond(['success' => true, 'response' => $transformed]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
