@@ -15,19 +15,12 @@
 namespace V3\App\Controllers\Portal\Result;
 
 use Exception;
-use V3\App\Utilities\HttpStatus;
-use V3\App\Models\Portal\Student;
-use V3\App\Traits\ValidationTrait;
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
-use V3\App\Models\Portal\CourseRegistration;
 use V3\App\Services\Portal\CourseRegistrationService;
 
 class CourseRegistrationController extends BaseController
 {
-    use ValidationTrait;
-
-    private Student $student;
-    private CourseRegistration $courseRegistration;
     private CourseRegistrationService $service;
 
     public function __construct()
@@ -42,8 +35,6 @@ class CourseRegistrationController extends BaseController
      */
     public function initialize()
     {
-        $this->courseRegistration = new CourseRegistration(pdo: $this->pdo);
-        $this->student = new Student(pdo: $this->pdo);
         $this->service = new CourseRegistrationService(pdo: $this->pdo);
     }
 

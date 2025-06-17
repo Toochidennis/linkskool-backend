@@ -3,15 +3,12 @@
 namespace V3\App\Controllers\Portal\ELearning;
 
 use Exception;
-use V3\App\Utilities\HttpStatus;
-use V3\App\Traits\ValidationTrait;
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\ELearning\SyllabusService;
 
 class SyllabusController extends BaseController
 {
-    use ValidationTrait;
-
     private SyllabusService $service;
 
     public function __construct()

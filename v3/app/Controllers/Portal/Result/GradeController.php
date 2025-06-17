@@ -16,15 +16,12 @@ namespace V3\App\Controllers\Portal\Result;
 
 use Exception;
 use V3\App\Models\Portal\Grade;
-use V3\App\Traits\ValidationTrait;
-use V3\App\Utilities\HttpStatus;
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\GradeService;
 
 class GradeController extends BaseController
 {
-    use ValidationTrait;
-
     private Grade $grade;
     private GradeService $service;
 

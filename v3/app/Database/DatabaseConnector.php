@@ -4,20 +4,12 @@ namespace V3\App\Database;
 
 use PDO;
 use PDOException;
-use V3\App\Utilities\EnvLoader;
-use V3\App\Utilities\ResponseHandler;
+use V3\App\Common\Utilities\ResponseHandler;
 
 class DatabaseConnector
 {
-    private function __construct()
-    {
-    }
-
     public static function connect($dbname = '')
     {
-        // Load environment variables if required
-        EnvLoader::load();
-
         // Database configurations
         $dbHost = getenv('DB_HOST');
         $dbName = empty($dbname) ? getenv('DB_NAME') : $dbname;
@@ -29,10 +21,14 @@ class DatabaseConnector
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             return $pdo;
         } catch (PDOException $e) {
-            error_log("Database connection error: " . $e->getMessage());
-
             http_response_code(500);
-            ResponseHandler::sendJsonResponse(['success' => false, 'message' => 'Unable to connect to the database.']);
+            ResponseHandler::sendJsonResponse(
+                [
+                    'statusCode' => 500,
+                    'success' => false,
+                    'message' => 'Unable to connect to the database.'
+                ]
+            );
         }
     }
 }

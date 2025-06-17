@@ -2,8 +2,8 @@
 
 namespace V3\App\Controllers\Explore;
 
+use V3\App\Common\Utilities\ResponseHandler;
 use V3\App\Services\Explore\MovieService;
-use V3\App\Utilities\ResponseHandler;
 
 class MovieController
 {

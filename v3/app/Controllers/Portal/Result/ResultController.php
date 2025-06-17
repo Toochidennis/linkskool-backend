@@ -3,15 +3,13 @@
 namespace V3\App\Controllers\Portal\Result;
 
 use Exception;
-use V3\App\Traits\PermissionTrait;
-use V3\App\Traits\ValidationTrait;
+use V3\App\Common\Traits\PermissionTrait;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\ResultService;
-use V3\App\Utilities\HttpStatus;
+use V3\App\Common\Utilities\HttpStatus;
 
 class ResultController extends BaseController
 {
-    use ValidationTrait;
     use PermissionTrait;
 
     private ResultService $service;

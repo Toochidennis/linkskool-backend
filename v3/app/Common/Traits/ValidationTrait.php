@@ -1,10 +1,10 @@
 <?php
 
-namespace V3\App\Traits;
+namespace V3\App\Common\Traits;
 
 use InvalidArgumentException;
-use V3\App\Utilities\HttpStatus;
-use V3\App\Utilities\ResponseHandler;
+use V3\App\Common\Utilities\HttpStatus;
+use V3\App\Common\Utilities\ResponseHandler;
 
 /**
  * Trait ValidationTrait

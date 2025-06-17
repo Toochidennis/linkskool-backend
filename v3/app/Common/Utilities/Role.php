@@ -1,6 +1,6 @@
 <?php
 
-namespace V3\App\Utilities;
+namespace V3\App\Common\Utilities;
 
 class Role
 {

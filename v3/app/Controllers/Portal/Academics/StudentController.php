@@ -4,14 +4,9 @@ namespace V3\App\Controllers\Portal;
 
 use Exception;
 use V3\App\Utilities\HttpStatus;
-use V3\App\Utilities\Permission;
 use V3\App\Models\Portal\Student;
-use V3\App\Traits\ValidationTrait;
-use V3\App\Utilities\ResponseHandler;
 use V3\App\Controllers\BaseController;
-use V3\App\Models\Portal\SchoolSettings;
 use V3\App\Services\Portal\StudentService;
-use V3\App\Models\Portal\RegistrationTracker;
 
 /**
  * Class StudentController
@@ -21,11 +16,7 @@ use V3\App\Models\Portal\RegistrationTracker;
 
 class StudentController extends BaseController
 {
-    use ValidationTrait;
-
     private Student $student;
-    private SchoolSettings $schoolSettings;
-    private RegistrationTracker $regTracker;
     private StudentService $studentService;
 
 
@@ -46,8 +37,6 @@ class StudentController extends BaseController
     private function initialize()
     {
         $this->student = new Student(pdo: $this->pdo);
-        $this->schoolSettings = new SchoolSettings(pdo: $this->pdo);
-        $this->regTracker = new RegistrationTracker(pdo: $this->pdo);
         $this->studentService = new StudentService($this->pdo);
     }
 
@@ -87,11 +76,8 @@ class StudentController extends BaseController
                 ];
             }
         } catch (Exception $e) {
-            http_response_code(response_code: HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            return $this->respondError($e->getMessage());
         }
-
-        ResponseHandler::sendJsonResponse(response: $this->response);
     }
 
     /**
@@ -116,11 +102,8 @@ class StudentController extends BaseController
 
             $this->response = ['success' => true, 'students' => $results];
         } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            return $this->respondError($e->getMessage());
         }
-
-        ResponseHandler::sendJsonResponse($this->response);
     }
 
     public function getStudentById(array $vars)
@@ -140,11 +123,8 @@ class StudentController extends BaseController
 
             $this->response = ['success' => true, 'students' => $results];
         } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            return $this->respondError($e->getMessage());
         }
-
-        ResponseHandler::sendJsonResponse($this->response);
     }
 
     public function deleteStudent($id)

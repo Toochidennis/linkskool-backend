@@ -2,26 +2,28 @@
 
 namespace V3\App\Controllers\Portal;
 
-use Exception;
 use PDO;
-use V3\App\Database\DatabaseConnector;
-use V3\App\Utilities\HttpStatus;
+use Exception;
 use V3\App\Models\Portal\AuthModel;
-use V3\App\Traits\ValidationTrait;
-use V3\App\Utilities\DataExtractor;
-use V3\App\Utilities\ResponseHandler;
+use V3\App\Database\DatabaseConnector;
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Portal\AuthService;
+use V3\App\Common\Traits\ValidationTrait;
+use V3\App\Common\Utilities\DataExtractor;
+use V3\App\Common\Utilities\ResponseHandler;
+use V3\App\Common\Traits\AuthenticatesRequests;
 
 class AuthController
 {
     use ValidationTrait;
+    use AuthenticatesRequests;
 
     private array $response = ['success' => false, 'message' => ''];
     private AuthModel $authModel;
 
     public function __construct()
     {
-        AuthService::verifyAPIKey();
+        $this->verifyAPIKey();
     }
 
     public function handleAuthRequest()

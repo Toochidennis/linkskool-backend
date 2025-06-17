@@ -10,7 +10,7 @@ use V3\App\Models\Portal\Course;
 use V3\App\Models\Portal\Student;
 use V3\App\Models\Portal\ClassModel;
 use V3\App\Models\Portal\SchoolSettings;
-use V3\App\Traits\AuthenticatesRequests;
+use V3\App\Common\Traits\AuthenticatesRequests;
 
 class AuthService
 {
