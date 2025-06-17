@@ -16,6 +16,11 @@ class LevelService
 
     public function addLevel(array $data)
     {
-        // TODO
+        return $this->level->insert($data);
+    }
+
+    public function fetchLevels()
+    {
+        return $this->level->get();
     }
 }
