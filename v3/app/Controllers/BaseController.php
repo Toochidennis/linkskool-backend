@@ -3,16 +3,20 @@
 namespace V3\App\Controllers;
 
 use PDO;
+use V3\App\Common\Traits\PermissionTrait;
 use V3\App\Database\DatabaseConnector;
-use V3\App\Traits\AuthenticatesRequests;
-use V3\App\Utilities\DataExtractor;
-use V3\App\Utilities\ResponseHandler;
-use V3\App\Utilities\HttpStatus;
-use V3\App\Utilities\Sanitizer;
+use V3\App\Common\Utilities\DataExtractor;
+use V3\App\Common\Utilities\ResponseHandler;
+use V3\App\Common\Utilities\HttpStatus;
+use V3\App\Common\Utilities\Sanitizer;
+use V3\App\Common\Traits\ValidationTrait;
+use V3\App\Common\Traits\AuthenticatesRequests;
 
 abstract class BaseController
 {
     use AuthenticatesRequests;
+    use PermissionTrait;
+    use ValidationTrait;
 
     /**
      * @var array The extracted POST data (if any).

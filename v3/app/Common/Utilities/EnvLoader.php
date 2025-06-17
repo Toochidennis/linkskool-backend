@@ -1,10 +1,10 @@
 <?php
 
-namespace V3\App\Utilities;
+namespace V3\App\Common\Utilities;
 
 class EnvLoader
 {
-    public static function load($filePath = __DIR__ . '/../../config/.env')
+    public static function load($filePath = __DIR__ . '/../../../config/.env')
     {
         if (!file_exists($filePath)) {
             throw new \InvalidArgumentException("File not found!");

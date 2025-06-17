@@ -1,10 +1,10 @@
 <?php
 
-namespace V3\App\Utilities;
+namespace V3\App\Common\Utilities;
 
 class Logger
 {
-    private static $logFile = __DIR__ . '/../../public/logs/error.log';
+    private static $logFile = __DIR__ . '/../../../public/logs/error.log';
 
     public static function init(): void
     {

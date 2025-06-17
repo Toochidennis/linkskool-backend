@@ -1,8 +1,8 @@
 <?php
 
-namespace V3\App\Traits;
+namespace V3\App\Common\Traits;
 
-use V3\App\Utilities\Permission;
+use V3\App\Common\Utilities\Permission;
 
 trait PermissionTrait
 {

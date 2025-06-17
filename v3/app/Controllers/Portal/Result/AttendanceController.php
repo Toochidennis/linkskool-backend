@@ -3,15 +3,12 @@
 namespace V3\App\Controllers\Portal\Result;
 
 use Exception;
-use V3\App\Utilities\HttpStatus;
-use V3\App\Traits\ValidationTrait;
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\AttendanceService;
 
 class AttendanceController extends BaseController
 {
-    use ValidationTrait;
-
     private AttendanceService $attendanceService;
 
     public function __construct()

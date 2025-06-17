@@ -4,14 +4,11 @@ namespace V3\App\Controllers\Portal\Result;
 
 use Exception;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Portal\Results\ResultCommentService;
-use V3\App\Traits\ValidationTrait;
-use V3\App\Utilities\HttpStatus;
 
 class ResultCommentController extends BaseController
 {
-    use ValidationTrait;
-
     private ResultCommentService $service;
 
     public function __construct()

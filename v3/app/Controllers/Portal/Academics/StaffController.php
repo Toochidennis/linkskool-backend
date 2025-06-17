@@ -5,9 +5,6 @@ namespace V3\App\Controllers\Portal;
 use Exception;
 use V3\App\Models\Portal\Staff;
 use V3\App\Utilities\HttpStatus;
-use V3\App\Utilities\Permission;
-use V3\App\Traits\ValidationTrait;
-use V3\App\Utilities\ResponseHandler;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\StaffService;
 
@@ -19,8 +16,6 @@ use V3\App\Services\Portal\StaffService;
 
 class StaffController extends BaseController
 {
-    use ValidationTrait;
-
     private Staff $staff;
     private StaffService $staffService;
 
@@ -65,11 +60,8 @@ class StaffController extends BaseController
                 ];
             }
         } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            return $this->respondError($e->getMessage());
         }
-
-        ResponseHandler::sendJsonResponse($this->response);
     }
 
     public function getStaff()
@@ -100,22 +92,7 @@ class StaffController extends BaseController
 
             $this->response = ['success' => true, 'staff' => $staffDetails];
         } catch (Exception $e) {
-            http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
-            $this->response['message'] = $e->getMessage();
+            return $this->respondError($e->getMessage());
         }
-
-        ResponseHandler::sendJsonResponse($this->response);
-    }
-
-    public function getStaffById(array $params)
-    {
-    }
-
-    public function updateStaff()
-    {
-    }
-
-    public function deleteStaff($params)
-    {
     }
 }

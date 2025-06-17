@@ -1,20 +1,18 @@
 <?php
 
-namespace V3\App\Traits;
+namespace V3\App\Common\Traits;
 
 use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use V3\App\Utilities\EnvLoader;
-use V3\App\Utilities\HttpStatus;
-use V3\App\Utilities\ResponseHandler;
+use V3\App\Common\Utilities\HttpStatus;
+use V3\App\Common\Utilities\ResponseHandler;
 
 trait AuthenticatesRequests
 {
     // Generate JWT Token
     private static function generateJWT($userId, $name, $role)
     {
-        EnvLoader::load();
         $secretKey = getenv('JWT_SECRET_KEY');
         $issuedAt = time();
         $expirationTime = $issuedAt + 2592000; // Token valid for 30 days
@@ -37,7 +35,6 @@ trait AuthenticatesRequests
     // Validate JWT Token
     private static function validateJWT($token)
     {
-        EnvLoader::load();
         $secretKey = getenv('JWT_SECRET_KEY');
 
         try {
@@ -75,7 +72,6 @@ trait AuthenticatesRequests
 
     private static function validateAPIKey($apiKey): bool
     {
-        EnvLoader::load();
         $API_KEY = getenv('API_KEY');
         return hash_equals($API_KEY, $apiKey);
     }

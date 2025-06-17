@@ -16,8 +16,7 @@ namespace V3\App\Controllers\Portal;
 
 use Exception;
 use V3\App\Models\Portal\Course;
-use V3\App\Utilities\HttpStatus;
-use V3\App\Traits\ValidationTrait;
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
 
 /**
@@ -27,8 +26,6 @@ use V3\App\Controllers\BaseController;
  */
 class CourseController extends BaseController
 {
-    use ValidationTrait;
-
     private Course $course;
 
     public function __construct()
