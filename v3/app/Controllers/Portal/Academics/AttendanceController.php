@@ -5,7 +5,7 @@ namespace V3\App\Controllers\Portal\Academics;
 use Exception;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
-use V3\App\Services\Portal\AttendanceService;
+use V3\App\Services\Portal\Academics\AttendanceService;
 
 class AttendanceController extends BaseController
 {

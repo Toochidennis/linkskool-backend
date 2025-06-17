@@ -1,6 +1,6 @@
 <?php
 
-namespace V3\App\Services\Portal;
+namespace V3\App\Services\Portal\Academics;
 
 use V3\App\Models\Portal\Attendance;
 use V3\App\Models\Portal\Course;

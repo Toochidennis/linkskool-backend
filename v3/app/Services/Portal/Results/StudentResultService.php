@@ -12,7 +12,7 @@
  * @link https://www.linkskool.net
  */
 
-namespace V3\App\Services\Portal;
+namespace V3\App\Services\Portal\Results;
 
 use V3\App\Models\Portal\Assessment;
 use V3\App\Models\Portal\Course;

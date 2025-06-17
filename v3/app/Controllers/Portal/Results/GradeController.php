@@ -18,7 +18,7 @@ use Exception;
 use V3\App\Models\Portal\Grade;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
-use V3\App\Services\Portal\GradeService;
+use V3\App\Services\Portal\Academics\GradeService;
 
 class GradeController extends BaseController
 {

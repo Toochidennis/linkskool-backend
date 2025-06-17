@@ -16,7 +16,7 @@ namespace V3\App\Controllers\Portal\Results;
 
 use Exception;
 use V3\App\Controllers\BaseController;
-use V3\App\Services\Portal\ClassCourseResultService;
+use V3\App\Services\Portal\Results\ClassCourseResultService;
 
 class ClassCourseResultController extends BaseController
 {
