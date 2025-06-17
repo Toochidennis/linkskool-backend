@@ -18,6 +18,7 @@ use Exception;
 use V3\App\Models\Portal\Course;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Services\Portal\Academics\CourseService;
 
 /**
  * Class CourseController
@@ -26,26 +27,20 @@ use V3\App\Controllers\BaseController;
  */
 class CourseController extends BaseController
 {
-    private Course $course;
+    private CourseService $courseService;
 
     public function __construct()
     {
         parent::__construct();
-        $this->initialize();
-    }
-
-    private function initialize()
-    {
-        $this->course = new Course(pdo: $this->pdo);
+        $this->courseService = new CourseService(pdo: $this->pdo);
     }
 
     public function addCourse()
     {
-        $requiredFields = ['course_name', 'course_code'];
-        $data = $this->validateData($this->post, $requiredFields);
+        $data = $this->validateData(data: $this->post, requiredFields: ['course_name', 'course_code']);
 
         try {
-            $courseId = $this->course->insert($data);
+            $courseId = $this->courseService->insertCourse($data);
 
             if ($courseId) {
                 return $this->respond([
@@ -68,8 +63,10 @@ class CourseController extends BaseController
     public function getCourses()
     {
         try {
-            $result = $this->course->get();
-            $this->respond(['success' => true, 'courses' => $result]);
+            $this->respond([
+                'success' => true,
+                'response' => $this->courseService->fetchCourses(),
+            ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
