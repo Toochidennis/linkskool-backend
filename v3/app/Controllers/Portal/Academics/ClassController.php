@@ -4,31 +4,25 @@ namespace V3\App\Controllers\Portal;
 
 use Exception;
 use V3\App\Common\Utilities\HttpStatus;
-use V3\App\Models\Portal\ClassModel;
 use V3\App\Controllers\BaseController;
+use V3\App\Services\Portal\Academics\ClassService;
 
 class ClassController extends BaseController
 {
-    private ClassModel $classModel;
+    private ClassService $classService;
 
     public function __construct()
     {
         parent::__construct();
-        $this->initialize();
-    }
-
-    private function initialize()
-    {
-        $this->classModel = new ClassModel(pdo: $this->pdo);
+        $this->classService = new ClassService($this->pdo);
     }
 
     public function addClass()
     {
-        $requiredFields = ['class_name', 'level'];
-        $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
+        $data = $this->validateData(data: $this->post, requiredFields: ['class_name', 'level_id']);
 
         try {
-            $classId = $this->classModel->insert(data: $data);
+            $classId = $this->classService->insertClass(data: $data);
 
             if ($classId) {
                 return $this->respond([
@@ -52,14 +46,10 @@ class ClassController extends BaseController
     public function getClasses()
     {
         try {
-            $results = $this->classModel->get();
-
-            foreach ($results as &$result) {
-                $result['level_id'] = $result['level'];
-                unset($result['level']);
-            }
-
-            return $this->respond(['success' => true, 'response' => $results]);
+            return $this->respond([
+                'success' => true,
+                'response' => $this->classService->fetchClasses()
+            ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
