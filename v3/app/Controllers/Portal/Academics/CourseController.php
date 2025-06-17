@@ -1,7 +1,7 @@
 <?php
 
 /**
- * This class helps handles student's course result
+ * This class helps handles course
  *
  * PHP version 8.2+
  *
@@ -15,7 +15,6 @@
 namespace V3\App\Controllers\Portal;
 
 use Exception;
-use V3\App\Models\Portal\Course;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\Academics\CourseService;

@@ -30,37 +30,30 @@ class SyllabusService
             'upload_date' => date('Y-m-d H:i:s'),
         ];
 
-        // if (!empty($data['teacher_id'])) {
-        //     $payload['teacher_id'] = $data['teacher_id'];
-        // }
-
         if (!empty($data['image'])) {
-            // Extract the mime/type and the data
-            if (preg_match('/^data:(image\/\w+);base64,(.+)$/', $data['image'], $matches)) {
-                [$full, $mime, $b64data] = $matches;
-                $ext = explode('/', $mime)[1];     // e.g. "png" from "image/png"
-                $binary = base64_decode($b64data);
+            $binary = base64_decode($data['image'], true);
 
-                // Prepare paths
-                $uploadDir = __DIR__ . '/../../public/assets/e_learning/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
-
-                $filename = uniqid('syllabus_', true) . '.' . $ext;
-                $filePath = $uploadDir . $filename;
-
-                // Save the binary data to file
-                if (file_put_contents($filePath, $binary) === false) {
-                    throw new Exception("Failed to save image.");
-                }
-
-                // Store web-accessible path and original filename
-                $payload['image']      = '/assets/e_learning/' . $filename;
-                $payload['image_name'] = $filename;
-            } else {
-                throw new Exception("Invalid image_base64 format.");
+            if($binary === false || @imagecreatefromstring($binary) === false) {
+                throw new Exception("Invalid or corrupted image data.");
             }
+
+            // Prepare paths
+            $uploadDir = __DIR__ . '/../../public/assets/e_learning/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $filename = uniqid('syllabus_', true) . '.' . $ext;
+            $filePath = $uploadDir . $filename;
+
+            // Save the binary data to file
+            if (file_put_contents($filePath, $binary) === false) {
+                throw new Exception("Failed to save image.");
+            }
+
+            // Store web-accessible path and original filename
+            $payload['image']      = '/assets/e_learning/' . $filename;
+            $payload['image_name'] = $filename;
         }
 
         $newId = (int) $this->syllabusModel->insert($payload);
