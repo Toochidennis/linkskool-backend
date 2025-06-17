@@ -136,26 +136,18 @@ class ClassCourseResultService
 
     public function getComments(array $filters)
     {
-        $columns = match ($filters['role']) {
-            'admin' => ['reg_no', 'principal'],
-            'staff' => ['reg_no', 'form_teacher'],
-            default => []
-        };
-
-        if (empty($columns)) {
-            throw new InvalidArgumentException('Invalid role provided.');
-        }
-
         $comments = [];
         $results = $this->resultComment
-            ->select(columns: $columns)
+            ->select(columns: ['reg_no', 'principal', 'form_teacher'])
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
             ->get();
 
         foreach ($results as $result) {
-            $comments[$result['reg_no']] = $filters['role'] === 'admin' ?
-                $result['principal'] : $result['form_teacher'];
+            $comments[$result['reg_no']] =  [
+                'principal_comment' => $result['principal'],
+                'teacher_comment' => $result['form_teacher']
+            ];
         }
 
         return $comments;
@@ -259,7 +251,6 @@ class ClassCourseResultService
         return strtoupper(substr($cleaned, 0, 4));
     }
 
-
     /**
      * Transforms raw student result data into structured assessment formats.
      *
@@ -320,7 +311,7 @@ class ClassCourseResultService
                     'student_id' => $row['id'],
                     'student_name' => $row['student_name'],
                     'reg_no' => $row['reg_no'],
-                    'comment' => $comments[$studentKey] ?? '',
+                    'comments' => $comments[$studentKey] ?? '',
                     'subjects' => []
                 ];
             }
@@ -373,7 +364,7 @@ class ClassCourseResultService
             ];
         }
 
-        // Step 1: Group scores per student
+        // Group scores per student
         foreach ($results as $row) {
             $regNo = $row['reg_no'];
             $score = $row['total'];
@@ -391,7 +382,8 @@ class ClassCourseResultService
             }
 
             if ($score !== null) {
-                $students[$regNo]['subjects'][$row['course_id']] = $score;
+                var_dump($row['course_id']);
+                $students[$regNo]['subjects'][$row['course_id']] = round((float)$score, 2);
                 $students[$regNo]['total_score'] += $score;
                 $students[$regNo]['subject_count'] += 1;
             } else {
@@ -399,7 +391,7 @@ class ClassCourseResultService
             }
         }
 
-        // Step 2: Compute average
+        // Compute average
         foreach ($students as &$student) {
             $student['average'] = $student['subject_count'] > 0
                 ? round($student['total_score'] / $student['subject_count'], 2)
@@ -437,6 +429,7 @@ class ClassCourseResultService
             }
 
             $lastAverage = $student['average'];
+            unset($student['subject_count']);
         }
 
         return $students;

@@ -56,8 +56,8 @@ class ClassCourseResultController extends BaseController
     public function getStudentsResultForClass(array $vars)
     {
         $data = $this->validateData(
-            data: $vars + ['role' => $_SESSION['role']],
-            requiredFields: ['class_id', 'term', 'year', 'level_id', 'role']
+            data: $vars,
+            requiredFields: ['class_id', 'term', 'year', 'level_id']
         );
 
         try {
