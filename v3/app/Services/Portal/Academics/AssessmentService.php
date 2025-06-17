@@ -3,7 +3,7 @@
 namespace V3\App\Services\Portal\Academics;
 
 use PDO;
-use V3\App\Models\Portal\Assessment;
+use V3\App\Models\Portal\Academics\Assessment;
 
 class AssessmentService
 {

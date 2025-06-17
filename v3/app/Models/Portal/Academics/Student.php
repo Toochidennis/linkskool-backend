@@ -1,6 +1,6 @@
 <?php
 
-namespace V3\App\Models\Portal;
+namespace V3\App\Models\Portal\Academics;
 
 use PDO;
 use V3\App\Models\BaseModel;

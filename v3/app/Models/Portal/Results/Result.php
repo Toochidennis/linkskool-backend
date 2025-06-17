@@ -1,13 +1,13 @@
 <?php
 
-namespace V3\App\Models\Portal;
+namespace V3\App\Models\Portal\Results;
 
 use PDO;
 use V3\App\Models\BaseModel;
 
-class Attendance extends BaseModel
+class Result extends BaseModel
 {
-    protected string $table = 'attendance';
+    protected string $table = 'result_table';
 
     public function __construct(PDO $pdo)
     {

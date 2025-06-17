@@ -1,13 +1,13 @@
 <?php
 
-namespace V3\App\Models\Portal;
+namespace V3\App\Models\Portal\Results;
 
-use PDO;
 use V3\App\Models\BaseModel;
+use PDO;
 
-class Grade extends BaseModel
+class CourseRegistration extends BaseModel
 {
-    protected string $table = 'score_grade_table';
+    protected string $table = 'result_table';
 
     public function __construct(PDO $pdo)
     {
