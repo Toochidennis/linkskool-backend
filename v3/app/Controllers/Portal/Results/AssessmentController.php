@@ -6,7 +6,7 @@ use Exception;
 use PDOException;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
-use V3\App\Services\Portal\AssessmentService;
+use V3\App\Services\Portal\Academics\AssessmentService;
 
 class AssessmentController extends BaseController
 {

@@ -3,10 +3,10 @@
 namespace V3\App\Controllers\Portal;
 
 use Exception;
+use V3\App\Services\Portal\Academics\StudentService;
 use V3\App\Utilities\HttpStatus;
 use V3\App\Models\Portal\Student;
 use V3\App\Controllers\BaseController;
-use V3\App\Services\Portal\StudentService;
 
 /**
  * Class StudentController
