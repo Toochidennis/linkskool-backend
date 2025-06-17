@@ -17,6 +17,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
+use V3\App\Common\Utilities\Logger;
 use V3\App\Common\Utilities\EnvLoader;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Common\Utilities\ResponseHandler;
@@ -86,7 +87,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/attendance/history', ['Portal\Academics\AttendanceController', 'getAttendanceHistory']);
         $r->addRoute('GET', '/portal/attendance/{id:\d+}', ['Portal\Academics\AttendanceController', 'getAttendanceById']);
 
-        $r->addRoute('GET', '/portal/course-assignments', ['Portal\Academics\CourseAssignmentController', 'getAssignments']);
+        $r->addRoute('GET', '/portal/course-assignments', ['Portal\Academics\CourseAssignmentController', 'getCourseAssignments']);
 
         $r->addRoute('PUT', '/portal/result/class-result', ['Portal\Results\ResultController', 'updateResult']);
 
