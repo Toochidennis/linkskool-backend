@@ -14,11 +14,11 @@
 
 namespace V3\App\Services\Portal\Results;
 
-use V3\App\Models\Portal\Assessment;
-use V3\App\Models\Portal\Course;
-use V3\App\Models\Portal\Grade;
-use V3\App\Models\Portal\Result;
-use V3\App\Models\Portal\Student;
+use V3\App\Models\Portal\Academics\Assessment;
+use V3\App\Models\Portal\Academics\Course;
+use V3\App\Models\Portal\Academics\Student;
+use V3\App\Models\Portal\Results\Grade;
+use V3\App\Models\Portal\Results\Result;
 
 class StudentResultService
 {

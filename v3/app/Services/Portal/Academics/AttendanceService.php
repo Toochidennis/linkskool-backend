@@ -2,8 +2,8 @@
 
 namespace V3\App\Services\Portal\Academics;
 
-use V3\App\Models\Portal\Attendance;
-use V3\App\Models\Portal\Course;
+use V3\App\Models\Portal\Academics\Attendance;
+use V3\App\Models\Portal\Academics\Course;
 
 class AttendanceService
 {

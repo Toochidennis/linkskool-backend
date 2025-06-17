@@ -4,8 +4,8 @@ namespace V3\App\Services\Portal\Results;
 
 use PDO;
 use Exception;
-use V3\App\Models\Portal\Student;
-use V3\App\Models\Portal\CourseRegistration;
+use V3\App\Models\Portal\Academics\Student;
+use V3\App\Models\Portal\Results\CourseRegistration;
 
 class CourseRegistrationService
 {

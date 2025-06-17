@@ -4,13 +4,13 @@ namespace V3\App\Services\Portal;
 
 use PDO;
 use Exception;
-use V3\App\Models\Portal\Level;
-use V3\App\Models\Portal\Staff;
-use V3\App\Models\Portal\Course;
-use V3\App\Models\Portal\Student;
-use V3\App\Models\Portal\ClassModel;
-use V3\App\Models\Portal\SchoolSettings;
 use V3\App\Common\Traits\AuthenticatesRequests;
+use V3\App\Models\Portal\Academics\ClassModel;
+use V3\App\Models\Portal\Academics\Course;
+use V3\App\Models\Portal\Academics\Level;
+use V3\App\Models\Portal\Academics\SchoolSettings;
+use V3\App\Models\Portal\Academics\Staff;
+use V3\App\Models\Portal\Academics\Student;
 
 class AuthService
 {

@@ -4,28 +4,24 @@ namespace  V3\App\Services\Portal\Academics;
 
 use PDO;
 use Exception;
-use V3\App\Models\Portal\Staff;
-use V3\App\Models\Portal\SchoolSettings;
-use V3\App\Models\Portal\RegistrationTracker;
+use V3\App\Models\Portal\Academics\SchoolSettings;
+use V3\App\Models\Portal\Academics\Staff;
 
 class StaffService
 {
     private Staff $staff;
     private SchoolSettings $schoolSettings;
-    private RegistrationTracker $regTracker;
 
     /**
      * staffRegistrationService constructor.
      *
      * @param staff               $staff
      * @param SchoolSettings      $schoolSettings
-     * @param RegistrationTracker $regTracker
      */
     public function __construct(PDO $pdo)
     {
         $this->staff = new Staff(pdo: $pdo);
         $this->schoolSettings = new SchoolSettings($pdo);
-        $this->regTracker = new RegistrationTracker($pdo);
     }
 
     /**

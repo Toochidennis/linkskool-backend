@@ -15,7 +15,7 @@
 namespace V3\App\Services\Portal\Academics;
 
 use PDO;
-use V3\App\Models\Portal\Grade;
+use V3\App\Models\Portal\Results\Grade;
 
 class GradeService
 {
