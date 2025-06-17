@@ -12,7 +12,7 @@
  * @link https://www.linkskool.net
  */
 
-namespace V3\App\Controllers\Portal\Result;
+namespace V3\App\Controllers\Portal\Results;
 
 use Exception;
 use V3\App\Controllers\BaseController;
