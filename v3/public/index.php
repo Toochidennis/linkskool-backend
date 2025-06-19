@@ -17,7 +17,6 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
-use V3\App\Common\Utilities\Logger;
 use V3\App\Common\Utilities\EnvLoader;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Common\Utilities\ResponseHandler;
@@ -40,6 +39,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         // Student routes
         $r->addRoute('POST', '/portal/students', ['Portal\StudentController', 'addStudent']);
         $r->addRoute('POST', '/portal/students/result/comment', ['Portal\Results\ResultCommentController', 'store']);
+        $r->addRoute('POST', '/portal/students/{student_id:\d+}/skill-behavior', ['Portal\Results\StudentSkillBehaviorController', 'store']);
         $r->addRoute('POST', '/portal/students/{id:\d+}/course-registrations', ['Portal\Results\CourseRegistrationController', 'registerStudentCourses']);
         $r->addRoute('GET', '/portal/students/{student_id:\d+}/registered-courses', ['Portal\Results\CourseRegistrationController', 'getCoursesRegisteredByStudent']);
         $r->addRoute('GET', '/portal/students', ['Portal\StudentController', 'getAllStudents']);
@@ -57,20 +57,21 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/registered-students', ['Portal\Results\CourseRegistrationController', 'getStudentRegistrationStatusInClass']);
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/registered-courses', ['Portal\Results\CourseRegistrationController', 'getRegisteredCoursesForClass']);
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/course-registrations/average-scores', ['Portal\Results\CourseRegistrationController', 'getRegisteredCoursesWithAvgScores']);
-        $r->addRoute('GET', '/portal/classes/{class_id}/courses/{course_id}/results', ['Portal\Results\ClassCourseResultController', 'getCourseResultsForClass']);
-        $r->addRoute('GET', '/portal/classes/{class_id}/students-result', ['Portal\Results\ClassCourseResultController', 'getStudentsResultForClass']);
-        $r->addRoute('GET', '/portal/classes/{class_id}/composite-result', ['Portal\Results\ClassCourseResultController', 'getClassCompositeResult']);
+        $r->addRoute('GET', '/portal/classes/{class_id:\d+}/courses/{course_id}/results', ['Portal\Results\ClassCourseResultController', 'getCourseResultsForClass']);
+        $r->addRoute('GET', '/portal/classes/{class_id:\d+}/students-result', ['Portal\Results\ClassCourseResultController', 'getStudentsResultForClass']);
+        $r->addRoute('GET', '/portal/classes/{class_id:\d+}/composite-result', ['Portal\Results\ClassCourseResultController', 'getClassCompositeResult']);
+        $r->addRoute('GET', '/portal/classes/{class_id:\d+}/skill-behavior', ['Portal\Results\StudentSkillBehaviorController', 'getStudentsSkillBehavior']);
 
         // Staff routes
         $r->addRoute('POST', '/portal/staff', ['Portal\Academics\StaffController', 'addStaff']);
         $r->addRoute('GET', '/portal/staff', ['Portal\Academics\StaffController', 'getStaff']);
-        $r->addRoute('GET', '/portal/staff/{id}', ['Portal\Academics\StaffController', 'getStaffById']);
+        $r->addRoute('GET', '/portal/staff/{id:\d+}', ['Portal\Academics\StaffController', 'getStaffById']);
 
         // course routes
-        $r->addRoute('POST', '/portal/courses/{id}/attendance', ['Portal\Academics\AttendanceController', 'addCourseAttendance']);
+        $r->addRoute('POST', '/portal/courses/{id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'addCourseAttendance']);
         $r->addRoute('GET', '/portal/course-registrations/terms', ['Portal\Results\CourseRegistrationController', 'getClassRegistrationTerms']);
         $r->addRoute('GET', '/portal/courses/{course_id:\d+}/students', ['Portal\Results\CourseRegistrationController', 'getStudentsForCourseInClass']);
-        $r->addRoute('GET', '/portal/courses/{id}/attendance', ['Portal\Academics\AttendanceController', 'getCourseAttendance']);
+        $r->addRoute('GET', '/portal/courses/{id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'getCourseAttendance']);
 
         $r->addRoute('POST', '/portal/assessments', ['Portal\Results\AssessmentController', 'addAssessments']);
         $r->addRoute('PUT', '/portal/assessments/{id:\d+}', ['Portal\Results\AssessmentController', 'updateAssessment']);

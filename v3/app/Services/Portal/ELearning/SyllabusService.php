@@ -33,7 +33,7 @@ class SyllabusService
         if (!empty($data['image'])) {
             $binary = base64_decode($data['image'], true);
 
-            if($binary === false || @imagecreatefromstring($binary) === false) {
+            if ($binary === false || @imagecreatefromstring($binary) === false) {
                 throw new Exception("Invalid or corrupted image data.");
             }
 
@@ -43,7 +43,7 @@ class SyllabusService
                 mkdir($uploadDir, 0755, true);
             }
 
-            $filename = uniqid('syllabus_', true) . '.' . $ext;
+            $filename = uniqid('syllabus_', true);
             $filePath = $uploadDir . $filename;
 
             // Save the binary data to file
