@@ -15,26 +15,17 @@
 namespace V3\App\Controllers\Portal\Results;
 
 use Exception;
-use V3\App\Models\Portal\Grade;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\Academics\GradeService;
 
 class GradeController extends BaseController
-{
-    private Grade $grade;
-    private GradeService $service;
+{    private GradeService $service;
 
     public function __construct()
     {
         parent::__construct();
-        $this->initialize();
-    }
-
-    private function initialize()
-    {
         $this->service = new GradeService($this->pdo);
-        $this->grade = new Grade($this->pdo);
     }
 
     public function addGrades()
