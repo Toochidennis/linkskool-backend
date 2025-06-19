@@ -63,4 +63,16 @@ class GradeService
             ->where('id', '=', $grade['id'])
             ->update($formatted);
     }
+
+    public function getGrades()
+    {
+        return $this->grade->get();
+    }
+
+    public function delete($id)
+    {
+        return $this->grade
+            ->where('id', '=', $id)
+            ->delete();
+    }
 }

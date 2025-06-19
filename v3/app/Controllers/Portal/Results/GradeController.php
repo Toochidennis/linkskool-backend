@@ -20,7 +20,8 @@ use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\Academics\GradeService;
 
 class GradeController extends BaseController
-{    private GradeService $service;
+{
+    private GradeService $service;
 
     public function __construct()
     {
@@ -77,9 +78,10 @@ class GradeController extends BaseController
     public function getGrades()
     {
         try {
-            $grades = $this->grade->get();
-
-            return $this->respond(['success' => true, 'grades' => $grades]);
+            return $this->respond([
+                'success' => true,
+                'grades' => $this->service->getGrades()
+            ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -90,12 +92,13 @@ class GradeController extends BaseController
         $data = $this->validateData($vars, ['id']);
 
         try {
-            $delete = $this->grade
-                ->where('id', '=', $data['id'])
-                ->delete();
-
-            if ($delete) {
-                return $this->respond(['success' => true, 'message' => 'Grade deleted successfully']);
+            if ($this->service->delete($data['id'])) {
+                return $this->respond(
+                    [
+                        'success' => true,
+                        'message' => 'Grade deleted successfully'
+                    ]
+                );
             }
 
             return $this->respondError(
