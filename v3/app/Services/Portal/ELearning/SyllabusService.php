@@ -9,6 +9,7 @@ use V3\App\Models\Portal\ELearning\SyllabusModel;
 class SyllabusService
 {
     private SyllabusModel $syllabusModel;
+    private const CONTENT_TYPE = 100;
 
     public function __construct(PDO $pdo)
     {
@@ -20,51 +21,32 @@ class SyllabusService
         $payload = [
             'title' => $data['title'],
             'description' => $data['description'],
+            'type' => SELF::CONTENT_TYPE,
             'course_id' => $data['course_id'],
             'course_name' => $data['course_name'],
             'level' => $data['level_id'],
-            'path_label' => json_encode($data['class_ids']),
+            'path_label' => json_encode($data['classes']),
             'author_id' => $data['creator_id'],
-            'author_name' => $data['creator_role'],
+            'author_name' => $data['creator_name'],
             'term' => $data['term'],
             'upload_date' => date('Y-m-d H:i:s'),
         ];
 
-        if (!empty($data['image'])) {
-            $binary = base64_decode($data['image'], true);
-
-            if ($binary === false || @imagecreatefromstring($binary) === false) {
-                throw new Exception("Invalid or corrupted image data.");
-            }
-
-            // Prepare paths
-            $uploadDir = __DIR__ . '/../../public/assets/e_learning/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
-
-            $filename = uniqid('syllabus_', true);
-            $filePath = $uploadDir . $filename;
-
-            // Save the binary data to file
-            if (file_put_contents($filePath, $binary) === false) {
-                throw new Exception("Failed to save image.");
-            }
-
-            // Store web-accessible path and original filename
-            $payload['image']      = '/assets/e_learning/' . $filename;
-            $payload['image_name'] = $filename;
-        }
-
-        $newId = (int) $this->syllabusModel->insert($payload);
+        $newId = $this->syllabusModel->insert($payload);
         if (!$newId) {
             throw new Exception("Failed to create syllabus.");
         }
 
-        return [
-            'success' => true,
-            'syllabusId' => $newId,
-            'message' => 'Syllabus created successfully.'
-        ];
+        return $newId;
+    }
+
+    public function getSyllabus(array $filters)
+    {
+        return $this->syllabusModel
+            ->select(columns: ['id, title, description, path_label, author_name, term, upload_date'])
+            ->where('term', '=', $filters['term'])
+            ->where('level', '=', $filters['level_id'])
+            ->where('type', '=', SELF::CONTENT_TYPE)
+            ->get();
     }
 }

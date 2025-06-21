@@ -99,7 +99,8 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/public/movies/genre/{id}', ['Explore\MovieController', 'getByGenre']);
 
         // New endpoints
-        $r->addRoute('POST', '/portal/syllabus', ['Portal\ELearning\SyllabusController', 'createSyllabus']);
+        $r->addRoute('POST', '/portal/syllabus', ['Portal\ELearning\SyllabusController', 'store']);
+        $r->addRoute('GET', '/portal/syllabus', ['Portal\ELearning\SyllabusController', 'get']);
     }
 );
 
