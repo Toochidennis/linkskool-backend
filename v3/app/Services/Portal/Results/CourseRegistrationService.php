@@ -4,6 +4,7 @@ namespace V3\App\Services\Portal\Results;
 
 use PDO;
 use Exception;
+use V3\App\Common\Utilities\SubjectAbbreviation;
 use V3\App\Models\Portal\Academics\Student;
 use V3\App\Models\Portal\Results\CourseRegistration;
 
@@ -390,6 +391,7 @@ class CourseRegistrationService
         return array_map(
             function ($row) {
                 $row['average_score'] ??= 0;
+                $row['abbr'] = SubjectAbbreviation::abbreviate($row['course_name']);
                 return $row;
             },
             $registeredCourses
