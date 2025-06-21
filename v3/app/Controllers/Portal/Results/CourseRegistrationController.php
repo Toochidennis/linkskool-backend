@@ -26,15 +26,6 @@ class CourseRegistrationController extends BaseController
     public function __construct()
     {
         parent::__construct();
-        $this->initialize();
-    }
-
-    /**
-     * Initializes the controller by extracting POST/GET
-     * data and connecting to the database.
-     */
-    public function initialize()
-    {
         $this->service = new CourseRegistrationService(pdo: $this->pdo);
     }
 
@@ -122,11 +113,15 @@ class CourseRegistrationController extends BaseController
 
     public function getClassRegistrationTerms(array $vars)
     {
-        $data = $this->validateData($vars, ['class_id']);
+        $data = $this->validateData($vars, ['class_id', 'term', 'year']);
 
         try {
             $sessions = $this->service->getClassRegistrationTerms($data['class_id']);
-            $this->respond(['success' => true, 'sessions' => $sessions]);
+            $performance = $this->service->getClassRegisteredCoursesWithAverageScores($data);
+            $this->respond([
+                'success' => true,
+                'response' => ['sessions' => $sessions, 'chart_data' => $performance]
+            ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -244,10 +239,5 @@ class CourseRegistrationController extends BaseController
         } catch (Exception $e) {
             $this->respondError($e->getMessage());
         }
-    }
-
-    public function unregisterCourses()
-    {
-        // TODO
     }
 }
