@@ -25,33 +25,48 @@ class SyllabusController extends BaseController
                 'title',
                 'description',
                 'course_id',
+                'course_name',
                 'level_id',
-                'class_ids',
+                'classes',
+                'classes.*.id',
+                'classes.*.name',
                 'creator_id',
-                'creator_role',
-                'term',
-                'year'
+                'creator_name',
+                'term'
             ]
         );
 
         try {
-            $inserted = $this->service->create($data);
+            $newId = $this->service->create($data);
 
-            if ($inserted) {
+            if ($newId) {
                 return $this->respond(
-                    ['success' => true, 'message' => 'Syllabus created successfully!'],
-                    HttpStatus::CREATED
+                    data: [
+                        'success' => true,
+                        'syllabusId' => $newId,
+                        'message' => 'Syllabus created successfully.'
+                    ],
+                    statusCode: HttpStatus::CREATED
                 );
             }
-
-            return $this->respondError('Failed to create syllabus', HttpStatus::BAD_REQUEST);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
     }
 
-    public function update(array $vars)
+    public function get(array $vars)
     {
-        // TODO
+        $data = $this->validateData(data: $vars, requiredFields: ['term', 'level_id']);
+
+        try {
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'response' => $this->service->getSyllabus(filters: $data)
+                ]
+            );
+        } catch (Exception $e) {
+            return $this->respondError(message: $e->getMessage());
+        }
     }
 }
