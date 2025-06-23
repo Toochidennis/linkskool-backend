@@ -3,7 +3,6 @@
 namespace  V3\App\Services\Portal\Academics;
 
 use PDO;
-use Exception;
 use V3\App\Models\Portal\Academics\SchoolSettings;
 use V3\App\Models\Portal\Academics\Staff;
 
@@ -24,46 +23,32 @@ class StaffService
         $this->schoolSettings = new SchoolSettings($pdo);
     }
 
-    /**
-     * Generate and update the registration number for a given staff.
-     *
-     * @param  int $staffId
-     * @return bool
-     */
-    public function generateRegistrationNumber(int $staffId): bool
+    public function insertStaffRecord(array $data): bool
     {
-        $prefixResult = $this->schoolSettings->select(['staff_prefix'])->first();
-        $regResult = $this->regTracker->select(['id', 'staff_reg_number'])->first();
+        $payload = [
+            
+        ];
 
-        $newNumber = '001';
+        $staffId = $this->staff->insert($payload);
 
-        if ($prefixResult) {
-            $staffPrefix = $prefixResult['staff_prefix'];
+        if ($staffId) {
+            $prefixResult = $this->schoolSettings->select(['staff_prefix'])->first();
 
-            if ($regResult) {
-                $lastNumber = (int)$regResult['staff_reg_number'];
-                $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+            if ($prefixResult) {
+                $staffPrefix = $prefixResult['staff_prefix'];
+                $staffRegNumber = "$staffPrefix$staffId";
+            } else {
+                $staffRegNumber = "000$staffId";
             }
 
-            $staffRegNumber = "$staffPrefix$staffId$newNumber";
-        } else {
-            $staffRegNumber = "$staffId$newNumber";
+            // Update the staff's registration number
+            $updateStaffStmt = $this->staff
+                ->where('id', '=', $staffId)
+                ->update(['staff_no' => $staffRegNumber]);
+
+            return $updateStaffStmt;
         }
-
-        // Update the staff's registration number
-        $updateStaffStmt = $this->staff
-            ->where('id', '=', $staffId)
-            ->update(['staff_no' => $staffRegNumber]);
-
-        // Update (or insert) the last used registration number in the tracker
-        $regStmt = $regResult ?
-            $this->regTracker
-            ->where('id', '=', $regResult['id'])
-            ->update(['staff_reg_number' => $newNumber])
-            :
-            $this->regTracker->insert(data: ['staff_reg_number' => $newNumber]);
-
-        return $updateStaffStmt && $regStmt;
+        return false;
     }
 
     /**
@@ -71,10 +56,35 @@ class StaffService
      *
      * @param  string $surname
      * @return string
-     * @throws Exception
      */
     public function generatePassword(string $surname): string
     {
         return substr($surname, 0, 4) . rand(10000, 90000);
+    }
+
+    public function getStaff()
+    {
+        $results = $this->staff->select(
+            columns: [
+                'id',
+                'picture_ref',
+                'surname',
+                'first_name',
+                'middle',
+                'staff_no'
+            ]
+        )->get();
+
+        return array_map(
+            fn($row) => [
+                'id' => $row['id'],
+                'profile_url' => $row['picture_ref'],
+                'surname' => $row['surname'],
+                'first_name' => $row['first_name'],
+                'middle' => $row['middle'],
+                'staff_no' => $row['staff_no'],
+            ],
+            $results
+        );
     }
 }

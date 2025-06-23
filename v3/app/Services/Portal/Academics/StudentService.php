@@ -24,47 +24,30 @@ class StudentService
         $this->schoolSettings = new SchoolSettings($pdo);
     }
 
-    /**
-     * Generate and update the registration number for a given student.
-     *
-     * @param  int $studentId
-     * @return bool
-     */
-    public function generateRegistrationNumber(int $studentId): bool
+
+    public function insertStudentRecord($data): bool
     {
-        $prefixResult = $this->schoolSettings->select(['student_prefix'])->first();
-        $regResult = $this->regTracker->select(['id, student_reg_number'])->first();
+        $studentId = $this->student->insert($data);
 
-        $newNumber = '001';
+        if ($studentId) {
+            $prefixResult = $this->schoolSettings->select(['student_prefix'])->first();
+            $data['password'] = $this->generatePassword($data['surname']);
 
-        if ($prefixResult) {
-            $studentPrefix = $prefixResult['student_prefix'];
-
-            if ($regResult) {
-                $lastNumber = (int)$regResult['student_reg_number'];
-                $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+            if (!empty($prefixResult)) {
+                $studentPrefix = $prefixResult['student_prefix'];
+                $studentRegNumber = "$studentPrefix$studentId";
+            } else {
+                $studentRegNumber = "000$studentId";
             }
 
-            $studentRegNumber = "$studentPrefix$studentId$newNumber";
-        } else {
-            $studentRegNumber = "$studentId$newNumber";
+            $updateStudentStmt = $this->student
+                ->where('id', '=', $studentId)
+                ->update(data: ['registration_no' => $studentRegNumber]);
+
+            return $updateStudentStmt;
         }
 
-        // Update the student's registration number
-        $updateStudentStmt = $this->student
-            ->where('id', '=', $studentId)
-            ->update(data: ['registration_no' => $studentRegNumber]);
-
-        // Update (or insert) the last used registration number in the tracker
-        $regStmt = $regResult ?
-            $this->regTracker
-            ->where('id', '=', $newNumber)
-            ->update(['student_reg_number' => $newNumber])
-            :
-            $this->regTracker
-            ->insert(['student_reg_number' => $newNumber]);
-
-        return $updateStudentStmt && $regStmt;
+        return false;
     }
 
     /**
@@ -72,10 +55,41 @@ class StudentService
      *
      * @param  string $surname
      * @return string
-     * @throws Exception
      */
     public function generatePassword(string $surname): string
     {
         return substr($surname, 0, 4) . rand(10000, 90000);
+    }
+
+    public function getStudentsByClass(int $classId)
+    {
+        return $this->student
+            ->select(columns: [
+                'id',
+                "CONCAT(surname, ' ', first_name, ' ', middle) AS student_name"
+            ])
+            ->where(column: "student_class", operator: '=', value: $classId)
+            ->get();
+    }
+
+    /**
+     * Get students record.
+     */
+    public function getAllStudents(): array
+    {
+        return $this->student
+            ->select(
+                columns: [
+                    'id',
+                    'picture_ref AS picture_url',
+                    'surname',
+                    'first_name',
+                    'middle',
+                    'registration_no',
+                    'student_class AS class_id',
+                    'student_level AS level_id'
+                ]
+            )
+            ->get();
     }
 }
