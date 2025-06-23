@@ -19,17 +19,18 @@ class AttendanceController extends BaseController
 
     public function addClassAttendance(array $vars)
     {
-        $requiredFields = [
-            'year',
-            'term',
-            'staff_id',
-            'count',
-            'class',
-            'register',
-            'date'
-        ];
-
-        $data = $this->validateData($this->post + ['class' => $vars['id']], $requiredFields);
+        $data = $this->validateData(
+            $this->post + ['class' => $vars['id']],
+            [
+                'year',
+                'term',
+                'staff_id',
+                'count',
+                'class',
+                'register',
+                'date'
+            ]
+        );
 
         try {
             $inserted = $this->attendanceService->addAttendance($data, false);
@@ -49,18 +50,19 @@ class AttendanceController extends BaseController
 
     public function addCourseAttendance(array $vars)
     {
-        $requiredFields = [
-            'year',
-            'term',
-            'staff_id',
-            'count',
-            'class',
-            'course',
-            'register',
-            'date'
-        ];
-
-        $data = $this->validateData(data: $this->post + ['course' => $vars['id']], requiredFields: $requiredFields);
+        $data = $this->validateData(
+            data: $this->post + ['course' => $vars['id']],
+            requiredFields: [
+                'year',
+                'term',
+                'staff_id',
+                'count',
+                'class',
+                'course',
+                'register',
+                'date'
+            ]
+        );
 
         try {
             $inserted = $this->attendanceService->addAttendance(data: $data, isCourse: true);

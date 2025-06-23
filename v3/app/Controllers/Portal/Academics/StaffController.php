@@ -24,9 +24,8 @@ class StaffController extends BaseController
     {
         $data = $this->validateData(
             data: $this->post,
-            requiredFields: ['surname', 'first_name', 'sex']
+            requiredFields: ['surname', 'first_name', 'gender', 'access_level']
         );
-        $data['password'] = $this->staffService->generatePassword($data['surname']);
 
         try {
             $newId = $this->staffService->insertStaffRecord($data);

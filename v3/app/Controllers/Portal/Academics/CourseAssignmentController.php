@@ -19,8 +19,17 @@ class CourseAssignmentController extends BaseController
 
     public function storeCourseAssignment()
     {
-        $requiredFields = ['year', 'term', 'staff_id', 'courses', 'courses.*.course_id', 'courses*.*class_id'];
-        $data = $this->validateData($this->post, $requiredFields);
+        $data = $this->validateData(
+            $this->post,
+            [
+                'year',
+                'term',
+                'staff_id',
+                'courses',
+                'courses.*.course_id',
+                'courses*.*class_id'
+            ]
+        );
 
         try {
             $isInserted = $this->service->assignCourses($data);
@@ -31,7 +40,10 @@ class CourseAssignmentController extends BaseController
                     'message' => 'Course(s) assigned successfully.'
                 ], HttpStatus::CREATED);
             }
-            return $this->respondError('Failed to assign course(s)', HttpStatus::BAD_REQUEST);
+            return $this->respondError(
+                'Failed to assign course(s)',
+                HttpStatus::BAD_REQUEST
+            );
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
