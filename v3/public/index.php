@@ -53,7 +53,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('POST', '/portal/classes/{id:\d+}/course-registrations/duplicate', ['Portal\Results\CourseRegistrationController', 'duplicateLastTermRegistrations']);
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/course-registrations/history', ['Portal\Results\CourseRegistrationController', 'getClassRegistrationHistory']);
         $r->addRoute('GET', '/portal/classes/{id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'getClassAttendance']);
-        $r->addRoute('GET', '/portal/classes/{id:\d+}/students', ['Portal\Academics\StudentController', 'getStudentsByClass']);
+        $r->addRoute('GET', '/portal/classes/{class_id:\d+}/students', ['Portal\Academics\StudentController', 'getStudentsByClass']);
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/registered-students', ['Portal\Results\CourseRegistrationController', 'getStudentRegistrationStatusInClass']);
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/registered-courses', ['Portal\Results\CourseRegistrationController', 'getRegisteredCoursesForClass']);
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/course-registrations/average-scores', ['Portal\Results\CourseRegistrationController', 'getRegisteredCoursesWithAvgScores']);

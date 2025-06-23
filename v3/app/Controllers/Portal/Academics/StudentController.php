@@ -3,40 +3,17 @@
 namespace V3\App\Controllers\Portal;
 
 use Exception;
-use V3\App\Services\Portal\Academics\StudentService;
-use V3\App\Utilities\HttpStatus;
-use V3\App\Models\Portal\Student;
 use V3\App\Controllers\BaseController;
-
-/**
- * Class StudentController
- *
- * Handles student-related operations.
- */
+use V3\App\Common\Utilities\HttpStatus;
+use V3\App\Services\Portal\Academics\StudentService;
 
 class StudentController extends BaseController
 {
-    private Student $student;
     private StudentService $studentService;
-
 
     public function __construct()
     {
         parent::__construct();
-        $this->initialize();
-    }
-
-    /**
-     * Initializes the database connection and service instances.
-     *
-     * Expects the request to contain a valid '_db' parameter.
-     *
-     * @param  string $dbname The database name extracted from the request.
-     * @return void
-     */
-    private function initialize()
-    {
-        $this->student = new Student(pdo: $this->pdo);
         $this->studentService = new StudentService($this->pdo);
     }
 
@@ -45,36 +22,28 @@ class StudentController extends BaseController
      */
     public function addStudent()
     {
-        $requiredFields = [
-            'surname',
-            'first_name',
-            'sex',
-            'student_class',
-            'student_level'
-        ];
-        $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
-        $data['password'] = $this->studentService->generatePassword($data['surname']);
+        $data = $this->validateData(
+            data: $this->post,
+            requiredFields: [
+                'surname',
+                'first_name',
+                'sex',
+                'student_class',
+                'student_level'
+            ]
+        );
 
         try {
-            $studentId = $this->student->insert($data);
-            if ($studentId) {
-                $success = $this->studentService->generateRegistrationNumber(studentId: $studentId);
+            $newId = $this->studentService->insertStudentRecord($data);
 
-                $this->response = $success ? [
+            if ($newId) {
+                $this->respond([
                     'success' => true,
-                    'message' => 'Student added successfully.',
-                    'student_id' => $studentId
-                ] :
-                    [
-                        'success' => false,
-                        'message' => 'Failed to generate registration number.'
-                    ];
-            } else {
-                $this->response = [
-                    'success' => false,
-                    'message' => 'Failed to add student'
-                ];
+                    'message' => 'Student added successfully.'
+                ], HttpStatus::CREATED);
             }
+
+            return $this->respondError('Failed to add a new student');
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -86,48 +55,26 @@ class StudentController extends BaseController
     public function getAllStudents()
     {
         try {
-            $results = $this->student
-                ->select(
-                    columns: [
-                        'id',
-                        'picture_ref AS picture_url',
-                        'surname',
-                        'first_name',
-                        'middle',
-                        'registration_no',
-                        'student_class AS class_id',
-                        'student_level AS level_id'
-                    ]
-                )->get();
-
-            $this->response = ['success' => true, 'students' => $results];
+            $this->respond([
+                'success' => true,
+                'response' => $this->studentService->getAllStudents()
+            ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
-    }
-
-    public function getStudentById(array $vars)
-    {
-        echo print_r($vars);
     }
 
     public function getStudentsByClass(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['id']);
+        $data = $this->validateData(data: $vars, requiredFields: ['class_id']);
 
         try {
-            $results = $this->student
-                ->select(columns: ['id', "CONCAT(surname, ' ', first_name, ' ', middle) AS student_name"])
-                ->where("student_class", '=', $data['id'])
-                ->get();
-
-            $this->response = ['success' => true, 'students' => $results];
+            $this->respond([
+                'success' => true,
+                'students' => $this->studentService->getStudentsByClass($data['class_id'])
+            ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
-    }
-
-    public function deleteStudent($id)
-    {
     }
 }

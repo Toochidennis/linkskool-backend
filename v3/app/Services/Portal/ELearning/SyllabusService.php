@@ -40,13 +40,25 @@ class SyllabusService
         return $newId;
     }
 
-    public function getSyllabus(array $filters)
+    /**
+     * Retrieves syllabus content filtered by term, level, and type.
+     *
+     * @param array $filters Must include 'term' and 'level_id'.
+     * @return array List of syllabus items with 'classes' decoded from path_label.
+     */
+    public function getSyllabus(array $filters): array
     {
-        return $this->syllabusModel
+        $results = $this->syllabusModel
             ->select(columns: ['id, title, description, path_label, author_name, term, upload_date'])
             ->where('term', '=', $filters['term'])
             ->where('level', '=', $filters['level_id'])
             ->where('type', '=', self::CONTENT_TYPE)
             ->get();
+
+        return array_map(function ($row) {
+            $row['classes'] = json_decode($row['path_label'], true);
+            unset($row['path_label']);
+            return $row;
+        }, $results);
     }
 }
