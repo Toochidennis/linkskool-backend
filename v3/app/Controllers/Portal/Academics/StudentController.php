@@ -27,9 +27,9 @@ class StudentController extends BaseController
             requiredFields: [
                 'surname',
                 'first_name',
-                'sex',
-                'student_class',
-                'student_level'
+                'gender',
+                'class_id',
+                'level_id'
             ]
         );
 
