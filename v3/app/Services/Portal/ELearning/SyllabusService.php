@@ -21,7 +21,7 @@ class SyllabusService
         $payload = [
             'title' => $data['title'],
             'description' => $data['description'],
-            'type' => SELF::CONTENT_TYPE,
+            'type' => self::CONTENT_TYPE,
             'course_id' => $data['course_id'],
             'course_name' => $data['course_name'],
             'level' => $data['level_id'],
@@ -46,7 +46,7 @@ class SyllabusService
             ->select(columns: ['id, title, description, path_label, author_name, term, upload_date'])
             ->where('term', '=', $filters['term'])
             ->where('level', '=', $filters['level_id'])
-            ->where('type', '=', SELF::CONTENT_TYPE)
+            ->where('type', '=', self::CONTENT_TYPE)
             ->get();
     }
 }

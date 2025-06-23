@@ -17,11 +17,20 @@ class StudentSkillBehaviorController extends BaseController
         $this->service = new StudentSkillBehaviorService($this->pdo);
     }
 
-    public function store(array $vars)
+    public function store()
     {
         $data = $this->validateData(
-            $this->post + $vars,
-            ['year', 'student_id', 'term', 'skills']
+            $this->post,
+            [
+                'skills',
+                'skills.*.student_id',
+                'skills.*.student_skills',
+                'skills.*.student_skills.*.skill_id',
+                'skills.*.student_skills.*.label',
+                'skills.*.student_skills.*.value',
+                'term',
+                'year',
+            ]
         );
 
         try {

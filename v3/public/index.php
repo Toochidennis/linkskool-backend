@@ -39,7 +39,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         // Student routes
         $r->addRoute('POST', '/portal/students', ['Portal\StudentController', 'addStudent']);
         $r->addRoute('POST', '/portal/students/result/comment', ['Portal\Results\ResultCommentController', 'store']);
-        $r->addRoute('POST', '/portal/students/{student_id:\d+}/skill-behavior', ['Portal\Results\StudentSkillBehaviorController', 'store']);
+        $r->addRoute('POST', '/portal/students/skill-behavior', ['Portal\Results\StudentSkillBehaviorController', 'store']);
         $r->addRoute('POST', '/portal/students/{id:\d+}/course-registrations', ['Portal\Results\CourseRegistrationController', 'registerStudentCourses']);
         $r->addRoute('GET', '/portal/students/{student_id:\d+}/registered-courses', ['Portal\Results\CourseRegistrationController', 'getCoursesRegisteredByStudent']);
         $r->addRoute('GET', '/portal/students', ['Portal\StudentController', 'getAllStudents']);
@@ -91,6 +91,10 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/course-assignments', ['Portal\Academics\CourseAssignmentController', 'getCourseAssignments']);
 
         $r->addRoute('PUT', '/portal/result/class-result', ['Portal\Results\ResultController', 'updateResult']);
+
+        $r->addRoute('POST', '/portal/skill-behavior', ['Portal\Academics\SkillBehaviorController', 'store']);
+        $r->addRoute('PUT', '/portal/skill-behavior/{id:\d+}', ['Portal\Academics\SkillBehaviorController', 'update']);
+        $r->addRoute('GET', '/portal/skill-behavior', ['Portal\Academics\SkillBehaviorController', 'get']);
 
         // Movies
         $r->addRoute('GET', '/public/movies/all', ['Explore\MovieController', 'getSampleFromAllCategories']);
