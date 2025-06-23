@@ -1,6 +1,6 @@
 <?php
 
-namespace V3\App\Controllers\Portal;
+namespace V3\App\Controllers\Portal\Academics;
 
 use Exception;
 use V3\App\Controllers\BaseController;
