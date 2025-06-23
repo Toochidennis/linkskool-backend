@@ -20,16 +20,29 @@ class StudentSkillBehaviorService
         $this->skillBehavior = new SkillBehavior(pdo: $pdo);
     }
 
+    /**
+     * Inserts skill records for multiple students for a given year and term.
+     *
+     * @param array $data Includes 'year', 'term', and 'skills' (array of student_id and skill data).
+     * @return bool True if all inserts succeed, false if any fail.
+     */
     public function insertSkills($data)
     {
-        $payload = [
-            'year' => $data['year'],
-            'term' => $data['term'],
-            'reg_no' => $data['student_id'],
-            'skill' => json_encode($data['skills'])
-        ];
+        $count = 0;
+        foreach ($data['skills'] as $skill) {
+            $payload = [
+                'year' => $data['year'],
+                'term' => $data['term'],
+                'reg_no' => $skill['student_id'],
+                'skill' => json_encode($skill['student_skills'])
+            ];
 
-        return $this->studentSkillBehavior->insert($payload);
+            if ($this->studentSkillBehavior->insert($payload)) {
+                $count++;
+            }
+        }
+
+        return $count === count($data['skills']);
     }
 
     public function getStudents(array $filters)
@@ -72,6 +85,12 @@ class StudentSkillBehaviorService
         return $skills;
     }
 
+    /**
+     * Retrieves skill behavior records for students in a given class, term, and year.
+     *
+     * @param array $filters Must include 'year', 'term', and 'level_id'.
+     * @return array Contains 'skills' (defined skill behaviors) and 'students' (with attached skill data).
+     */
     public function getStudentsSkillBehavior(array $filters)
     {
         $students = $this->getStudents($filters);
@@ -85,8 +104,28 @@ class StudentSkillBehaviorService
                 ->where('reg_no', '=', $student['id'])
                 ->get();
 
-            $student['student_skills'] = (!empty($studentSkills)) ?
-                json_decode($studentSkills[0]['skill']) : null;
+            if (!empty($studentSkills)) {
+                $rawSkillData = json_decode($studentSkills[0]['skill'], true);
+
+                // Detect if it's the old format (associative with skill_id as key)
+                if (!isset($rawSkillData[0]) && is_array($rawSkillData)) {
+                    // Convert to new format
+                    $converted = [];
+                    foreach ($rawSkillData as $skillId => $data) {
+                        $converted[] = [
+                            'skill_id' => (int) $skillId,
+                            'value' => $data['value'],
+                            'label' => $data['label']
+                        ];
+                    }
+                    $student['student_skills'] = $converted;
+                } else {
+                    // Already in new format
+                    $student['student_skills'] = $rawSkillData;
+                }
+            } else {
+                $student['student_skills'] = null;
+            }
         }
 
         return [
