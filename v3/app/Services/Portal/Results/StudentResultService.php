@@ -178,8 +178,8 @@ class StudentResultService
                 $studentScores[$regNo] = ['reg_no' => $regNo, 'sum' => 0, 'count' => 0];
             }
 
-            if (is_numeric($row['total'])) {
-                $studentScores[$regNo]['sum'] += $row['total'];
+            if ($row['total'] !== null) {
+                $studentScores[$regNo]['sum'] += (int) $row['total'];
                 $studentScores[$regNo]['count']++;
             }
         }
@@ -193,7 +193,7 @@ class StudentResultService
         $ranked = $this->rankStudents(array_values($studentScores));
 
         foreach ($ranked as $student) {
-            if ($student['reg_no'] === $filters['student_id']) {
+            if ($student['reg_no'] == $filters['student_id']) {
                 return [
                     'position' => $student['position'],
                     'average' => $student['average'],
