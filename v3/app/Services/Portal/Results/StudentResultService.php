@@ -44,15 +44,6 @@ class StudentResultService
      *                       - 'id' => student registration number.
      *
      * @return array Returns a structured array grouped by year with each term’s average score.
-     *               Format: [
-     *                   '2024' => [
-     *                       'terms' => [
-     *                           ['term' => 1, 'average_score' => '63.00'],
-     *                           ['term' => 2, 'average_score' => '71.50'],
-     *                       ]
-     *                   ],
-     *                   ...
-     *               ]
      */
     public function getResultTerms(array $filters)
     {
@@ -213,10 +204,7 @@ class StudentResultService
      * Determines grade symbol, remark, and pass status based on score.
      *
      * @param float|int $score The total score.
-     * @return string Returns an array with keys:
-     *                    - 'grade' (string)
-     *                    - 'remark' (string)
-     *                    - 'status' (int: 1=pass, 0=fail),
+     * @return string Returns an array
      */
     private function getRemark($score)
     {
@@ -281,21 +269,38 @@ class StudentResultService
         // Sort by average descending
         arsort($averages);
 
-        // Find position
-        $position = 0;
-        $rank = 1;
-        foreach ($averages as $regNo => $avg) {
-            if ($regNo === $targetRegNo) {
-                $position = $rank;
-                break;
-            }
-            $rank++;
-        }
-
         return [
             'position' => $position,
             'average' => $averages[$targetRegNo] ?? 0,
             'total_students' => count($averages)
         ];
+    }
+
+    public function rankStudents(array $students)
+    {
+        // Sort by average descending
+        usort($students, fn($a, $b) => $b['average'] <=> $a['average']);
+
+        $position = 1;
+        $lastAverage = null;
+        $sameRankCount = 0;
+
+        foreach ($students as $index => &$student) {
+            if ($lastAverage === $student['average']) {
+                // Tie in average: same position
+                $student['position'] = $position;
+                $sameRankCount++;
+            } else {
+                // New average
+                $position += $sameRankCount;
+                $student['position'] = $position;
+                $sameRankCount = 1;
+            }
+
+            $lastAverage = $student['average'];
+            unset($student['subject_count']);
+        }
+
+        return $students;
     }
 }

@@ -49,6 +49,8 @@ class SyllabusController extends BaseController
                     statusCode: HttpStatus::CREATED
                 );
             }
+
+            return $this->respondError('Failed to create syllabus');
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
