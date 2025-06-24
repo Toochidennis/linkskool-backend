@@ -75,15 +75,11 @@ class ClassCourseResultService
     /**
      * Fetches course results for students based on provided filters.
      *
-     * @param array $filters An associative array containing:
-     *  - class_id: string
-     *  - course_id: string
-     *  - term: string
-     *  - year: string
+     * @param array $filters An associative array
      *
      * @return array An array of student result records including student info and raw result fields.
      */
-    public function fetchRawCourseResults(array $filters)
+    private function fetchRawCourseResults(array $filters)
     {
         return $this->student
             ->select(columns: [
@@ -103,7 +99,7 @@ class ClassCourseResultService
             ->get();
     }
 
-    public function fetchGradingScale()
+    private function fetchGradingScale()
     {
         return $this->grade
             ->select(columns: ['grade_symbol', 'start'])
@@ -111,7 +107,7 @@ class ClassCourseResultService
             ->get();
     }
 
-    public function fetchAllStudentResults(array $filters)
+    private function fetchAllStudentResults(array $filters)
     {
         return $this->student
             ->select(columns: [
@@ -134,7 +130,7 @@ class ClassCourseResultService
             ->get();
     }
 
-    public function fetchResultComments(array $filters)
+    private function fetchResultComments(array $filters)
     {
         $comments = [];
         $results = $this->resultComment
@@ -153,7 +149,7 @@ class ClassCourseResultService
         return $comments;
     }
 
-    public function fetchSubjectWiseScores(array $filters)
+    private function fetchCompositeResult(array $filters)
     {
         return $this->student
             ->select(columns: [
@@ -172,7 +168,7 @@ class ClassCourseResultService
             ->get();
     }
 
-    public function fetchRegisteredCourses(array $filters)
+    private function fetchRegisteredCourses(array $filters)
     {
         return $this->courseRegistration
             ->select([
@@ -211,7 +207,7 @@ class ClassCourseResultService
      *
      * @return array A structured array of student results with assessment details.
      */
-    public function formatCourseAssessments($studentResults, $assessments)
+    private function formatCourseAssessments($studentResults, $assessments)
     {
         return array_map(function ($row) use ($assessments) {
             $structured = [];
@@ -247,7 +243,7 @@ class ClassCourseResultService
         }, $studentResults);
     }
 
-    public function formatCompositeScores($studentResults, $assessments, $comments)
+    private function formatAllStudentResults($studentResults, $assessments, $comments)
     {
         $grouped = [];
 
@@ -298,7 +294,7 @@ class ClassCourseResultService
         return array_values($filtered);
     }
 
-    public function transformCompositeResult($results, $registeredCourses)
+    private function formatCompositeScores($results, $registeredCourses)
     {
         $students = [];
 
@@ -382,16 +378,35 @@ class ClassCourseResultService
         return $students;
     }
 
-    public function fetchTermResultWithGrades(array $filters)
+    public function fetchTermCourseResult(array $filters)
     {
         $assessments = $this->fetchLevelAssessments($filters['level_id']);
         $rawResults = $this->fetchRawCourseResults($filters);
-        $grades = $this->fetchGradingScale();
-        $transformed = $this->formatCourseAssessments($rawResults, $assessments);
 
         return [
-            'course_results' => $transformed,
-            'grades' => $grades
+            'course_results' => $this->formatCourseAssessments($rawResults, $assessments),
+            'grades' => $this->fetchGradingScale()
         ];
+    }
+
+    public function fetchStudentsTermResultWithComments(array $filters)
+    {
+        $assessments = $this->fetchLevelAssessments($filters['level_id']);
+        $rawResults = $this->fetchAllStudentResults($filters);
+        $comments = $this->fetchResultComments($filters);
+
+        return $this->formatAllStudentResults(
+            $rawResults,
+            $assessments,
+            $comments
+        );
+    }
+
+    public function fetchTermCompositeResult(array $filters)
+    {
+        $results = $this->fetchCompositeResult($filters);
+        $registeredCourses = $this->getFormattedRegisteredCourses($filters);
+
+        return $this->formatCompositeScores($results, $registeredCourses);
     }
 }
