@@ -36,14 +36,9 @@ class ClassCourseResultController extends BaseController
         );
 
         try {
-            $assessments = $this->service->fetchLevelAssessments($data['level_id']);
-            $rawResults = $this->service->fetchRawCourseResults($data);
-            $grades = $this->service->fetchGradingScale();
-            $transformed = $this->service->formatCourseAssessments($rawResults, $assessments);
-
             return $this->respond([
                 'success' => true,
-                'response' => ['course_results' => $transformed, 'grades' => $grades]
+                'response' => $this->service->fetchTermCourseResult($data)
             ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
@@ -58,15 +53,9 @@ class ClassCourseResultController extends BaseController
         );
 
         try {
-            $assessments = $this->service->fetchLevelAssessments($data['level_id']);
-            $rawResults = $this->service->fetchAllStudentResults($data);
-            $comments = $this->service->fetchResultComments($data);
-            $transformed = $this->service
-                ->formatCompositeScores($rawResults, $assessments, $comments);
-
             return $this->respond([
                 'success' => true,
-                'response' => $transformed
+                'response' => $this->service->fetchStudentsTermResultWithComments($data)
             ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
@@ -81,10 +70,10 @@ class ClassCourseResultController extends BaseController
         );
 
         try {
-            $results = $this->service->fetchSubjectWiseScores($data);
-            $registeredCourses = $this->service->getFormattedRegisteredCourses($data);
-            $transformed = $this->service->transformCompositeResult($results, $registeredCourses);
-            return $this->respond(['success' => true, 'response' => $transformed]);
+            return $this->respond([
+                'success' => true,
+                'response' => $this->service->fetchTermCompositeResult($data)
+            ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
