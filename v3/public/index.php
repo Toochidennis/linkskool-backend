@@ -106,7 +106,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('POST', '/portal/elearning/syllabus', ['Portal\ELearning\SyllabusController', 'store']);
         $r->addRoute('POST', '/portal/elearning/topic', ['Portal\ELearning\TopicController', 'store']);
         $r->addRoute('GET', '/portal/elearning/syllabus', ['Portal\ELearning\SyllabusController', 'get']);
-        $r->addRoute('GET', '/portal/elearning/topic', ['Portal\ELearning\SyllabusController', 'get']);
+        $r->addRoute('GET', '/portal/elearning/topic/{syllabus_id:\d+}', ['Portal\ELearning\TopicController', 'get']);
     }
 );
 
