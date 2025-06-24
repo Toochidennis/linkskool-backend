@@ -96,35 +96,7 @@ class CourseRegistrationService
      *
      * This method retrieves all students belonging to a class using the provided `class_id`,
      * then registers each of them for the specified list of courses for the given term and academic year.
-     *
-     * ### Expected Input Format for `$data`:
-     * ```php
-     * [
-     *     'class_id' => int,                // ID of the class
-     *     'registered_courses' => array,    // Array of course IDs to register
-     *     'term' => int,                    // Academic term (e.g., 1, 2, or 3)
-     *     'year' => int                     // Academic year (e.g., 2024)
-     * ]
-     * ```
-     *
-     * ### Example Use Case:
-     * To register Term 1, 2024 courses for all students in class ID 5:
-     * ```php
-     * $data = [
-     *     'class_id' => 5,
-     *     'registered_courses' => [101, 102, 103],
-     *     'term' => 1,
-     *     'year' => 2024
-     * ];
-     * $registrationService->registerClassCourses($data);
-     * ```
-     *
-     * @param array $data {
-     *     @type int   $class_id           The class whose students are being registered.
-     *     @type array $registered_courses An array of course IDs to register for each student.
-     *     @type int   $term               The academic term (1–3).
-     *     @type int   $year               The academic year (e.g., 2024).
-     * }
+
      *
      * @return bool Returns true if registration is successful.
      *
@@ -279,7 +251,7 @@ class CourseRegistrationService
         $formatted = [];
         // Fetch existing registrations for the class.
         $registrations = $this->courseRegistration
-            ->select(columns: ['year', 'term'])
+            ->select(columns: ['year', 'term', 'AVG(total) AS average_score'])
             ->where('class', '=', $classId)
             ->groupBy(['term', 'year'])
             ->orderBy('year', 'DESC')
@@ -308,9 +280,11 @@ class CourseRegistrationService
                 ];
             }
 
+            $formatted[$year]['year'] = (int)$year;
             $formatted[$year]['terms'][] = [
                 'term_name' => $termName,
-                'term_value' => $termValue
+                'term_value' => (int)$termValue,
+                'average_score' => round((float)$registration['average_score'], 2)
             ];
         }
 
