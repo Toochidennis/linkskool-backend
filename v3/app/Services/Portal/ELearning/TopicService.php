@@ -23,7 +23,8 @@ class TopicService
             'parent' => $data['syllabus_id'],
             'author_name' => $data['creator_name'],
             'author_id' => $data['creator_id'],
-            'type' => self::CONTENT_TYPE
+            'type' => self::CONTENT_TYPE,
+            'upload_date' => date('Y-m-d H:i:s')
         ];
 
         return $this->topic->insert($payload);
@@ -32,7 +33,7 @@ class TopicService
     public function getTopics(int $syllabusId)
     {
         $results = $this->topic
-            ->select(columns:['title AS topic', 'body AS objective', 'path_label AS classes'])
+            ->select(columns: ['title AS topic', 'body AS objective', 'path_label AS classes'])
             ->where('type', '=', self::CONTENT_TYPE)
             ->where('parent', '=', $syllabusId)
             ->get();

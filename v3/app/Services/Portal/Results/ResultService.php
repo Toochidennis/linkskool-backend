@@ -1,9 +1,9 @@
 <?php
 
-namespace V3\App\Services\Portal;
+namespace V3\App\Services\Portal\Results;
 
-use V3\App\Models\Portal\Grade;
-use V3\App\Models\Portal\Result;
+use V3\App\Models\Portal\Results\Grade;
+use V3\App\Models\Portal\Results\Result;
 
 class ResultService
 {
@@ -27,11 +27,6 @@ class ResultService
      * Updates result records with computed remarks, comments, and grades.
      *
      * @param array $results An array of result records to update.
-     *                       Each record should contain:
-     *                       - result_id (int)
-     *                       - total_score (float)
-     *                       - assessments (array)
-     *                       - staff_id (int)
      *
      * @return bool Returns true if all the records were updated successfully, false otherwise.
      */
@@ -109,9 +104,6 @@ class ResultService
      *
      * @param float|int $score The total score.
      * @return array Returns an array with keys:
-     *                    - 'grade' (string)
-     *                    - 'remark' (string)
-     *                    - 'status' (int: 1=pass, 0=fail),
      */
     private function getRemark($score)
     {
