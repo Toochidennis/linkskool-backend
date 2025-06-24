@@ -36,10 +36,10 @@ class ClassCourseResultController extends BaseController
         );
 
         try {
-            $assessments = $this->service->getAssessments($data['level_id']);
-            $rawResults = $this->service->getCourseResults($data);
-            $grades = $this->service->getGrades();
-            $transformed = $this->service->transformCourseResults($rawResults, $assessments);
+            $assessments = $this->service->fetchLevelAssessments($data['level_id']);
+            $rawResults = $this->service->fetchRawCourseResults($data);
+            $grades = $this->service->fetchGradingScale();
+            $transformed = $this->service->formatCourseAssessments($rawResults, $assessments);
 
             return $this->respond([
                 'success' => true,
@@ -58,11 +58,11 @@ class ClassCourseResultController extends BaseController
         );
 
         try {
-            $assessments = $this->service->getAssessments($data['level_id']);
-            $rawResults = $this->service->getStudentsResult($data);
-            $comments = $this->service->getComments($data);
+            $assessments = $this->service->fetchLevelAssessments($data['level_id']);
+            $rawResults = $this->service->fetchAllStudentResults($data);
+            $comments = $this->service->fetchResultComments($data);
             $transformed = $this->service
-                ->transformStudentsResult($rawResults, $assessments, $comments);
+                ->formatCompositeScores($rawResults, $assessments, $comments);
 
             return $this->respond([
                 'success' => true,
@@ -81,7 +81,7 @@ class ClassCourseResultController extends BaseController
         );
 
         try {
-            $results = $this->service->fetchCompositeResult($data);
+            $results = $this->service->fetchSubjectWiseScores($data);
             $registeredCourses = $this->service->getFormattedRegisteredCourses($data);
             $transformed = $this->service->transformCompositeResult($results, $registeredCourses);
             return $this->respond(['success' => true, 'response' => $transformed]);

@@ -25,6 +25,8 @@ class TopicController extends BaseController
                 'topic',
                 'objective',
                 'classes',
+                'classes.*.id',
+                'classes.*.name',
                 'syllabus_id',
                 'creator_name',
                 'creator_id'

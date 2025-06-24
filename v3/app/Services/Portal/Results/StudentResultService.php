@@ -1,13 +1,13 @@
 <?php
 
 /**
- * This class helps handles student's course result
+ * Handles logic related to retrieving and formatting student academic results.
  *
  * PHP version 8.2+
  *
  * @category Service
  * @package Linkskool
- * @author ToochiDennis <dennistoochukwu@gmail.com>
+ * @author ToochiDennis
  * @license MIT
  * @link https://www.linkskool.net
  */
@@ -16,8 +16,6 @@ namespace V3\App\Services\Portal\Results;
 
 use V3\App\Models\Portal\Academics\Assessment;
 use V3\App\Models\Portal\Academics\Course;
-use V3\App\Models\Portal\Academics\Student;
-use V3\App\Models\Portal\Results\Grade;
 use V3\App\Models\Portal\Results\Result;
 
 class StudentResultService
@@ -25,40 +23,29 @@ class StudentResultService
     private Result $result;
     private Course $course;
     private Assessment $assessment;
-    private Student $student;
-    private Grade $grade;
 
     public function __construct(\PDO $pdo)
     {
         $this->result = new Result($pdo);
         $this->course = new Course($pdo);
-        $this->student = new Student($pdo);
-        $this->grade = new Grade($pdo);
         $this->assessment = new Assessment($pdo);
     }
 
     /**
-     * Retrieves average scores grouped by academic year and term for a specific student.
-     *
-     * @param array $filters An associative array with:
-     *                       - 'id' => student registration number.
-     *
-     * @return array Returns a structured array grouped by year with each term’s average score.
+     * Returns yearly term-wise average scores for a student.
      */
-    public function getResultTerms(array $filters)
+    public function getYearlyTermAverages(array $filters): array
     {
         $terms = $this->result
-            ->select(
-                columns: [
-                    'reg_no',
-                    'class class_id',
-                    'year',
-                    'term',
-                    "avg(result_table.total) AS average_score"
-                ]
-            )
+            ->select([
+                'reg_no',
+                'class AS class_id',
+                'year',
+                'term',
+                'AVG(result_table.total) AS average_score'
+            ])
             ->where('reg_no', $filters['id'])
-            ->where('total', 'IS  NOT', null)
+            ->where('total', 'IS NOT', null)
             ->groupBy(['class', 'year', 'term'])
             ->orderBy(['year' => 'DESC', 'term' => 'ASC'])
             ->get();
@@ -73,24 +60,18 @@ class StudentResultService
                 continue;
             }
 
-            $termName = match ($termValue) {
+            $termName = match ((int)$termValue) {
                 1 => 'First Term',
                 2 => 'Second Term',
                 3 => 'Third Term',
                 default => 'Unknown Term'
             };
 
-            if (!isset($structured[$year])) {
-                $structured[$year] = [
-                    'year' => (int) $year,
-                    'terms' => []
-                ];
-            }
-
+            $structured[$year]['year'] = (int)$year;
             $structured[$year]['terms'][] = [
                 'term_name' => $termName,
-                'term_value' => (int) $termValue,
-                'average_score' => (float) number_format((float)$row['average_score'], 2)
+                'term_value' => (int)$termValue,
+                'average_score' => round((float)$row['average_score'], 2)
             ];
         }
 
@@ -98,44 +79,39 @@ class StudentResultService
     }
 
     /**
-     * Retrieves a list of assessments for a given level.
-     * If no level-specific assessments exist, it falls back to default (no level).
-     *
-     * @param string $levelId The level ID to filter assessments by.
-     *
-     * @return array An array of assessments with their names and maximum scores.
+     * Get assessment structure for a level or fallback to global (no-level).
      */
-    public function getAssessments(int $levelId)
+    private function getAssessmentsByLevel(int $levelId): array
     {
         $assessments = $this->assessment
-            ->select(columns: ['assesment_name AS assessment_name', 'max_score'])
+            ->select(['assesment_name AS assessment_name', 'max_score'])
             ->where('type', '<>', 1)
             ->where('level', '=', $levelId)
             ->orderBy('id')
             ->get();
 
-        if (!$assessments) {
-            $assessments = $this->assessment
-                ->select(columns: ['assesment_name AS assessment_name', 'max_score'])
-                ->where('type', '<>', 1)
-                ->where('level', '=', "")
-                ->orderBy('id')
-                ->get();
-        }
-
-        return $assessments;
+        return $assessments ?: $this->assessment
+            ->select(['assesment_name AS assessment_name', 'max_score'])
+            ->where('type', '<>', 1)
+            ->where('level', '=', '')
+            ->orderBy('id')
+            ->get();
     }
 
-    public function getStudentResult(array $filters)
+    /**
+     * Get raw student result data for a class/year/term.
+     */
+    private function getRawStudentResults(array $filters): array
     {
         return $this->course
-            ->select(columns: [
+            ->select([
+                'course_table.id AS course_id',
                 'course_table.course_name',
                 'result_table.result',
                 'result_table.new_result',
                 'result_table.total',
                 'result_table.grade',
-                'result_table.comment'
+                'result_table.remark'
             ])
             ->join('result_table', 'course_table.id = result_table.course')
             ->where('result_table.class', '=', $filters['class_id'])
@@ -146,99 +122,46 @@ class StudentResultService
             ->get();
     }
 
-    public function transformResult($result, $assessments)
+    /**
+     * Formats raw result and assessment into structured breakdown.
+     */
+    private function formatCourseResults(array $results, array $assessments): array
     {
-        $transformed = [];
+        $formatted = [];
 
-        foreach ($result as $row) {
+        foreach ($results as $row) {
             $structured = [];
 
-            if (!empty($row['result']) && empty($row['new_result'])) {
+            if (!empty($row['result']) && $row['new_result'] === null) {
                 $splitScores = explode(':', $row['result']);
                 foreach ($assessments as $index => $assess) {
                     $structured[] = [
                         'assessment_name' => $assess['assessment_name'],
-                        'score' => isset($splitScores[$index]) ? (int) $splitScores[$index] : '',
-                        'max_score' => $assess['max_score']
+                        'score' => isset($splitScores[$index]) ? (int)$splitScores[$index] : ''
                     ];
                 }
             } elseif (!empty($row['new_result'])) {
                 $structured = json_decode($row['new_result'], true);
             } else {
-                foreach ($assessments as $assess) {
-                    $structured[] = [
-                        'assessment_name' => $assess['assessment_name'],
-                        'score' => '',
-                        'max_score' => $assess['max_score']
-                    ];
-                }
+                continue;
             }
 
-            $remark = $this->getRemark($row['total']);
-
-            $transformed[] = [
+            $formatted[] = [
                 'course_name' => $row['course_name'],
                 'assessments' => $structured,
                 'total' => $row['total'],
                 'grade' => $row['grade'],
-                'remark' => $remark,
+                'remark' => $row['remark']
             ];
         }
 
-        return $transformed;
-    }
-    /**
-     * Retrieves all grade definitions from the database ordered by descending start scores.
-     *
-     * @return array An array of grades with keys: grade_symbol, start, and remark.
-     */
-    private function getGrades()
-    {
-        return $this->grade
-            ->select(columns: ['grade_symbol', 'start', 'remark'])
-            ->orderBy(columns: 'start', direction: 'DESC')
-            ->get();
+        return $formatted;
     }
 
     /**
-     * Determines grade symbol, remark, and pass status based on score.
-     *
-     * @param float|int $score The total score.
-     * @return string Returns an array
+     * Calculates average and position of a student in class for a term.
      */
-    private function getRemark($score)
-    {
-        if (!is_numeric($score)) {
-            return '';
-        }
-
-        $grades = $this->getGrades();
-
-        foreach ($grades as $grade) {
-            if ($score >= $grade['start']) {
-                return $grade['remark'];
-            }
-        }
-
-        return '';
-    }
-
-    public function calculateStudentAverage(array $result): float
-    {
-        $totalScore = 0;
-        $count = 0;
-
-        foreach ($result as $row) {
-            if (isset($row['total']) && is_numeric($row['total'])) {
-                $totalScore += $row['total'];
-                $count++;
-            }
-        }
-
-        return $count > 0 ? round($totalScore / $count, 2) : 0;
-    }
-
-    public function getClassAverageAndPosition(array $filters, string $targetRegNo): array
+    private function getStudentClassAverageAndPosition(array $filters): array
     {
         $results = $this->result
             ->select(['reg_no', 'total'])
@@ -247,60 +170,83 @@ class StudentResultService
             ->where('term', '=', $filters['term'])
             ->get();
 
-        // Group totals by student
         $studentScores = [];
         foreach ($results as $row) {
-            if (!isset($studentScores[$row['reg_no']])) {
-                $studentScores[$row['reg_no']] = ['sum' => 0, 'count' => 0];
+            $regNo = $row['reg_no'];
+
+            if (!isset($studentScores[$regNo])) {
+                $studentScores[$regNo] = ['reg_no' => $regNo, 'sum' => 0, 'count' => 0];
             }
 
             if (is_numeric($row['total'])) {
-                $studentScores[$row['reg_no']]['sum'] += $row['total'];
-                $studentScores[$row['reg_no']]['count']++;
+                $studentScores[$regNo]['sum'] += $row['total'];
+                $studentScores[$regNo]['count']++;
             }
         }
 
-        // Calculate averages
-        $averages = [];
-        foreach ($studentScores as $regNo => $data) {
-            $averages[$regNo] = round($data['sum'] / max(1, $data['count']), 2);
+        foreach ($studentScores as &$student) {
+            $student['average'] = $student['count'] > 0
+                ? round($student['sum'] / $student['count'], 2)
+                : 0;
         }
 
-        // Sort by average descending
-        arsort($averages);
+        $ranked = $this->rankStudents(array_values($studentScores));
+
+        foreach ($ranked as $student) {
+            if ($student['reg_no'] === $filters['student_id']) {
+                return [
+                    'position' => $student['position'],
+                    'average' => $student['average'],
+                    'total_students' => count($studentScores)
+                ];
+            }
+        }
 
         return [
-            'position' => $position,
-            'average' => $averages[$targetRegNo] ?? 0,
-            'total_students' => count($averages)
+            'position' => 0,
+            'average' => 0,
+            'total_students' => count($studentScores)
         ];
     }
 
-    public function rankStudents(array $students)
+    /**
+     * Sorts students by average score and assigns class position.
+     */
+    private function rankStudents(array $students): array
     {
-        // Sort by average descending
         usort($students, fn($a, $b) => $b['average'] <=> $a['average']);
 
         $position = 1;
-        $lastAverage = null;
         $sameRankCount = 0;
+        $lastAverage = null;
 
-        foreach ($students as $index => &$student) {
-            if ($lastAverage === $student['average']) {
-                // Tie in average: same position
+        foreach ($students as &$student) {
+            if ($student['average'] === $lastAverage) {
                 $student['position'] = $position;
                 $sameRankCount++;
             } else {
-                // New average
                 $position += $sameRankCount;
                 $student['position'] = $position;
                 $sameRankCount = 1;
             }
 
             $lastAverage = $student['average'];
-            unset($student['subject_count']);
+            unset($student['sum'], $student['count']);
         }
 
         return $students;
+    }
+
+    /**
+     * Compiles all student academic details for a result term.
+     */
+    public function getStudentTermResult(array $filters): array
+    {
+        $assessments = $this->getAssessmentsByLevel($filters['level_id']);
+        $results = $this->getRawStudentResults($filters);
+        $formatted = $this->formatCourseResults($results, $assessments);
+        $positionData = $this->getStudentClassAverageAndPosition($filters);
+
+        return ['subjects' => $formatted] + $positionData;
     }
 }

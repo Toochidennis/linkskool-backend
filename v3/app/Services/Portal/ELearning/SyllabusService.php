@@ -49,15 +49,19 @@ class SyllabusService
     public function getSyllabus(array $filters): array
     {
         $results = $this->syllabusModel
-            ->select(columns: ['id, title, description, path_label, author_name, term, upload_date'])
+            ->select(columns: [
+                'id',
+                'title',
+                'description',
+                'path_label AS classes, author_name, term, upload_date'
+            ])
             ->where('term', '=', $filters['term'])
             ->where('level', '=', $filters['level_id'])
             ->where('type', '=', self::CONTENT_TYPE)
             ->get();
 
         return array_map(function ($row) {
-            $row['classes'] = json_decode($row['path_label'], true);
-            unset($row['path_label']);
+            $row['classes'] = json_decode($row['classes'], true);
             return $row;
         }, $results);
     }

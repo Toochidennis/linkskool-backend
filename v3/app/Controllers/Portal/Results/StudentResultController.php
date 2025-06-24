@@ -28,7 +28,7 @@ class StudentResultController extends BaseController
         $this->service = new StudentResultService($this->pdo);
     }
 
-    public function getStudentResult(array $vars)
+    public function getStudentTermResult(array $vars)
     {
         $data = $this->validateData(
             data: $vars,
@@ -36,20 +36,9 @@ class StudentResultController extends BaseController
         );
 
         try {
-            $studentResult = $this->service->getStudentResult($data);
-            $assessments = $this->service->getAssessments($data['level_id']);
-            $transformedResult = $this->service->transformResult($studentResult, $assessments);
-            $studentAverage = $this->service->calculateStudentAverage($studentResult);
-            $positionData = $this->service->getClassAverageAndPosition($data, $data['student_id']);
-
             return $this->respond([
                 'success' => true,
-                'student_result' =>  [
-                    'courses' => $transformedResult,
-                    'average' => $studentAverage,
-                    'position' => $positionData['position'],
-                    'total_students' => $positionData['total_students']
-                ]
+                'response' => $this->service->getStudentTermResult($data)
             ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
@@ -61,7 +50,7 @@ class StudentResultController extends BaseController
         $data = $this->validateData(data: $vars, requiredFields: ['id']);
 
         try {
-            $terms = $this->service->getResultTerms($data);
+            $terms = $this->service->getYearlyTermAverages($data);
             return $this->respond(['success' => true, 'result_terms' => $terms]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
