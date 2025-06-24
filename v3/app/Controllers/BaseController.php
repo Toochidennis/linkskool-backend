@@ -34,11 +34,6 @@ abstract class BaseController
     protected PDO $pdo;
 
     /**
-     * @var array Default response structure.
-     */
-    protected array $response;
-
-    /**
      * Initializes the controller by verifying API key/JWT and extracting request data.
      *
      * This method:
@@ -51,8 +46,6 @@ abstract class BaseController
      */
     public function __construct()
     {
-        $this->response = ['success' => false];
-
         self::verifyAPIKey();
         self::verifyJWT();
 

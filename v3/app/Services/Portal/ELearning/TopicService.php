@@ -12,5 +12,5 @@ class TopicService
     {
         $this->topic = new Topic($pdo);
     }
-    
+
 }
