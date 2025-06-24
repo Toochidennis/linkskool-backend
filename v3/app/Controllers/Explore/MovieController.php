@@ -50,4 +50,14 @@ class MovieController
         $this->response['data'] = $this->movieService->getGenres();
         ResponseHandler::sendJsonResponse($this->response);
     }
+
+    public function getAllShorts()
+    {
+        ResponseHandler::sendJsonResponse(
+            [
+                'success' => true,
+                'data' => $this->movieService->getShorts()
+            ]
+        );
+    }
 }

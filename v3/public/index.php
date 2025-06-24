@@ -100,7 +100,8 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/public/movies/all', ['Explore\MovieController', 'getSampleFromAllCategories']);
         $r->addRoute('GET', '/public/movies/category/{cat}', ['Explore\MovieController', 'getByCategory']);
         $r->addRoute('GET', '/public/movies/genres', ['Explore\MovieController', 'getAllGenres']);
-        $r->addRoute('GET', '/public/movies/genre/{id}', ['Explore\MovieController', 'getByGenre']);
+        $r->addRoute('GET', '/public/movies/genre/{id:\d+}', ['Explore\MovieController', 'getByGenre']);
+        $r->addRoute('GET', '/public/movies/shorts', ['Explore\MovieController', 'getAllShorts']);
 
         // New endpoints
         $r->addRoute('POST', '/portal/elearning/syllabus', ['Portal\ELearning\SyllabusController', 'store']);

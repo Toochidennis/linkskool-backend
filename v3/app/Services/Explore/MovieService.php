@@ -49,4 +49,9 @@ class MovieService
     {
         return $this->data['genre_names'];
     }
+
+    public function getShorts()
+    {
+        return $this->data['shorts'];
+    }
 }
