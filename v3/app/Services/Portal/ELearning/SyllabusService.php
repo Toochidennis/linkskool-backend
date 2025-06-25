@@ -4,16 +4,16 @@ namespace V3\App\Services\Portal\ELearning;
 
 use Exception;
 use PDO;
-use V3\App\Models\Portal\ELearning\SyllabusModel;
+use V3\App\Models\Portal\ELearning\Content;
 
 class SyllabusService
 {
-    private SyllabusModel $syllabusModel;
+    private Content $content;
     private const CONTENT_TYPE = 100;
 
     public function __construct(PDO $pdo)
     {
-        $this->syllabusModel = new SyllabusModel($pdo);
+        $this->content = new Content($pdo);
     }
 
     public function create(array $data)
@@ -32,7 +32,7 @@ class SyllabusService
             'upload_date' => date('Y-m-d H:i:s'),
         ];
 
-        $newId = $this->syllabusModel->insert($payload);
+        $newId = $this->content->insert($payload);
         if (!$newId) {
             throw new Exception("Failed to create syllabus.");
         }
@@ -48,7 +48,7 @@ class SyllabusService
             'path_label' => json_encode($data['classes'])
         ];
 
-        return $this->syllabusModel
+        return $this->content
             ->where('id', '=', $data['id'])
             ->update($payload);
     }
@@ -61,7 +61,7 @@ class SyllabusService
      */
     public function getSyllabus(array $filters): array
     {
-        $results = $this->syllabusModel
+        $results = $this->content
             ->select(columns: [
                 'id',
                 'title',
@@ -81,7 +81,7 @@ class SyllabusService
 
     public function deleteSyllabus(int $id): bool
     {
-        return $this->syllabusModel
+        return $this->content
             ->where('id', '=', $id)
             ->delete();
     }
