@@ -254,7 +254,7 @@ class CourseRegistrationService
             ->select(columns: ['year', 'term', 'AVG(total) AS average_score'])
             ->where('class', '=', $classId)
             ->groupBy(['term', 'year'])
-            ->orderBy('year', 'DESC')
+            ->orderBy(['year' => 'DESC', 'term' => 'ASC'])
             ->get();
 
         foreach ($registrations as $registration) {
