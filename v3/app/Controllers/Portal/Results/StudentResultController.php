@@ -45,6 +45,23 @@ class StudentResultController extends BaseController
         }
     }
 
+    public function getStudentAnnualResult(array $vars)
+    {
+        $data = $this->validateData(
+            data: $vars,
+            requiredFields: ['class_id', 'student_id', 'year', 'level_id']
+        );
+
+        try {
+            return $this->respond([
+                'success' => true,
+                'response' => $this->service->fetchStudentAnnualResult($data)
+            ]);
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
+
     public function getResultTerms(array $vars)
     {
         $data = $this->validateData(data: $vars, requiredFields: ['id']);

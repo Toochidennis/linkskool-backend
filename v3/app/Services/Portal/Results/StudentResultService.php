@@ -131,6 +131,7 @@ class StudentResultService
 
         foreach ($results as $row) {
             $structured = [];
+            var_dump($row);
 
             if (!empty($row['result']) && $row['new_result'] === null) {
                 $splitScores = explode(':', $row['result']);
@@ -247,6 +248,32 @@ class StudentResultService
         $formatted = $this->formatCourseResults($results, $assessments);
         $positionData = $this->getStudentClassAverageAndPosition($filters);
 
-        return ['subjects' => $formatted] + $positionData;
+        return [...$positionData, 'subjects' => $formatted];
+    }
+
+    public function fetchStudentAnnualResult(array $filters): array
+    {
+        $annualResult = [];
+
+        for ($term = 1; $term <= 3; $term++) {
+            $termFilter = [...$filters, 'term' => $term];
+
+            $termName = match ($term) {
+                1 => 'First Term',
+                2 => 'Second Term',
+                3 => 'Third Term',
+                default => 'Unknown Term'
+            };
+
+            $termResult = $this->getStudentTermResult($termFilter);
+
+            $annualResult[] = [
+                'term' => $term,
+                'term_name' => $termName,
+                ...$termResult
+            ];
+        }
+
+        return $annualResult;
     }
 }
