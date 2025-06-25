@@ -40,6 +40,19 @@ class SyllabusService
         return $newId;
     }
 
+    public function updateSyllabus($data): bool
+    {
+        $payload = [
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'path_label' => json_encode($data['classes'])
+        ];
+
+        return $this->syllabusModel
+            ->where('id', '=', $data['id'])
+            ->update($payload);
+    }
+
     /**
      * Retrieves syllabus content filtered by term, level, and type.
      *
@@ -64,5 +77,12 @@ class SyllabusService
             $row['classes'] = json_decode($row['classes'], true);
             return $row;
         }, $results);
+    }
+
+    public function deleteSyllabus(int $id): bool
+    {
+        return $this->syllabusModel
+            ->where('id', '=', $id)
+            ->delete();
     }
 }
