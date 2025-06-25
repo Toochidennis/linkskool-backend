@@ -4,7 +4,7 @@ namespace V3\App\Models\Portal\ELearning;
 
 use V3\App\Models\BaseModel;
 
-class SyllabusModel extends BaseModel
+class Content extends BaseModel
 {
     protected string $table = 'link';
 

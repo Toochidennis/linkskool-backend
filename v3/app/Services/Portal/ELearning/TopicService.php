@@ -2,22 +2,22 @@
 
 namespace V3\App\Services\Portal\ELearning;
 
-use V3\App\Models\Portal\ELearning\Topic;
+use V3\App\Models\Portal\ELearning\Content;
 
 class TopicService
 {
-    private Topic $topic;
+    private Content $content;
     private const CONTENT_TYPE = 4;
 
     public function __construct(\PDO $pdo)
     {
-        $this->topic = new Topic($pdo);
+        $this->content = new Content($pdo);
     }
 
     public function addTopic(array $data): bool|int
     {
         $payload = [
-            'title' => $data['topic'],
+            'title' => $data['content'],
             'body' => $data['objective'],
             'path_label' => json_encode($data['classes']),
             'parent' => $data['syllabus_id'],
@@ -27,13 +27,13 @@ class TopicService
             'upload_date' => date('Y-m-d H:i:s')
         ];
 
-        return $this->topic->insert($payload);
+        return $this->content->insert($payload);
     }
 
     public function getTopics(int $syllabusId)
     {
-        $results = $this->topic
-            ->select(columns: ['title AS topic', 'body AS objective', 'path_label AS classes'])
+        $results = $this->content
+            ->select(columns: ['title AS content', 'body AS objective', 'path_label AS classes'])
             ->where('type', '=', self::CONTENT_TYPE)
             ->where('parent', '=', $syllabusId)
             ->get();

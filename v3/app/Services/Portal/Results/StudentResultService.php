@@ -131,7 +131,6 @@ class StudentResultService
 
         foreach ($results as $row) {
             $structured = [];
-            var_dump($row);
 
             if (!empty($row['result']) && $row['new_result'] === null) {
                 $splitScores = explode(':', $row['result']);
