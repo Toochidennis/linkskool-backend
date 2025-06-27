@@ -247,10 +247,14 @@ class QueryBuilder
         $stmt = $this->pdo->prepare($query);
 
         $allBindings = array_merge($this->updateBindings, $this->whereBindings);
-        $result = $stmt->execute($allBindings);
+        $success = $stmt->execute($allBindings);
+        $affectedRows = $stmt->rowCount();
 
         $this->reset();
-        return $result;
+
+        return $success
+            ? ($affectedRows > 0 ? $affectedRows : false)
+            : false;
     }
 
     public function notIn(string $column, array $values): self
@@ -284,7 +288,7 @@ class QueryBuilder
      *
      * @return bool True on success, false otherwise.
      */
-    public function delete(): bool
+    public function delete(): int|bool
     {
         if (empty($this->whereConditions)) {
             throw new InvalidArgumentException("No conditions provided for deletion. Refusing to delete all records.");
@@ -297,7 +301,7 @@ class QueryBuilder
         $affectedRows = $stmt->rowCount();
 
         $this->reset();
-        return $affectedRows > 0;
+        return $affectedRows > 0 ? $affectedRows : false;
     }
 
     /**

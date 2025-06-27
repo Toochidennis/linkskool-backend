@@ -39,7 +39,7 @@ class SyllabusController extends BaseController
         try {
             $newId = $this->service->create($data);
 
-            if ($newId) {
+            if ($newId > 0) {
                 return $this->respond(
                     data: [
                         'success' => true,
@@ -71,11 +71,14 @@ class SyllabusController extends BaseController
         );
 
         try {
-            if ($this->service->updateSyllabus($data)) {
+            $id = $this->service->updateSyllabus($data);
+            
+            if ($id > 0) {
                 return $this->respond(
                     data: [
                         'success' => true,
-                        'message' => 'Syllabus updated successfully.'
+                        'message' => 'Syllabus updated successfully.',
+                        'syllabusId' => $id
                     ]
                 );
             }
@@ -107,11 +110,13 @@ class SyllabusController extends BaseController
         $data = $this->validateData(data: $vars, requiredFields: ['syllabus_id']);
 
         try {
-            if ($this->service->deleteSyllabus($data['syllabus_id'])) {
+            $id = $this->service->deleteSyllabus($data['syllabus_id']);
+            if ($id > 0) {
                 return $this->respond(
                     data: [
                         'success' => true,
-                        'message' => 'Syllabus deleted successfully.'
+                        'message' => 'Syllabus deleted successfully.',
+                        'syllabus_id' => $id
                     ]
                 );
             }
