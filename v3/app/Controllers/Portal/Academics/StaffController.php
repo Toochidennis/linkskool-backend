@@ -30,7 +30,7 @@ class StaffController extends BaseController
         try {
             $newId = $this->staffService->insertStaffRecord($data);
 
-            if ($newId) {
+            if ($newId > 0) {
                 $this->respond([
                     'success' => true,
                     'message' => 'Staff added successfully.'

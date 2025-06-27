@@ -5,9 +5,9 @@ namespace V3\App\Services\Portal\ELearning;
 use V3\App\Common\Enums\ContentType;
 use V3\App\Models\Portal\ELearning\Content;
 
-class MaterialService
+class AssignmentService
 {
-    private Content $content;
+     private Content $content;
     private string $contentPath;
     private string $relativePath;
 
@@ -29,14 +29,14 @@ class MaterialService
         }
     }
 
-    public function addMaterial(array $data): int
+    public function addAssignment(array $data): int
     {
         $payload = $this->buildAddPayload($data);
         $payload['url'] = $this->handleFiles($data['files']);
         return $this->content->insert($payload);
     }
 
-    public function updateMaterial(array $data): bool
+    public function updateAssignment(array $data): bool
     {
         $payload = $this->buildUpdatePayload($data);
         $payload['url'] = $this->handleFiles($data['files'], true);
@@ -60,8 +60,11 @@ class MaterialService
             'author_name' => $data['creator_name'],
             'author_id' => $data['creator_id'],
             'upload_date' => date('Y-m-d H:i:s'),
-            'type' => ContentType::MATERIAL->value,
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'],
+            'type' => ContentType::ASSIGNMENT->value,
             'path_label' => json_encode($data['classes']),
+            'body' => $data['grade'],
         ];
     }
 
@@ -76,6 +79,9 @@ class MaterialService
             'category' => $data['topic'],
             'parent' => $data['topic_id'],
             'path_label' => json_encode($data['classes']),
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'],
+            'body' => $data['grade'],
         ];
     }
 
@@ -114,10 +120,10 @@ class MaterialService
 
                 // Save new file
                 $processed[] = $this->processFile($file);
-                continue;
+            } else {
+                // No change, keep old file reference
+                $processed[] = $file;
             }
-
-            $processed[] = (!$isUpdate) ? $this->processFile($file) : $file;
         }
 
         return json_encode($processed);
@@ -153,7 +159,7 @@ class MaterialService
         return $file;
     }
 
-    public function deleteMaterial(int $id): int|bool
+    public function deleteAssignment(int $id): bool
     {
         $material = $this->content
             ->select(['url'])

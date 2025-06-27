@@ -7,7 +7,7 @@ enum ContentType: int
     case SYLLABUS = 100;
     case TOPIC = 4;
     case MATERIAL = 1;
-    case ASSIGNMENT = 6;
+    case ASSIGNMENT = 3;
     case QUIZ = 7;
 
     public function label(): string
