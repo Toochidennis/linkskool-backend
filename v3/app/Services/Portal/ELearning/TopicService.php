@@ -33,7 +33,7 @@ class TopicService
     public function getTopics(int $syllabusId)
     {
         $results = $this->content
-            ->select(columns: ['title AS content', 'body AS objective', 'path_label AS classes'])
+            ->select(columns: ['id', 'title AS content', 'body AS objective', 'path_label AS classes'])
             ->where('type', '=', ContentType::TOPIC->value)
             ->where('outline', '=', $syllabusId)
             ->get();
