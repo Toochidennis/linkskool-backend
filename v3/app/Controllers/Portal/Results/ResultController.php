@@ -3,15 +3,12 @@
 namespace V3\App\Controllers\Portal\Results;
 
 use Exception;
-use V3\App\Common\Traits\PermissionTrait;
 use V3\App\Controllers\BaseController;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Portal\Results\ResultService;
 
 class ResultController extends BaseController
 {
-    use PermissionTrait;
-
     private ResultService $service;
 
     public function __construct()

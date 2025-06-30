@@ -90,7 +90,6 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/attendance/{id:\d+}', ['Portal\Academics\AttendanceController', 'getAttendanceById']);
 
         $r->addRoute('GET', '/portal/course-assignments', ['Portal\Academics\CourseAssignmentController', 'getCourseAssignments']);
-
         $r->addRoute('PUT', '/portal/result/class-result', ['Portal\Results\ResultController', 'updateResult']);
 
         $r->addRoute('POST', '/portal/skill-behavior', ['Portal\Academics\SkillBehaviorController', 'store']);

@@ -17,9 +17,16 @@ class MaterialService
     {
         $this->content = new Content($pdo);
 
-        $dbName = $_SESSION['_db'] ?? 'default_db';
+        $v3root = realpath(__DIR__ . '/../../../../');
+
+        if (!$v3root) {
+            throw new \RuntimeException("Could not resolve v3 root path.");
+        }
+
+        $publicPath = "$v3root/public";
+        $dbName = explode('_', $_SESSION['_db'])[2] ?? 'default_db';
         $this->relativePath = "assets/elearning/$dbName/";
-        $this->contentPath = "../../../../public/{$this->relativePath}";
+        $this->contentPath = $publicPath . DIRECTORY_SEPARATOR . $this->relativePath;
 
         if (
             !is_dir($this->contentPath) &&
@@ -29,14 +36,14 @@ class MaterialService
         }
     }
 
-    public function addMaterial(array $data): int
+    public function addMaterial(array $data): int|bool
     {
         $payload = $this->buildAddPayload($data);
         $payload['url'] = $this->handleFiles($data['files']);
         return $this->content->insert($payload);
     }
 
-    public function updateMaterial(array $data): bool
+    public function updateMaterial(array $data): bool|int
     {
         $payload = $this->buildUpdatePayload($data);
         $payload['url'] = $this->handleFiles($data['files'], true);
@@ -86,16 +93,20 @@ class MaterialService
     {
         $processed = [];
 
-        foreach ($files as $file) {
+        foreach ($files as $index => $file) {
             if ($file['type'] === 'url') {
                 $processed[] = $file;
                 continue;
             }
 
+            if (empty($file['old_file_name'] ?? '')) {
+                throw new \Exception("Missing old_file_name for file at index {$index}");
+            }
+
             if (
                 $isUpdate &&
                 !empty($file['file_name'] ?? '') &&
-                $file['file_name'] ?? '' !== $file['old_file_name'] &&
+                ($file['file_name'] ?? '') !== $file['old_file_name'] &&
                 empty($file['file'] ?? '')
             ) {
                 throw new \Exception('Missing new file data for changed file.');
@@ -103,8 +114,19 @@ class MaterialService
 
             if (
                 $isUpdate &&
+                empty($file['file_name'] ?? '') &&
+                ($file['file_name'] ?? '') !== $file['old_file_name'] &&
+                !empty($file['file'] ?? '')
+            ) {
+                throw new \Exception(
+                    "You uploaded a new file but didn't provide its name."
+                );
+            }
+
+            if (
+                $isUpdate &&
                 !empty($file['file_name'] ?? '') &&
-                $file['file_name'] ?? '' !== $file['old_file_name']
+                ($file['file_name'] ?? '') !== $file['old_file_name']
             ) {
                 // Delete old file
                 $oldPath = $this->contentPath . basename($file['old_file_name']);

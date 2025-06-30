@@ -26,7 +26,6 @@ class QueryBuilder
     private array $orderBy = [];
     private string $limit = '';
 
-
     /**
      * Constructor to initialize the PDO instance.
      *
@@ -269,7 +268,6 @@ class QueryBuilder
 
         return $this;
     }
-
     public function in(string $column, array $values): self
     {
         if (empty($values)) {

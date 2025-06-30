@@ -71,7 +71,6 @@ class AssignmentController extends BaseController
                 'topic_id',
                 'classes.*.id',
                 'classes.*.name',
-                'files.*.old_file_name',
                 'files.*.type',
                 'start_date',
                 'end_date',

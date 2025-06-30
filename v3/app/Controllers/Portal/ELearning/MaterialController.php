@@ -69,7 +69,6 @@ class MaterialController extends BaseController
                 'topic_id',
                 'classes.*.id',
                 'classes.*.name',
-                'files.*.old_file_name',
                 'files.*.type',
             ]
         );
