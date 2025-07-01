@@ -98,6 +98,11 @@ class AttendanceService
         ];
 
         $attendances = $this->getAttendance($modFilters, ['id', 'count', 'date', 'course']);
+
+        if (empty($attendances)) {
+            return [];
+        }
+
         $uniqueIds = array_unique(array_filter(array_column($attendances, 'course')));
         $courseIds = array_values($uniqueIds);
 
