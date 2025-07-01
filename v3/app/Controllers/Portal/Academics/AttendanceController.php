@@ -87,11 +87,15 @@ class AttendanceController extends BaseController
         $id = (int) $vars['id'];
 
         try {
-            $updated = $this->attendanceService->updateAttendance(data: $data, id: $id);
+            $id = $this->attendanceService->updateAttendance(data: $data, id: $id);
 
-            if ($updated) {
+            if ($id > 0) {
                 return $this->respond(
-                    ['success' => true, 'message' => 'Attendance updated successfully.']
+                    [
+                        'success' => true,
+                        'message' => 'Attendance updated successfully.',
+                        'id' => $id
+                    ]
                 );
             }
 
@@ -171,6 +175,7 @@ class AttendanceController extends BaseController
             $vars,
             ['class_id', 'term', 'year']
         );
+
         try {
             $results = $this->attendanceService->getAttendanceHistory($data);
 
