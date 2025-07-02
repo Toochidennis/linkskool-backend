@@ -99,7 +99,7 @@ class MaterialService
                 continue;
             }
 
-            if (empty($file['old_file_name'] ?? '')) {
+            if ($isUpdate && empty($file['old_file_name'] ?? '')) {
                 throw new \Exception("Missing old_file_name for file at index {$index}");
             }
 
