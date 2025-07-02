@@ -103,7 +103,7 @@ class AssignmentService
                 continue;
             }
 
-            if (empty($file['old_file_name'] ?? '')) {
+            if ($isUpdate && empty($file['old_file_name'] ?? '')) {
                 throw new \Exception("Missing old_file_name for file at index {$index}");
             }
 
@@ -140,10 +140,10 @@ class AssignmentService
 
                 // Save new file
                 $processed[] = $this->processFile($file);
-            } else {
-                // No change, keep old file reference
-                $processed[] = $file;
+                continue;
             }
+
+            $processed[] = (!$isUpdate) ? $this->processFile($file) : $file;
         }
 
         return json_encode($processed);
