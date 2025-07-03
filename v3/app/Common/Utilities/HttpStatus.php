@@ -4,6 +4,7 @@ namespace V3\App\Common\Utilities;
 
 class HttpStatus
 {
+    public const INFO = 100;
     public const OK = 200;
     public const CREATED = 201;
     public const BAD_REQUEST = 400;

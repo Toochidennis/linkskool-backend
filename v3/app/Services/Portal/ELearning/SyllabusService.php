@@ -4,12 +4,12 @@ namespace V3\App\Services\Portal\ELearning;
 
 use Exception;
 use PDO;
+use V3\App\Common\Enums\ContentType;
 use V3\App\Models\Portal\ELearning\Content;
 
 class SyllabusService
 {
     private Content $content;
-    private const CONTENT_TYPE = 100;
 
     public function __construct(PDO $pdo)
     {
@@ -21,7 +21,7 @@ class SyllabusService
         $payload = [
             'title' => $data['title'],
             'description' => $data['description'],
-            'type' => self::CONTENT_TYPE,
+            'type' => ContentType::SYLLABUS->value,
             'course_id' => $data['course_id'],
             'course_name' => $data['course_name'],
             'level' => $data['level_id'],
@@ -56,7 +56,7 @@ class SyllabusService
     /**
      * Retrieves syllabus content filtered by term, level, and type.
      *
-     * @param array $filters Must include 'term' and 'level_id'.
+     * @param array $filters Must include 'term', 'level_id', and 'course_id'.
      * @return array List of syllabus items with 'classes' decoded from path_label.
      */
     public function getSyllabus(array $filters): array
@@ -70,7 +70,8 @@ class SyllabusService
             ])
             ->where('term', '=', $filters['term'])
             ->where('level', '=', $filters['level_id'])
-            ->where('type', '=', self::CONTENT_TYPE)
+            ->where('course_id', '=', $filters['course_id'])
+            ->where('type', '=', ContentType::SYLLABUS->value)
             ->get();
 
         return array_map(function ($row) {
