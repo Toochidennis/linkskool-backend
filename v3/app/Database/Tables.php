@@ -84,6 +84,6 @@ class Tables
         'tax_rates',
         'transactions',
         'ward',
-        'syllabus'
+        'question_table',
     ];
 }

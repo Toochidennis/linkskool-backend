@@ -247,13 +247,10 @@ class QueryBuilder
 
         $allBindings = array_merge($this->updateBindings, $this->whereBindings);
         $success = $stmt->execute($allBindings);
-        $affectedRows = $stmt->rowCount();
 
         $this->reset();
 
-        return $success
-            ? ($affectedRows > 0 ? $affectedRows : false)
-            : false;
+        return $success ? true : false;
     }
 
     public function notIn(string $column, array $values): self

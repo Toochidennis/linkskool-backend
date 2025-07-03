@@ -2,6 +2,9 @@
 
 namespace V3\App\Common\Traits;
 
+use Illuminate\Translation\ArrayLoader;
+use Illuminate\Translation\Translator;
+use Illuminate\Validation\Factory;
 use InvalidArgumentException;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Common\Utilities\ResponseHandler;
@@ -14,18 +17,39 @@ use V3\App\Common\Utilities\ResponseHandler;
  */
 trait ValidationTrait
 {
+    private ?Factory $validationFactory = null;
+
+    private function getValidationFactory(): Factory
+    {
+        if ($this->validationFactory === null) {
+            $translator = new Translator(new ArrayLoader(), 'en');
+            $this->validationFactory = new Factory($translator);
+        }
+        return $this->validationFactory;
+    }
+
+    public function validate(array $data, $rules)
+    {
+        $validator = $this->getValidationFactory()->make($data, $rules);
+
+        if ($validator->fails()) {
+            http_response_code(HttpStatus::BAD_REQUEST);
+            ResponseHandler::sendJsonResponse(
+                [
+                    'statusCode' => HttpStatus::BAD_REQUEST,
+                    'success' => false,
+                    'message' => 'Validation failed.',
+                    'errors' => $validator->errors()->all()
+                ]
+            );
+        } else {
+            var_dump($validator->validated());
+            return $validator->validated();
+        }
+    }
+
     /**
      * Validates the structure and presence of required fields in input data.
-     *
-     * Each field is defined using dot notation to support nested validation,
-     * and `*` can be used as a wildcard to loop through arrays.
-     *
-     * Example of required fields:
-     * [
-     *    'class_name',               // Must exist and not be null/empty
-     *    'teacher.name',            // Nested structure must exist and not be empty
-     *    'students.*.id',           // Every student in the array must have a non-null, non-empty 'id'
-     * ]
      *
      * @param array $data The input data to validate (e.g., from a request body).
      * @param array $requiredFields A list of dot-notated field paths that must exist and not be empty.
@@ -33,7 +57,7 @@ trait ValidationTrait
      * @return array The validated and cleaned data.
      * @throws InvalidArgumentException If any required field is missing or empty.
      */
-    private function validate(array $data, array $requiredFields = []): array
+    private function validate2(array $data, array $requiredFields = []): array
     {
         $errors = [];
 
@@ -97,16 +121,13 @@ trait ValidationTrait
      * Useful for controller-level data validation to avoid boilerplate try-catch code.
      * If validation fails, it will send an HTTP 400 response with details and halt execution.
      *
-     * @param array $data           The request or payload data to validate.
-     * @param array $requiredFields An array of dot-notated required field names.
-     *
      * @return array Returns the validated data if successful.
      *               Otherwise, sends a JSON error response and halts further execution.
      */
     public function validateData(array $data, array $requiredFields = []): array
     {
         try {
-            return $this->validate($data, $requiredFields);
+            return $this->validate2($data, $requiredFields);
         } catch (InvalidArgumentException $e) {
             $response = ['success' => false, 'message' => $e->getMessage()];
             http_response_code(HttpStatus::BAD_REQUEST);

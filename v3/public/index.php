@@ -109,7 +109,8 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('POST', '/portal/elearning/topic', ['Portal\ELearning\TopicController', 'store']);
         $r->addRoute('POST', '/portal/elearning/material', ['Portal\ELearning\MaterialController', 'store']);
         $r->addRoute('POST', '/portal/elearning/assignment', ['Portal\ELearning\AssignmentController', 'store']);
-        $r->addRoute('PUT', '/portal/elearning/syllabus/{syllabus_id:\d+}', ['Portal\ELearning\SyllabusController', 'update']);
+        $r->addRoute('POST', '/portal/elearning/quiz', ['Portal\ELearning\QuizController', 'store']);
+        $r->addRoute('PUT', '/portal/elearning/syllabus/{id:\d+}', ['Portal\ELearning\SyllabusController', 'update']);
         $r->addRoute('PUT', '/portal/elearning/material/{id:\d+}', ['Portal\ELearning\MaterialController', 'update']);
         $r->addRoute('PUT', '/portal/elearning/assignment/{id:\d+}', ['Portal\ELearning\AssignmentController', 'update']);
         $r->addRoute('GET', '/portal/elearning/syllabus', ['Portal\ELearning\SyllabusController', 'get']);

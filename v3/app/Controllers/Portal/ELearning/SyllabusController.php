@@ -72,7 +72,7 @@ class SyllabusController extends BaseController
 
         try {
             $id = $this->service->updateSyllabus($data);
-            
+
             if ($id > 0) {
                 return $this->respond(
                     data: [
@@ -83,7 +83,7 @@ class SyllabusController extends BaseController
                 );
             }
 
-            return $this->respondError('Failed to update syllabus');
+            return $this->respondError('No changes', HttpStatus::INFO);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -91,7 +91,7 @@ class SyllabusController extends BaseController
 
     public function get(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['term', 'level_id']);
+        $data = $this->validateData(data: $vars, requiredFields: ['term', 'level_id', 'course_id']);
 
         try {
             return $this->respond(
