@@ -4,11 +4,11 @@ namespace V3\App\Common\Enums;
 
 enum ContentType: int
 {
-    case SYLLABUS = 100;
-    case TOPIC = 4;
     case MATERIAL = 1;
+    case QUIZ = 2;
     case ASSIGNMENT = 3;
-    case QUIZ = 7;
+    case TOPIC = 4;
+    case SYLLABUS = 100;
 
     public function label(): string
     {

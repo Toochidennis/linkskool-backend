@@ -16,6 +16,7 @@ namespace V3\App\Services\Portal\Results;
 
 use V3\App\Common\Utilities\SubjectAbbreviation;
 use V3\App\Models\Portal\Academics\Assessment;
+use V3\App\Models\Portal\Academics\Level;
 use V3\App\Models\Portal\Academics\Student;
 use V3\App\Models\Portal\Results\CourseRegistration;
 use V3\App\Models\Portal\Results\Grade;
@@ -26,6 +27,7 @@ class ClassCourseResultService
     private Assessment $assessment;
     private Student $student;
     private Grade $grade;
+    private Level $level;
     private ResultCommentModel $resultComment;
     private CourseRegistration $courseRegistration;
 
@@ -39,6 +41,7 @@ class ClassCourseResultService
         $this->assessment = new Assessment($pdo);
         $this->student = new Student($pdo);
         $this->grade = new Grade($pdo);
+        $this->level = new Level($pdo);
         $this->resultComment = new ResultCommentModel($pdo);
         $this->courseRegistration = new CourseRegistration($pdo);
     }
@@ -408,5 +411,25 @@ class ClassCourseResultService
         $registeredCourses = $this->getFormattedRegisteredCourses($filters);
 
         return $this->formatCompositeScores($results, $registeredCourses);
+    }
+
+    public function fetchLevelsPerformance(array $filters)
+    {
+        $results = $this->level
+            ->select(
+                columns: [
+                    'level.id',
+                    'level.level_name',
+                    'AVG(result_table.total) as average_score'
+                ]
+            )
+            ->join('class_table', 'level.id = class_table.level', 'LEFT')
+            ->join('result_table', 'class_table.id = result_table.class', 'LEFT')
+            ->where('result_table.term', $filters['term'])
+            ->where('result_table.year', $filters['year'])
+            ->groupBy('level.id, levels.level_name')
+            ->get();
+
+            var_dump($results);
     }
 }
