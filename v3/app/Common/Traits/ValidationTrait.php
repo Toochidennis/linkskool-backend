@@ -2,11 +2,11 @@
 
 namespace V3\App\Common\Traits;
 
-use Illuminate\Translation\ArrayLoader;
-use Illuminate\Translation\Translator;
-use Illuminate\Validation\Factory;
 use InvalidArgumentException;
+use Illuminate\Validation\Factory;
+use Illuminate\Translation\Translator;
 use V3\App\Common\Utilities\HttpStatus;
+use Illuminate\Translation\ArrayLoader;
 use V3\App\Common\Utilities\ResponseHandler;
 
 /**
@@ -22,7 +22,20 @@ trait ValidationTrait
     private function getValidationFactory(): Factory
     {
         if ($this->validationFactory === null) {
-            $translator = new Translator(new ArrayLoader(), 'en');
+            $loader = new ArrayLoader();
+            $loader->addMessages('en', 'validation', [
+                'required' => 'The :attribute field is required.',
+                'min' => 'The :attribute must be at least :min.',
+                'integer' => 'The :attribute must be an integer.',
+                'string' => 'The :attribute must be a string.',
+                'filled' => 'The :attribute field must not be empty.',
+                'array' => 'The :attribute must be an array.',
+                'date' => 'The :attribute is not a valid date.',
+                'numeric' => 'The :attribute must be a number.',
+                'in' => 'The selected :attribute is invalid.',
+                'required_if' => 'The :attribute field is required when :other is :value.',
+            ]);
+            $translator = new Translator($loader, 'en');
             $this->validationFactory = new Factory($translator);
         }
         return $this->validationFactory;
@@ -43,7 +56,6 @@ trait ValidationTrait
                 ]
             );
         } else {
-            var_dump($validator->validated());
             return $validator->validated();
         }
     }

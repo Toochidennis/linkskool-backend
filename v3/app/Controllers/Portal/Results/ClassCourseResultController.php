@@ -78,4 +78,18 @@ class ClassCourseResultController extends BaseController
             return $this->respondError($e->getMessage());
         }
     }
+
+    public function getAllLevelsPerformance(array $vars)
+    {
+        $data = $this->validateData(data: $vars, requiredFields: ['term', 'year']);
+
+        try {
+            return $this->respond([
+                'success' => true,
+                'response' => $this->service->fetchLevelsPerformance($data)
+            ]);
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
 }

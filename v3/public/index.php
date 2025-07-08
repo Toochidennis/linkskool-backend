@@ -48,6 +48,9 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/students/{student_id:\d+}/result/annual', ['Portal\Results\StudentResultController', 'getStudentAnnualResult']);
         $r->addRoute('GET', '/portal/students/{id:\d+}', ['Portal\Academics\StudentController', 'getStudentById']);
 
+        // Level routes
+        $r->addRoute('GET', '/portal/levels/result/performance', ['Portal\Results\ClassCourseController', 'getAllLevelsPerformance']);
+
         // Class routes
         $r->addRoute('POST', '/portal/classes/{id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'addClassAttendance']);
         $r->addRoute('POST', '/portal/classes/{id:\d+}/course-registrations', ['Portal\Results\CourseRegistrationController', 'registerClassCourses']);
