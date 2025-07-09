@@ -1,7 +1,0 @@
-{
-    "require": {
-        "illuminate/validation": "^12.19",
-        "illuminate/translation": "^12.19",
-        "illuminate/support": "^12.19"
-    }
-}

@@ -184,7 +184,6 @@ class QueryBuilder
         if ($this->limit) {
             $query .= " " . $this->limit;
         }
-
         $stmt = $this->pdo->prepare($query);
         $stmt->execute(array_merge($this->bindings, $this->whereBindings));
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);

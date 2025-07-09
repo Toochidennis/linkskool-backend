@@ -125,9 +125,7 @@ class AuthService
                 ->where('id', '=', $id)
                 ->first() + ['role' => 'admin'],
 
-            'settings' => $this->schoolSettings
-                ->select(['name AS school_name', 'year', 'term'])
-                ->first(),
+            'settings' => $this->getSchoolSetting(),
 
             'classes' => $this->classModel
                 ->select(['id', 'class_name', 'level AS level_id', 'form_teacher'])
@@ -146,10 +144,110 @@ class AuthService
     {
         return [
             'profile' => $this->staffModel
-                ->select(["CONCAT(surname, ' ', first_name, ' ', middle) AS name", 'email'])
+                ->select(["id AS staff_id, CONCAT(surname, ' ', first_name, ' ', middle) AS name", 'email'])
                 ->where('id', '=', $id)
-                ->first() + ['role' => 'staff']
+                ->first() + ['role' => 'staff'],
+
+            'settings' => $this->getSchoolSetting(),
+
+            'form_classes' => $this->getLevelsAndClasses($id),
+
+            'courses' => $this->getStaffAssignedCourses($id)
         ];
+    }
+
+    private function getSchoolSetting()
+    {
+        return $this->schoolSettings
+            ->select(['name AS school_name', 'year', 'term'])
+            ->first();
+    }
+
+    public function getStaffAssignedCourses($teacherId)
+    {
+        $setting = $this->getSchoolSetting();
+
+        $rows = $this->classModel
+            ->select([
+                'class_table.id AS class_id',
+                'class_table.class_name',
+                'course_table.id AS course_id',
+                'course_table.course_name',
+                "COUNT(result_table.id) AS num_of_students"
+            ])
+            ->join('staff_course_table', 'class_table.id = staff_course_table.class')
+            ->join('course_table', 'course_table.id = staff_course_table.course')
+            ->join(
+                'result_table',
+                function ($join) {
+                    $join->on('result_table.class', '=', 'class_table.id')
+                        ->on('result_table.course', '=', 'course_table.id');
+                },
+                'LEFT'
+            )
+            ->where('staff_course_table.ref_no', $teacherId)
+            ->where('staff_course_table.term', $setting['term'])
+            ->where('staff_course_table.year', $setting['year'])
+            ->groupBy(['class_id', 'class_name', 'course_id', 'course_name'])
+            ->orderBy(['class_name' => 'ASC', 'course_name' => 'ASC'])
+            ->get();
+
+        $grouped = [];
+
+        foreach ($rows as $row) {
+            $classId = $row['class_id'];
+
+            if (!isset($grouped[$classId])) {
+                $grouped[$classId] = [
+                    'class_id' => $row['class_id'],
+                    'class_name' => $row['class_name'],
+                    'courses' => []
+                ];
+            }
+
+            $grouped[$classId]['courses'][] = [
+                'course_id' => $row['course_id'],
+                'course_name' => $row['course_name'],
+                'num_of_students' => $row['num_of_students'],
+            ];
+        }
+
+        return array_values($grouped);
+    }
+
+    private function getLevelsAndClasses($teacherId)
+    {
+        $rows = $this->level
+            ->select([
+                'level_table.id AS level_id',
+                'level_table.level_name',
+                'class_table.id AS class_id',
+                'class_table.class_name'
+            ])
+            ->join('class_table', 'level_table.id = class_table.level')
+            ->where('class_table.form_teacher', $teacherId)
+            ->get();
+
+        $grouped = [];
+
+        foreach ($rows as $row) {
+            $levelId = $row['level_id'];
+
+            if (!isset($grouped[$levelId])) {
+                $grouped[$levelId] = [
+                    'level_id' => $row['level_id'],
+                    'level_name' => $row['level_name'],
+                    'classes' => []
+                ];
+            }
+
+            $grouped[$levelId]['classes'][] = [
+                'class_id' => $row['class_id'],
+                'class_name' => $row['class_name'],
+            ];
+        }
+
+        return array_values($grouped);
     }
 
     private function verifyPassword(string $userPassword, string $password): bool

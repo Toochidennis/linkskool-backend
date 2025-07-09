@@ -415,21 +415,25 @@ class ClassCourseResultService
 
     public function fetchLevelsPerformance(array $filters)
     {
-        $results = $this->level
+        return $this->level
             ->select(
                 columns: [
-                    'level.id',
-                    'level.level_name',
-                    'AVG(result_table.total) as average_score'
+                    'level_table.id',
+                    'level_table.level_name',
+                    'COALESCE(ROUND(AVG(result_table.total), 2), 0) AS average_score'
                 ]
             )
-            ->join('class_table', 'level.id = class_table.level', 'LEFT')
-            ->join('result_table', 'class_table.id = result_table.class', 'LEFT')
-            ->where('result_table.term', $filters['term'])
-            ->where('result_table.year', $filters['year'])
-            ->groupBy('level.id, levels.level_name')
+            ->join(table: 'class_table', condition: 'level_table.id = class_table.level', type: 'LEFT')
+            ->join(
+                table: 'result_table',
+                condition: function ($join) use ($filters) {
+                    $join->on('class_table.id', '=', 'result_table.class')
+                        ->on('result_table.term', '=', $filters['term'])
+                        ->on('result_table.year', '=', $filters['year']);
+                },
+                type: 'LEFT'
+            )
+            ->groupBy(columns: ['level_table.id', 'level_name'])
             ->get();
-
-            var_dump($results);
     }
 }

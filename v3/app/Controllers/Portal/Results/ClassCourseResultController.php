@@ -30,9 +30,15 @@ class ClassCourseResultController extends BaseController
 
     public function getCourseResultsForClass(array $vars)
     {
-        $data = $this->validateData(
+        $data = $this->validate(
             data: $vars,
-            requiredFields: ['class_id', 'course_id', 'term', 'year', 'level_id']
+            rules: [
+                'class_id' => 'required|integer',
+                'term' => 'required|integer',
+                'year' => 'required|integer',
+                'level_id' => 'required|integer',
+                'course_id' => 'required|integer'
+            ]
         );
 
         try {
@@ -47,9 +53,14 @@ class ClassCourseResultController extends BaseController
 
     public function getStudentsResultForClass(array $vars)
     {
-        $data = $this->validateData(
+        $data = $this->validate(
             data: $vars,
-            requiredFields: ['class_id', 'term', 'year', 'level_id']
+            rules: [
+                'class_id' => 'required|integer',
+                'term' => 'required|integer',
+                'year' => 'required|integer',
+                'level_id' => 'required|integer'
+            ]
         );
 
         try {
@@ -64,9 +75,14 @@ class ClassCourseResultController extends BaseController
 
     public function getClassCompositeResult(array $vars)
     {
-        $data = $this->validateData(
+        $data = $this->validate(
             data: $vars,
-            requiredFields: ['class_id', 'term', 'year', 'level_id']
+            rules: [
+                'class_id' => 'required|integer',
+                'term' => 'required|integer',
+                'year' => 'required|integer',
+                'level_id' => 'required|integer'
+            ]
         );
 
         try {
@@ -81,7 +97,13 @@ class ClassCourseResultController extends BaseController
 
     public function getAllLevelsPerformance(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['term', 'year']);
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'term' => 'required|integer',
+                'year' => 'required|integer'
+            ]
+        );
 
         try {
             return $this->respond([
