@@ -49,7 +49,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/students/{id:\d+}', ['Portal\Academics\StudentController', 'getStudentById']);
 
         // Level routes
-        $r->addRoute('GET', '/portal/levels/result/performance', ['Portal\Results\ClassCourseController', 'getAllLevelsPerformance']);
+        $r->addRoute('GET', '/portal/levels/result/performance', ['Portal\Results\ClassCourseResultController', 'getAllLevelsPerformance']);
 
         // Class routes
         $r->addRoute('POST', '/portal/classes/{id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'addClassAttendance']);
@@ -107,7 +107,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/public/movies/shorts', ['Explore\MovieController', 'getAllShorts']);
         $r->addRoute('GET', '/public/key-buddy/content', ['Explore\TemporalController', 'getContent']);
 
-        // New endpoints
+        // Elearning
         $r->addRoute('POST', '/portal/elearning/syllabus', ['Portal\ELearning\SyllabusController', 'store']);
         $r->addRoute('POST', '/portal/elearning/topic', ['Portal\ELearning\TopicController', 'store']);
         $r->addRoute('POST', '/portal/elearning/material', ['Portal\ELearning\MaterialController', 'store']);
