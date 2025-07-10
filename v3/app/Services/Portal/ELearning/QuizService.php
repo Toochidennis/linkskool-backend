@@ -45,9 +45,8 @@ class QuizService
     public function addQuiz(array $assessment)
     {
         $questions = $assessment['questions'];
-        $settings = $assessment['setting'];
+        $setting = $assessment['setting'];
         $questionIds = [];
-        var_dump($settings);
 
         try {
             $this->pdo->beginTransaction();
@@ -71,12 +70,12 @@ class QuizService
                 $payload = [
                     'title' => $question['question_text'],
                     'content' => $this->json($questionFiles),
-                    'type' => $question['question_type'],
+                    'type' => $question['question_type'] === 'multiple_choice' ? 'qo' : 'qs',
                     'parent' => $question['question_grade'],
                     'correct' => $this->json($question['correct']),
-                    'course_id' => $settings['course_id'],
-                    'course_name' => $settings['course_name'],
-                    'term' => $settings['term'],
+                    'course_id' => $setting['course_id'],
+                    'course_name' => $setting['course_name'],
+                    'term' => $setting['term'],
                     'answer' => $this->json($options)
                 ];
 
@@ -87,7 +86,7 @@ class QuizService
                 }
             }
 
-            $contentId = $this->addSettings($settings, $questionIds);
+            $contentId = $this->addSettings($setting, $questionIds);
 
             $this->pdo->commit();
 
@@ -100,12 +99,10 @@ class QuizService
 
     private function addSettings(array $setting, array $questionIds)
     {
-        var_dump($setting);
-        die;
         $payload = [
             'title' => $setting['title'],
             'description' => $setting['description'],
-            'type' => ContentType::QUIZ,
+            'type' => ContentType::QUIZ->value,
             'outline' => $setting['syllabus_id'],
             'course_id' => $setting['course_id'],
             'course_name' => $setting['course_name'],
