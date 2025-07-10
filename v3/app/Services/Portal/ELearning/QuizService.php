@@ -103,6 +103,8 @@ class QuizService
             'title' => $setting['title'],
             'description' => $setting['description'],
             'type' => ContentType::QUIZ->value,
+            'parent' => $setting['topic_id'],
+            'category' => $setting['topic'],
             'outline' => $setting['syllabus_id'],
             'course_id' => $setting['course_id'],
             'course_name' => $setting['course_name'],
