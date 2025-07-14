@@ -12,61 +12,88 @@ class ContentManagerService
     private Content $content;
     private Quiz $quiz;
 
+    private array $contentTypeNames = [
+        ContentType::TOPIC->value => 'topic',
+        ContentType::QUIZ->value => 'quiz',
+        ContentType::MATERIAL->value => 'material',
+        ContentType::ASSIGNMENT->value => 'assignment',
+    ];
+
+    private array $questionTypeNames = [
+        'qo' => 'multiple_choice',
+        'qs' => 'short_answer',
+    ];
+
+    /**
+     * ContentManagerService constructor.
+     *
+     * @param PDO $pdo
+     */
+
     public function __construct(PDO $pdo)
     {
         $this->content = new Content($pdo);
         $this->quiz = new Quiz($pdo);
     }
 
-    private function getQuestions(array $questionIds)
+    private function getQuestions(array $questionIds): array
     {
-        $questions = [];
-        foreach ($questionIds as $questionId) {
-            $question = $this->quiz
-                ->select([
-                    'question_id',
-                    'parent AS question_grade',
-                    'content AS question_files',
-                    'title AS question_text',
-                    'type AS question_type',
-                    'answer AS options',
-                    'correct',
-                ])
-                ->where('question_id', '=', $questionId['id'])
-                ->first();
+        $ids = array_values(array_map(
+            fn($item) => (int)$item['id'],
+            array_filter($questionIds, fn($item) => $item['rank'] != 0)
+        ));
 
-            if (!empty($question)) {
-                $questions[] = array_map(function ($row) {
-                    $row['question_files'] = $this->json($row['question_files'] ?? []);
-                    $row['options'] = $this->json($row['options'] ?? '{}');
-                    $row['correct'] = $this->json($row['correct']);
-                    return $row;
-                }, $question);
-            }
+        if (empty($ids)) {
+            return [];
         }
+
+        $questions = $this->quiz
+            ->select([
+                'question_id',
+                'parent AS question_grade',
+                'content AS question_files',
+                'title AS question_text',
+                'type AS question_type',
+                'answer AS options',
+                'correct',
+            ])
+            ->in('question_id', $ids)
+            ->get();
+
+        if (!$questions) {
+            return [];
+        }
+
+        $questions = array_map(function ($question) {
+            $question['question_type'] = $this->questionTypeNames[$question['question_type']]
+                ?? $question['question_type'];
+            $question['question_files'] = $this->json($question['question_files']);
+            $question['options'] = $this->json($question['options']);
+            $question['correct'] = $this->json($question['correct']);
+            return $question;
+        }, $questions);
 
         return $questions;
     }
 
+
     private function appendQuestionsToContent($content)
     {
-        $questionIds = json_decode($content['url'] ?? [], true);
+        $questionIds = $this->json($content['url']);
         if (is_array($questionIds) && count($questionIds)) {
             $questions = $this->getQuestions($questionIds);
             $content['questions'] = $questions;
         } else {
             $content['questions'] = [];
         }
-        return $content;
+        return $this->formatContent($content);
     }
 
-    public function getContents(int $syllabusId)
+    public function getContents(int $syllabusId): array
     {
-        // Step 1. Fetch all contents for the syllabus
         $contents = $this->content
-            ->select()
             ->where('outline', '=', $syllabusId)
-            ->orderBy('rank') // adjust if you have another ordering
+            ->orderBy('rank')
             ->get();
 
         $result = [];
@@ -83,7 +110,6 @@ class ContentManagerService
                 if ($content['parent'] && isset($topics[$content['parent']])) {
                     $contentByTopic[$content['parent']][] = $content;
                 } elseif ($content['parent'] && !isset($topics[$content['parent']])) {
-                    // orphan child → treat as no topic
                     $noTopic[] = $content;
                 } else {
                     $noTopic[] = $content;
@@ -96,16 +122,18 @@ class ContentManagerService
             $topicGroup = [
                 'id' => $topic['id'],
                 'title' => $topic['title'],
-                'type' => $topic['type'],
+                'type' => $this->contentTypeNames[$topic['type']],
                 'children' => []
             ];
 
             if (isset($contentByTopic[$topicId])) {
                 foreach ($contentByTopic[$topicId] as $child) {
-                    // Check if content is a quiz (type 2)
-                    if ($child['type'] == ContentType::QUIZ->value && $child['url']) {
-                        $child = $this->appendQuestionsToContent($child);
-                    }
+                    $child = ($child['type'] == ContentType::QUIZ->value && $child['url'])
+                        ?
+                        $this->appendQuestionsToContent($child)
+                        :
+                        $this->formatContent($child);
+
                     $topicGroup['children'][] = $child;
                 }
             }
@@ -114,18 +142,99 @@ class ContentManagerService
         }
 
         // Add contents that have no topic (standalone items)
-        foreach ($noTopic as $standalone) {
-            if ($standalone['type'] == ContentType::QUIZ->value && $standalone['url']) {
-                $standalone = $this->appendQuestionsToContent($standalone);
+        if (!empty($noTopic)) {
+            $noTopicGroup = [
+                'id' => null,
+                'title' => 'No Topic',
+                'type' => 'no topic',
+                'children' => [],
+            ];
+
+            foreach ($noTopic as $standalone) {
+                $standalone = ($standalone['type'] == ContentType::QUIZ->value && $standalone['url'])
+                    ?
+                    $this->appendQuestionsToContent($standalone)
+                    :
+                    $this->formatContent($standalone);
+
+                $noTopicGroup['children'][] = $standalone;
             }
-            $result[] = $standalone;
+
+            $result[] = $noTopicGroup;
         }
 
         return $result;
     }
 
-    private function json(array $data): string
+    private function formatContent(array $content): array
     {
-        return json_encode($data, JSON_THROW_ON_ERROR);
+        // MATERIAL
+        if ($content['type'] == ContentType::MATERIAL->value) {
+            return [
+                'id' => $content['id'],
+                'syllabus_id' => $content['outline'],
+                'title' => $content['title'],
+                'description' => $content['description'],
+                'type' => $this->contentTypeNames[$content['type']],
+                'rank' => $content['rank'] ?? 0,
+                'topic_id' => $content['parent'] ?? 0,
+                'topic' => $content['category'] ?? '',
+                'classes' => $this->json($content['path_label']),
+                'content_files' => $this->json($content['url']),
+                'date_posted' => $content['end_date'],
+            ];
+        }
+
+        // ASSIGNMENT
+        if ($content['type'] == ContentType::ASSIGNMENT->value) {
+            return [
+                'id' => $content['id'],
+                'syllabus_id' => $content['outline'],
+                'title' => $content['title'],
+                'description' => $content['description'],
+                'type' => $this->contentTypeNames[$content['type']],
+                'rank' => $content['rank'] ?? 0,
+                'topic_id' => $content['parent'] ?? 0,
+                'topic' => $content['category'] ?? '',
+                'classes' => $this->json($content['path_label']),
+                'start_date' => $content['start_date'],
+                'end_date' => $content['end_date'],
+                'grade' => $content['body'],
+                'content_files' => $this->json($content['url']),
+                'date_posted' => $content['upload_date'],
+            ];
+        }
+
+        // QUIZ
+        if ($content['type'] == ContentType::QUIZ->value) {
+            return [
+                'settings' => [
+                    'id' => $content['id'],
+                    'syllabus_id' => $content['outline'],
+                    'title' => $content['title'],
+                    'description' => $content['description'],
+                    'type' => $this->contentTypeNames[$content['type']],
+                    'rank' => $content['rank'] ?? 0,
+                    'topic_id' => $content['parent'] ?? 0,
+                    'topic' => $content['category'] ?? '',
+                    'classes' => $this->json($content['path_label']),
+                    'start_date' => $content['start_date'],
+                    'end_date' => $content['end_date'],
+                    'duration' => $content['body'],
+                ],
+                'questions' => $content['questions'],
+            ];
+        }
+
+        throw new \RuntimeException("Unknown content type: {$content['type']}");
+    }
+
+    private function json(string $data): array
+    {
+        if (empty($data)) {
+            return [];
+        }
+        $decoded = json_decode($data, true);
+        return is_array($decoded) ? $decoded : [];
     }
 }
