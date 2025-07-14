@@ -61,8 +61,8 @@ class MaterialService
         return [
             'title' => $data['title'],
             'description' => $data['description'],
-            'category' => $data['topic'],
-            'parent' => $data['topic_id'],
+            'category' => $data['topic'] ?? '',
+            'parent' => $data['topic_id'] ?? 0,
             'outline' => $data['syllabus_id'],
             'author_name' => $data['creator_name'],
             'author_id' => $data['creator_id'],
@@ -80,8 +80,8 @@ class MaterialService
         return [
             'title' => $data['title'],
             'description' => $data['description'],
-            'category' => $data['topic'],
-            'parent' => $data['topic_id'],
+            'category' => $data['topic'] ?? '',
+            'parent' => $data['topic_id'] ?? 0,
             'path_label' => json_encode($data['classes']),
         ];
     }
@@ -97,10 +97,6 @@ class MaterialService
             if ($file['type'] === 'url') {
                 $processed[] = $file;
                 continue;
-            }
-
-            if ($isUpdate && empty($file['old_file_name'] ?? '')) {
-                throw new \Exception("Missing old_file_name for file at index {$index}");
             }
 
             if (

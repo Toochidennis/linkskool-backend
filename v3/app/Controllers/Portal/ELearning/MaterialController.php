@@ -19,21 +19,24 @@ class MaterialController extends BaseController
 
     public function store()
     {
-        $data = $this->validateData(
+        $data = $this->validate(
             data: $this->post,
-            requiredFields: [
-                'title',
-                'description',
-                'topic',
-                'topic_id',
-                'syllabus_id',
-                'creator_name',
-                'creator_id',
-                'classes.*.id',
-                'classes.*.name',
-                'files.*.file_name',
-                'files.*.type',
-                'files.*.file',
+            rules: [
+                'title' => 'required|string|filled',
+                'description' => 'required|string|filled',
+                'topic' => 'sometimes|string',
+                'topic_id' => 'sometimes|integer',
+                'syllabus_id' => 'required|integer',
+                'creator_name' => 'required|string|filled',
+                'creator_id' => 'required|integer',
+                'classes' => 'required|array|min:1',
+                'classes.*.id' => 'required|integer',
+                'classes.*.name' => 'required|string|filled',
+                'files' => 'sometimes|array',
+                'files.*.file_name' => 'required|string|filled',
+                'files.*.old_file_name' => 'sometimes|string',
+                'files.*.type' => 'required|string|filled',
+                'files.*.file' => 'sometimes|string',
             ]
         );
 
@@ -62,14 +65,19 @@ class MaterialController extends BaseController
         $data = $this->validateData(
             data: $this->post + $vars,
             requiredFields: [
-                'id',
-                'title',
-                'description',
-                'topic',
-                'topic_id',
-                'classes.*.id',
-                'classes.*.name',
-                'files.*.type',
+                'id' => 'required|integer',
+                'title' => 'required|string|filled',
+                'description' => 'required|string|filled',
+                'topic' => 'sometimes|string',
+                'topic_id' => 'sometimes|integer',
+                'classes' => 'required|array|min:1',
+                'classes.*.id' => 'required|integer',
+                'classes.*.name' => 'required|string|filled',
+                'files' => 'sometimes|array',
+                'files.*.file_name' => 'sometimes|string',
+                'files.*.old_file_name' => 'required|string|filled',
+                'files.*.type' => 'required|string|filled',
+                'files.*.file' => 'sometimes|string',
             ]
         );
 
@@ -94,7 +102,7 @@ class MaterialController extends BaseController
 
     public function delete(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['id']);
+        $data = $this->validate(data: $vars, rules: ['id' => 'required|integer']);
 
         try {
             if ($this->materialService->deleteMaterial($data['id'])) {
