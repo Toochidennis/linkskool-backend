@@ -18,24 +18,27 @@ class AssignmentController extends BaseController
 
     public function store()
     {
-        $data = $this->validateData(
+        $data = $this->validate(
             data: $this->post,
-            requiredFields: [
-                'title',
-                'description',
-                'topic',
-                'topic_id',
-                'syllabus_id',
-                'creator_name',
-                'creator_id',
-                'classes.*.id',
-                'classes.*.name',
-                'files.*.file_name',
-                'files.*.type',
-                'files.*.file',
-                'start_date',
-                'end_date',
-                'grade',
+            rules: [
+                'title' => 'required|string|filled',
+                'description' => 'required|string|filled',
+                'topic' => 'sometimes|string',
+                'topic_id' => 'sometimes|integer',
+                'syllabus_id' => 'required|integer',
+                'creator_name' => 'required|string|filled',
+                'creator_id' => 'required|integer',
+                'classes' => 'required|array|min:1',
+                'classes.*.id' => 'required|integer',
+                'classes.*.name' => 'required|string|filled',
+                'files' => 'sometimes|array',
+                'files.*.file_name' => 'required|string|filled',
+                'files.*.old_file_name' => 'sometimes|string',
+                'files.*.type' => 'required|string|filled',
+                'files.*.file' => 'sometimes|string',
+                'start_date' => 'required|string|filled',
+                'end_date' => 'required|string|filled',
+                'grade' => 'required|numeric',
             ]
         );
 
@@ -61,20 +64,25 @@ class AssignmentController extends BaseController
 
     public function update(array $vars)
     {
-        $data = $this->validateData(
+        $data = $this->validate(
             data: $this->post + $vars,
-            requiredFields: [
-                'id',
-                'title',
-                'description',
-                'topic',
-                'topic_id',
-                'classes.*.id',
-                'classes.*.name',
-                'files.*.type',
-                'start_date',
-                'end_date',
-                'grade',
+            rules: [
+                'id' => 'required|integer',
+                'title' => 'required|string|filled',
+                'description' => 'required|string|filled',
+                'topic' => 'sometimes|string|filled',
+                'topic_id' => 'sometimes|integer',
+                'classes' => 'required|array|min:1',
+                'classes.*.id' => 'required|integer',
+                'classes.*.name' => 'required|string|filled',
+                'files' => 'sometimes|array',
+                'files.*.file_name' => 'sometimes|string',
+                'files.*.old_file_name' => 'required|string|filled',
+                'files.*.type' => 'required|string|filled',
+                'files.*.file' => 'sometimes|string',
+                'start_date' => 'required|string|filled',
+                'end_date' => 'required|string|filled',
+                'grade' => 'required|numeric',
             ]
         );
 
@@ -98,7 +106,7 @@ class AssignmentController extends BaseController
 
     public function delete(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['id']);
+        $data = $this->validate(data: $vars, rules: ['id' => 'required|integer']);
 
         try {
             $id = $this->assignmentService->deleteAssignment($data['id']);

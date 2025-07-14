@@ -59,8 +59,8 @@ class AssignmentService
         return [
             'title' => $data['title'],
             'description' => $data['description'],
-            'category' => $data['topic'],
-            'parent' => $data['topic_id'],
+            'category' => $data['topic'] ?? '',
+            'parent' => $data['topic_id'] ?? 0,
             'outline' => $data['syllabus_id'],
             'author_name' => $data['creator_name'],
             'author_id' => $data['creator_id'],
@@ -81,8 +81,8 @@ class AssignmentService
         return [
             'title' => $data['title'],
             'description' => $data['description'],
-            'category' => $data['topic'],
-            'parent' => $data['topic_id'],
+            'category' => $data['topic'] ?? '',
+            'parent' => $data['topic_id'] ?? 0,
             'path_label' => json_encode($data['classes']),
             'start_date' => $data['start_date'],
             'end_date' => $data['end_date'],
@@ -103,17 +103,13 @@ class AssignmentService
                 continue;
             }
 
-            if ($isUpdate && empty($file['old_file_name'] ?? '')) {
-                throw new \Exception("Missing old_file_name for file at index {$index}");
-            }
-
             if (
                 $isUpdate &&
                 !empty($file['file_name'] ?? '') &&
                 ($file['file_name'] ?? '') !== $file['old_file_name'] &&
                 empty($file['file'] ?? '')
             ) {
-                throw new \Exception('Missing new file data for changed file.');
+                throw new \Exception("Missing new file data for changed file at {$index}");
             }
 
             if (
