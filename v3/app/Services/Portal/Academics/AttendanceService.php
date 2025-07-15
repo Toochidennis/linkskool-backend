@@ -187,21 +187,4 @@ class AttendanceService
             'data' => $attendances
         ];
     }
-
-    public function getAttendanceHistoryByRange(array $filters): array
-    {
-        $modFilters = [
-            'year' => $filters['year'],
-            'term' => $filters['term'],
-        ];
-
-        if (!$filters['isCourse']) {
-            $modFilters['class'] = $filters['class_id'];
-            $modFilters['course'] = $filters['course_id'];
-        } else {
-            $modFilters['class'] = $filters['class_id'];
-        }
-
-      return $this->getAttendance($modFilters);
-    }
 }
