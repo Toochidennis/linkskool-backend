@@ -52,11 +52,12 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/levels/result/performance', ['Portal\Results\ClassCourseResultController', 'getAllLevelsPerformance']);
 
         // Class routes
-        $r->addRoute('POST', '/portal/classes/{id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'addClassAttendance']);
+        $r->addRoute('POST', '/portal/classes/{class_id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'addClassAttendance']);
         $r->addRoute('POST', '/portal/classes/{id:\d+}/course-registrations', ['Portal\Results\CourseRegistrationController', 'registerClassCourses']);
         $r->addRoute('POST', '/portal/classes/{id:\d+}/course-registrations/duplicate', ['Portal\Results\CourseRegistrationController', 'duplicateLastTermRegistrations']);
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/course-registrations/history', ['Portal\Results\CourseRegistrationController', 'getClassRegistrationHistory']);
-        $r->addRoute('GET', '/portal/classes/{id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'getClassAttendance']);
+        $r->addRoute('GET', '/portal/classes/{class_id:\d+}/attendance/single', ['Portal\Academics\AttendanceController', 'getSingleClassAttendance']);
+        $r->addRoute('GET', '/portal/classes/{class_id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'getAllClassAttendance']);
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/students', ['Portal\Academics\StudentController', 'getStudentsByClass']);
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/registered-students', ['Portal\Results\CourseRegistrationController', 'getStudentRegistrationStatusInClass']);
         $r->addRoute('GET', '/portal/classes/{class_id:\d+}/registered-courses', ['Portal\Results\CourseRegistrationController', 'getRegisteredCoursesForClass']);
@@ -72,10 +73,11 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/staff/{id:\d+}', ['Portal\Academics\StaffController', 'getStaffById']);
 
         // course routes
-        $r->addRoute('POST', '/portal/courses/{id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'addCourseAttendance']);
+        $r->addRoute('POST', '/portal/courses/{course_id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'addCourseAttendance']);
         $r->addRoute('GET', '/portal/course-registrations/terms', ['Portal\Results\CourseRegistrationController', 'getClassRegistrationTerms']);
         $r->addRoute('GET', '/portal/courses/{course_id:\d+}/students', ['Portal\Results\CourseRegistrationController', 'getStudentsForCourseInClass']);
-        $r->addRoute('GET', '/portal/courses/{id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'getCourseAttendance']);
+        $r->addRoute('GET', '/portal/courses/{course_id:\d+}/attendance/single', ['Portal\Academics\AttendanceController', 'getSingleCourseAttendance']);
+        $r->addRoute('GET', '/portal/courses/{course_id:\d+}/attendance', ['Portal\Academics\AttendanceController', 'getAllCourseAttendance']);
 
         $r->addRoute('POST', '/portal/assessments', ['Portal\Results\AssessmentController', 'addAssessments']);
         $r->addRoute('PUT', '/portal/assessments/{id:\d+}', ['Portal\Results\AssessmentController', 'updateAssessment']);
@@ -90,7 +92,7 @@ $dispatcher = FastRoute\simpleDispatcher(
 
         $r->addRoute('PUT', '/portal/attendance/{id:\d+}', ['Portal\Academics\AttendanceController', 'updateAttendance']);
         $r->addRoute('GET', '/portal/attendance/history', ['Portal\Academics\AttendanceController', 'getAttendanceHistory']);
-        $r->addRoute('GET', '/portal/attendance/{id:\d+}', ['Portal\Academics\AttendanceController', 'getAttendanceById']);
+        $r->addRoute('GET', '/portal/attendance/{id:\d+}', ['Portal\Academics\AttendanceController', 'getAttendanceDetails']);
 
         $r->addRoute('GET', '/portal/course-assignments', ['Portal\Academics\CourseAssignmentController', 'getCourseAssignments']);
         $r->addRoute('PUT', '/portal/result/class-result', ['Portal\Results\ResultController', 'updateResult']);

@@ -16,7 +16,7 @@ class AttendanceService
         $this->course = new Course($pdo);
     }
 
-    public function addAttendance(array $data, bool $isCourse = false)
+    public function addAttendance(array $data, bool $isCourse = false): array
     {
         $data['course_id'] = $isCourse ? ($data['course_id'] ?? 0) : 0;
         $data['attendance_date'] = date('Y-m-d', strtotime($data['attendance_date'])); // Normalize
@@ -33,9 +33,9 @@ class AttendanceService
 
         if ($check->exists()) {
             return [
-                false,
-                'Attendance already exists for today. You can only update it.',
-                0
+                'success' => false,
+                'message' => 'Attendance already exists for today. You can only update it.',
+                'data' => null
             ];
         }
 
@@ -50,29 +50,44 @@ class AttendanceService
             'register' => json_encode($data['students'], JSON_UNESCAPED_UNICODE),
         ];
 
-        $newId =  $this->attendance->insert($payload);
+        $newId = $this->attendance->insert($payload);
 
-        return [true, 'Attendance added successfully.', $newId];
+        return [
+            'success' => true,
+            'message' => 'Attendance added successfully.',
+            'data' => $newId
+        ];
     }
 
-    public function updateAttendance(array $data, int $id)
+    public function updateAttendance(array $data): array
     {
-        if (!isset($data['register']) || !is_array($data['register'])) {
-            return ['success' => false, 'message' => 'Invalid register format'];
-        }
+        $payload = [
+            'staff_id' => $data['staff_id'],
+            'count' => $data['attendance_count'],
+            'register' => json_encode($data['students']),
+        ];
 
-        $data['register'] = json_encode($data['register'], JSON_UNESCAPED_UNICODE);
+        $updated = $this->attendance
+            ->where('id', '=', $data['id'])
+            ->update($payload);
 
-        return $this->attendance
-            ->where('id', '=', $id)
-            ->update($data);
+        return [
+            'success' => $updated,
+            'message' => $updated ? 'Attendance updated successfully.' : 'Attendance update failed.',
+            'data' => $updated
+        ];
     }
 
     public function getAttendance(
         array $filters,
-        array $columns = ['id', 'count AS attendance_count', 'date AS attendance_date', 'register AS students'],
+        array $columns = [
+            'id',
+            'count AS attendance_count',
+            'date AS attendance_date',
+            'register AS students'
+        ],
         bool $singleRecord = false
-    ) {
+    ): array {
         $query = $this->attendance->select($columns);
 
         // Apply filters
@@ -82,22 +97,36 @@ class AttendanceService
 
         $result = $singleRecord ? $query->first() : $query->get();
 
-        if (in_array('students', $columns)) {
-            if ($singleRecord && $result) {
-                $result['students'] = json_decode($result['students'], true);
-            } elseif (!$singleRecord && $result) {
-                foreach ($result as $record) {
-                    if (isset($record['students'])) {
-                        $record['students'] = json_decode($record->students, true);
-                    }
-                }
-            }
+        if ($singleRecord && $result) {
+            $result['students'] = json_decode($result['students'], true);
+            return [
+                'success' => true,
+                'message' => 'Attendance record retrieved.',
+                'data' => $result
+            ];
         }
 
-        return $result;
+        if (!$singleRecord && $result) {
+            foreach ($result as $record) {
+                if (isset($record['students'])) {
+                    $record['students'] = json_decode($record->students, true);
+                }
+            }
+            return [
+                'success' => true,
+                'message' => 'Attendance records retrieved.',
+                'data' => $result
+            ];
+        }
+
+        return [
+            'success' => false,
+            'message' => 'No attendance records found.',
+            'data' => []
+        ];
     }
 
-    public function getAttendanceHistory(array $filters)
+    public function getAttendanceHistory(array $filters): array
     {
         $modFilters = [
             'class' => $filters['class_id'],
@@ -105,7 +134,7 @@ class AttendanceService
             'term' => $filters['term']
         ];
 
-        $attendances = $this->getAttendance(
+        $attendanceResponse = $this->getAttendance(
             $modFilters,
             [
                 'id',
@@ -115,15 +144,25 @@ class AttendanceService
             ]
         );
 
-        if (empty($attendances)) {
-            return [];
+        if (!$attendanceResponse['success']) {
+            return [
+                'success' => true,
+                'message' => 'No attendance records found.',
+                'data' => []
+            ];
         }
+
+        $attendances = $attendanceResponse['data'];
 
         $uniqueIds = array_unique(array_filter(array_column($attendances, 'course_id')));
         $courseIds = array_values($uniqueIds);
 
         if (empty($courseIds)) {
-            return $attendances; // No courses to fetch
+            return [
+                'success' => true,
+                'message' => 'Attendance history retrieved successfully.',
+                'data' => $attendances
+            ];
         }
 
         $fetchedCourses = $this->course
@@ -141,6 +180,28 @@ class AttendanceService
                 ? $courseMap[$att['course_id']]
                 : '';
         }
-        return $attendances;
+
+        return [
+            'success' => true,
+            'message' => 'Attendance history retrieved successfully.',
+            'data' => $attendances
+        ];
+    }
+
+    public function getAttendanceHistoryByRange(array $filters): array
+    {
+        $modFilters = [
+            'year' => $filters['year'],
+            'term' => $filters['term'],
+        ];
+
+        if (!$filters['isCourse']) {
+            $modFilters['class'] = $filters['class_id'];
+            $modFilters['course'] = $filters['course_id'];
+        } else {
+            $modFilters['class'] = $filters['class_id'];
+        }
+
+      return $this->getAttendance($modFilters);
     }
 }
