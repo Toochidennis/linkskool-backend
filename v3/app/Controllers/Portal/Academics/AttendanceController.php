@@ -20,7 +20,7 @@ class AttendanceController extends BaseController
     public function addClassAttendance(array $vars)
     {
         $data = $this->validate(
-            data: [...$this->post, 'class_id' => $vars['id']],
+            data: [...$this->post, ...$vars],
             rules: [
                 'year' => 'required|integer',
                 'term' => 'required|integer',
@@ -35,20 +35,16 @@ class AttendanceController extends BaseController
         );
 
         try {
-            [$success, $message, $id] = $this->attendanceService->addAttendance(data: $data);
+            $response = $this->attendanceService->addAttendance($data);
 
-            if ($success) {
+            if ($response['success']) {
                 return $this->respond(
-                    [
-                        'success' => $success,
-                        'message' => $message,
-                        'id' => $id
-                    ],
+                    $response,
                     HttpStatus::CREATED
                 );
             }
 
-            return $this->respondError($message, HttpStatus::BAD_REQUEST);
+            return $this->respondError($response['message'], HttpStatus::BAD_REQUEST);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -57,7 +53,7 @@ class AttendanceController extends BaseController
     public function addCourseAttendance(array $vars)
     {
         $data = $this->validate(
-            data: [...$this->post, 'course_id' => $vars['id']],
+            data: [...$this->post, ...$vars],
             rules: [
                 'year' => 'required|integer',
                 'term' => 'required|integer',
@@ -73,20 +69,16 @@ class AttendanceController extends BaseController
         );
 
         try {
-            [$success, $message, $id] = $this->attendanceService->addAttendance(data: $data, isCourse: true);
+            $response = $this->attendanceService->addAttendance($data, isCourse: true);
 
-            if ($success) {
+            if ($response['success']) {
                 return $this->respond(
-                    [
-                        'success' => $success,
-                        'message' => $message,
-                        'id' => $id
-                    ],
+                    $response,
                     HttpStatus::CREATED
                 );
             }
 
-            return $this->respondError($message, HttpStatus::BAD_REQUEST);
+            return $this->respondError($response['message'], HttpStatus::BAD_REQUEST);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -94,120 +86,193 @@ class AttendanceController extends BaseController
 
     public function updateAttendance(array $vars)
     {
-        $requiredFields = ['staff_id', 'count', 'register'];
-        $data = $this->validateData(data: $this->post, requiredFields: $requiredFields);
-        $id = (int) $vars['id'];
+        $data = $this->validate(
+            data: [...$this->post, ...$vars],
+            rules: [
+                'id' => 'required|integer',
+                'staff_id' => 'required|integer',
+                'attendance_count' => 'required|integer',
+                'students' => 'required|array|min:1',
+                'students.*.id' => 'required|integer',
+                'students.*.name' => 'required|string|filled',
+            ]
+        );
 
         try {
-            $id = $this->attendanceService->updateAttendance(data: $data, id: $id);
+            $response = $this->attendanceService->updateAttendance($data);
 
-            if ($id > 0) {
-                return $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Attendance updated successfully.',
-                        'id' => $id
-                    ]
-                );
+            if ($response['success']) {
+                return $this->respond($response);
             }
 
-            return $this->respondError('Failed to update attendance', HttpStatus::BAD_REQUEST);
+            return $this->respondError($response['message'], HttpStatus::BAD_REQUEST);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
     }
 
-    /**
-     * Returns attendance data based on provided filters.
-     *
-     * Expected query parameters:
-     * - date
-     * - class
-     * - course_id
-     *
-     * @param array $params
-     */
-    public function getClassAttendance(array $vars)
+    public function getSingleClassAttendance(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['id', 'attendance_date']);
-
-        try {
-            $result = $this->attendanceService
-                ->getAttendance(
-                    filters: [
-                        'class' => $data['id'],
-                        'date' => $data['attendance_date']
-                    ],
-                    singleRecord: true
-                );
-            return $this->respond(
-                [
-                    'success' => true,
-                    'attendance_records' => $result
-                ]
-            );
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
-    }
-
-    public function getCourseAttendance(array $vars)
-    {
-        $data = $this->validateData(
-            $vars,
-            ['id', 'class_id', 'date']
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'class_id' => 'required|integer',
+                'attendance_date' => 'required|string|filled'
+            ]
         );
 
         try {
-            $results = $this->attendanceService
-                ->getAttendance(
-                    [
-                        'class' => $data['class_id'],
-                        'course' => $data['id'],
-                        'date' => $data['date']
-                    ],
-                    singleRecord: true
-                );
+            $response = $this->attendanceService->getAttendance(
+                filters: [
+                    'class' => $data['class_id'],
+                    'date' => $data['attendance_date']
+                ],
+                singleRecord: true
+            );
 
-            return $this->respond(['success' => true, 'attendance_records' => $results]);
+            if ($response['success']) {
+                return $this->respond($response);
+            }
+
+            return $this->respondError($response['message'], HttpStatus::NOT_FOUND);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
     }
 
-    /**
-     * Returns summary of  attendance data.
-     *
-     *  * Expected query parameters:
-     * - class_id
-     * - term
-     * - year
-     *
-     * @param  array $params
-     * @return void
-     */
+    public function getAllClassAttendance(array $vars)
+    {
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'class_id' => 'required|integer',
+                'year' => 'required|integer',
+                'term' => 'required|integer'
+            ]
+        );
+
+        try {
+            $response = $this->attendanceService->getAttendanceHistoryByRange(
+                filters: [
+                    'class' => $data['class_id'],
+                    'year' => $data['year'],
+                    'term' => $data['term'],
+                    'isCourse' => false
+                ],
+            );
+
+            if ($response['success']) {
+                return $this->respond($response);
+            }
+
+            return $this->respondError($response['message'], HttpStatus::NOT_FOUND);
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
+
+    public function getSingleCourseAttendance(array $vars)
+    {
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'course_id' => 'required|integer',
+                'class_id' => 'required|integer',
+                'attendance_date' => 'required|string|filled'
+            ]
+        );
+
+        try {
+            $response = $this->attendanceService->getAttendance(
+                [
+                    'class' => $data['class_id'],
+                    'course' => $data['course_id'],
+                    'date' => $data['attendance_date']
+                ],
+                singleRecord: true
+            );
+
+            if ($response['success']) {
+                return $this->respond($response);
+            }
+
+            return $this->respondError($response['message'], HttpStatus::NOT_FOUND);
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
+
+    public function getAllCourseAttendance(array $vars)
+    {
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'class_id' => 'required|integer',
+                'year' => 'required|integer',
+                'term' => 'required|integer',
+                'course_id' => 'required|integer'
+            ]
+        );
+
+        try {
+            $response = $this->attendanceService->getAttendanceHistoryByRange(
+                filters: [
+                    'class' => $data['class_id'],
+                    'course' => $data['course_id'],
+                    'year' => $data['year'],
+                    'term' => $data['term'],
+                    'isCourse' => true
+                ],
+            );
+
+            if ($response['success']) {
+                return $this->respond($response);
+            }
+
+            return $this->respondError($response['message'], HttpStatus::NOT_FOUND);
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
+
     public function getAttendanceHistory(array $vars)
     {
-        $data = $this->validateData(
+        $data = $this->validate(
             $vars,
-            ['class_id', 'term', 'year']
+            [
+                'class_id' => 'required|integer',
+                'term' => 'required|integer',
+                'year' => 'required|integer'
+            ]
         );
 
         try {
-            $results = $this->attendanceService->getAttendanceHistory($data);
+            $response = $this->attendanceService->getAttendanceHistory($data);
 
-            return $this->respond(['success' => true, 'attendance_records' => $results]);
+            if ($response['success']) {
+                return $this->respond($response);
+            }
+
+            return $this->respondError($response['message'], HttpStatus::NOT_FOUND);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
     }
 
-    public function getAttendanceById(array $params)
+    public function getAttendanceDetails(array $vars)
     {
-        $data = $this->validateData($params, ['id']);
+        $data = $this->validate($vars, ['id' => 'required|integer']);
         try {
-            $results = $this->attendanceService->getAttendance($data, singleRecord: true);
-            return $this->respond(['success' => true, 'attendance_records' => $results]);
+            $response = $this->attendanceService->getAttendance(
+                $data,
+                singleRecord: true
+            );
+
+            if ($response['success']) {
+                return $this->respond($response);
+            }
+
+            return $this->respondError($response['message'], HttpStatus::NOT_FOUND);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
