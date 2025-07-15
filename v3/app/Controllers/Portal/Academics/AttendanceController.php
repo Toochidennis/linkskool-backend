@@ -152,13 +152,17 @@ class AttendanceController extends BaseController
         );
 
         try {
-            $response = $this->attendanceService->getAttendanceHistoryByRange(
+            $response = $this->attendanceService->getAttendance(
                 filters: [
                     'class' => $data['class_id'],
                     'year' => $data['year'],
                     'term' => $data['term'],
-                    'isCourse' => false
                 ],
+                columns: [
+                    'id',
+                    'count AS attendance_count',
+                    'date AS attendance_date',
+                ]
             );
 
             if ($response['success']) {
@@ -215,14 +219,18 @@ class AttendanceController extends BaseController
         );
 
         try {
-            $response = $this->attendanceService->getAttendanceHistoryByRange(
+            $response = $this->attendanceService->getAttendance(
                 filters: [
                     'class' => $data['class_id'],
                     'course' => $data['course_id'],
                     'year' => $data['year'],
                     'term' => $data['term'],
-                    'isCourse' => true
                 ],
+                columns: [
+                    'id',
+                    'count AS attendance_count',
+                    'date AS attendance_date',
+                ]
             );
 
             if ($response['success']) {
