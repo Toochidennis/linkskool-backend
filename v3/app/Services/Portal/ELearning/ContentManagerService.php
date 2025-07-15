@@ -123,6 +123,9 @@ class ContentManagerService
                 'id' => $topic['id'],
                 'title' => $topic['title'],
                 'type' => $this->contentTypeNames[$topic['type']],
+                'objective' => $topic['body'],
+                'classes' => $this->json($topic['path_label']),
+                'rank' => $topic['rank'] ?? 0,
                 'children' => []
             ];
 

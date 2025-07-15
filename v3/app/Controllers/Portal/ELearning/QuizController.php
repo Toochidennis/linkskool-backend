@@ -87,4 +87,12 @@ class QuizController extends BaseController
             $this->respondError($e->getMessage());
         }
     }
+
+    public function update(array $vars)
+    {
+        $data = $this->validate(
+            data: $vars,
+            rules: []
+        );
+    }
 }

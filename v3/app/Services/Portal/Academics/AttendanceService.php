@@ -18,33 +18,41 @@ class AttendanceService
 
     public function addAttendance(array $data, bool $isCourse = false)
     {
-        $data['course'] = $isCourse ? $data['course'] : 0;
-        $data['date'] = date('Y-m-d', strtotime($data['date'])); // Normalize
+        $data['course_id'] = $isCourse ? ($data['course_id'] ?? 0) : 0;
+        $data['attendance_date'] = date('Y-m-d', strtotime($data['attendance_date'])); // Normalize
 
         $check = $this->attendance
-            ->where('class', '=', $data['class'])
+            ->where('class', '=', $data['class_id'])
             ->where('year', '=', $data['year'])
             ->where('term', '=', $data['term'])
-            ->where('date', '=', $data['date']);
+            ->where('date', '=', $data['attendance_date']);
 
         if ($isCourse) {
-            $check = $check->where('course', '=', $data['course']);
+            $check = $check->where('course', '=', $data['course_id']);
         }
 
         if ($check->exists()) {
             return [
-                'success' => false,
-                'message' => 'Attendance already exists for today. You can only update it.'
+                false,
+                'Attendance already exists for today. You can only update it.',
+                0
             ];
         }
 
-        if (!isset($data['register']) || !is_array($data['register'])) {
-            return ['success' => false, 'message' => 'Invalid register format'];
-        }
+        $payload = [
+            'year' => $data['year'],
+            'term' => $data['term'],
+            'staff_id' => $data['staff_id'],
+            'count' => $data['attendance_count'],
+            'class' => $data['class_id'],
+            'course' => $data['course_id'],
+            'date' => $data['attendance_date'],
+            'register' => json_encode($data['students'], JSON_UNESCAPED_UNICODE),
+        ];
 
-        $data['register'] = json_encode($data['register'], JSON_UNESCAPED_UNICODE);
+        $newId =  $this->attendance->insert($payload);
 
-        return $this->attendance->insert($data);
+        return [true, 'Attendance added successfully.', $newId];
     }
 
     public function updateAttendance(array $data, int $id)
@@ -62,7 +70,7 @@ class AttendanceService
 
     public function getAttendance(
         array $filters,
-        array $columns = ['id', 'count', 'date', 'register'],
+        array $columns = ['id', 'count AS attendance_count', 'date AS attendance_date', 'register AS students'],
         bool $singleRecord = false
     ) {
         $query = $this->attendance->select($columns);
@@ -74,13 +82,13 @@ class AttendanceService
 
         $result = $singleRecord ? $query->first() : $query->get();
 
-        if (in_array('register', $columns)) {
+        if (in_array('students', $columns)) {
             if ($singleRecord && $result) {
-                $result['register'] = json_decode($result['register'], true);
+                $result['students'] = json_decode($result['students'], true);
             } elseif (!$singleRecord && $result) {
                 foreach ($result as $record) {
-                    if (isset($record['register'])) {
-                        $record->register = json_decode($record->register, true);
+                    if (isset($record['students'])) {
+                        $record['students'] = json_decode($record->students, true);
                     }
                 }
             }
@@ -97,14 +105,26 @@ class AttendanceService
             'term' => $filters['term']
         ];
 
-        $attendances = $this->getAttendance($modFilters, ['id', 'count', 'date', 'course']);
+        $attendances = $this->getAttendance(
+            $modFilters,
+            [
+                'id',
+                'count AS attendance_count',
+                'date AS attendance_date',
+                'course AS course_id',
+            ]
+        );
 
         if (empty($attendances)) {
             return [];
         }
 
-        $uniqueIds = array_unique(array_filter(array_column($attendances, 'course')));
+        $uniqueIds = array_unique(array_filter(array_column($attendances, 'course_id')));
         $courseIds = array_values($uniqueIds);
+
+        if (empty($courseIds)) {
+            return $attendances; // No courses to fetch
+        }
 
         $fetchedCourses = $this->course
             ->select(['id', 'course_name'])
@@ -117,8 +137,8 @@ class AttendanceService
         }
 
         foreach ($attendances as &$att) {
-            $att['course_name'] = isset($att['course']) && isset($courseMap[$att['course']])
-                ? $courseMap[$att['course']]
+            $att['course_name'] = isset($att['course_id']) && isset($courseMap[$att['course_id']])
+                ? $courseMap[$att['course_id']]
                 : '';
         }
         return $attendances;
