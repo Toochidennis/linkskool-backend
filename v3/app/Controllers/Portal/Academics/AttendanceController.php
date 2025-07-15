@@ -19,30 +19,36 @@ class AttendanceController extends BaseController
 
     public function addClassAttendance(array $vars)
     {
-        $data = $this->validateData(
-            $this->post + ['class' => $vars['id']],
-            [
-                'year',
-                'term',
-                'staff_id',
-                'count',
-                'class',
-                'register',
-                'date'
+        $data = $this->validate(
+            data: [...$this->post, 'class_id' => $vars['id']],
+            rules: [
+                'year' => 'required|integer',
+                'term' => 'required|integer',
+                'staff_id' => 'required|integer',
+                'attendance_count' => 'required|integer',
+                'class_id' => 'required|integer',
+                'students' => 'required|array|min:1',
+                'students.*.id' => 'required|integer',
+                'students.*.name' => 'required|string|filled',
+                'attendance_date' => 'required|string|filled'
             ]
         );
 
         try {
-            $inserted = $this->attendanceService->addAttendance($data, false);
+            [$success, $message, $id] = $this->attendanceService->addAttendance(data: $data);
 
-            if ($inserted) {
+            if ($success) {
                 return $this->respond(
-                    ['success' => true, 'message' => 'Attendance added successfully.'],
+                    [
+                        'success' => $success,
+                        'message' => $message,
+                        'id' => $id
+                    ],
                     HttpStatus::CREATED
                 );
             }
 
-            return $this->respondError('Failed to add attendance', HttpStatus::BAD_REQUEST);
+            return $this->respondError($message, HttpStatus::BAD_REQUEST);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -50,31 +56,37 @@ class AttendanceController extends BaseController
 
     public function addCourseAttendance(array $vars)
     {
-        $data = $this->validateData(
-            data: $this->post + ['course' => $vars['id']],
-            requiredFields: [
-                'year',
-                'term',
-                'staff_id',
-                'count',
-                'class',
-                'course',
-                'register',
-                'date'
+        $data = $this->validate(
+            data: [...$this->post, 'course_id' => $vars['id']],
+            rules: [
+                'year' => 'required|integer',
+                'term' => 'required|integer',
+                'staff_id' => 'required|integer',
+                'attendance_count' => 'required|integer',
+                'class_id' => 'required|integer',
+                'course_id' => 'required|integer',
+                'students' => 'required|array|min:1',
+                'students.*.id' => 'required|integer',
+                'students.*.name' => 'required|string|filled',
+                'attendance_date' => 'required|string|filled'
             ]
         );
 
         try {
-            $inserted = $this->attendanceService->addAttendance(data: $data, isCourse: true);
+            [$success, $message, $id] = $this->attendanceService->addAttendance(data: $data, isCourse: true);
 
-            if ($inserted) {
+            if ($success) {
                 return $this->respond(
-                    ['success' => true, 'message' => 'Attendance added successfully.'],
+                    [
+                        'success' => $success,
+                        'message' => $message,
+                        'id' => $id
+                    ],
                     HttpStatus::CREATED
                 );
             }
 
-            return $this->respondError('Failed to add attendance', HttpStatus::BAD_REQUEST);
+            return $this->respondError($message, HttpStatus::BAD_REQUEST);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -117,18 +129,23 @@ class AttendanceController extends BaseController
      */
     public function getClassAttendance(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['id', 'date']);
+        $data = $this->validateData(data: $vars, requiredFields: ['id', 'attendance_date']);
 
         try {
             $result = $this->attendanceService
                 ->getAttendance(
                     filters: [
                         'class' => $data['id'],
-                        'date' => $data['date']
+                        'date' => $data['attendance_date']
                     ],
                     singleRecord: true
                 );
-            return $this->respond(['success' => true, 'attendance_records' => $result]);
+            return $this->respond(
+                [
+                    'success' => true,
+                    'attendance_records' => $result
+                ]
+            );
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }

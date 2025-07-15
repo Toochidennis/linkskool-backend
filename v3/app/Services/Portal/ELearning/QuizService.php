@@ -42,7 +42,7 @@ class QuizService
         }
     }
 
-    public function addQuiz(array $assessment)
+    public function addQuiz(array $assessment): bool|int
     {
         $questions = $assessment['questions'];
         $setting = $assessment['setting'];
@@ -97,7 +97,7 @@ class QuizService
         }
     }
 
-    private function addSettings(array $setting, array $questionIds)
+    private function addSettings(array $setting, array $questionIds): bool|int
     {
         $payload = [
             'title' => $setting['title'],
