@@ -193,6 +193,7 @@ class CourseRegistrationController extends BaseController
                 'term' => 'required|integer'
             ]
         );
+
         try {
             $result = $this->service->getClassRegisteredCoursesWithAverageScores($data);
             $this->respond(['success' => true, 'data' => $result]);

@@ -195,9 +195,9 @@ class QueryBuilder
     /**
      * Returns the first row of the result set.
      *
-     * @return array|null The first record or null if none found.
+     * @return array The first record
      */
-    public function first(): ?array
+    public function first(): array
     {
         $this->limit(1);
         $result = $this->get();
