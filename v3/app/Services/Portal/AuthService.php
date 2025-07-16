@@ -66,15 +66,14 @@ class AuthService
 
         // Attempt login as student
         $student = $this->studentModel
-            ->select(columns: ['id', 'registration_no', 'surname', 'password'])
+            ->select(columns: ['id', 'surname', 'password'])
             ->where('registration_no', '=', $username)
             ->first();
 
         if ($student && $this->verifyPassword($student['password'], $password)) {
             return [
+                'data'  => $this->getStudentData($student['id']),
                 'token' => self::generateJWT($student['id'], $student['surname'], 'student'),
-                'role'  => 'student',
-                'data'  => $student
             ];
         }
 
@@ -97,7 +96,7 @@ class AuthService
      * @return array The response containing user data and a JWT token.
      */
 
-    private function generateLoginResponse(int $id, string $name, int $accessLevel)
+    private function generateLoginResponse(int $id, string $name, int $accessLevel): array
     {
         $role = match ($accessLevel) {
             2 => 'admin',
@@ -140,7 +139,7 @@ class AuthService
         ];
     }
 
-    private function getStaffData($id)
+    private function getStaffData($id): array
     {
         return [
             'profile' => $this->staffModel
@@ -156,14 +155,33 @@ class AuthService
         ];
     }
 
-    private function getSchoolSetting()
+    private function getStudentData($id): array
+    {
+        return [
+            'profile' => $this->studentModel
+                ->select([
+                    'id',
+                    'picture_ref AS picture_url',
+                    "id AS staff_id, CONCAT(surname, ' ', first_name, ' ', middle) AS name",
+                    'registration_no',
+                    'student_class AS class_id',
+                    'student_level AS level_id'
+                ])
+                ->where('id', '=', $id)
+                ->first() + ['role' => 'student'],
+
+            'settings' => $this->getSchoolSetting(),
+        ];
+    }
+
+    private function getSchoolSetting(): array
     {
         return $this->schoolSettings
             ->select(['name AS school_name', 'year', 'term'])
             ->first();
     }
 
-    public function getStaffAssignedCourses($teacherId)
+    public function getStaffAssignedCourses($teacherId): array
     {
         $setting = $this->getSchoolSetting();
 
@@ -215,7 +233,7 @@ class AuthService
         return array_values($grouped);
     }
 
-    private function getLevelsAndClasses($teacherId)
+    private function getLevelsAndClasses($teacherId): array
     {
         $rows = $this->level
             ->select([
