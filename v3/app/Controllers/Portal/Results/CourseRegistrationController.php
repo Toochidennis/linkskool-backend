@@ -29,41 +29,30 @@ class CourseRegistrationController extends BaseController
         $this->service = new CourseRegistrationService(pdo: $this->pdo);
     }
 
-    /**
-     * Handles course registration.
-     * Fields are defined using dot notation to support validation of nested data.
-     *
-     * For example:
-     * 'user.profile.name' will validate $data['user']['profile']['name'].
-     */
+
     public function registerStudentCourses(array $vars)
     {
-        $requiredFields = [
-            'registered_courses',
-            'registered_courses.*.course_id',
-            'class_id',
-            'term',
-            'year',
-            'student_id'
-        ];
-
-        $data = $this->validateData(
-            data: $this->post + ['student_id' => $vars['id']],
-            requiredFields: $requiredFields
+        $data = $this->validate(
+            data: [...$this->post, ...$vars],
+            rules: [
+                'registered_courses' => 'required|array|min:1',
+                'registered_courses.*.course_id' => 'required|integer',
+                'class_id' => 'required|integer',
+                'term' => 'required|integer',
+                'year' => 'required|integer',
+                'student_id' => 'required|integer'
+            ]
         );
 
         try {
-            $register = $this->service->registerCourses(
-                $data['student_id'],
-                $data['registered_courses'],
-                $data['term'],
-                $data['year'],
-                $data['class_id']
-            );
+            $register = $this->service->registerCourses($data);
 
             if ($register) {
                 return $this->respond(
-                    ['success' => true, 'message' => 'Course(s) registered successfully'],
+                    [
+                        'success' => true,
+                        'message' => 'Course(s) registered successfully'
+                    ],
                     HttpStatus::CREATED
                 );
             }
@@ -79,17 +68,15 @@ class CourseRegistrationController extends BaseController
 
     public function registerClassCourses(array $vars)
     {
-        $requiredFields = [
-            'registered_courses',
-            'registered_courses.*.course_id',
-            'class_id',
-            'term',
-            'year'
-        ];
-
-        $data = $this->validateData(
-            data: $this->post + ['class_id' => $vars['id']],
-            requiredFields: $requiredFields
+        $data = $this->validate(
+            data: [...$this->post, ...$vars],
+            rules: [
+                'registered_courses' => 'required|array|min:1',
+                'registered_courses.*.course_id' => 'required|integer',
+                'class_id' => 'required|integer',
+                'term' => 'required|integer',
+                'year' => 'required|integer',
+            ]
         );
 
         try {
@@ -97,7 +84,10 @@ class CourseRegistrationController extends BaseController
 
             if ($register) {
                 return $this->respond(
-                    ['success' => true, 'message' => 'Course(s) registered successfully'],
+                    [
+                        'success' => true,
+                        'message' => 'Course(s) registered successfully'
+                    ],
                     HttpStatus::CREATED
                 );
             }
@@ -111,9 +101,44 @@ class CourseRegistrationController extends BaseController
         }
     }
 
+
+    public function duplicateLastTermRegistrations(array $vars)
+    {
+        $data = $this->validate(data: $vars, rules: ['class_id' => 'required|integer']);
+
+        try {
+            $result = $this->service
+                ->duplicateRegistrationForNextTerm($data['class_id']);
+
+            if (!$result) {
+                return $this->respondError(
+                    message: 'No courses were registered. Possibly already registered or invalid input.',
+                    statusCode: HttpStatus::BAD_REQUEST
+                );
+            }
+
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'message' => 'Course(s) duplicated successfully.'
+                ],
+                statusCode: HttpStatus::CREATED
+            );
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
+
     public function getClassRegistrationTerms(array $vars)
     {
-        $data = $this->validateData($vars, ['class_id', 'term', 'year']);
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'class_id' => 'required|integer',
+                'term' => 'required|integer',
+                'year' => 'required|integer'
+            ]
+        );
 
         try {
             $sessions = $this->service->getClassRegistrationTerms($data['class_id']);
@@ -127,49 +152,9 @@ class CourseRegistrationController extends BaseController
         }
     }
 
-    /**
-     * Duplicates course registrations for a class if the academic year remains unchanged.
-     *
-     * This method performs the following steps:
-     * 1. Validates and cleans the input data using the registration service.
-     * 2. Fetches the current registered courses for the specified class.
-     * 3. Checks if the current academic year matches the new data.
-     * 4. Remove duplicates from the current registrations.
-     * 5. Calls the registration service to register courses for these students.
-     * 6. Sends a JSON response with the courseRegistration.
-     *
-     * @return void
-     */
-    public function duplicateLastTermRegistrations(array $vars)
-    {
-        $data = $this->validateData(data: $vars, requiredFields: ['id']);
-
-        try {
-            $result = $this->service
-                ->duplicateRegistrationForNextTerm($data['id']);
-
-            if (!$result) {
-                return $this->respondError(
-                    message: 'No courses were registered. Possibly already registered or invalid input.',
-                    statusCode: HttpStatus::BAD_REQUEST
-                );
-            }
-
-            return $this->respond(
-                data: [
-                    'success' => true,
-                    'message' => 'Course(s) registered successfully.'
-                ],
-                statusCode: HttpStatus::CREATED
-            );
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
-    }
-
     public function getClassRegistrationHistory(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['class_id']);
+        $data = $this->validate(data: $vars, rules: ['class_id' => 'required|integer']);
 
         try {
             $history = $this->service->getClassRegistrationHistory((int) $data['class_id']);
@@ -181,7 +166,15 @@ class CourseRegistrationController extends BaseController
 
     public function getRegisteredCoursesForClass(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['class_id', 'year', 'term']);
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'class_id' => 'required|integer',
+                'year' => 'required|integer',
+                'term' => 'required|integer'
+            ]
+        );
+
         try {
             $courses = $this->service->getClassRegisteredCourses($data);
             $this->respond(['success' => true, 'data' => $courses]);
@@ -192,7 +185,14 @@ class CourseRegistrationController extends BaseController
 
     public function getRegisteredCoursesWithAvgScores(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['year', 'term', 'class_id']);
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'class_id' => 'required|integer',
+                'year' => 'required|integer',
+                'term' => 'required|integer'
+            ]
+        );
         try {
             $result = $this->service->getClassRegisteredCoursesWithAverageScores($data);
             $this->respond(['success' => true, 'data' => $result]);
@@ -203,9 +203,14 @@ class CourseRegistrationController extends BaseController
 
     public function getStudentsForCourseInClass(array $vars)
     {
-        $data = $this->validateData(
+        $data = $this->validate(
             data: $vars,
-            requiredFields: ['class_id', 'course_id', 'year', 'term']
+            rules: [
+                'class_id' => 'required|integer',
+                'course_id' => 'required|integer',
+                'year' => 'required|integer',
+                'term' => 'required|integer'
+            ]
         );
 
         try {
@@ -218,10 +223,16 @@ class CourseRegistrationController extends BaseController
 
     public function getCoursesRegisteredByStudent(array $vars)
     {
-        $data = $this->validateData(
+        $data = $this->validate(
             data: $vars,
-            requiredFields: ['class_id', 'student_id', 'year', 'term']
+            rules: [
+                'class_id' => 'required|integer',
+                'student_id' => 'required|integer',
+                'year' => 'required|integer',
+                'term' => 'required|integer'
+            ]
         );
+
         try {
             $courses = $this->service->getCoursesRegisteredByStudent($data);
             $this->respond(['success' => true, 'data' => $courses]);
@@ -232,7 +243,15 @@ class CourseRegistrationController extends BaseController
 
     public function getStudentRegistrationStatusInClass(array $vars)
     {
-        $data = $this->validateData($vars, ['class_id', 'term', 'year']);
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'class_id' => 'required|integer',
+                'year' => 'required|integer',
+                'term' => 'required|integer'
+            ]
+        );
+
         try {
             $result = $this->service->getStudentsRegistrationStatus($data);
             $this->respond(['success' => true, 'registered_students' => $result]);
