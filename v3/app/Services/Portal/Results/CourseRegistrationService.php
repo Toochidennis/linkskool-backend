@@ -83,22 +83,18 @@ class CourseRegistrationService
         );
 
         return $this->registerCourses(
-            students: $students,
-            courses: $courses,
-            term: $newTerm,
-            year: $newYear,
-            classId: $classId
+            [
+                'students' => $students,
+                'registered_courses' => $courses,
+                'term' => $newTerm,
+                'year' => $newYear,
+                'class_id' => $classId
+            ]
         );
     }
 
     /**
      * Registers a list of courses for all students in a given class for a specific term and year.
-     *
-     * This method retrieves all students belonging to a class using the provided `class_id`,
-     * then registers each of them for the specified list of courses for the given term and academic year.
-
-     *
-     * @return bool Returns true if registration is successful.
      *
      * @throws Exception If no students are found in the specified class.
      *
@@ -115,29 +111,24 @@ class CourseRegistrationService
             throw new Exception("There are no students in this class.");
         }
 
-        return $this->registerCourses(
-            students: $students,
-            courses: $data['registered_courses'],
-            term: $data['term'],
-            year: $data['year'],
-            classId: $data['class_id']
-        );
+        return $this->registerCourses(['students' => $students, ...$data]);
     }
 
     /**
      * Registers courses for each student.
      *
-     * @param array  $students Array of student IDs.
-     * @param array  $courses  Array of course IDs.
-     * @param string $term     The academic term.
-     * @param string $year     The academic year.
-     * @param mixed  $classId  The class identifier.
+     * @param array  $students Array data
      *
      * @return bool Returns true if registration is successful for all students.
      */
-    public function registerCourses($students, $courses, $term, $year, $classId)
+    public function registerCourses(array $data)
     {
-        $students = !is_array($students) ? ['student_id' => $students] : $students;
+        $students = $data['students'] ?? ['student_id' => $data['student_id']];
+        $classId = $data['class_id'];
+        $term = $data['term'];
+        $year = $data['year'];
+        $courses =  $data['registered_courses'];
+
         $index = 0;
 
         foreach ($students as $student) {
@@ -187,20 +178,9 @@ class CourseRegistrationService
      * Synchronizes course registrations by removing any courses that are
      * currently registered for a student but are not in the new list.
      *
-     * For each student, this method:
-     *   1. Retrieves the current list of registered course IDs.
-     *   2. Determines which course IDs in that list are not present in the new registration.
-     *   3. Deletes those outdated registrations.
-     *
-     * @param array  $students   Array of student records (each containing at least an 'id' key).
-     * @param array  $newCourses Array of new course IDs that should be registered.
-     * @param string $term       The academic term.
-     * @param string $year       The academic year.
-     * @param mixed  $classId    The class identifier.
-     *
      * @return bool True if all deletions were successful; false otherwise.
      */
-    private function unregisterStudentsFromCourses($students, $newCourses, $term, $year, $classId)
+    private function unregisterStudentsFromCourses($students, $newCourses, $term, $year, $classId): bool
     {
         $allSuccess = true;
 
@@ -233,10 +213,6 @@ class CourseRegistrationService
     /**
      * Retrieves and formats the list of academic terms for which course registrations
      * have been recorded for a specific class.
-     *
-     * This method fetches all distinct `(year, term)` combinations for a given class ID
-     * and organizes them in a structured format grouped by year. The term is also translated
-     * into a human-readable name (e.g., "First Term").
      *
      * @param int $classId The ID of the class whose registration terms are to be retrieved.
      *
@@ -384,7 +360,7 @@ class CourseRegistrationService
             ])
             ->join('result_table', 'students_record.id = result_table.reg_no')
             ->where('result_table.class', '=', $filters['class_id'])
-            ->where('result_table.class', '=', $filters['course_id'])
+            ->where('result_table.course', '=', $filters['course_id'])
             ->where('result_table.term', '=', $filters['term'])
             ->where('result_table.year', '=', $filters['year'])
             ->groupBy(['students_record.id', 'student_name'])
