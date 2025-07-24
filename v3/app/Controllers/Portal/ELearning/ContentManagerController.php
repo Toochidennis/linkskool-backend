@@ -2,6 +2,7 @@
 
 namespace V3\App\Controllers\Portal\ELearning;
 
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\ELearning\ContentManagerService;
 
@@ -32,6 +33,28 @@ class ContentManagerController extends BaseController
             );
         } catch (\Exception $e) {
             $this->respondError(message: $e->getMessage());
+        }
+    }
+
+    public function delete(array $vars)
+    {
+        $data = $this->validate(data: $vars, rules: ['content_id' => 'required|integer']);
+
+        try {
+            $id = $this->contentManagerService->deleteContent($data['content_id']);
+
+            if ($id > 0) {
+                return $this->respond(
+                    data: [
+                        'success' => true,
+                        'message' => 'Content deleted successfully.',
+                    ]
+                );
+            }
+
+            return $this->respondError('Content not found or already deleted.', HttpStatus::BAD_REQUEST);
+        } catch (\Exception $e) {
+            return $this->respondError($e->getMessage());
         }
     }
 }

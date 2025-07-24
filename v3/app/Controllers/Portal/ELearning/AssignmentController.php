@@ -103,27 +103,4 @@ class AssignmentController extends BaseController
             return $this->respondError($e->getMessage());
         }
     }
-
-    public function delete(array $vars)
-    {
-        $data = $this->validate(data: $vars, rules: ['id' => 'required|integer']);
-
-        try {
-            $id = $this->assignmentService->deleteAssignment($data['id']);
-
-            if ($id > 0) {
-                return $this->respond(
-                    data: [
-                        'success' => true,
-                        'message' => 'Assignment deleted successfully.',
-                        'assignmentId' => $id
-                    ]
-                );
-            }
-
-            return $this->respondError('Assignment not found or already deleted.');
-        } catch (\Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
-    }
 }

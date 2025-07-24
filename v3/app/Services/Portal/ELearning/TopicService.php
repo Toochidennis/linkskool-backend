@@ -30,7 +30,7 @@ class TopicService
         return $this->content->insert($payload);
     }
 
-    public function getTopics(int $syllabusId)
+    public function getTopics(int $syllabusId): array
     {
         $results = $this->content
             ->select(columns: ['id', 'title AS content', 'body AS objective', 'path_label AS classes'])
@@ -42,5 +42,26 @@ class TopicService
             $row['classes'] = json_decode($row['classes'], true);
             return $row;
         }, $results);
+    }
+
+    public function updateTopic(array $data): bool
+    {
+        $payload = [
+            'title' => $data['topic'],
+            'body' => $data['objective'],
+            'path_label' => json_encode($data['classes']),
+        ];
+
+        $topicId = $this->content
+            ->where('id', '=', $data['id'])
+            ->update($payload);
+
+        $contentId = $this->content
+            ->where('parent', '=', $data['id'])
+            ->update([
+                'category' => $data['topic']
+            ]);
+
+        return $topicId && $contentId;
     }
 }

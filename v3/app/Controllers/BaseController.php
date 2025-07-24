@@ -51,12 +51,19 @@ abstract class BaseController
 
         $method = $_SERVER['REQUEST_METHOD'];
 
-        $payload = match ($method) {
-            'POST', 'PUT', 'DELETE', 'PATCH' =>
-            Sanitizer::sanitizeInput(DataExtractor::extractPostData()),
-            'GET' => Sanitizer::sanitizeInput($_GET),
-            default => []
-        };
+        try {
+            $payload = match ($method) {
+                'POST', 'PUT', 'DELETE', 'PATCH' =>
+                Sanitizer::sanitizeInput(DataExtractor::extractPostData()),
+                'GET' => Sanitizer::sanitizeInput($_GET),
+                default => []
+            };
+        } catch (\Throwable $e) {
+            $this->respondError(
+                'Invalid input data. Please check the request and try again.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
 
         // Extract the database name based on request method.
         if (empty($payload)) {

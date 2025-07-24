@@ -19,17 +19,17 @@ class TopicController extends BaseController
 
     public function store()
     {
-        $data =  $this->validateData(
+        $data =  $this->validate(
             data: $this->post,
-            requiredFields: [
-                'topic',
-                'objective',
-                'classes',
-                'classes.*.id',
-                'classes.*.name',
-                'syllabus_id',
-                'creator_name',
-                'creator_id'
+            rules: [
+                'topic' => 'required|string|filled',
+                'objective' => 'required|string|filled',
+                'classes' => 'required|array|min:1',
+                'classes.*.id' => 'required|integer',
+                'classes.*.name' => 'required|string|filled',
+                'syllabus_id' => 'required|integer',
+                'creator_name' => 'required|string|filled',
+                'creator_id' => 'required|integer'
             ]
         );
 
@@ -52,9 +52,39 @@ class TopicController extends BaseController
         }
     }
 
+    public function update()
+    {
+        $data = $this->validate(
+            data: $this->post,
+            rules: [
+                'id' => 'required|integer',
+                'topic' => 'required|string|filled',
+                'objective' => 'required|string|filled',
+                'classes' => 'required|array|min:1',
+                'classes.*.id' => 'required|integer',
+                'classes.*.name' => 'required|string|filled',
+            ]
+        );
+
+        try {
+            $newId = $this->topicService->updateTopic($data);
+
+            if ($newId > 0) {
+                $this->respond([
+                    'success' => true,
+                    'message' => 'Topic updated successfully'
+                ]);
+            }
+
+            $this->respondError('Failed to update', HttpStatus::BAD_REQUEST);
+        } catch (Exception $e) {
+            $this->respondError($e->getMessage());
+        }
+    }
+
     public function get(array $vars)
     {
-        $data = $this->validateData($vars, ['syllabus_id']);
+        $data = $this->validate($vars, ['syllabus_id' => 'required|integer']);
 
         try {
             $this->respond([
@@ -62,7 +92,7 @@ class TopicController extends BaseController
                 'response' => $this->topicService->getTopics($data['syllabus_id'])
             ]);
         } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+            $this->respondError($e->getMessage());
         }
     }
 }

@@ -79,11 +79,4 @@ class SyllabusService
             return $row;
         }, $results);
     }
-
-    public function deleteSyllabus(int $id): bool
-    {
-        return $this->content
-            ->where('id', '=', $id)
-            ->delete();
-    }
 }
