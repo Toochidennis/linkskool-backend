@@ -45,7 +45,7 @@ class ContentManagerService
     {
         $ids = array_values(array_map(
             fn($item) => (int)$item['id'],
-            array_filter($questionIds, fn($item) => $item['rank'] != 0)
+            $questionIds
         ));
 
         if (empty($ids)) {
@@ -126,7 +126,7 @@ class ContentManagerService
             $topicGroup = [
                 'id' => $topic['id'],
                 'title' => $topic['title'],
-                'type' => $this->contentTypeNames[$topic['type']],
+                'type' => $this->contentTypeNames[$topic['type']] ?? 'Unknown',
                 'objective' => $topic['body'],
                 'classes' => $this->json($topic['path_label']),
                 'rank' => $topic['rank'] ?? 0,
@@ -182,7 +182,7 @@ class ContentManagerService
                 'syllabus_id' => $content['outline'],
                 'title' => $content['title'],
                 'description' => $content['description'],
-                'type' => $this->contentTypeNames[$content['type']],
+                'type' => $this->contentTypeNames[$content['type']] ?? 'Unknown',
                 'rank' => $content['rank'] ?? 0,
                 'topic_id' => $content['parent'] ?? 0,
                 'topic' => $content['category'] ?? '',
@@ -199,7 +199,7 @@ class ContentManagerService
                 'syllabus_id' => $content['outline'],
                 'title' => $content['title'],
                 'description' => $content['description'],
-                'type' => $this->contentTypeNames[$content['type']],
+                'type' => $this->contentTypeNames[$content['type']] ?? 'Unknown',
                 'rank' => $content['rank'] ?? 0,
                 'topic_id' => $content['parent'] ?? 0,
                 'topic' => $content['category'] ?? '',
@@ -220,7 +220,7 @@ class ContentManagerService
                     'syllabus_id' => $content['outline'],
                     'title' => $content['title'],
                     'description' => $content['description'],
-                    'type' => $this->contentTypeNames[$content['type']],
+                    'type' => $this->contentTypeNames[$content['type']] ?? 'Unknown',
                     'rank' => $content['rank'] ?? 0,
                     'topic_id' => $content['parent'] ?? 0,
                     'topic' => $content['category'] ?? '',
@@ -236,15 +236,15 @@ class ContentManagerService
         throw new \RuntimeException("Unknown content type: {$content['type']}");
     }
 
-    private function json(string $data): array
+    private function json(?string $data): array
     {
-        if (empty($data)) {
+        if (empty($data) || $data === null) {
             return [];
         }
+
         $decoded = json_decode($data, true);
         return is_array($decoded) ? $decoded : [];
     }
-
     public function deleteContent($id): bool
     {
         try {

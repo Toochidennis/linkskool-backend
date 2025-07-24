@@ -5,13 +5,11 @@ namespace V3\App\Services\Portal\ELearning;
 use V3\App\Common\Enums\ContentType;
 use V3\App\Models\Portal\ELearning\Content;
 use V3\App\Models\Portal\ELearning\Quiz;
-use V3\App\Common\Utilities\PathResolver;
 
 class StudentContentManagerService
 {
     private Content $content;
     private Quiz $quiz;
-    private string $contentPath;
 
     private array $contentTypeNames = [
         ContentType::TOPIC->value => 'topic',
@@ -29,9 +27,6 @@ class StudentContentManagerService
     {
         $this->content = new Content($pdo);
         $this->quiz = new Quiz($pdo);
-
-        $paths = PathResolver::getContentPaths();
-        $this->contentPath = $paths['absolute'];
     }
 
     private function getCourses(array $filters): array
@@ -51,7 +46,7 @@ class StudentContentManagerService
 
         foreach ($syllabi as $syllabus) {
             if ($this->hasClass(
-                json_decode($syllabus['path_label'], true),
+                $this->json($syllabus['path_label']),
                 $filters['class_id']
             )) {
                 $courses[] = [
@@ -72,10 +67,12 @@ class StudentContentManagerService
         $results = $this->content
             ->select(columns: [
                 'id',
+                'outline',
                 'title',
                 'course_name',
                 'course_id',
                 'level',
+                'path_label',
                 'upload_date',
                 'author_name'
             ])
@@ -92,11 +89,12 @@ class StudentContentManagerService
 
         foreach ($results as $result) {
             if ($this->hasClass(
-                json_decode($result['path_label'], true),
+                $this->json($result['path_label']),
                 $filters['class_id']
             )) {
                 $quizzes[] = [
-                    'syllabus_id' => $result['id'],
+                    'id' => $result['id'],
+                    'syllabus_id' => $result['outline'],
                     'course_id' => $result['course_id'],
                     'title' => $result['title'],
                     'course_name' => $result['course_name'],
@@ -116,11 +114,13 @@ class StudentContentManagerService
         $results = $this->content
             ->select(columns: [
                 'id',
+                'outline',
                 'title',
                 'type',
                 'course_name',
                 'course_id',
                 'level',
+                'path_label',
                 'author_name',
                 'upload_date'
             ])
@@ -136,15 +136,16 @@ class StudentContentManagerService
 
         foreach ($results as $result) {
             if ($this->hasClass(
-                json_decode($result['path_label'], true),
+                $this->json($result['path_label']),
                 $filters['class_id']
             )) {
                 $activities[] = [
-                    'syllabus_id' => $result['id'],
+                    'id' => $result['id'],
+                    'syllabus_id' => $result['outline'],
                     'course_id' => $result['course_id'],
                     'level_id' => $result['level'],
                     'title' => $result['title'],
-                    'type' => $this->contentTypeNames[$result['type']],
+                    'type' => $this->contentTypeNames[$result['type']] ?? 'Unknown',
                     'course_name' => $result['course_name'],
                     'created_by' => $result['author_name'],
                     'date_posted' => $result['upload_date'],
@@ -201,7 +202,7 @@ class StudentContentManagerService
             $topicGroup = [
                 'id' => $topic['id'],
                 'title' => $topic['title'],
-                'type' => $this->contentTypeNames[$topic['type']],
+                'type' => $this->contentTypeNames[$topic['type']] ?? 'Unknown',
                 'objective' => $topic['body'],
                 'classes' => $this->json($topic['path_label']),
                 'rank' => $topic['rank'] ?? 0,
@@ -248,12 +249,11 @@ class StudentContentManagerService
         return $result;
     }
 
-
     private function getQuestions(array $questionIds): array
     {
         $ids = array_values(array_map(
             fn($item) => (int)$item['id'],
-            array_filter($questionIds, fn($item) => $item['rank'] != 0)
+            $questionIds
         ));
 
         if (empty($ids)) {
@@ -310,7 +310,7 @@ class StudentContentManagerService
                 'syllabus_id' => $content['outline'],
                 'title' => $content['title'],
                 'description' => $content['description'],
-                'type' => $this->contentTypeNames[$content['type']],
+                'type' => $this->contentTypeNames[$content['type']] ?? 'Unknown',
                 'rank' => $content['rank'] ?? 0,
                 'topic_id' => $content['parent'] ?? 0,
                 'topic' => $content['category'] ?? '',
@@ -327,7 +327,7 @@ class StudentContentManagerService
                 'syllabus_id' => $content['outline'],
                 'title' => $content['title'],
                 'description' => $content['description'],
-                'type' => $this->contentTypeNames[$content['type']],
+                'type' => $this->contentTypeNames[$content['type']] ?? 'Unknown',
                 'rank' => $content['rank'] ?? 0,
                 'topic_id' => $content['parent'] ?? 0,
                 'topic' => $content['category'] ?? '',
@@ -348,7 +348,7 @@ class StudentContentManagerService
                     'syllabus_id' => $content['outline'],
                     'title' => $content['title'],
                     'description' => $content['description'],
-                    'type' => $this->contentTypeNames[$content['type']],
+                    'type' => $this->contentTypeNames[$content['type']] ?? 'Unknown',
                     'rank' => $content['rank'] ?? 0,
                     'topic_id' => $content['parent'] ?? 0,
                     'topic' => $content['category'] ?? '',
@@ -364,9 +364,9 @@ class StudentContentManagerService
         throw new \RuntimeException("Unknown content type: {$content['type']}");
     }
 
-    private function json(string $data): array
+    private function json(?string $data): array
     {
-        if (empty($data) || strtolower($data) === 'null') {
+        if (empty($data) || $data === null) {
             return [];
         }
 

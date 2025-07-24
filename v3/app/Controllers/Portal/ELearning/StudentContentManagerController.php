@@ -41,13 +41,13 @@ class StudentContentManagerController extends BaseController
     {
         $data = $this->validate(
             data: $vars,
-            rules: ['syllabus_id' => 'required|integer']
+            rules: ['id' => 'required|integer']
         );
 
         try {
             $this->respond([
                 'success' => true,
-                'data' => $this->studentContent->getContents($data['syllabus_id'])
+                'data' => $this->studentContent->getContents($data['id'])
             ]);
         } catch (Exception $e) {
             $this->respondError($e->getMessage());

@@ -44,8 +44,8 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/students/{student_id:\d+}/registered-courses', ['Portal\Results\CourseRegistrationController', 'getCoursesRegisteredByStudent']);
         $r->addRoute('GET', '/portal/students', ['Portal\StudentController', 'getAllStudents']);
         $r->addRoute('GET', '/portal/students/elearning/dashboard', ['Portal\ELearning\StudentContentManagerController', 'dashboard']);
-        $r->addRoute('GET', '/portal/students/elearning/contents', ['Portal\ELearning\StudentContentManagerController', 'listContents']);
-        $r->addRoute('GET', '/portal/students/elearning/contents/{id:\d+}', ['Portal\ELearning\StudentContentManagerController', 'listContentsById']);
+        $r->addRoute('GET', '/portal/students/elearning/contents/{id:\d+}', ['Portal\ELearning\StudentContentManagerController', 'listContents']);
+       // $r->addRoute('GET', '/portal/students/elearning/contents/{id:\d+}', ['Portal\ELearning\StudentContentManagerController', 'listContentsById']);
         $r->addRoute('GET', '/portal/students/{id:\d+}/result-terms', ['Portal\Results\StudentResultController', 'getResultTerms']);
         $r->addRoute('GET', '/portal/students/{student_id:\d+}/result/{term:\d+}', ['Portal\Results\StudentResultController', 'getStudentTermResult']);
         $r->addRoute('GET', '/portal/students/{student_id:\d+}/result/annual', ['Portal\Results\StudentResultController', 'getStudentAnnualResult']);
