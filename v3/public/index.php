@@ -115,16 +115,15 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('POST', '/portal/elearning/material', ['Portal\ELearning\MaterialController', 'store']);
         $r->addRoute('POST', '/portal/elearning/assignment', ['Portal\ELearning\AssignmentController', 'store']);
         $r->addRoute('POST', '/portal/elearning/quiz', ['Portal\ELearning\QuizController', 'store']);
-        $r->addRoute('PUT', '/portal/elearning/quiz/{id:\d+}', ['Portal\ELearning\QuizController', 'update']);
+        $r->addRoute('PUT', '/portal/elearning/quiz', ['Portal\ELearning\QuizController', 'update']);
         $r->addRoute('PUT', '/portal/elearning/syllabus/{id:\d+}', ['Portal\ELearning\SyllabusController', 'update']);
         $r->addRoute('PUT', '/portal/elearning/material/{id:\d+}', ['Portal\ELearning\MaterialController', 'update']);
         $r->addRoute('PUT', '/portal/elearning/assignment/{id:\d+}', ['Portal\ELearning\AssignmentController', 'update']);
         $r->addRoute('GET', '/portal/elearning/syllabus', ['Portal\ELearning\SyllabusController', 'get']);
         $r->addRoute('GET', '/portal/elearning/syllabus/contents/{syllabus_id:\d+}', ['Portal\ELearning\ContentManagerController', 'getAllContents']);
         $r->addRoute('GET', '/portal/elearning/topic/{syllabus_id:\d+}', ['Portal\ELearning\TopicController', 'get']);
-        $r->addRoute('DELETE', '/portal/elearning/syllabus/{syllabus_id:\d+}', ['Portal\ELearning\SyllabusController', 'delete']);
-        $r->addRoute('DELETE', '/portal/elearning/material/{id:\d+}', ['Portal\ELearning\MaterialController', 'delete']);
-        $r->addRoute('DELETE', '/portal/elearning/assignment/{id:\d+}', ['Portal\ELearning\AssignmentController', 'delete']);
+        $r->addRoute('DELETE', '/portal/elearning/contents/{content_id:\d+}', ['Portal\ELearning\ContentManagerController', 'delete']);
+        $r->addRoute('DELETE', '/portal/elearning/quiz/{content_id:\d+}/{question_id:\d+}', ['Portal\ELearning\QuizController', 'delete']);
     }
 );
 

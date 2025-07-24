@@ -62,9 +62,9 @@ class MaterialController extends BaseController
 
     public function update(array $vars)
     {
-        $data = $this->validateData(
-            data: $this->post + $vars,
-            requiredFields: [
+        $data = $this->validate(
+            data: [...$this->post, ...$vars],
+            rules: [
                 'id' => 'required|integer',
                 'title' => 'required|string|filled',
                 'description' => 'required|string|filled',
@@ -95,26 +95,6 @@ class MaterialController extends BaseController
             }
 
             return $this->respondError('Failed to update material');
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
-    }
-
-    public function delete(array $vars)
-    {
-        $data = $this->validate(data: $vars, rules: ['id' => 'required|integer']);
-
-        try {
-            if ($this->materialService->deleteMaterial($data['id'])) {
-                return $this->respond(
-                    data: [
-                        'success' => true,
-                        'message' => 'Material deleted successfully.'
-                    ]
-                );
-            }
-
-            return $this->respondError('Material not found or already deleted.');
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }

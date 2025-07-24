@@ -4,6 +4,7 @@ namespace V3\App\Services\Portal\ELearning;
 
 use PDO;
 use V3\App\Common\Enums\ContentType;
+use V3\App\Common\Utilities\PathResolver;
 use V3\App\Models\Portal\ELearning\Content;
 use V3\App\Models\Portal\ELearning\Quiz;
 
@@ -11,6 +12,7 @@ class ContentManagerService
 {
     private Content $content;
     private Quiz $quiz;
+    private string $contentPath;
 
     private array $contentTypeNames = [
         ContentType::TOPIC->value => 'topic',
@@ -34,6 +36,9 @@ class ContentManagerService
     {
         $this->content = new Content($pdo);
         $this->quiz = new Quiz($pdo);
+
+        $paths = PathResolver::getContentPaths();
+        $this->contentPath = $paths['absolute'];
     }
 
     private function getQuestions(array $questionIds): array
@@ -239,5 +244,107 @@ class ContentManagerService
         }
         $decoded = json_decode($data, true);
         return is_array($decoded) ? $decoded : [];
+    }
+
+    public function deleteContent($id): bool
+    {
+        try {
+            $content = $this->content
+                ->where('id', '=', $id)
+                ->first();
+
+            if (empty($content)) {
+                throw new \Exception("Content not found for ID: $id");
+            }
+
+            $type = $content['type'];
+
+            // Handle specific deletion logic based on type
+            match ($type) {
+                ContentType::QUIZ->value => $this->deleteQuizContent($content),
+                ContentType::MATERIAL->value, ContentType::ASSIGNMENT->value => $this->deleteContentFiles($content),
+                ContentType::TOPIC->value => $this->deleteTopicAndUpdateChildren($id),
+                ContentType::SYLLABUS->value => $this->deleteSyllabusIfNoChildren($id),
+                default => throw new \Exception("Unknown content type: {$type}")
+            };
+
+            // Finally delete the content row
+            $this->content
+                ->where('id', '=', $id)
+                ->delete();
+
+            return true;
+        } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
+    private function deleteContentFiles(array $content): void
+    {
+        $files = json_decode($content['url'], true, 512, JSON_THROW_ON_ERROR);
+        if (is_array($files)) {
+            $this->deleteFiles($files);
+        }
+    }
+
+    private function deleteQuizContent(array $content): void
+    {
+        $quizItems = json_decode($content['url'], true, 512, JSON_THROW_ON_ERROR);
+        foreach ($quizItems as $item) {
+            $questionId = $item['id'];
+            $question = $this->quiz->where('question_id', '=', $questionId)->first();
+
+            if (empty($question)) {
+                continue;
+            }
+
+            $questionFiles = json_decode($question['content'], true);
+            $this->deleteFiles($questionFiles);
+
+            $options = json_decode($question['answer'], true);
+            foreach ($options as $option) {
+                if (!empty($option['option_files'] ?? [])) {
+                    $this->deleteFiles($option['option_files']);
+                }
+            }
+
+            $this->quiz
+                ->where('question_id', '=', $questionId)
+                ->delete();
+        }
+    }
+
+    private function deleteTopicAndUpdateChildren(int $topicId): void
+    {
+        $this->content
+            ->where('parent', '=', $topicId)
+            ->update(['parent' => 0]);
+    }
+
+    private function deleteSyllabusIfNoChildren(int $syllabusId): void
+    {
+        $children = $this->content
+            ->where('outline', '=', $syllabusId)
+            ->count();
+        if ($children > 0) {
+            throw new \Exception("Cannot delete syllabus. It has dependent contents.");
+        }
+    }
+
+    /**
+     * Deletes a list of files from the filesystem
+     */
+    private function deleteFiles(array $files): void
+    {
+        foreach ($files as $file) {
+            $filePath = $file['file_name'] ?? $file['old_file_name'] ?? null;
+
+            if ($filePath) {
+                $absolute = $this->contentPath . basename($filePath);
+                if (file_exists($absolute)) {
+                    @unlink($absolute); // Suppress warning, continue even if file fails
+                }
+            }
+        }
     }
 }

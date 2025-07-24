@@ -19,20 +19,20 @@ class SyllabusController extends BaseController
 
     public function store()
     {
-        $data = $this->validateData(
+        $data = $this->validate(
             data: $this->post,
-            requiredFields: [
-                'title',
-                'description',
-                'course_id',
-                'course_name',
-                'level_id',
-                'classes',
-                'classes.*.id',
-                'classes.*.name',
-                'creator_id',
-                'creator_name',
-                'term'
+            rules: [
+                'title' => 'required|string|filled',
+                'description' => 'required|string|filled',
+                'course_id' => 'required|integer',
+                'course_name' => 'required|string|filled',
+                'level_id' => 'required|integer',
+                'classes' => 'required|array|min:1',
+                'classes.*.id' => 'required|integer',
+                'classes.*.name' => 'required|string|filled',
+                'creator_id' => 'required|integer',
+                'creator_name' => 'required|string|filled',
+                'term' => 'required|integer'
             ]
         );
 
@@ -40,7 +40,7 @@ class SyllabusController extends BaseController
             $newId = $this->service->create($data);
 
             if ($newId > 0) {
-                return $this->respond(
+                $this->respond(
                     data: [
                         'success' => true,
                         'syllabusId' => $newId,
@@ -50,23 +50,23 @@ class SyllabusController extends BaseController
                 );
             }
 
-            return $this->respondError('Failed to create syllabus');
+            $this->respondError('Failed to create syllabus', HttpStatus::BAD_REQUEST);
         } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+            $this->respondError($e->getMessage());
         }
     }
 
     public function update(array $vars)
     {
-        $data = $this->validateData(
-            data: $this->post + $vars,
-            requiredFields: [
-                'id',
-                'title',
-                'description',
-                'classes',
-                'classes.*.id',
-                'classes.*.name'
+        $data = $this->validate(
+            data: [...$this->post, ...$vars],
+            rules: [
+                'id' => 'required|integer',
+                'title' => 'required|string|filled',
+                'description' => 'required|string|filled',
+                'classes' => 'required|array|min:1',
+                'classes.*.id' => 'required|integer',
+                'classes.*.name' => 'required|string|filled'
             ]
         );
 
@@ -74,7 +74,7 @@ class SyllabusController extends BaseController
             $id = $this->service->updateSyllabus($data);
 
             if ($id > 0) {
-                return $this->respond(
+                $this->respond(
                     data: [
                         'success' => true,
                         'message' => 'Syllabus updated successfully.',
@@ -85,45 +85,30 @@ class SyllabusController extends BaseController
 
             return $this->respondError('No changes', HttpStatus::INFO);
         } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+            $this->respondError($e->getMessage());
         }
     }
 
     public function get(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['term', 'level_id', 'course_id']);
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'term' => 'required|integer',
+                'level_id' => 'required|integer',
+                'course_id' => 'required|integer'
+            ]
+        );
 
         try {
-            return $this->respond(
+            $this->respond(
                 data: [
                     'success' => true,
                     'response' => $this->service->getSyllabus(filters: $data)
                 ]
             );
         } catch (Exception $e) {
-            return $this->respondError(message: $e->getMessage());
-        }
-    }
-
-    public function delete(array $vars)
-    {
-        $data = $this->validateData(data: $vars, requiredFields: ['syllabus_id']);
-
-        try {
-            $id = $this->service->deleteSyllabus($data['syllabus_id']);
-            if ($id > 0) {
-                return $this->respond(
-                    data: [
-                        'success' => true,
-                        'message' => 'Syllabus deleted successfully.',
-                        'syllabus_id' => $id
-                    ]
-                );
-            }
-
-            return $this->respondError('Failed to delete syllabus');
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+            $this->respondError(message: $e->getMessage());
         }
     }
 }
