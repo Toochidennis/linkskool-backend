@@ -16,8 +16,41 @@ class StudentContentManagerController extends BaseController
         $this->studentContent = new StudentContentManagerService($this->pdo);
     }
 
-    public function getContents(array $vars)
+    public function dashboard(array $vars)
     {
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'class_id' => 'required|integer',
+                'term' => 'required|integer',
+                'level_id' => 'required|integer',
+            ]
+        );
 
+        try {
+            $this->respond([
+                'success' => true,
+                'data' => $this->studentContent->getStudentDashboardData($data)
+            ]);
+        } catch (Exception $e) {
+            $this->respondError($e->getMessage());
+        }
+    }
+
+    public function listContents(array $vars)
+    {
+        $data = $this->validate(
+            data: $vars,
+            rules: ['syllabus_id' => 'required|integer']
+        );
+
+        try {
+            $this->respond([
+                'success' => true,
+                'data' => $this->studentContent->getContents($data['syllabus_id'])
+            ]);
+        } catch (Exception $e) {
+            $this->respondError($e->getMessage());
+        }
     }
 }
