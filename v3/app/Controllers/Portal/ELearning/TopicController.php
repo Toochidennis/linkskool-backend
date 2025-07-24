@@ -29,7 +29,11 @@ class TopicController extends BaseController
                 'classes.*.name' => 'required|string|filled',
                 'syllabus_id' => 'required|integer',
                 'creator_name' => 'required|string|filled',
-                'creator_id' => 'required|integer'
+                'creator_id' => 'required|integer',
+                'course_id' => 'required|integer',
+                'course_name' => 'required|string|filled',
+                'level_id' => 'required|integer',
+                'term' => 'required|integer',
             ]
         );
 
