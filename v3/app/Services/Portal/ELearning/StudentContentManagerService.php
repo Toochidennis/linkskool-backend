@@ -2,13 +2,12 @@
 
 namespace V3\App\Services\Portal\ELearning;
 
-use PDO;
 use V3\App\Common\Enums\ContentType;
-use V3\App\Common\Utilities\PathResolver;
 use V3\App\Models\Portal\ELearning\Content;
 use V3\App\Models\Portal\ELearning\Quiz;
+use V3\App\Common\Utilities\PathResolver;
 
-class ContentManagerService
+class StudentContentManagerService
 {
     private Content $content;
     private Quiz $quiz;
@@ -26,13 +25,7 @@ class ContentManagerService
         'qs' => 'short_answer',
     ];
 
-    /**
-     * ContentManagerService constructor.
-     *
-     * @param PDO $pdo
-     */
-
-    public function __construct(PDO $pdo)
+    public function __construct(\PDO $pdo)
     {
         $this->content = new Content($pdo);
         $this->quiz = new Quiz($pdo);
@@ -41,56 +34,134 @@ class ContentManagerService
         $this->contentPath = $paths['absolute'];
     }
 
-    private function getQuestions(array $questionIds): array
+    private function getCourses(array $filters): array
     {
-        $ids = array_values(array_map(
-            fn($item) => (int)$item['id'],
-            array_filter($questionIds, fn($item) => $item['rank'] != 0)
-        ));
+        $courses = [];
 
-        if (empty($ids)) {
-            return [];
-        }
-
-        $questions = $this->quiz
-            ->select([
-                'question_id',
-                'parent AS question_grade',
-                'content AS question_files',
-                'title AS question_text',
-                'type AS question_type',
-                'answer AS options',
-                'correct',
-            ])
-            ->in('question_id', $ids)
+        $syllabi = $this->content
+            ->select(columns: ['id', 'path_label', 'course_id', 'course_name', 'level'])
+            ->where('term', '=', $filters['term'])
+            ->where('level', '=', $filters['level_id'])
+            ->orderBy('course_name')
             ->get();
 
-        if (!$questions) {
+        if (empty($syllabi)) {
             return [];
         }
 
-        $questions = array_map(function ($question) {
-            $question['question_type'] = $this->questionTypeNames[$question['question_type']]
-                ?? $question['question_type'];
-            $question['question_files'] = $this->json($question['question_files']);
-            $question['options'] = $this->json($question['options']);
-            $question['correct'] = $this->json($question['correct']);
-            return $question;
-        }, $questions);
+        foreach ($syllabi as $syllabus) {
+            if ($this->hasClass(
+                json_decode($syllabus['path_label'], true),
+                $filters['class_id']
+            )) {
+                $courses[] = [
+                    'syllabus_id' => $syllabus['id'],
+                    'course_id' => $syllabus['course_id'],
+                    'level_id' => $syllabus['level'],
+                    'course_name' => $syllabus['course_name'],
+                ];
+            }
+        }
 
-        return $questions;
+        return $courses;
     }
 
-    private function appendQuestionsToContent($content)
+    private function getRecentQuiz(array $filters)
     {
-        $questionIds = $this->json($content['url']);
-        if (is_array($questionIds) && count($questionIds)) {
-            $questions = $this->getQuestions($questionIds);
-            $content['questions'] = $questions;
-        } else {
-            $content['questions'] = [];
+        $quizzes = [];
+        $results = $this->content
+            ->select(columns: [
+                'id',
+                'title',
+                'course_name',
+                'course_id',
+                'level',
+                'upload_date',
+                'author_name'
+            ])
+            ->where('term', '=', $filters['term'])
+            ->where('level', '=', $filters['level_id'])
+            ->where('type', '=', ContentType::QUIZ->value)
+            ->orderBy('upload_date', 'DESC')
+            ->limit(5)
+            ->get();
+
+        if (empty($results)) {
+            return [];
         }
-        return $this->formatContent($content);
+
+        foreach ($results as $result) {
+            if ($this->hasClass(
+                json_decode($result['path_label'], true),
+                $filters['class_id']
+            )) {
+                $quizzes[] = [
+                    'syllabus_id' => $result['id'],
+                    'course_id' => $result['course_id'],
+                    'title' => $result['title'],
+                    'course_name' => $result['course_name'],
+                    'level_id' => $result['level'],
+                    'created_by' => $result['author_name'],
+                    'date_posted' => $result['upload_date'],
+                ];
+            }
+        }
+
+        return $quizzes;
+    }
+
+    private function getRecentActivities(array $filters)
+    {
+        $activities = [];
+        $results = $this->content
+            ->select(columns: [
+                'id',
+                'title',
+                'type',
+                'course_name',
+                'course_id',
+                'level',
+                'author_name',
+                'upload_date'
+            ])
+            ->where('term', '=', $filters['term'])
+            ->where('level', '=', $filters['level_id'])
+            ->orderBy('upload_date', 'DESC')
+            ->limit(5)
+            ->get();
+
+        if (empty($results)) {
+            return [];
+        }
+
+        foreach ($results as $result) {
+            if ($this->hasClass(
+                json_decode($result['path_label'], true),
+                $filters['class_id']
+            )) {
+                $activities[] = [
+                    'syllabus_id' => $result['id'],
+                    'course_id' => $result['course_id'],
+                    'level_id' => $result['level'],
+                    'title' => $result['title'],
+                    'type' => $this->contentTypeNames[$result['type']],
+                    'course_name' => $result['course_name'],
+                    'created_by' => $result['author_name'],
+                    'date_posted' => $result['upload_date'],
+                ];
+            }
+        }
+
+        return $activities;
+    }
+
+    public function getStudentDashboardData(array $filters): array
+    {
+        return [
+            'recent_quizzes' => $this->getRecentQuiz($filters),
+            'recent_activities' => $this->getRecentActivities($filters),
+            'available_courses' => $this->getCourses($filters),
+        ];
     }
 
     public function getContents(int $syllabusId): array
@@ -99,6 +170,10 @@ class ContentManagerService
             ->where('outline', '=', $syllabusId)
             ->orderBy('rank')
             ->get();
+
+        if (empty($contents)) {
+            return [];
+        }
 
         $result = [];
 
@@ -173,6 +248,59 @@ class ContentManagerService
         return $result;
     }
 
+
+    private function getQuestions(array $questionIds): array
+    {
+        $ids = array_values(array_map(
+            fn($item) => (int)$item['id'],
+            array_filter($questionIds, fn($item) => $item['rank'] != 0)
+        ));
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $questions = $this->quiz
+            ->select([
+                'question_id',
+                'parent AS question_grade',
+                'content AS question_files',
+                'title AS question_text',
+                'type AS question_type',
+                'answer AS options',
+                'correct',
+            ])
+            ->in('question_id', $ids)
+            ->get();
+
+        if (!$questions) {
+            return [];
+        }
+
+        $questions = array_map(function ($question) {
+            $question['question_type'] = $this->questionTypeNames[$question['question_type']]
+                ?? $question['question_type'];
+            $question['question_files'] = $this->json($question['question_files']);
+            $question['options'] = $this->json($question['options']);
+            $question['correct'] = $this->json($question['correct']);
+            return $question;
+        }, $questions);
+
+        return $questions;
+    }
+
+    private function appendQuestionsToContent($content)
+    {
+        $questionIds = $this->json($content['url']);
+        if (is_array($questionIds) && count($questionIds)) {
+            $questions = $this->getQuestions($questionIds);
+            $content['questions'] = $questions;
+        } else {
+            $content['questions'] = [];
+        }
+        return $this->formatContent($content);
+    }
+
     private function formatContent(array $content): array
     {
         // MATERIAL
@@ -238,112 +366,17 @@ class ContentManagerService
 
     private function json(string $data): array
     {
-        if (empty($data)) {
+        if (empty($data) || strtolower($data) === 'null') {
             return [];
         }
+
         $decoded = json_decode($data, true);
         return is_array($decoded) ? $decoded : [];
     }
 
-    public function deleteContent($id): bool
+
+    private function hasClass(array $pathLabel, string|int $targetClassId): bool
     {
-        try {
-            $content = $this->content
-                ->where('id', '=', $id)
-                ->first();
-
-            if (empty($content)) {
-                throw new \Exception("Content not found for ID: $id");
-            }
-
-            $type = $content['type'];
-
-            // Handle specific deletion logic based on type
-            match ($type) {
-                ContentType::QUIZ->value => $this->deleteQuizContent($content),
-                ContentType::MATERIAL->value, ContentType::ASSIGNMENT->value => $this->deleteContentFiles($content),
-                ContentType::TOPIC->value => $this->deleteTopicAndUpdateChildren($id),
-                ContentType::SYLLABUS->value => $this->deleteSyllabusIfNoChildren($id),
-                default => throw new \Exception("Unknown content type: {$type}")
-            };
-
-            // Finally delete the content row
-            $this->content
-                ->where('id', '=', $id)
-                ->delete();
-
-            return true;
-        } catch (\Throwable $e) {
-            throw $e;
-        }
-    }
-
-    private function deleteContentFiles(array $content): void
-    {
-        $files = json_decode($content['url'], true, 512, JSON_THROW_ON_ERROR);
-        if (is_array($files)) {
-            $this->deleteFiles($files);
-        }
-    }
-
-    private function deleteQuizContent(array $content): void
-    {
-        $quizItems = json_decode($content['url'], true, 512, JSON_THROW_ON_ERROR);
-        foreach ($quizItems as $item) {
-            $questionId = $item['id'];
-            $question = $this->quiz->where('question_id', '=', $questionId)->first();
-
-            if (empty($question)) {
-                continue;
-            }
-
-            $questionFiles = json_decode($question['content'], true);
-            $this->deleteFiles($questionFiles);
-
-            $options = json_decode($question['answer'], true);
-            foreach ($options as $option) {
-                if (!empty($option['option_files'] ?? [])) {
-                    $this->deleteFiles($option['option_files']);
-                }
-            }
-
-            $this->quiz
-                ->where('question_id', '=', $questionId)
-                ->delete();
-        }
-    }
-
-    private function deleteTopicAndUpdateChildren(int $topicId): void
-    {
-        $this->content
-            ->where('parent', '=', $topicId)
-            ->update(['parent' => 0]);
-    }
-
-    private function deleteSyllabusIfNoChildren(int $syllabusId): void
-    {
-        $children = $this->content
-            ->where('outline', '=', $syllabusId)
-            ->count();
-        if ($children > 0) {
-            throw new \Exception("Cannot delete syllabus. It has dependent contents.");
-        }
-    }
-
-    /**
-     * Deletes a list of files from the filesystem
-     */
-    private function deleteFiles(array $files): void
-    {
-        foreach ($files as $file) {
-            $filePath = $file['file_name'] ?? $file['old_file_name'] ?? null;
-
-            if ($filePath) {
-                $absolute = $this->contentPath . basename($filePath);
-                if (file_exists($absolute)) {
-                    @unlink($absolute); // Suppress warning, continue even if file fails
-                }
-            }
-        }
+        return !empty(array_filter($pathLabel, fn($cls) => $cls['id'] == $targetClassId));
     }
 }

@@ -23,6 +23,10 @@ class TopicService
             'outline' => $data['syllabus_id'],
             'author_name' => $data['creator_name'],
             'author_id' => $data['creator_id'],
+            'course_id' => $data['course_id'],
+            'course_name' => $data['course_name'],
+            'level' => $data['level_id'],
+            'term' => $data['term'],
             'type' => ContentType::TOPIC->value,
             'upload_date' => date('Y-m-d H:i:s')
         ];
