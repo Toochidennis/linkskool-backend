@@ -24,6 +24,8 @@ class StudentContentManagerController extends BaseController
                 'class_id' => 'required|integer',
                 'term' => 'required|integer',
                 'level_id' => 'required|integer',
+                'year' => 'required|integer',
+                'id' => 'required|integer',
             ]
         );
 
