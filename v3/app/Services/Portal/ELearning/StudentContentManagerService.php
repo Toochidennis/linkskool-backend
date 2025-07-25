@@ -5,17 +5,20 @@ namespace V3\App\Services\Portal\ELearning;
 use V3\App\Common\Enums\ContentType;
 use V3\App\Models\Portal\ELearning\Content;
 use V3\App\Models\Portal\ELearning\Quiz;
+use V3\App\Models\Portal\Results\Result;
 
 class StudentContentManagerService
 {
     private Content $content;
     private Quiz $quiz;
+    private Result $result;
 
     private array $contentTypeNames = [
         ContentType::TOPIC->value => 'topic',
         ContentType::QUIZ->value => 'quiz',
         ContentType::MATERIAL->value => 'material',
         ContentType::ASSIGNMENT->value => 'assignment',
+        ContentType::SYLLABUS->value => 'syllabus'
     ];
 
     private array $questionTypeNames = [
@@ -27,6 +30,7 @@ class StudentContentManagerService
     {
         $this->content = new Content($pdo);
         $this->quiz = new Quiz($pdo);
+        $this->result = new Result($pdo);
     }
 
     private function getCourses(array $filters): array
@@ -45,16 +49,28 @@ class StudentContentManagerService
         }
 
         foreach ($syllabi as $syllabus) {
-            if ($this->hasClass(
-                $this->json($syllabus['path_label']),
-                $filters['class_id']
-            )) {
-                $courses[] = [
-                    'syllabus_id' => $syllabus['id'],
-                    'course_id' => $syllabus['course_id'],
-                    'level_id' => $syllabus['level'],
-                    'course_name' => $syllabus['course_name'],
-                ];
+            if (
+                $this->hasClass(
+                    $this->json($syllabus['path_label']),
+                    $filters['class_id']
+                )
+            ) {
+                $isRegistered = $this->result
+                    ->where('year', '=', $filters['year'])
+                    ->where('term', '=', $filters['term'])
+                    ->where('reg_no', '=', $filters['id'])
+                    ->where('course', '=', $syllabus['course_id'])
+                    ->where('class', '=', $filters['class_id'])
+                    ->exists();
+
+                if ($isRegistered) {
+                    $courses[] = [
+                        'syllabus_id' => $syllabus['id'],
+                        'course_id' => $syllabus['course_id'],
+                        'level_id' => $syllabus['level'],
+                        'course_name' => $syllabus['course_name'],
+                    ];
+                }
             }
         }
 
@@ -88,10 +104,12 @@ class StudentContentManagerService
         }
 
         foreach ($results as $result) {
-            if ($this->hasClass(
-                $this->json($result['path_label']),
-                $filters['class_id']
-            )) {
+            if (
+                $this->hasClass(
+                    $this->json($result['path_label']),
+                    $filters['class_id']
+                )
+            ) {
                 $quizzes[] = [
                     'id' => $result['id'],
                     'syllabus_id' => $result['outline'],
@@ -135,10 +153,12 @@ class StudentContentManagerService
         }
 
         foreach ($results as $result) {
-            if ($this->hasClass(
-                $this->json($result['path_label']),
-                $filters['class_id']
-            )) {
+            if (
+                $this->hasClass(
+                    $this->json($result['path_label']),
+                    $filters['class_id']
+                )
+            ) {
                 $activities[] = [
                     'id' => $result['id'],
                     'syllabus_id' => $result['outline'],
