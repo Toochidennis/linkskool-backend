@@ -56,4 +56,9 @@ class AccountService
             ->where('inactive', '=', 'FALSE')
             ->paginate($page, $limit);
     }
+
+    public function deleteAccount(int $id): bool|int
+    {
+        return $this->account->where('typeid', '=', $id)->delete();
+    }
 }
