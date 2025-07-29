@@ -105,4 +105,29 @@ class AccountController extends BaseController
             $this->respondError($e->getMessage());
         }
     }
+
+    public function delete(array $vars)
+    {
+        $cleanedData = $this->validate($vars, ['id' => 'required|integer']);
+
+        try {
+            $newId = $this->service->deleteAccount($cleanedData['id']);
+
+            if ($newId > 0) {
+                $this->respond(
+                    [
+                        'success' => true,
+                        'message' => 'Account deleted successfully'
+                    ],
+                );
+            }
+
+            $this->respondError(
+                'Failed to delete account. Maybe it doesn\'t exist',
+                HttpStatus::BAD_REQUEST
+            );
+        } catch (Exception $e) {
+            $this->respondError($e->getMessage());
+        }
+    }
 }

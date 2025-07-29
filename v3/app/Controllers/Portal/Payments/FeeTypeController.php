@@ -88,4 +88,36 @@ class FeeTypeController extends BaseController
             $this->respondError($e->getMessage());
         }
     }
+
+    public function delete(array $vars)
+    {
+        $cleanedData = $this->validate(
+            data: [...$this->post, ...$vars],
+            rules: [
+                'id' => 'required|integer',
+                'term' => 'required|integer',
+                'year' => 'required|integer',
+            ]
+        );
+
+        try {
+            $newId = $this->feeTypeService->deleteFeeName($cleanedData);
+
+            if ($newId > 0) {
+                $this->respond(
+                    [
+                        'success' => true,
+                        'message' => 'Fee name deleted successfully'
+                    ],
+                );
+            }
+
+            $this->respondError(
+                'Failed to delete fee name. Maybe it doesn\'t exist',
+                HttpStatus::BAD_REQUEST
+            );
+        } catch (\Exception $e) {
+            $this->respondError($e->getMessage());
+        }
+    }
 }
