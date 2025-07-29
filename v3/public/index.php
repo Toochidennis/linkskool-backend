@@ -45,7 +45,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/students', ['Portal\StudentController', 'getAllStudents']);
         $r->addRoute('GET', '/portal/students/{id:\d+}/elearning/dashboard', ['Portal\ELearning\StudentContentManagerController', 'dashboard']);
         $r->addRoute('GET', '/portal/students/elearning/contents/{id:\d+}', ['Portal\ELearning\StudentContentManagerController', 'listContents']);
-       // $r->addRoute('GET', '/portal/students/elearning/contents/{id:\d+}', ['Portal\ELearning\StudentContentManagerController', 'listContentsById']);
+        // $r->addRoute('GET', '/portal/students/elearning/contents/{id:\d+}', ['Portal\ELearning\StudentContentManagerController', 'listContentsById']);
         $r->addRoute('GET', '/portal/students/{id:\d+}/result-terms', ['Portal\Results\StudentResultController', 'getResultTerms']);
         $r->addRoute('GET', '/portal/students/{student_id:\d+}/result/{term:\d+}', ['Portal\Results\StudentResultController', 'getStudentTermResult']);
         $r->addRoute('GET', '/portal/students/{student_id:\d+}/result/annual', ['Portal\Results\StudentResultController', 'getStudentAnnualResult']);
@@ -127,6 +127,14 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('GET', '/portal/elearning/topic/{syllabus_id:\d+}', ['Portal\ELearning\TopicController', 'get']);
         $r->addRoute('DELETE', '/portal/elearning/contents/{content_id:\d+}', ['Portal\ELearning\ContentManagerController', 'delete']);
         $r->addRoute('DELETE', '/portal/elearning/quiz/{content_id:\d+}/{question_id:\d+}', ['Portal\ELearning\QuizController', 'delete']);
+
+        // Payment
+        $r->addRoute('POST', '/portal/payments/accounts', ['Portal\Payments\AccountController', 'store']);
+        $r->addRoute('PUT', '/portal/payments/accounts/{id:\d+}', ['Portal\Payments\AccountController', 'update']);
+        $r->addRoute('POST', '/portal/payments/next-term-fees', ['Portal\Payments\NextTermFeeController', 'upsert']);
+        $r->addRoute('GET', '/portal/payments/accounts', ['Portal\Payments\AccountController', 'get']);
+        $r->addRoute('GET', '/portal/payments/fee-types', ['Portal\Payments\FeeTypeController', 'get']);
+        $r->addRoute('GET', '/portal/payments/next-term-fees', ['Portal\Payments\NextTermFeeController', 'get']);
     }
 );
 

@@ -25,6 +25,7 @@ class QueryBuilder
     private string $groupBy = '';
     private array $orderBy = [];
     private string $limit = '';
+    private string $offset = '';
 
     /**
      * Constructor to initialize the PDO instance.
@@ -69,19 +70,38 @@ class QueryBuilder
      * @param  mixed|null $value    The value to compare against.
      * @return self
      */
-    public function where(string $column, $operator, $value = null): self
+    public function where(string|Closure $column, $operator = null, $value = null): self
     {
-        if (func_num_args() === 2) {
-            $value = $operator;
-            $operator = '=';
+        if ($column instanceof Closure) {
+            $builder = new WhereBuilder();
+            $column($builder);
+            $this->whereConditions[] = $builder->getClause();
+            $this->whereBindings = array_merge($this->whereBindings, $builder->getBindings());
+        } else {
+            if (func_num_args() === 2) {
+                $value = $operator;
+                $operator = '=';
+            }
+
+            $quoted = $this->wrapIdentifier($column);
+            $this->whereConditions[] = "$quoted $operator ?";
+            $this->whereBindings[] = $value;
         }
 
-        $parts = explode('.', $column);
-        $quotedParts = array_map(fn($part) => "`$part`", $parts);
-        $quotedColumn = implode('.', $quotedParts);
+        return $this;
+    }
 
-        $this->whereConditions[] = "$quotedColumn $operator ?";
-        $this->whereBindings[] = $value;
+    public function whereGroup(array $conditions): self
+    {
+        $builder = new WhereBuilder();
+
+        foreach ($conditions as [$column, $operator, $value]) {
+            $builder->where($column, $operator, $value);
+        }
+
+        $this->whereConditions[] = $builder->getClause();
+        $this->whereBindings = array_merge($this->whereBindings, $builder->getBindings());
+
         return $this;
     }
 
@@ -135,6 +155,12 @@ class QueryBuilder
         return $this;
     }
 
+    public function offset(int $offset): self
+    {
+        $this->offset = "OFFSET $offset";
+        return $this;
+    }
+
     /**
      * Adds a JOIN clause to the query.
      *
@@ -184,6 +210,10 @@ class QueryBuilder
         if ($this->limit) {
             $query .= " " . $this->limit;
         }
+        if ($this->offset) {
+            $query .= " " . $this->offset;
+        }
+
         $stmt = $this->pdo->prepare($query);
         $stmt->execute(array_merge($this->bindings, $this->whereBindings));
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -338,6 +368,26 @@ class QueryBuilder
         return $exists;
     }
 
+    public function paginate(int $page = 1, int $limit = 20): array
+    {
+        $offset = ($page - 1) * $limit;
+
+        $data = $this->limit($limit)->offset($offset)->get();
+        $total = $this->count();
+
+        return [
+            'data' => $data,
+            'meta' => [
+                'total' => $total,
+                'per_page' => $limit,
+                'current_page' => $page,
+                'last_page' => ceil($total / $limit),
+                'has_next' => $page * $limit < $total,
+                'has_prev' => $page > 1
+            ],
+        ];
+    }
+
     /**
      * Executes a raw SQL query with optional parameter bindings.
      *
@@ -386,5 +436,6 @@ class QueryBuilder
         $this->groupBy = '';
         $this->orderBy = [];
         $this->limit = '';
+        $this->offset = '';
     }
 }
