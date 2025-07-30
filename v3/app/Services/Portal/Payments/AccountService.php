@@ -15,10 +15,16 @@ class AccountService
 
     public function addAccount(array $data)
     {
-        if ($this->isDuplicate($data)) {
+        $payload  = [
+            'account_name' => $data['account_name'],
+            'account_type' => $data['account_type'],
+            'account_id' => $data['account_number'],
+        ];
+
+        if ($this->isDuplicate($payload)) {
             return false;
         } else {
-            return $this->account->insert([...$data, 'inactive' => 'FALSE']);
+            return $this->account->insert([...$payload, 'inactive' => 'FALSE']);
         }
     }
 
@@ -27,7 +33,7 @@ class AccountService
         $payload  = [
             'account_name' => $data['account_name'],
             'account_type' => $data['account_type'],
-            'account_id' => $data['account_id'],
+            'account_id' => $data['account_number'],
         ];
 
         if ($this->isDuplicate($payload)) {
@@ -43,7 +49,7 @@ class AccountService
     {
         return $this->account
             ->where(function ($q) use ($payload) {
-                $q->where('account_id', '=', $payload['account_id'])
+                $q->where('account_id', '=', $payload['account_number'])
                     ->orWhere('account_name', '=', $payload['account_name']);
             })
             ->exists();
@@ -52,7 +58,7 @@ class AccountService
     public function getPaginatedAccounts(int $page, int $limit)
     {
         return $this->account
-            ->select(['typeid AS id', 'account_name', 'account_type', 'account_id', 'inactive'])
+            ->select(['typeid AS id', 'account_name', 'account_type', 'account_id AS account_number', 'inactive'])
             ->where('inactive', '=', 'FALSE')
             ->paginate($page, $limit);
     }
