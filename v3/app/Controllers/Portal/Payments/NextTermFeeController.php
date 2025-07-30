@@ -67,3 +67,39 @@ class NextTermFeeController extends BaseController
         }
     }
 }
+
+// /Models
+//   - Account.php
+//   - FeeType.php
+//   - FeeAmount.php
+//   - Vendor.php
+//   - Expenditure.php
+//   - Receipt.php
+//   - Transaction.php
+//   - Payment.php
+
+// /Controllers
+//   - AccountController.php
+//   - FeeTypeController.php
+//   - FeeAmountController.php
+//   - VendorController.php
+//   - ExpenditureController.php
+//   - ReceiptController.php
+//   - TransactionController.php
+//   - StudentPaymentController.php
+//   - PaymentStatusController.php
+//   - PaymentDashboardController.php
+//   - ReceiptViewerController.php
+
+// /Services
+//   - AccountService.php
+//   - FeeTypeService.php
+//   - FeeAmountService.php
+//   - VendorService.php
+//   - ExpenditureService.php
+//   - ReceiptService.php
+//   - TransactionService.php
+//   - StudentPaymentService.php
+//   - PaymentStatusService.php
+//   - PaymentAnalyticsService.php
+//   - ReceiptGeneratorService.php

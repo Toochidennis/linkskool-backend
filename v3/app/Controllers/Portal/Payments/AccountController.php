@@ -22,7 +22,7 @@ class AccountController extends BaseController
         $cleanedData = $this->validate(
             data: $this->post,
             rules: [
-                'account_id' => 'required|digits:4',
+                'account_number' => 'required|digits:4',
                 'account_name' => 'required|string|filled',
                 'account_type' => 'required|integer'
             ]
@@ -56,7 +56,7 @@ class AccountController extends BaseController
             data: [...$this->post, ...$vars],
             rules: [
                 'id' => 'required|integer',
-                'account_id' => 'required|digits:4',
+                'account_number' => 'required|digits:4',
                 'account_name' => 'required|string|filled',
                 'account_type' => 'required|integer'
             ]

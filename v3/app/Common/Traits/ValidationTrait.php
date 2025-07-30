@@ -34,6 +34,7 @@ trait ValidationTrait
                 'numeric' => 'The :attribute must be a number.',
                 'in' => 'The selected :attribute is invalid.',
                 'required_if' => 'The :attribute field is required when :other is :value.',
+                'digits' => 'The :attribute field must be exactly :digits digits.',
             ]);
             $translator = new Translator($loader, 'en');
             $this->validationFactory = new Factory($translator);
