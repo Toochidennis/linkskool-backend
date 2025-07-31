@@ -15,8 +15,18 @@ class StudentPaymentController extends BaseController
         $this->studentPayment = new StudentPaymentService($this->pdo);
     }
 
-    public function invoice(array $filters)
+    public function getFinancialRecords(array $vars)
     {
-        //TODO
+        $cleanedData = $this->validate($vars, ['student_id' => 'required|integer']);
+
+        try {
+            $this->respond([
+                'success' => true,
+                'response' => $this->studentPayment
+                    ->getInvoiceAndTransactionHistory($cleanedData['student_id']),
+            ]);
+        } catch (\Exception $e) {
+            $this->respondError($e->getMessage());
+        }
     }
 }
