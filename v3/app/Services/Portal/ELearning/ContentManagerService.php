@@ -188,7 +188,7 @@ class ContentManagerService
                 'topic' => $content['category'] ?? '',
                 'classes' => $this->json($content['path_label']),
                 'content_files' => $this->json($content['url']),
-                'date_posted' => $content['end_date'],
+                'date_posted' => $content['upload_date'],
             ];
         }
 
@@ -228,6 +228,7 @@ class ContentManagerService
                     'start_date' => $content['start_date'],
                     'end_date' => $content['end_date'],
                     'duration' => $content['body'],
+                    'date_posted' => $content['upload_date'],
                 ],
                 'questions' => $content['questions'],
             ];
