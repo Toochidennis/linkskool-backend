@@ -85,5 +85,6 @@ class Tables
         'transactions',
         'ward',
         'question_table',
+        'customer',
     ];
 }

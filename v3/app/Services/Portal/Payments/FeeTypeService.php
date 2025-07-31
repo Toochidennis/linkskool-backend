@@ -23,7 +23,7 @@ class FeeTypeService
             'mandatory' => $data['is_mandatory']
         ];
 
-        if ($this->isDuplicate($payload['description'])) {
+        if ($this->isDuplicate($payload)) {
             return false;
         } else {
             return $this->feeType->insert($payload);
@@ -37,17 +37,18 @@ class FeeTypeService
             'mandatory' => $data['is_mandatory']
         ];
 
-        if ($this->isDuplicate($payload['description'])) {
+        if ($this->isDuplicate($payload)) {
             return false;
         } else {
             return $this->feeType->where('tid', '=', $data['id'])->update($payload);
         }
     }
 
-    private function isDuplicate(string $feeName): bool
+    private function isDuplicate(array $filters): bool
     {
         return $this->feeType
-            ->where('description', '=', $feeName)
+            ->where('description', '=', $filters['description'])
+            ->where('mandatory', '=', $filters['mandatory'])
             ->exists();
     }
 
