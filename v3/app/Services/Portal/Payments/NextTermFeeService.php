@@ -64,12 +64,10 @@ class NextTermFeeService
             }
         }
 
-        $this->upsertTransaction($data);
-
-        return true;
+        return $this->upsertTransaction($data);
     }
 
-    private function upsertTransaction(array $data)
+    private function upsertTransaction(array $data): bool
     {
         $students = $this->student
             ->select([
@@ -82,7 +80,7 @@ class NextTermFeeService
             ->get();
 
         if (empty($students)) {
-            return;
+            return false;
         }
 
         foreach ($students as $student) {
@@ -117,11 +115,13 @@ class NextTermFeeService
                 'class' => $student['class_id'],
                 'level' => $data['level_id'],
                 'year' => $data['year'],
-                'term' => $data['term']
+                'term' => $data['term'],
             ];
 
+            $success = false;
+
             if ($existing) {
-                $this->transaction
+                $success = $this->transaction
                     ->where('tid', '=', $tid)
                     ->update([
                         'amount' => $amount,
@@ -130,9 +130,15 @@ class NextTermFeeService
                     ]);
             } else {
                 $payload['tid'] = $tid;
-                $this->transaction->insert($payload);
+                $success = $this->transaction->insert($payload);
+            }
+
+            if (!$success) {
+                return false;
             }
         }
+
+        return true;
     }
 
     /**
