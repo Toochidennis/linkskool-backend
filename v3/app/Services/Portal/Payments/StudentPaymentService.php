@@ -64,7 +64,8 @@ class StudentPaymentService
                     'term' => $trans['term'],
                 ];
             } else {
-                $formatted['payment'][] = [
+                unset($trans['type']);
+                $formatted['payments'][] = [
                     ...$trans,
                     'level_name' => $levelName,
                 ];

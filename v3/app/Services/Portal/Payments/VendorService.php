@@ -22,7 +22,7 @@ class VendorService
             'email' => $data['email'] ?? '',
         ];
 
-        if ($this->isDuplicate($data['vendor_name'])) {
+        if ($this->isDuplicate($payload)) {
             return false;
         }
 
@@ -38,7 +38,7 @@ class VendorService
             'email' => $data['email'] ?? '',
         ];
 
-        if ($this->isDuplicate($data['vendor_name'])) {
+        if ($this->isDuplicate($data)) {
             return false;
         }
 
@@ -47,10 +47,13 @@ class VendorService
             ->update($payload);
     }
 
-    private function isDuplicate(string $name): bool
+    private function isDuplicate(array $conditions): bool
     {
         return $this->vendor
-            ->where('customername', '=', $name)
+            ->where('customername', '=', $conditions['vendor_name'])
+            ->where('customerid', '=', $conditions['reference'])
+            ->where('telephone', '=', $conditions['phone_number'])
+            ->where('email', '=', $conditions['email'])
             ->exists();
     }
 

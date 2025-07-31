@@ -42,7 +42,7 @@ class VendorController extends BaseController
             }
 
             $this->respondError(
-                'Failed to add vendor. Maybe name already exist',
+                'Failed to add vendor. Maybe record already exist',
                 HttpStatus::BAD_REQUEST
             );
         } catch (\Exception $e) {
@@ -76,7 +76,7 @@ class VendorController extends BaseController
             }
 
             $this->respondError(
-                'Failed to update vendor. Maybe name already exist',
+                'Failed to update vendor. Maybe record already exist',
                 HttpStatus::BAD_REQUEST
             );
         } catch (\Exception $e) {
