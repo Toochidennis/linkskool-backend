@@ -107,7 +107,7 @@ class NextTermFeeService
                 'it_id' => 1,
                 'amount' => $amount,
                 'amount_due' => $amount,
-                'date' => date('Y-m-d H:i:s'),
+                'date' => date('Y-m-d'),
                 'account' => 1980,
                 'account_name' => 'Income',
                 'approved' => 1,
