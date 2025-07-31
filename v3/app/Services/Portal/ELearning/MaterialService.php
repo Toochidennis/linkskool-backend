@@ -49,7 +49,6 @@ class MaterialService
             'outline' => $data['syllabus_id'],
             'author_name' => $data['creator_name'],
             'author_id' => $data['creator_id'],
-            'type' => ContentType::SYLLABUS->value,
             'course_id' => $data['course_id'],
             'course_name' => $data['course_name'],
             'level' => $data['level_id'],
