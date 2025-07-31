@@ -131,14 +131,18 @@ $dispatcher = FastRoute\simpleDispatcher(
         // Payment
         $r->addRoute('POST', '/portal/payments/accounts', ['Portal\Payments\AccountController', 'store']);
         $r->addRoute('POST', '/portal/payments/fee-names', ['Portal\Payments\FeeTypeController', 'store']);
+        $r->addRoute('POST', '/portal/payments/vendors', ['Portal\Payments\VendorController', 'store']);
         $r->addRoute('POST', '/portal/payments/next-term-fees', ['Portal\Payments\NextTermFeeController', 'upsert']);
         $r->addRoute('PUT', '/portal/payments/accounts/{id:\d+}', ['Portal\Payments\AccountController', 'update']);
         $r->addRoute('PUT', '/portal/payments/fee-names/{id:\d+}', ['Portal\Payments\FeeTypeController', 'update']);
+        $r->addRoute('PUT', '/portal/payments/vendors/{id:\d+}', ['Portal\Payments\VendorController', 'update']);
         $r->addRoute('GET', '/portal/payments/accounts', ['Portal\Payments\AccountController', 'get']);
         $r->addRoute('GET', '/portal/payments/fee-names', ['Portal\Payments\FeeTypeController', 'get']);
         $r->addRoute('GET', '/portal/payments/next-term-fees', ['Portal\Payments\NextTermFeeController', 'get']);
+        $r->addRoute('GET', '/portal/payments/vendors', ['Portal\Payments\VendorController', 'get']);
         $r->addRoute('DELETE', '/portal/payments/accounts/{id:\d+}', ['Portal\Payments\AccountController', 'delete']);
         $r->addRoute('DELETE', '/portal/payments/fee-names/{id:\d+}', ['Portal\Payments\FeeTypeController', 'delete']);
+        $r->addRoute('DELETE', '/portal/payments/vendors/{id:\d+}', ['Portal\Payments\VendorController', 'delete']);
     }
 );
 

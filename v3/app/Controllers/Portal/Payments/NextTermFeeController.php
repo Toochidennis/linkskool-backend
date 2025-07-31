@@ -40,7 +40,10 @@ class NextTermFeeController extends BaseController
                     'message' => 'Next term fee added successfully'
                 ]);
             }
-            $this->respondError('Failed to add fee', HttpStatus::BAD_REQUEST);
+            $this->respondError(
+                'Failed to add fee. Are there students in this class?',
+                HttpStatus::BAD_REQUEST
+            );
         } catch (\Exception $e) {
             $this->respondError($e->getMessage());
         }

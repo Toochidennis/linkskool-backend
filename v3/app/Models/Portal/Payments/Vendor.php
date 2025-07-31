@@ -6,7 +6,7 @@ use V3\App\Models\BaseModel;
 
 class Vendor extends BaseModel
 {
-    private string $table = '';
+    private string $table = 'customer';
 
     public function __construct(\PDO $pdo)
     {
