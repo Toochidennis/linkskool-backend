@@ -48,7 +48,15 @@ class StudentContentManagerService
             return [];
         }
 
+        $seenCourseIds = [];
+
         foreach ($syllabi as $syllabus) {
+            $courseId = $syllabus['course_id'];
+
+            if (in_array($courseId, $seenCourseIds, true)) {
+                continue; // Skip duplicate course
+            }
+
             if (
                 $this->hasClass(
                     $this->json($syllabus['path_label']),
@@ -59,17 +67,18 @@ class StudentContentManagerService
                     ->where('year', '=', $filters['year'])
                     ->where('term', '=', $filters['term'])
                     ->where('reg_no', '=', $filters['id'])
-                    ->where('course', '=', $syllabus['course_id'])
+                    ->where('course', '=', $courseId)
                     ->where('class', '=', $filters['class_id'])
                     ->exists();
 
                 if ($isRegistered) {
                     $courses[] = [
                         'syllabus_id' => $syllabus['id'],
-                        'course_id' => $syllabus['course_id'],
+                        'course_id' => $courseId,
                         'level_id' => $syllabus['level'],
                         'course_name' => $syllabus['course_name'],
                     ];
+                    $seenCourseIds[] = $courseId; // Mark as seen
                 }
             }
         }
