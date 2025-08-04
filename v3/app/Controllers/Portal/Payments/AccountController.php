@@ -56,7 +56,7 @@ class AccountController extends BaseController
             data: [...$this->post, ...$vars],
             rules: [
                 'id' => 'required|integer',
-                'account_number' => 'required|digits:4',
+                'account_number' => 'required|digits:5',
                 'account_name' => 'required|string|filled',
                 'account_type' => 'required|integer'
             ]

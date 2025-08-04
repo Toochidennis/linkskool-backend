@@ -49,7 +49,7 @@ class AccountService
     {
         return $this->account
             ->where(function ($q) use ($payload) {
-                $q->where('account_id', '=', $payload['account_number'])
+                $q->where('account_id', '=', $payload['account_id'])
                     ->orWhere('account_name', '=', $payload['account_name']);
             })
             ->exists();

@@ -44,7 +44,7 @@ class QuizService
                 if (!empty($options)) {
                     foreach ($options as &$option) {
                         if (isset($option['option_files']) && !empty($option['option_files'])) {
-                            $option['option_files'] =  $this->handler->handleFiles(files: $options['option_files']);
+                            $option['option_files'] =  $this->handler->handleFiles(files: $option['option_files']);
                         }
                     }
                 }
@@ -126,7 +126,7 @@ class QuizService
                     foreach ($options as &$option) {
                         if (isset($option['option_files']) && !empty($option['option_files'] ?? [])) {
                             $option['option_files'] = $this->handler->handleFiles(
-                                files: $options['option_files'],
+                                files: $option['option_files'],
                                 isUpdate: true
                             );
                         }

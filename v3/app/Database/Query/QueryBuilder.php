@@ -370,6 +370,10 @@ class QueryBuilder
 
     public function paginate(int $page = 1, int $limit = 20): array
     {
+        if ($page <= 0 || $limit <= 0) {
+            return [];
+        }
+
         $offset = ($page - 1) * $limit;
 
         $data = $this->limit($limit)->offset($offset)->get();

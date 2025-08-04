@@ -34,6 +34,4 @@ $schema = [
             'collate' => 'latin1_swedish_ci',
         ],
     ],
-
-    
 ];

@@ -105,13 +105,13 @@ class NextTermFeeService
                 'description' => $description,
                 'quantity' => 1,
                 'it_id' => 1,
-                'amount' => $amount,
                 'amount_due' => $amount,
                 'date' => date('Y-m-d'),
                 'account' => 1980,
                 'account_name' => 'Income',
                 'approved' => 1,
                 'sub' => 1,
+                'status' => 0,
                 'class' => $student['class_id'],
                 'level' => $data['level_id'],
                 'year' => $data['year'],
@@ -124,7 +124,6 @@ class NextTermFeeService
                 $success = $this->transaction
                     ->where('tid', '=', $tid)
                     ->update([
-                        'amount' => $amount,
                         'amount_due' => $amount,
                         'description' => $description
                     ]);
@@ -151,7 +150,7 @@ class NextTermFeeService
                 'tid AS fee_id',
                 'item.description AS fee_name',
                 'IFNULL(item.type, 0) AS is_mandatory',
-                'IFNULL(next_term_fees.amount, 0) AS amount'
+                'IFNULL(next_term_fees.amount_due, 0) AS amount',
             ])
             ->join('next_term_fees', function ($join) use ($filters) {
                 $join->on('item.tid', '=', 'next_term_fees.fee')
