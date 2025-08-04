@@ -20,9 +20,10 @@ class VendorService
             'customerid' => $data['reference'],
             'telephone' => $data['phone_number'],
             'email' => $data['email'] ?? '',
+            'address' => $data['address'] ?? '',
         ];
 
-        if ($this->isDuplicate($payload)) {
+        if ($this->isDuplicate($data)) {
             return false;
         }
 
@@ -36,6 +37,7 @@ class VendorService
             'customerid' => $data['reference'],
             'telephone' => $data['phone_number'],
             'email' => $data['email'] ?? '',
+            'address' => $data['address'] ?? '',
         ];
 
         if ($this->isDuplicate($data)) {
@@ -66,13 +68,14 @@ class VendorService
                 'customerid AS reference',
                 'telephone AS phone_number',
                 'email',
+                'address'
             ])->get();
     }
 
     public function deleteVendor(int $id): bool|int
     {
         return $this->vendor
-            ->where(column: 'tid', operator: '=', value: $id)
+            ->where(column: 'id', operator: '=', value: $id)
             ->delete();
     }
 }

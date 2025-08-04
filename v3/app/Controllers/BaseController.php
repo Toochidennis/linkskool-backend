@@ -58,7 +58,7 @@ abstract class BaseController
                 'GET' => Sanitizer::sanitizeInput($_GET),
                 default => []
             };
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             $this->respondError(
                 'Invalid input data. Please check the request and try again.',
                 HttpStatus::BAD_REQUEST

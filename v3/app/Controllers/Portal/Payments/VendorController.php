@@ -25,6 +25,7 @@ class VendorController extends BaseController
                 'reference' => 'required|string|filled',
                 'email' => 'sometimes|string',
                 'phone_number' => 'required|digits:11',
+                'address' => 'sometimes|string|filled',
             ]
         );
 
@@ -60,6 +61,7 @@ class VendorController extends BaseController
                 'reference' => 'required|string|filled',
                 'email' => 'sometimes|string',
                 'phone_number' => 'required|digits:11',
+                'address' => 'sometimes|string|filled',
             ]
         );
 
