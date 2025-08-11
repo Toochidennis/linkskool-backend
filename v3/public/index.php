@@ -43,6 +43,8 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('POST', '/portal/students/{student_id:\d+}/course-registrations', ['Portal\Results\CourseRegistrationController', 'registerStudentCourses']);
         $r->addRoute('POST', '/portal/students/{student_id:\d+}/make-payment', ['Portal\Payments\StudentPaymentController', 'makePayment']);
         $r->addRoute('GET', '/portal/students/{student_id:\d+}/registered-courses', ['Portal\Results\CourseRegistrationController', 'getCoursesRegisteredByStudent']);
+        $r->addRoute('GET', '/portal/students/{student_id:\d+}/quiz-submissions', ['Portal\Results\QuizSubmissionController', 'submit']);
+        $r->addRoute('GET', '/portal/students/{student_id:\d+}/assignment-submissions', ['Portal\Results\AssignmentSubmissionController', 'submit']);
         $r->addRoute('GET', '/portal/students', ['Portal\StudentController', 'getAllStudents']);
         $r->addRoute('GET', '/portal/students/{id:\d+}/elearning/dashboard', ['Portal\ELearning\StudentContentManagerController', 'dashboard']);
         $r->addRoute('GET', '/portal/students/elearning/contents/{id:\d+}', ['Portal\ELearning\StudentContentManagerController', 'listContents']);
@@ -119,24 +121,30 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute('POST', '/portal/elearning/material', ['Portal\ELearning\MaterialController', 'store']);
         $r->addRoute('POST', '/portal/elearning/assignment', ['Portal\ELearning\AssignmentController', 'store']);
         $r->addRoute('POST', '/portal/elearning/quiz', ['Portal\ELearning\QuizController', 'store']);
+        $r->addRoute('POST', '/portal/elearning/{content_id:\d+}/comments', ['Portal\ELearning\ContentCommentController', 'store']);
         $r->addRoute('PUT', '/portal/elearning/quiz', ['Portal\ELearning\QuizController', 'update']);
         $r->addRoute('PUT', '/portal/elearning/syllabus/{id:\d+}', ['Portal\ELearning\SyllabusController', 'update']);
         $r->addRoute('PUT', '/portal/elearning/material/{id:\d+}', ['Portal\ELearning\MaterialController', 'update']);
         $r->addRoute('PUT', '/portal/elearning/assignment/{id:\d+}', ['Portal\ELearning\AssignmentController', 'update']);
+        $r->addRoute('PUT', '/portal/elearning/{content_id:\d+}/comments/{id:\d+}', ['Portal\ELearning\ContentCommentController', 'update']);
         $r->addRoute('GET', '/portal/elearning/syllabus', ['Portal\ELearning\SyllabusController', 'get']);
         $r->addRoute('GET', '/portal/elearning/syllabus/contents/{syllabus_id:\d+}', ['Portal\ELearning\ContentManagerController', 'getAllContents']);
         $r->addRoute('GET', '/portal/elearning/topic/{syllabus_id:\d+}', ['Portal\ELearning\TopicController', 'get']);
+        $r->addRoute('GET', '/portal/elearning/{content_id:\d+}/comments', ['Portal\ELearning\ContentCommentController', 'get']);
         $r->addRoute('DELETE', '/portal/elearning/contents/{content_id:\d+}', ['Portal\ELearning\ContentManagerController', 'delete']);
         $r->addRoute('DELETE', '/portal/elearning/quiz/{content_id:\d+}/{question_id:\d+}', ['Portal\ELearning\QuizController', 'delete']);
+        $r->addRoute('DELETE', '/portal/elearning/comments/{id:\d+}', ['Portal\ELearning\ContentCommentController', 'delete']);
 
         // Payment
         $r->addRoute('POST', '/portal/payments/accounts', ['Portal\Payments\AccountController', 'store']);
         $r->addRoute('POST', '/portal/payments/fee-names', ['Portal\Payments\FeeTypeController', 'store']);
         $r->addRoute('POST', '/portal/payments/vendors', ['Portal\Payments\VendorController', 'store']);
         $r->addRoute('POST', '/portal/payments/next-term-fees', ['Portal\Payments\NextTermFeeController', 'upsert']);
+        $r->addRoute('POST', '/portal/payments/expenditure', ['Portal\Payments\ExpenditureController', 'store']);
         $r->addRoute('PUT', '/portal/payments/accounts/{id:\d+}', ['Portal\Payments\AccountController', 'update']);
         $r->addRoute('PUT', '/portal/payments/fee-names/{id:\d+}', ['Portal\Payments\FeeTypeController', 'update']);
         $r->addRoute('PUT', '/portal/payments/vendors/{id:\d+}', ['Portal\Payments\VendorController', 'update']);
+        $r->addRoute('PUT', '/portal/payments/expenditure/{id:\d+}', ['Portal\Payments\ExpenditureController', 'update']);
         $r->addRoute('GET', '/portal/payments/accounts', ['Portal\Payments\AccountController', 'get']);
         $r->addRoute('GET', '/portal/payments/fee-names', ['Portal\Payments\FeeTypeController', 'get']);
         $r->addRoute('GET', '/portal/payments/next-term-fees', ['Portal\Payments\NextTermFeeController', 'get']);

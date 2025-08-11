@@ -8,6 +8,7 @@ enum ContentType: int
     case QUIZ = 2;
     case ASSIGNMENT = 3;
     case TOPIC = 4;
+    case COMMENT = 50;
     case SYLLABUS = 100;
 
     public function label(): string
@@ -18,6 +19,7 @@ enum ContentType: int
             self::MATERIAL => 'material',
             self::ASSIGNMENT => 'assignment',
             self::QUIZ => 'quiz',
+            self::COMMENT => 'comment',
         };
     }
 }

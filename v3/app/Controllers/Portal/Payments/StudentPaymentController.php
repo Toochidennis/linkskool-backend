@@ -21,11 +21,11 @@ class StudentPaymentController extends BaseController
         $cleanedData = $this->validate(
             data: [...$this->post, ...$vars],
             rules: [
-                'invoice_id ' => 'required|string',
-                'reference' => 'required|string',
+                'invoice_id' => 'required|string|filled',
+                'reference' => 'required|string|filled',
                 'student_id' => 'required|integer',
-                'reg_no' => 'required|string',
-                'name' => 'required|string',
+                'reg_no' => 'required|string|filled',
+                'name' => 'required|string|filled',
                 'amount' => 'required|numeric|min:1',
                 'class_id' => 'required|integer',
                 'level_id' => 'required|integer',
