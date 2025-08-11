@@ -4,16 +4,16 @@ namespace V3\App\Controllers\Portal\ELearning;
 
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
-use V3\App\Services\Portal\ELearning\QuizSubmissionService;
+use V3\App\Services\Portal\ELearning\AssignmentSubmissionService;
 
-class QuizSubmissionController extends BaseController
+class AssignmentSubmissionController extends BaseController
 {
-    private QuizSubmissionService $quizSubmissionService;
+    private AssignmentSubmissionService $assignmentSubmissionService;
 
     public function __construct()
     {
         parent::__construct();
-        $this->quizSubmissionService = new QuizSubmissionService($this->pdo);
+        $this->assignmentSubmissionService = new AssignmentSubmissionService($this->pdo);
     }
 
     public function submit(array $vars)
@@ -21,15 +21,13 @@ class QuizSubmissionController extends BaseController
         $cleanedData = $this->validate(
             data: [...$this->post, ...$vars],
             rules: [
-                'quiz_id' => 'required|integer',
+                'assignment_id' => 'required|integer',
                 'student_id' => 'required|integer',
                 'student_name' => 'required|string|filled',
-                'answers' => 'required|array|min:1',
-                'answers.*.question_id' => 'required|integer',
-                'answers.*.question' => 'required|string|filled',
-                'answers.*.correct' => 'required|string|filled',
-                'answers.*.answer' => 'required|string|filled',
-                'answers.*.type' => 'required|string|in:multiple_choice,short_answer',
+                'files' => 'required|array|min:1',
+                'files.*.name' => 'required|string|filled',
+                'files.*.type' => 'required|string|in:pdf,doc,docx',
+                'files.*.size' => 'required|integer|max:10485760',
                 'mark' => 'required|numeric',
                 'score' => 'required|numeric',
                 'level_id' => 'required|integer',
@@ -43,26 +41,26 @@ class QuizSubmissionController extends BaseController
         );
 
         try {
-            $newId = $this->quizSubmissionService->submitQuiz($cleanedData);
+            $newId = $this->assignmentSubmissionService->submitAssignment($cleanedData);
 
             if ($newId) {
                 return $this->respond(
                     [
                         'success' => true,
-                        'message' => 'Quiz submitted successfully',
+                        'message' => 'Assignment submitted successfully',
                         'id' => $newId
                     ],
                     HttpStatus::CREATED
                 );
             } else {
                 return $this->respondError(
-                    'Failed to submit quiz',
+                    'Failed to submit assignment',
                     HttpStatus::BAD_REQUEST
                 );
             }
         } catch (\Exception $e) {
             return $this->respondError(
-                'Failed to submit quiz: ' . $e->getMessage()
+                'Failed to submit assignment: ' . $e->getMessage()
             );
         }
     }
@@ -78,7 +76,8 @@ class QuizSubmissionController extends BaseController
         );
 
         try {
-            $submissions = $this->quizSubmissionService->getQuizSubmissions($cleanedData);
+            $submissions = $this->assignmentSubmissionService
+                ->getAssignmentSubmissions($cleanedData);
 
             return $this->respond(
                 [
@@ -89,7 +88,7 @@ class QuizSubmissionController extends BaseController
             );
         } catch (\Exception $e) {
             return $this->respondError(
-                'Failed to retrieve quiz submissions: ' . $e->getMessage()
+                'Failed to retrieve submissions: ' . $e->getMessage()
             );
         }
     }

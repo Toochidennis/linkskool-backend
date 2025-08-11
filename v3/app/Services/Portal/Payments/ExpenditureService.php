@@ -37,5 +37,38 @@ class ExpenditureService
             'year' => $data['year'],
             'term' => $data['term'],
         ];
+
+        return $this->transaction->insert($payload);
+    }
+
+    public function updateExpenditure(array $data): bool
+    {
+        $payload = [
+            'trans_type' => 'expenditure',
+            'memo' => $data['memo'],
+            'cid' => $data['customer_id'],
+            'cref' => $data['customer_reference'],
+            'name' => $data['customer_name'],
+            'description' => json_encode($data['description']),
+            'amount' => $data['amount'],
+            'account' => $data['account_number'],
+            'account_name' => $data['account_name'],
+            'class' => $data['class_id'],
+            'level' => $data['level_id'],
+            'year' => $data['year'],
+            'term' => $data['term'],
+        ];
+
+        $existing = $this->transaction
+            ->where('tid', '=', $data['id'])
+            ->first();
+
+        if ($existing) {
+            return $this->transaction
+                ->where('tid', '=', $data['id'])
+                ->update($payload);
+        }
+
+        return false;
     }
 }

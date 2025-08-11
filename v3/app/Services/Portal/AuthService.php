@@ -162,7 +162,7 @@ class AuthService
                 ->select([
                     'id',
                     'picture_ref AS picture_url',
-                    "id AS staff_id, CONCAT(surname, ' ', first_name, ' ', middle) AS name",
+                    "id AS student_id, CONCAT(surname, ' ', first_name, ' ', middle) AS name",
                     'registration_no',
                     'student_class AS class_id',
                     'student_level AS level_id'

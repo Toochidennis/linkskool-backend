@@ -38,7 +38,7 @@ class StudentContentManagerService
         $courses = [];
 
         $syllabi = $this->content
-            ->select(columns: ['id', 'path_label', 'course_id', 'course_name', 'level'])
+            ->select(columns: ['id', 'title', 'path_label', 'course_id', 'course_name', 'level'])
             ->where('term', '=', $filters['term'])
             ->where('level', '=', $filters['level_id'])
             ->orderBy('course_name')
@@ -76,6 +76,7 @@ class StudentContentManagerService
                         'syllabus_id' => $syllabus['id'],
                         'course_id' => $courseId,
                         'level_id' => $syllabus['level'],
+                        'title' => $syllabus['title'],
                         'course_name' => $syllabus['course_name'],
                     ];
                     $seenCourseIds[] = $courseId; // Mark as seen
@@ -402,7 +403,6 @@ class StudentContentManagerService
         $decoded = json_decode($data, true);
         return is_array($decoded) ? $decoded : [];
     }
-
 
     private function hasClass(array $pathLabel, string|int $targetClassId): bool
     {
