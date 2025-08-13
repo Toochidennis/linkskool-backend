@@ -16,6 +16,29 @@ class ContentManagerController extends BaseController
         $this->contentManagerService = new ContentManagerService(pdo: $this->pdo);
     }
 
+    public function getDashboard(array $vars)
+    {
+        $filteredVars = $this->validate(
+            data: $vars,
+            rules: [
+                'term' => 'required|integer|in:1,2,3',
+            ]
+        );
+
+        try {
+            $dashboardData = $this->contentManagerService->getDashboardData($filteredVars['term']);
+
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'response' => $dashboardData,
+                ]
+            );
+        } catch (\Exception $e) {
+            return $this->respondError(message: $e->getMessage());
+        }
+    }
+
     public function getAllContents(array $vars)
     {
         $filteredVars = $this->validate(

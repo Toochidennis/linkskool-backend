@@ -29,7 +29,7 @@ class ContentCommentController extends BaseController
                 'level_id' => 'required|integer',
                 'course_id' => 'required|integer',
                 'course_name' => 'required|string',
-                'term' => 'required|string'
+                'term' => 'required|integer|in:1,2,3'
             ]
         );
 
@@ -41,7 +41,6 @@ class ContentCommentController extends BaseController
                     [
                         'success' => true,
                         'message' => 'Comment added successfully',
-                        'id' => $newId
                     ],
                     HttpStatus::CREATED
                 );
@@ -72,7 +71,7 @@ class ContentCommentController extends BaseController
                 'level_id' => 'required|integer',
                 'course_id' => 'required|integer',
                 'course_name' => 'required|string',
-                'term' => 'required|string'
+                'term' => 'required|integer|in:1,2,3'
             ]
         );
 
@@ -105,8 +104,8 @@ class ContentCommentController extends BaseController
             data: $vars,
             rules: [
                 'content_id' => 'required|integer',
-                'page' => 'integer|min:1',
-                'limit' => 'integer|min:1|max:100'
+                'page' => 'required|integer|min:1',
+                'limit' => 'required|integer|min:1|max:100'
             ]
         );
 
@@ -120,7 +119,7 @@ class ContentCommentController extends BaseController
             return $this->respond(
                 [
                     'success' => true,
-                    'data' => $comments
+                    'response' => $comments
                 ]
             );
         } catch (\Exception $e) {

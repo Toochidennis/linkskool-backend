@@ -43,7 +43,7 @@ class AuthController
                 ->first();
 
             if (!empty($result)) {
-                $dbname = $result['database_name'];
+                $dbname = getenv('DB_NAME_PREFIX') . $result['database_name'];
                 $schoolDb = DatabaseConnector::connect(dbname: $dbname);
 
                 $this->login(

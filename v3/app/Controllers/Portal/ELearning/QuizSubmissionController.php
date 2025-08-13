@@ -37,7 +37,7 @@ class QuizSubmissionController extends BaseController
                 'class_id' => 'required|integer',
                 'course_name' => 'required|string|filled',
                 'class_name' => 'required|string|filled',
-                'term' => 'required|string|in:1,2,3',
+                'term' => 'required|integer|in:1,2,3',
                 'year' => 'required|integer'
             ]
         );
@@ -50,7 +50,6 @@ class QuizSubmissionController extends BaseController
                     [
                         'success' => true,
                         'message' => 'Quiz submitted successfully',
-                        'id' => $newId
                     ],
                     HttpStatus::CREATED
                 );
@@ -67,12 +66,18 @@ class QuizSubmissionController extends BaseController
         }
     }
 
+    public function markQuiz(array $vars)
+    {
+        //TODO
+    }
+
     public function getSubmissions(array $vars)
     {
         $cleanedData = $this->validate(
             data: $vars,
             rules: [
-                'content_id' => 'required|integer',
+                'id' => 'required|integer',
+                'term' => 'required|integer|in:1,2,3',
                 'year' => 'required|integer'
             ]
         );
@@ -85,7 +90,34 @@ class QuizSubmissionController extends BaseController
                     'success' => true,
                     'data' => $submissions
                 ],
-                HttpStatus::OK
+            );
+        } catch (\Exception $e) {
+            return $this->respondError(
+                'Failed to retrieve quiz submissions: ' . $e->getMessage()
+            );
+        }
+    }
+
+    public function getMarkedQuiz(array $vars)
+    {
+        $filteredVars = $this->validate(
+            data: $vars,
+            rules: [
+                'id' => 'required|integer',
+                'student_id' => 'required|integer',
+                'term' => 'required|integer|in:1,2,3',
+                'year' => 'required|integer',
+            ]
+        );
+
+        try {
+            $markedQuiz = $this->quizSubmissionService->getMarkedQuiz($filteredVars);
+
+            return $this->respond(
+                [
+                    'success' => true,
+                    'response' => $markedQuiz,
+                ]
             );
         } catch (\Exception $e) {
             return $this->respondError(
