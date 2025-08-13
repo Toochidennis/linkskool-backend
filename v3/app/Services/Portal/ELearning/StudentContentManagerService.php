@@ -120,16 +120,18 @@ class StudentContentManagerService
                     $filters['class_id']
                 )
             ) {
-                $quizzes[] = [
-                    'id' => $result['id'],
-                    'syllabus_id' => $result['outline'],
-                    'course_id' => $result['course_id'],
-                    'title' => $result['title'],
-                    'course_name' => $result['course_name'],
-                    'level_id' => $result['level'],
-                    'created_by' => $result['author_name'],
-                    'date_posted' => $result['upload_date'],
-                ];
+                if (!empty($result['outline'])) {
+                    $quizzes[] = [
+                        'id' => $result['id'],
+                        'syllabus_id' => $result['outline'],
+                        'course_id' => $result['course_id'],
+                        'title' => $result['title'],
+                        'course_name' => $result['course_name'],
+                        'level_id' => $result['level'],
+                        'created_by' => $result['author_name'],
+                        'date_posted' => $result['upload_date'],
+                    ];
+                }
             }
         }
 
@@ -170,18 +172,20 @@ class StudentContentManagerService
                     $filters['class_id']
                 )
             ) {
-                $activities[] = [
-                    'id' => $result['id'],
-                    'syllabus_id' => $result['outline'],
-                    'course_id' => $result['course_id'],
-                    'level_id' => $result['level'],
-                    'title' => $result['title'],
-                    'comment' => $result['body'],
-                    'type' => $this->contentTypeNames[$result['type']] ?? 'Unknown',
-                    'course_name' => $result['course_name'],
-                    'created_by' => $result['author_name'],
-                    'date_posted' => $result['upload_date'],
-                ];
+                if (!empty($result['outline'])) {
+                    $activities[] = [
+                        'id' => $result['id'],
+                        'syllabus_id' => $result['outline'],
+                        'course_id' => $result['course_id'],
+                        'level_id' => $result['level'],
+                        'title' => $result['title'],
+                        'comment' => $result['body'],
+                        'type' => $this->contentTypeNames[$result['type']] ?? 'Unknown',
+                        'course_name' => $result['course_name'],
+                        'created_by' => $result['author_name'],
+                        'date_posted' => $result['upload_date'],
+                    ];
+                }
             }
         }
 
