@@ -25,9 +25,10 @@ class AssignmentSubmissionController extends BaseController
                 'student_id' => 'required|integer',
                 'student_name' => 'required|string|filled',
                 'files' => 'required|array|min:1',
-                'files.*.name' => 'required|string|filled',
+                'files.*.file_name' => 'required|string|filled',
                 'files.*.type' => 'required|string|in:pdf,doc,docx',
-                'files.*.size' => 'required|integer|max:10485760',
+                'files.*.old_file_name' => 'sometimes|string',
+                'files.*.file' => 'required|string|filled',
                 'mark' => 'required|numeric',
                 'score' => 'required|numeric',
                 'level_id' => 'required|integer',
@@ -35,7 +36,7 @@ class AssignmentSubmissionController extends BaseController
                 'class_id' => 'required|integer',
                 'course_name' => 'required|string|filled',
                 'class_name' => 'required|string|filled',
-                'term' => 'required|string|in:1,2,3',
+                'term' => 'required|integer|in:1,2,3',
                 'year' => 'required|integer'
             ]
         );
@@ -48,7 +49,6 @@ class AssignmentSubmissionController extends BaseController
                     [
                         'success' => true,
                         'message' => 'Assignment submitted successfully',
-                        'id' => $newId
                     ],
                     HttpStatus::CREATED
                 );
@@ -70,8 +70,9 @@ class AssignmentSubmissionController extends BaseController
         $cleanedData = $this->validate(
             data: $vars,
             rules: [
-                'content_id' => 'required|integer',
-                'year' => 'required|integer'
+                'id' => 'required|integer',
+                'year' => 'required|integer',
+                'term' => 'required|integer|in:1,2,3',
             ]
         );
 
@@ -82,13 +83,40 @@ class AssignmentSubmissionController extends BaseController
             return $this->respond(
                 [
                     'success' => true,
-                    'data' => $submissions
+                    'response' => $submissions
                 ],
-                HttpStatus::OK
             );
         } catch (\Exception $e) {
             return $this->respondError(
                 'Failed to retrieve submissions: ' . $e->getMessage()
+            );
+        }
+    }
+
+    public function getMarkedAssignment(array $vars)
+    {
+        $filteredVars = $this->validate(
+            data: $vars,
+            rules: [
+                'id' => 'required|integer',
+                'student_id' => 'required|integer',
+                'term' => 'required|integer|in:1,2,3',
+                'year' => 'required|integer',
+            ]
+        );
+
+        try {
+            $markedAssignment = $this->assignmentSubmissionService->getMarkedAssignment($filteredVars);
+
+            return $this->respond(
+                [
+                    'success' => true,
+                    'response' => $markedAssignment,
+                ]
+            );
+        } catch (\Exception $e) {
+            return $this->respondError(
+                'Failed to retrieve quiz submissions: ' . $e->getMessage()
             );
         }
     }

@@ -24,7 +24,7 @@ class ContentCommentService
             'body' => $data['comment'],
             'type' => ContentType::COMMENT->value,
             'level' => $data['level_id'],
-            'course' => $data['course_id'],
+            'course_id' => $data['course_id'],
             'course_name' => $data['course_name'],
             'term' => $data['term'],
             'upload_date' => date('Y-m-d H:i:s')
@@ -38,11 +38,11 @@ class ContentCommentService
         $payload  = [
             'description' => $data['content_title'],
             'category' => $data['content_id'],
-            'author_id' => $data['author_id'],
-            'author_name' => $data['author_name'],
+            'author_id' => $data['user_id'],
+            'author_name' => $data['user_name'],
             'body' => $data['comment'],
             'level' => $data['level_id'],
-            'course' => $data['course_id'],
+            'course_id' => $data['course_id'],
             'course_name' => $data['course_name'],
             'term' => $data['term'],
         ];
@@ -60,7 +60,7 @@ class ContentCommentService
                 'category AS content_id',
                 'description AS content_title',
                 'level AS level_id',
-                'course AS course_id',
+                'course_id',
                 'course_name',
                 'term',
                 'author_id',

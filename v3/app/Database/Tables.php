@@ -86,5 +86,6 @@ class Tables
         'ward',
         'question_table',
         'customer',
+        'responses'
     ];
 }

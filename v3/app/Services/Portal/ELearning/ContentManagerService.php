@@ -41,6 +41,101 @@ class ContentManagerService
         $this->contentPath = $paths['absolute'];
     }
 
+    private function getRecentQuiz(int $term)
+    {
+        $quizzes = [];
+        $results = $this->content
+            ->select(columns: [
+                'id',
+                'outline',
+                'title',
+                'course_name',
+                'course_id',
+                'level',
+                'path_label',
+                'upload_date',
+                'author_name'
+            ])
+            ->where('term', '=', $term)
+            ->where('type', '=', ContentType::QUIZ->value)
+            ->orderBy('upload_date', 'DESC')
+            ->get();
+
+        if (empty($results)) {
+            return [];
+        }
+
+        foreach ($results as $result) {
+            $quizzes[] = [
+                'id' => $result['id'],
+                'syllabus_id' => $result['outline'],
+                'course_id' => $result['course_id'],
+                'title' => $result['title'],
+                'course_name' => $result['course_name'],
+                'level_id' => $result['level'],
+                'classes' => $this->json($result['path_label']),
+                'type' => $this->contentTypeNames[ContentType::QUIZ->value],
+                'outline' => $result['outline'],
+                'created_by' => $result['author_name'],
+                'date_posted' => $result['upload_date'],
+            ];
+        }
+
+        return $quizzes;
+    }
+
+    private function getRecentActivities(int $term)
+    {
+        $results = $this->content
+            ->select(columns: [
+                'id',
+                'outline',
+                'title',
+                'type',
+                'course_name',
+                'course_id',
+                'level',
+                'body',
+                'path_label',
+                'author_name',
+                'upload_date'
+            ])
+            ->where('term', '=', $term)
+            ->orderBy('upload_date', 'DESC')
+            ->get();
+
+        if (empty($results)) {
+            return [];
+        }
+
+        $activities = [];
+        foreach ($results as $result) {
+            $activities[] = [
+                'id' => $result['id'],
+                'syllabus_id' => $result['outline'],
+                'course_id' => $result['course_id'],
+                'level_id' => $result['level'],
+                'title' => $result['title'],
+                'comment' => $result['body'],
+                'type' => $this->contentTypeNames[$result['type']] ?? 'Unknown',
+                'classes' => $this->json($result['path_label']),
+                'course_name' => $result['course_name'],
+                'created_by' => $result['author_name'],
+                'date_posted' => $result['upload_date'],
+            ];
+        }
+
+        return $activities;
+    }
+
+    public function getDashboardData(int $term): array
+    {
+        return [
+            'recent_quizzes' => $this->getRecentQuiz($term),
+            'recent_activities' => $this->getRecentActivities($term),
+        ];
+    }
+
     private function getQuestions(array $questionIds): array
     {
         $ids = array_values(array_map(
@@ -286,7 +381,6 @@ class ContentManagerService
             $this->deleteFiles($files);
         }
     }
-
     private function deleteQuizContent(array $content): void
     {
         $quizItems = json_decode($content['url'], true, 512, JSON_THROW_ON_ERROR);

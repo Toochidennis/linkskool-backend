@@ -29,8 +29,8 @@ class AssignmentSubmissionService
             'marking_score' => $data['mark'],
             'score' => $data['score'],
             'level' => $data['level_id'],
-            'course' => $data['course_id'],
-            'class_id' => $data['class_id'],
+            'course_id' => $data['course_id'],
+            'class' => $data['class_id'],
             'course_name' => $data['course_name'],
             'class_name' => $data['class_name'],
             'type' => ContentType::ASSIGNMENT->value,
@@ -39,14 +39,26 @@ class AssignmentSubmissionService
             'date' => date('Y-m-d H:i:s')
         ];
 
-        return $this->submission->insert($payload);
+        $exists = $this->submission
+            ->where('exam', $data['assignment_id'])
+            ->where('student', $data['student_id'])
+            ->where('type', ContentType::ASSIGNMENT->value)
+            ->where('year', $data['year'])
+            ->where('term', $data['term'])
+            ->exists();
+
+        if (!$exists) {
+            return $this->submission->insert($payload);
+        }
+
+        return true;
     }
 
     public function getAssignmentSubmissions(array $filters): array
     {
         $results =  $this->submission
             ->select([
-                'id',
+                'response_id AS id',
                 'exam AS content_id',
                 'student AS student_id',
                 'student_name',
@@ -57,9 +69,10 @@ class AssignmentSubmissionService
                 'score',
                 'date'
             ])
-            ->where('exam', $filters['content_id'])
+            ->where('exam', $filters['id'])
             ->where('type', ContentType::ASSIGNMENT->value)
             ->where('year', $filters['year'])
+            ->where('term', $filters['term'])
             ->orderBy('date', 'DESC')
             ->get();
 
@@ -70,7 +83,7 @@ class AssignmentSubmissionService
         ];
 
         foreach ($results as $row) {
-            $row['response'] = json_decode($row['files'], true);
+            $row['files'] = json_decode($row['files'], true);
 
             if (empty($row['unmarked']) || $row['unmarked'] == 0) {
                 $grouped['submitted'][] = $row;
@@ -83,6 +96,35 @@ class AssignmentSubmissionService
             }
         }
 
+        foreach ($grouped as &$category) {
+            foreach ($category as &$item) {
+                unset($item['unmarked'], $item['marking']);
+            }
+        }
+        unset($category, $item); // Avoid reference issues
+
         return $grouped;
+    }
+
+    public function getMarkedAssignment(array $filters): array
+    {
+        $result = $this->submission
+            ->select([
+                'response AS files',
+                'marking_score',
+                'score',
+                'date'
+            ])
+            ->where('exam', $filters['id'])
+            ->where('type', ContentType::ASSIGNMENT->value)
+            ->where('year', $filters['year'])
+            ->where('term', $filters['term'])
+            ->where('marking', 1)
+            ->orderBy('date', 'DESC')
+            ->first();
+
+        $result['files'] = json_decode($result['files'], true);
+
+        return $result;
     }
 }

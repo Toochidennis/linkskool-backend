@@ -106,7 +106,7 @@ class StudentContentManagerService
             ->where('level', '=', $filters['level_id'])
             ->where('type', '=', ContentType::QUIZ->value)
             ->orderBy('upload_date', 'DESC')
-            ->limit(5)
+            ->limit(10)
             ->get();
 
         if (empty($results)) {
@@ -148,6 +148,7 @@ class StudentContentManagerService
                 'course_name',
                 'course_id',
                 'level',
+                'body',
                 'path_label',
                 'author_name',
                 'upload_date'
@@ -155,7 +156,7 @@ class StudentContentManagerService
             ->where('term', '=', $filters['term'])
             ->where('level', '=', $filters['level_id'])
             ->orderBy('upload_date', 'DESC')
-            ->limit(5)
+            ->limit(10)
             ->get();
 
         if (empty($results)) {
@@ -175,6 +176,7 @@ class StudentContentManagerService
                     'course_id' => $result['course_id'],
                     'level_id' => $result['level'],
                     'title' => $result['title'],
+                    'comment' => $result['body'],
                     'type' => $this->contentTypeNames[$result['type']] ?? 'Unknown',
                     'course_name' => $result['course_name'],
                     'created_by' => $result['author_name'],
