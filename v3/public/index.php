@@ -125,6 +125,16 @@ $dispatcher = FastRoute\simpleDispatcher(
             '/portal/students/{student_id:\d+}/financial-records',
             ['Portal\Payments\StudentPaymentController', 'getFinancialRecords']
         );
+        $r->addRoute(
+            'GET',
+            '/portal/students/{student_id:\d+}/assignment-submissions',
+            ['Portal\ELearning\AssignmentSubmissionController', 'getMarkedAssignment']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students/{student_id:\d+}/quiz-submissions',
+            ['Portal\ELearning\QuizSubmissionController', 'getMarkedQuiz']
+        );
 
         // Level routes
         $r->addRoute(

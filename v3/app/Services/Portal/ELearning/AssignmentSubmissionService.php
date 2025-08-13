@@ -65,7 +65,6 @@ class AssignmentSubmissionService
                 'response AS files',
                 'marking_score',
                 'unmarked',
-                'marking',
                 'score',
                 'date'
             ])
@@ -78,27 +77,26 @@ class AssignmentSubmissionService
 
         $grouped = [
             'submitted' => [],
-            'marked' => [],
-            'returned' => []
+            'unmarked' => [],
+            'marked' => []
         ];
 
         foreach ($results as $row) {
             $row['files'] = json_decode($row['files'], true);
 
+            $grouped['submitted'] = $row;
+
             if (empty($row['unmarked']) || $row['unmarked'] == 0) {
-                $grouped['submitted'][] = $row;
+                $grouped['unmarked'][] = $row;
             }
             if ($row['unmarked'] == 1) {
                 $grouped['marked'][] = $row;
-            }
-            if ($row['marking'] == 1) {
-                $grouped['returned'][] = $row;
             }
         }
 
         foreach ($grouped as &$category) {
             foreach ($category as &$item) {
-                unset($item['unmarked'], $item['marking']);
+                unset($item['unmarked']);
             }
         }
         unset($category, $item); // Avoid reference issues
