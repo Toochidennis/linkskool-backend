@@ -3,6 +3,7 @@
 namespace V3\App\Services\Portal\ELearning;
 
 use V3\App\Common\Enums\ContentType;
+use V3\App\Common\Enums\SubmissionStatus;
 use V3\App\Models\Portal\ELearning\Submission;
 
 class QuizSubmissionService
@@ -23,6 +24,7 @@ class QuizSubmissionService
             'response' => json_encode($data['answers']),
             'marking_score' => $data['mark'],
             'score' => $data['score'],
+            'unmarked' => SubmissionStatus::UNMARKED->value,
             'level' => $data['level_id'],
             'course_id' => $data['course_id'],
             'class' => $data['class_id'],
@@ -44,6 +46,35 @@ class QuizSubmissionService
 
         if (!$exists) {
             return $this->submission->insert($payload);
+        }
+
+        return true;
+    }
+
+    public function markQuiz(array $data): bool
+    {
+        foreach ($data as $row) {
+            $payload = [
+                'response' => json_encode($row['answers']),
+                'unmarked' => SubmissionStatus::MARKED->value,
+                'marking' => SubmissionStatus::PUBLISHED->value,
+                'score' => $row['score'],
+            ];
+
+            $this->submission
+                ->where('response_id', $row['id'])
+                ->update($payload);
+        }
+
+        return true;
+    }
+
+    public function publishQuiz(array $data): bool
+    {
+        foreach ($data as $row) {
+            $this->submission
+                ->where('response_id', $row['id'])
+                ->update(['marking' => $row['publish']]);
         }
 
         return true;
@@ -77,24 +108,20 @@ class QuizSubmissionService
         ];
 
         foreach ($results as $row) {
-            $row['answers'] = json_decode($row['answers'], true);
+            $row['files'] = json_decode($row['files'], true);
 
-            $grouped['submitted'] = $row;
+            $status = $row['unmarked'];
+            unset($row['unmarked']);
 
-            if (empty($row['unmarked']) || $row['unmarked'] == 0) {
+            $grouped['submitted'][] = $row;
+
+            if ($status == SubmissionStatus::UNMARKED->value) {
                 $grouped['unmarked'][] = $row;
             }
-            if ($row['unmarked'] == 1) {
+            if ($status == SubmissionStatus::MARKED->value) {
                 $grouped['marked'][] = $row;
             }
         }
-
-        foreach ($grouped as &$category) {
-            foreach ($category as &$item) {
-                unset($item['unmarked']);
-            }
-        }
-        unset($category, $item); // Avoid reference issues
 
         return $grouped;
     }
@@ -114,11 +141,13 @@ class QuizSubmissionService
             ->where('type', ContentType::QUIZ->value)
             ->where('year', $filters['year'])
             ->where('term', $filters['term'])
-            ->where('marking', 1)
+            ->where('marking', SubmissionStatus::PUBLISHED->value)
             ->orderBy('date', 'DESC')
             ->first();
 
-        $result['answers'] = json_decode($result['answers'], true);
+        if ($result) {
+            $result['answers'] = json_decode($result['answers'], true);
+        }
 
         return $result;
     }

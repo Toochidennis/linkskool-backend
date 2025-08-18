@@ -3,6 +3,7 @@
 namespace V3\App\Services\Portal\ELearning;
 
 use V3\App\Common\Enums\ContentType;
+use V3\App\Common\Enums\QuestionType;
 use V3\App\Models\Portal\ELearning\Content;
 use V3\App\Models\Portal\ELearning\Quiz;
 use V3\App\Models\Portal\Results\Result;
@@ -12,19 +13,6 @@ class StudentContentManagerService
     private Content $content;
     private Quiz $quiz;
     private Result $result;
-
-    private array $contentTypeNames = [
-        ContentType::TOPIC->value => 'topic',
-        ContentType::QUIZ->value => 'quiz',
-        ContentType::MATERIAL->value => 'material',
-        ContentType::ASSIGNMENT->value => 'assignment',
-        ContentType::SYLLABUS->value => 'syllabus'
-    ];
-
-    private array $questionTypeNames = [
-        'qo' => 'multiple_choice',
-        'qs' => 'short_answer',
-    ];
 
     public function __construct(\PDO $pdo)
     {
@@ -180,7 +168,7 @@ class StudentContentManagerService
                         'level_id' => $result['level'],
                         'title' => $result['title'],
                         'comment' => $result['body'],
-                        'type' => $this->contentTypeNames[$result['type']] ?? 'Unknown',
+                        'type' => ContentType::tryFrom($result['type'])->label() ?? 'Unknown',
                         'course_name' => $result['course_name'],
                         'created_by' => $result['author_name'],
                         'date_posted' => $result['upload_date'],
@@ -238,7 +226,7 @@ class StudentContentManagerService
             $topicGroup = [
                 'id' => $topic['id'],
                 'title' => $topic['title'],
-                'type' => $this->contentTypeNames[$topic['type']] ?? 'Unknown',
+                'type' => ContentType::tryFrom($topic['type'])->label() ?? 'Unknown',
                 'objective' => $topic['body'],
                 'classes' => $this->json($topic['path_label']),
                 'rank' => $topic['rank'] ?? 0,
@@ -314,8 +302,7 @@ class StudentContentManagerService
         }
 
         $questions = array_map(function ($question) {
-            $question['question_type'] = $this->questionTypeNames[$question['question_type']]
-                ?? $question['question_type'];
+            $question['question_type'] = QuestionType::tryFrom($question['question_type'])->label();
             $question['question_files'] = $this->json($question['question_files']);
             $question['options'] = $this->json($question['options']);
             $question['correct'] = $this->json($question['correct']);
@@ -346,7 +333,7 @@ class StudentContentManagerService
                 'syllabus_id' => $content['outline'],
                 'title' => $content['title'],
                 'description' => $content['description'],
-                'type' => $this->contentTypeNames[$content['type']] ?? 'Unknown',
+                'type' => ContentType::tryFrom($content['type'])->label() ?? 'Unknown',
                 'rank' => $content['rank'] ?? 0,
                 'topic_id' => $content['parent'] ?? 0,
                 'topic' => $content['category'] ?? '',
@@ -363,7 +350,7 @@ class StudentContentManagerService
                 'syllabus_id' => $content['outline'],
                 'title' => $content['title'],
                 'description' => $content['description'],
-                'type' => $this->contentTypeNames[$content['type']] ?? 'Unknown',
+                'type' => ContentType::tryFrom($content['type'])->label() ?? 'Unknown',
                 'rank' => $content['rank'] ?? 0,
                 'topic_id' => $content['parent'] ?? 0,
                 'topic' => $content['category'] ?? '',
@@ -384,7 +371,7 @@ class StudentContentManagerService
                     'syllabus_id' => $content['outline'],
                     'title' => $content['title'],
                     'description' => $content['description'],
-                    'type' => $this->contentTypeNames[$content['type']] ?? 'Unknown',
+                    'type' => ContentType::tryFrom($content['type'])->label() ?? 'Unknown',
                     'rank' => $content['rank'] ?? 0,
                     'topic_id' => $content['parent'] ?? 0,
                     'topic' => $content['category'] ?? '',

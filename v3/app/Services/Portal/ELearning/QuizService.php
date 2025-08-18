@@ -5,6 +5,7 @@ namespace V3\App\Services\Portal\ELearning;
 use PDO;
 use Throwable;
 use V3\App\Common\Enums\ContentType;
+use V3\App\Common\Enums\QuestionType;
 use V3\App\Common\Utilities\FileHandler;
 use V3\App\Models\Portal\ELearning\Content;
 use V3\App\Models\Portal\ELearning\Quiz;
@@ -52,7 +53,7 @@ class QuizService
                 $payload = [
                     'title' => $question['question_text'],
                     'content' => $this->json($questionFiles),
-                    'type' => $question['question_type'] === 'multiple_choice' ? 'qo' : 'qs',
+                    'type' => QuestionType::tryFrom($question['question_type'])->value,
                     'parent' => $question['question_grade'],
                     'correct' => $this->json($question['correct']),
                     'course_id' => $settings['course_id'],

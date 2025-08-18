@@ -150,7 +150,7 @@ class NextTermFeeService
                 'tid AS fee_id',
                 'item.description AS fee_name',
                 'IFNULL(item.type, 0) AS is_mandatory',
-                'IFNULL(next_term_fees.amount_due, 0) AS amount',
+                'IFNULL(next_term_fees.amount, 0) AS amount',
             ])
             ->join('next_term_fees', function ($join) use ($filters) {
                 $join->on('item.tid', '=', 'next_term_fees.fee')
