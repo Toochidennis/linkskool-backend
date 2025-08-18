@@ -4,6 +4,7 @@ namespace V3\App\Services\Portal\ELearning;
 
 use PDO;
 use V3\App\Common\Enums\ContentType;
+use V3\App\Common\Enums\QuestionType;
 use V3\App\Common\Utilities\PathResolver;
 use V3\App\Models\Portal\ELearning\Content;
 use V3\App\Models\Portal\ELearning\Quiz;
@@ -13,18 +14,6 @@ class ContentManagerService
     private Content $content;
     private Quiz $quiz;
     private string $contentPath;
-
-    private array $contentTypeNames = [
-        ContentType::TOPIC->value => 'topic',
-        ContentType::QUIZ->value => 'quiz',
-        ContentType::MATERIAL->value => 'material',
-        ContentType::ASSIGNMENT->value => 'assignment',
-    ];
-
-    private array $questionTypeNames = [
-        'qo' => 'multiple_choice',
-        'qs' => 'short_answer',
-    ];
 
     /**
      * ContentManagerService constructor.
@@ -75,7 +64,7 @@ class ContentManagerService
                     'course_name' => $result['course_name'],
                     'level_id' => $result['level'],
                     'classes' => $this->json($result['path_label']),
-                    'type' => $this->contentTypeNames[ContentType::QUIZ->value],
+                    'type' => ContentType::QUIZ->label(),
                     'outline' => $result['outline'],
                     'created_by' => $result['author_name'],
                     'date_posted' => $result['upload_date'],
@@ -120,7 +109,7 @@ class ContentManagerService
                     'level_id' => $result['level'],
                     'title' => $result['title'],
                     'comment' => $result['body'] ?? '',
-                    'type' => $this->contentTypeNames[$result['type']] ?? 'Unknown',
+                    'type' => ContentType::tryFrom($result['type'])->label() ?? 'Unknown',
                     'classes' => $this->json($result['path_label']),
                     'course_name' => $result['course_name'],
                     'created_by' => $result['author_name'],
@@ -169,8 +158,7 @@ class ContentManagerService
         }
 
         $questions = array_map(function ($question) {
-            $question['question_type'] = $this->questionTypeNames[$question['question_type']]
-                ?? $question['question_type'];
+            $question['question_type'] = QuestionType::tryFrom($question['question_type'])->label();
             $question['question_files'] = $this->json($question['question_files']);
             $question['options'] = $this->json($question['options']);
             $question['correct'] = $this->json($question['correct']);
@@ -225,7 +213,7 @@ class ContentManagerService
             $topicGroup = [
                 'id' => $topic['id'],
                 'title' => $topic['title'],
-                'type' => $this->contentTypeNames[$topic['type']] ?? 'Unknown',
+                'type' => ContentType::tryFrom($topic['type'])->label() ?? 'Unknown',
                 'objective' => $topic['body'],
                 'classes' => $this->json($topic['path_label']),
                 'rank' => $topic['rank'] ?? 0,
@@ -281,7 +269,7 @@ class ContentManagerService
                 'syllabus_id' => $content['outline'],
                 'title' => $content['title'],
                 'description' => $content['description'],
-                'type' => $this->contentTypeNames[$content['type']] ?? 'Unknown',
+                'type' => ContentType::MATERIAL->label(),
                 'rank' => $content['rank'] ?? 0,
                 'topic_id' => $content['parent'] ?? 0,
                 'topic' => $content['category'] ?? '',
@@ -298,7 +286,7 @@ class ContentManagerService
                 'syllabus_id' => $content['outline'],
                 'title' => $content['title'],
                 'description' => $content['description'],
-                'type' => $this->contentTypeNames[$content['type']] ?? 'Unknown',
+                'type' => ContentType::ASSIGNMENT->label(),
                 'rank' => $content['rank'] ?? 0,
                 'topic_id' => $content['parent'] ?? 0,
                 'topic' => $content['category'] ?? '',
@@ -319,7 +307,7 @@ class ContentManagerService
                     'syllabus_id' => $content['outline'],
                     'title' => $content['title'],
                     'description' => $content['description'],
-                    'type' => $this->contentTypeNames[$content['type']] ?? 'Unknown',
+                    'type' => ContentType::QUIZ->label(),
                     'rank' => $content['rank'] ?? 0,
                     'topic_id' => $content['parent'] ?? 0,
                     'topic' => $content['category'] ?? '',

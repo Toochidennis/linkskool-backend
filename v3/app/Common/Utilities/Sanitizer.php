@@ -13,7 +13,7 @@ class Sanitizer
 
         // Recursive function to check for nulls and sanitize
         $process = function ($value, $keyPath) use (&$process, &$nullFields): array|string|null {
-            if ($value == null) {
+            if ($value === null) {
                 $nullFields[] = $keyPath;
                 return null; // Keep null as-is, but record it
             }
@@ -27,7 +27,7 @@ class Sanitizer
             }
 
             // Sanitize scalar value
-            return htmlspecialchars(strip_tags(trim($value)), ENT_QUOTES, 'UTF-8');
+            return htmlspecialchars(strip_tags(trim((string) $value)), ENT_QUOTES, 'UTF-8');
         };
 
         $sanitizedData = $process($input, $parentKey);

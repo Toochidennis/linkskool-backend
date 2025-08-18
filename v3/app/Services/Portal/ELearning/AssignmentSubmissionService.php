@@ -3,6 +3,7 @@
 namespace V3\App\Services\Portal\ELearning;
 
 use V3\App\Common\Enums\ContentType;
+use V3\App\Common\Enums\SubmissionStatus;
 use V3\App\Common\Utilities\FileHandler;
 use V3\App\Models\Portal\ELearning\Submission;
 
@@ -27,6 +28,7 @@ class AssignmentSubmissionService
             'student_name' => $data['student_name'],
             'response' => json_encode($filePath),
             'marking_score' => $data['mark'],
+            'unmarked' => SubmissionStatus::UNMARKED->value,
             'score' => $data['score'],
             'level' => $data['level_id'],
             'course_id' => $data['course_id'],
@@ -49,6 +51,35 @@ class AssignmentSubmissionService
 
         if (!$exists) {
             return $this->submission->insert($payload);
+        }
+
+        return true;
+    }
+
+    public function markAssignment(array $data): bool
+    {
+        foreach ($data as $row) {
+            $payload = [
+                'response' => json_encode($row['answers']),
+                'unmarked' => SubmissionStatus::MARKED->value,
+                'marking' => SubmissionStatus::PUBLISHED->value,
+                'score' => $row['score'],
+            ];
+
+            $this->submission
+                ->where('response_id', $row['id'])
+                ->update($payload);
+        }
+
+        return true;
+    }
+
+    public function publishAssignment(array $data): bool
+    {
+        foreach ($data as $row) {
+            $this->submission
+                ->where('response_id', $row['id'])
+                ->update(['marking' => $row['publish']]);
         }
 
         return true;
@@ -77,29 +108,25 @@ class AssignmentSubmissionService
 
         $grouped = [
             'submitted' => [],
-            'unmarked' => [],
-            'marked' => []
+            'unmarked'  => [],
+            'marked'    => []
         ];
 
         foreach ($results as $row) {
             $row['files'] = json_decode($row['files'], true);
 
-            $grouped['submitted'] = $row;
+            $status = $row['unmarked'];
+            unset($row['unmarked']);
 
-            if (empty($row['unmarked']) || $row['unmarked'] == 0) {
+            $grouped['submitted'][] = $row;
+
+            if ($status == SubmissionStatus::UNMARKED->value) {
                 $grouped['unmarked'][] = $row;
             }
-            if ($row['unmarked'] == 1) {
+            if ($status == SubmissionStatus::MARKED->value) {
                 $grouped['marked'][] = $row;
             }
         }
-
-        foreach ($grouped as &$category) {
-            foreach ($category as &$item) {
-                unset($item['unmarked']);
-            }
-        }
-        unset($category, $item); // Avoid reference issues
 
         return $grouped;
     }
@@ -113,15 +140,17 @@ class AssignmentSubmissionService
                 'score',
                 'date'
             ])
-            ->where('exam', $filters['id'])
+            ->where('exam', $filters['content_id'])
             ->where('type', ContentType::ASSIGNMENT->value)
             ->where('year', $filters['year'])
             ->where('term', $filters['term'])
-            ->where('marking', 1)
+            ->where('marking', SubmissionStatus::PUBLISHED->value)
             ->orderBy('date', 'DESC')
             ->first();
 
-        $result['files'] = json_decode($result['files'], true);
+        if ($result) {
+            $result['files'] = json_decode($result['files'], true);
+        }
 
         return $result;
     }

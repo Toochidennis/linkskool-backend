@@ -98,7 +98,7 @@ class AssignmentSubmissionController extends BaseController
         $filteredVars = $this->validate(
             data: $vars,
             rules: [
-                'id' => 'required|integer',
+                'content_id' => 'required|integer',
                 'student_id' => 'required|integer',
                 'term' => 'required|integer|in:1,2,3',
                 'year' => 'required|integer',
@@ -106,7 +106,8 @@ class AssignmentSubmissionController extends BaseController
         );
 
         try {
-            $markedAssignment = $this->assignmentSubmissionService->getMarkedAssignment($filteredVars);
+            $markedAssignment = $this->assignmentSubmissionService
+                ->getMarkedAssignment($filteredVars);
 
             return $this->respond(
                 [
@@ -117,6 +118,76 @@ class AssignmentSubmissionController extends BaseController
         } catch (\Exception $e) {
             return $this->respondError(
                 'Failed to retrieve quiz submissions: ' . $e->getMessage()
+            );
+        }
+    }
+
+    public function markAssignment(array $vars)
+    {
+        $filteredVars = $this->validate(
+            data: $vars,
+            rules: [
+                'results' => 'required|array|min:1',
+                'results.*.id' => 'required|integer',
+                'results.*.answers' => 'required|array',
+                'results.*.score' => 'required|numeric',
+            ]
+        );
+
+        try {
+            $result = $this->assignmentSubmissionService
+                ->markAssignment($filteredVars['results']);
+
+            if ($result) {
+                return $this->respond(
+                    [
+                        'success' => true,
+                        'message' => 'Assignment marked successfully',
+                    ]
+                );
+            }
+
+            return $this->respondError(
+                'Failed to mark assignment',
+                HttpStatus::BAD_REQUEST
+            );
+        } catch (\Exception $e) {
+            return $this->respondError(
+                'Failed to mark assignment: ' . $e->getMessage()
+            );
+        }
+    }
+
+    public function publishAssignment(array $vars)
+    {
+        $filteredVars = $this->validate(
+            data: $vars,
+            rules: [
+                'id' => 'required|integer',
+                'publish' => 'required|integer|in:0,1',
+            ]
+        );
+
+        try {
+            $result = $this->assignmentSubmissionService
+                ->publishAssignment($filteredVars);
+
+            if ($result) {
+                return $this->respond(
+                    [
+                        'success' => true,
+                        'message' => 'Assignment published successfully',
+                    ]
+                );
+            }
+
+            return $this->respondError(
+                'Failed to publish assignment',
+                HttpStatus::BAD_REQUEST
+            );
+        } catch (\Exception $e) {
+            return $this->respondError(
+                'Failed to publish assignment: ' . $e->getMessage()
             );
         }
     }

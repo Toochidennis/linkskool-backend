@@ -66,9 +66,73 @@ class QuizSubmissionController extends BaseController
         }
     }
 
-    public function markQuiz(array $vars)
+    public function markQuizSubmission(array $vars)
     {
-        //TODO
+        $cleanedData = $this->validate(
+            data: $vars,
+            rules: [
+                'results' => 'required|array|min:1',
+                'results.*.id' => 'required|integer',
+                'results.*.answers' => 'required|array',
+                'results.*.score' => 'required|numeric',
+            ]
+        );
+
+        try {
+            $result = $this->quizSubmissionService->markQuiz($cleanedData['results']);
+
+            if ($result) {
+                return $this->respond(
+                    [
+                        'success' => true,
+                        'message' => 'Quiz marked successfully',
+                    ],
+                    HttpStatus::OK
+                );
+            }
+
+            return $this->respondError(
+                'Failed to mark quiz',
+                HttpStatus::BAD_REQUEST
+            );
+        } catch (\Exception $e) {
+            return $this->respondError(
+                'Failed to mark quiz: ' . $e->getMessage()
+            );
+        }
+    }
+
+    public function publishQuiz(array $vars)
+    {
+        $cleanedData = $this->validate(
+            data: $vars,
+            rules: [
+                'id' => 'required|integer',
+                'publish' => 'required|integer|in:0,1',
+            ]
+        );
+
+        try {
+            $result = $this->quizSubmissionService->publishQuiz($cleanedData);
+
+            if (!$result) {
+                return $this->respondError(
+                    'Failed to publish quiz',
+                    HttpStatus::BAD_REQUEST
+                );
+            }
+
+            return $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Quiz published successfully',
+                ]
+            );
+        } catch (\Exception $e) {
+            return $this->respondError(
+                'Failed to publish quiz: ' . $e->getMessage()
+            );
+        }
     }
 
     public function getSubmissions(array $vars)
