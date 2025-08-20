@@ -17,6 +17,11 @@ class QuizService
     private PDO $pdo;
     private FileHandler $handler;
 
+    private array $typeMap = [
+        'multiple_choice' => QuestionType::MULTIPLE_CHOICE->value,
+        'short_answer'    => QuestionType::SHORT_ANSWER->value,
+    ];
+
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
@@ -53,7 +58,7 @@ class QuizService
                 $payload = [
                     'title' => $question['question_text'],
                     'content' => $this->json($questionFiles),
-                    'type' => QuestionType::tryFrom($question['question_type'])->value,
+                    'type' => $this->typeMap[$question['question_type']],
                     'parent' => $question['question_grade'],
                     'correct' => $this->json($question['correct']),
                     'course_id' => $settings['course_id'],

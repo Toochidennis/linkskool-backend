@@ -31,6 +31,10 @@ class StudentPaymentController extends BaseController
                 'level_id' => 'required|integer',
                 'year' => 'required|digits:4',
                 'term' => 'required|integer|in:1,2,3',
+                'fees' => 'required|array|min:1',
+                'fees.*.fee_id' => 'required|integer',
+                'fees.*.fee_name' => 'required|string|filled',
+                'fees.*.amount' => 'required|numeric',
             ],
         );
 

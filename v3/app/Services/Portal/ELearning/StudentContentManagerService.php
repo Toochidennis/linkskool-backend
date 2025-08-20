@@ -168,7 +168,7 @@ class StudentContentManagerService
                         'level_id' => $result['level'],
                         'title' => $result['title'],
                         'comment' => $result['body'],
-                        'type' => ContentType::tryFrom($result['type'])->label() ?? 'Unknown',
+                        'type' => ContentType::tryFrom($result['type'])?->label() ?? 'Unknown',
                         'course_name' => $result['course_name'],
                         'created_by' => $result['author_name'],
                         'date_posted' => $result['upload_date'],
@@ -226,7 +226,7 @@ class StudentContentManagerService
             $topicGroup = [
                 'id' => $topic['id'],
                 'title' => $topic['title'],
-                'type' => ContentType::tryFrom($topic['type'])->label() ?? 'Unknown',
+                'type' => ContentType::TOPIC->label(),
                 'objective' => $topic['body'],
                 'classes' => $this->json($topic['path_label']),
                 'rank' => $topic['rank'] ?? 0,
@@ -302,7 +302,7 @@ class StudentContentManagerService
         }
 
         $questions = array_map(function ($question) {
-            $question['question_type'] = QuestionType::tryFrom($question['question_type'])->label();
+            $question['question_type'] = QuestionType::tryFrom($question['question_type'])?->label();
             $question['question_files'] = $this->json($question['question_files']);
             $question['options'] = $this->json($question['options']);
             $question['correct'] = $this->json($question['correct']);
@@ -333,7 +333,7 @@ class StudentContentManagerService
                 'syllabus_id' => $content['outline'],
                 'title' => $content['title'],
                 'description' => $content['description'],
-                'type' => ContentType::tryFrom($content['type'])->label() ?? 'Unknown',
+                'type' => ContentType::MATERIAL->label(),
                 'rank' => $content['rank'] ?? 0,
                 'topic_id' => $content['parent'] ?? 0,
                 'topic' => $content['category'] ?? '',
@@ -350,7 +350,7 @@ class StudentContentManagerService
                 'syllabus_id' => $content['outline'],
                 'title' => $content['title'],
                 'description' => $content['description'],
-                'type' => ContentType::tryFrom($content['type'])->label() ?? 'Unknown',
+                'type' => ContentType::ASSIGNMENT->label(),
                 'rank' => $content['rank'] ?? 0,
                 'topic_id' => $content['parent'] ?? 0,
                 'topic' => $content['category'] ?? '',
@@ -371,7 +371,7 @@ class StudentContentManagerService
                     'syllabus_id' => $content['outline'],
                     'title' => $content['title'],
                     'description' => $content['description'],
-                    'type' => ContentType::tryFrom($content['type'])->label() ?? 'Unknown',
+                    'type' => ContentType::QUIZ->label(),
                     'rank' => $content['rank'] ?? 0,
                     'topic_id' => $content['parent'] ?? 0,
                     'topic' => $content['category'] ?? '',
