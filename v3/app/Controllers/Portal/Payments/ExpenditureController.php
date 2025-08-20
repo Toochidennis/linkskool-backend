@@ -21,11 +21,10 @@ class ExpenditureController extends BaseController
         $cleanedData = $this->validate(
             $this->post,
             rules: [
-                'memo' => 'required|string',
+                'description' => 'required|string',
                 'customer_id' => 'required|integer',
                 'customer_reference' => 'required|string',
                 'customer_name' => 'required|string',
-                'description' => 'required|array',
                 'amount' => 'required|numeric',
                 'date' => 'required|date',
                 'account_number' => 'required|string',
@@ -58,11 +57,10 @@ class ExpenditureController extends BaseController
             [...$this->post, ...$vars],
             rules: [
                 'id' => 'required|integer',
-                'memo' => 'required|string',
+                'description' => 'required|string',
                 'customer_id' => 'required|integer',
                 'customer_reference' => 'required|string',
                 'customer_name' => 'required|string',
-                'description' => 'required|array',
                 'amount' => 'required|numeric',
                 'account_number' => 'required|string',
                 'account_name' => 'required|string',

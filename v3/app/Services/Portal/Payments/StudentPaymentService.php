@@ -157,6 +157,7 @@ class StudentPaymentService
             return $this->transaction
                 ->where('tid', '=', $tid)
                 ->update([
+                    'description' => json_encode($data['fees']),
                     'amount_due' => $remainingBalance,
                     'net_due' => $invoice['amount_due']
                 ]);

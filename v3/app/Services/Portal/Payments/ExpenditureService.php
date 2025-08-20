@@ -15,14 +15,19 @@ class ExpenditureService
 
     public function addExpenditure(array $data)
     {
+        $description = [
+            'amount' => $data['amount'],
+            'desc' => $data['description']
+        ];
+
         $payload = [
             'trans_type' => 'expenditure',
             'c_type' => 2,
-            'memo' => $data['memo'],
+            'memo' => $data['description'],
             'cid' => $data['customer_id'],
             'cref' => $data['customer_reference'],
             'name' => $data['customer_name'],
-            'description' => json_encode($data['description']),
+            'description' => json_encode($description),
             'quantity' => 1,
             'it_id' => 1,
             'amount' => $data['amount'],
@@ -43,13 +48,18 @@ class ExpenditureService
 
     public function updateExpenditure(array $data): bool
     {
+        $description = [
+            'amount' => $data['amount'],
+            'desc' => $data['description']
+        ];
+
         $payload = [
             'trans_type' => 'expenditure',
-            'memo' => $data['memo'],
+            'memo' => $data['description'],
             'cid' => $data['customer_id'],
             'cref' => $data['customer_reference'],
             'name' => $data['customer_name'],
-            'description' => json_encode($data['description']),
+            'description' => json_encode($description),
             'amount' => $data['amount'],
             'account' => $data['account_number'],
             'account_name' => $data['account_name'],

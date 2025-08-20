@@ -109,7 +109,7 @@ class ContentManagerService
                     'level_id' => $result['level'],
                     'title' => $result['title'],
                     'comment' => $result['body'] ?? '',
-                    'type' => ContentType::tryFrom($result['type'])->label() ?? 'Unknown',
+                    'type' => ContentType::tryFrom($result['type'])?->label() ?? 'Unknown',
                     'classes' => $this->json($result['path_label']),
                     'course_name' => $result['course_name'],
                     'created_by' => $result['author_name'],
@@ -158,7 +158,7 @@ class ContentManagerService
         }
 
         $questions = array_map(function ($question) {
-            $question['question_type'] = QuestionType::tryFrom($question['question_type'])->label();
+            $question['question_type'] = QuestionType::tryFrom($question['question_type'])?->label() ?? 'Unknown';
             $question['question_files'] = $this->json($question['question_files']);
             $question['options'] = $this->json($question['options']);
             $question['correct'] = $this->json($question['correct']);
@@ -213,7 +213,7 @@ class ContentManagerService
             $topicGroup = [
                 'id' => $topic['id'],
                 'title' => $topic['title'],
-                'type' => ContentType::tryFrom($topic['type'])->label() ?? 'Unknown',
+                'type' => ContentType::TOPIC->label(),
                 'objective' => $topic['body'],
                 'classes' => $this->json($topic['path_label']),
                 'rank' => $topic['rank'] ?? 0,
