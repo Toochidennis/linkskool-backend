@@ -575,6 +575,16 @@ $dispatcher = FastRoute\simpleDispatcher(
             ['Portal\Payments\VendorController', 'get']
         );
         $r->addRoute(
+            'GET',
+            '/portal/payments/vendors/{id:\d+}/transactions/annual',
+            ['Portal\Payments\VendorController', 'annualHistory']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/vendors/{id:\d+}/transactions/{year:\d+}',
+            ['Portal\Payments\VendorController', 'transactions']
+        );
+        $r->addRoute(
             'DELETE',
             '/portal/payments/accounts/{id:\d+}',
             ['Portal\Payments\AccountController', 'delete']

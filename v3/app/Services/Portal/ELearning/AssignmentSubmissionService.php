@@ -62,7 +62,7 @@ class AssignmentSubmissionService
             $payload = [
                 'response' => json_encode($row['answers']),
                 'unmarked' => SubmissionStatus::MARKED->value,
-                'marking' => SubmissionStatus::PUBLISHED->value,
+                'marking' => SubmissionStatus::MARKED->value,
                 'score' => $row['score'],
             ];
 
@@ -144,7 +144,7 @@ class AssignmentSubmissionService
             ->where('type', ContentType::ASSIGNMENT->value)
             ->where('year', $filters['year'])
             ->where('term', $filters['term'])
-            ->where('marking', SubmissionStatus::PUBLISHED->value)
+            ->where('marking', SubmissionStatus::MARKED->value)
             ->orderBy('date', 'DESC')
             ->first();
 

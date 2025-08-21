@@ -29,8 +29,6 @@ class ExpenditureController extends BaseController
                 'date' => 'required|date',
                 'account_number' => 'required|string',
                 'account_name' => 'required|string',
-                'class_id' => 'required|integer',
-                'level_id' => 'required|integer',
                 'year' => 'required|integer',
                 'term' => 'required|integer|in:1,2,3'
             ]
@@ -64,8 +62,6 @@ class ExpenditureController extends BaseController
                 'amount' => 'required|numeric',
                 'account_number' => 'required|string',
                 'account_name' => 'required|string',
-                'class_id' => 'required|integer',
-                'level_id' => 'required|integer',
                 'year' => 'required|integer',
                 'term' => 'required|integer'
             ]

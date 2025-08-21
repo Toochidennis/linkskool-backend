@@ -37,8 +37,6 @@ class ExpenditureService
             'approved' => 1,
             'sub' => 0,
             'status' => 1,
-            'class' => $data['class_id'],
-            'level' => $data['level_id'],
             'year' => $data['year'],
             'term' => $data['term'],
         ];
@@ -63,8 +61,6 @@ class ExpenditureService
             'amount' => $data['amount'],
             'account' => $data['account_number'],
             'account_name' => $data['account_name'],
-            'class' => $data['class_id'],
-            'level' => $data['level_id'],
             'year' => $data['year'],
             'term' => $data['term'],
         ];

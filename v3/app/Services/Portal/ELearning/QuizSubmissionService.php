@@ -57,7 +57,7 @@ class QuizSubmissionService
             $payload = [
                 'response' => json_encode($row['answers']),
                 'unmarked' => SubmissionStatus::MARKED->value,
-                'marking' => SubmissionStatus::PUBLISHED->value,
+                'marking' => SubmissionStatus::MARKED->value,
                 'score' => $row['score'],
             ];
 
@@ -108,7 +108,7 @@ class QuizSubmissionService
         ];
 
         foreach ($results as $row) {
-            $row['files'] = json_decode($row['files'], true);
+            $row['answers'] = json_decode($row['answers'], true);
 
             $status = $row['unmarked'];
             unset($row['unmarked']);
@@ -141,7 +141,7 @@ class QuizSubmissionService
             ->where('type', ContentType::QUIZ->value)
             ->where('year', $filters['year'])
             ->where('term', $filters['term'])
-            ->where('marking', SubmissionStatus::PUBLISHED->value)
+            ->where('marking', SubmissionStatus::MARKED->value)
             ->orderBy('date', 'DESC')
             ->first();
 

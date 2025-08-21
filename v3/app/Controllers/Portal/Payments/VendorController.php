@@ -127,4 +127,43 @@ class VendorController extends BaseController
             $this->respondError($e->getMessage());
         }
     }
+
+    public function transactions(array $vars)
+    {
+        $cleanedData = $this->validate(
+            data: $vars,
+            rules: [
+                'id' => 'required|integer',
+                'year' => 'required|integer',
+            ]
+        );
+
+        try {
+            $this->respond([
+                'success' => true,
+                'data' => $this->vendorService->getTransactions($cleanedData),
+            ]);
+        } catch (\Exception $e) {
+            $this->respondError($e->getMessage());
+        }
+    }
+
+    public function annualHistory(array $vars)
+    {
+        $cleanedData = $this->validate(
+            data: $vars,
+            rules: [
+                'id' => 'required|integer',
+            ]
+        );
+
+        try {
+            $this->respond([
+                'success' => true,
+                'data' => $this->vendorService->getAnnualHistory($cleanedData['id']),
+            ]);
+        } catch (\Exception $e) {
+            $this->respondError($e->getMessage());
+        }
+    }
 }
