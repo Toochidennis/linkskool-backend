@@ -1,0 +1,51 @@
+{
+    "info": {
+        "name": "LinkSkool API - Make Payment",
+        "_postman_id": "a12f34b5-6789-4cde-9012-abcdef123456",
+        "description": "Test endpoint for student payment",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Make Payment",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "x-api-key",
+                        "value": "YOUR_API_KEY_HERE"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer YOUR_AUTH_TOKEN_HERE"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"invoice_id\": \"20253290\",\n  \"reference\": \"yx20bo7r2y\",\n  \"reg_no\": \"SJ2025/001\",\n  \"name\": \"Toochi Dennis\",\n  \"amount\": 15000,\n  \"class_id\": 71,\n  \"level_id\": 67,\n  \"year\": 2025,\n  \"term\": 3,\n  \"_db\": \"linkskoo_practice\"\n}"
+                },
+                "url": {
+                    "raw": "https://linkskool.net/api/v3/portal/students/277/make-payment",
+                    "protocol": "https",
+                    "host": [
+                        "linkskool",
+                        "net"
+                    ],
+                    "path": [
+                        "api",
+                        "v3",
+                        "portal",
+                        "students",
+                        "277",
+                        "make-payment"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ]
+}

@@ -2,15 +2,18 @@
 
 namespace V3\App\Services\Portal\Payments;
 
+use V3\App\Models\Portal\Payments\Transaction;
 use V3\App\Models\Portal\Payments\Vendor;
 
 class VendorService
 {
     private Vendor $vendor;
+    private Transaction $transaction;
 
     public function __construct(\PDO $pdo)
     {
         $this->vendor = new Vendor($pdo);
+        $this->transaction = new Transaction($pdo);
     }
 
     public function addVendor(array $data): bool|int
@@ -77,5 +80,67 @@ class VendorService
         return $this->vendor
             ->where(column: 'id', operator: '=', value: $id)
             ->delete();
+    }
+
+    public function getAnnualHistory(int $customerId): array
+    {
+        $transactions = $this->transaction
+            ->select([
+                'amount',
+                'year',
+            ])
+            ->where('cid', $customerId)
+            ->where('status', 1)
+            ->where('trans_type', 'expenditure')
+            ->orderBy('year', 'DESC')
+            ->get();
+
+        $totals = [];
+
+        foreach ($transactions as $txn) {
+            $year = $txn['year'];
+
+            if (!isset($totals[$year])) {
+                $totals[$year] = 0;
+            }
+
+            $totals[$year] += $txn['amount'];
+        }
+
+        $result = [];
+        foreach ($totals as $year => $total) {
+            $result[] = [
+                'year'  => $year,
+                'total' => $total,
+            ];
+        }
+
+        return $result;
+    }
+
+    public function getTransactions(array $filters)
+    {
+        $transactions = $this->transaction
+            ->select([
+                'tid AS id',
+                'memo AS description',
+                'cid AS customer_id',
+                'cref AS customer_reference',
+                'name AS customer_name',
+                'amount',
+                'account AS account_number',
+                'account_name',
+                'year',
+                'term',
+                'date'
+            ])
+            ->where('cid', $filters['id'])
+            ->where('status', 1)
+            ->where('year', $filters['year'])
+            ->where('trans_type', 'expenditure')
+            ->orderBy(['year' => 'DESC', 'term' => 'ASC', 'date' => 'DESC'])
+            ->get();
+
+        return $transactions;
     }
 }
