@@ -71,15 +71,13 @@ class QuizSubmissionController extends BaseController
         $cleanedData = $this->validate(
             data: $vars,
             rules: [
-                'results' => 'required|array|min:1',
-                'results.*.id' => 'required|integer',
-                'results.*.answers' => 'required|array',
-                'results.*.score' => 'required|numeric',
+                'id' => 'required|integer',
+                'score' => 'required|numeric',
             ]
         );
 
         try {
-            $result = $this->quizSubmissionService->markQuiz($cleanedData['results']);
+            $result = $this->quizSubmissionService->markQuiz($cleanedData);
 
             if ($result) {
                 return $this->respond(

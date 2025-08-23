@@ -127,16 +127,14 @@ class AssignmentSubmissionController extends BaseController
         $filteredVars = $this->validate(
             data: $vars,
             rules: [
-                'results' => 'required|array|min:1',
-                'results.*.id' => 'required|integer',
-                'results.*.answers' => 'required|array',
-                'results.*.score' => 'required|numeric',
+                'id' => 'required|integer',
+                'score' => 'required|numeric',
             ]
         );
 
         try {
             $result = $this->assignmentSubmissionService
-                ->markAssignment($filteredVars['results']);
+                ->markAssignment($filteredVars);
 
             if ($result) {
                 return $this->respond(
