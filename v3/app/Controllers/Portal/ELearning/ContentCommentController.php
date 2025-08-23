@@ -129,6 +129,33 @@ class ContentCommentController extends BaseController
         }
     }
 
+    public function streams(array $vars)
+    {
+        $cleanedData = $this->validate(
+            data: $vars,
+            rules: [
+                'syllabus_id' => 'required|integer',
+            ]
+        );
+
+        try {
+            $comments = $this->contentCommentService->getContentsComments(
+                $cleanedData['syllabus_id'],
+            );
+
+            return $this->respond(
+                [
+                    'success' => true,
+                    'data' => $comments
+                ]
+            );
+        } catch (\Exception $e) {
+            return $this->respondError(
+                'Failed to retrieve comments: ' . $e->getMessage()
+            );
+        }
+    }
+
     public function delete(array $vars)
     {
         $cleanedData = $this->validate(

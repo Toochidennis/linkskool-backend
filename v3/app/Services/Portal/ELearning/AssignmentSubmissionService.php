@@ -58,20 +58,15 @@ class AssignmentSubmissionService
 
     public function markAssignment(array $data): bool
     {
-        foreach ($data as $row) {
-            $payload = [
-                'response' => json_encode($row['answers']),
-                'unmarked' => SubmissionStatus::MARKED->value,
-                'marking' => SubmissionStatus::MARKED->value,
-                'score' => $row['score'],
-            ];
+        $payload = [
+            'unmarked' => SubmissionStatus::MARKED->value,
+            'marking' => SubmissionStatus::MARKED->value,
+            'score' => $data['score'],
+        ];
 
-            $this->submission
-                ->where('response_id', $row['id'])
-                ->update($payload);
-        }
-
-        return true;
+        return $this->submission
+            ->where('response_id', $data['id'])
+            ->update($payload);
     }
 
     public function publishAssignment(array $data): bool

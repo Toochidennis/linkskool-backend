@@ -479,6 +479,11 @@ $dispatcher = FastRoute\simpleDispatcher(
         );
         $r->addRoute(
             'GET',
+            '/portal/elearning/{syllabus_id:\d+}/comments/streams',
+            ['Portal\ELearning\ContentCommentController', 'streams']
+        );
+        $r->addRoute(
+            'GET',
             '/portal/elearning/overview',
             ['Portal\ELearning\ContentManagerController', 'getDashboard']
         );
