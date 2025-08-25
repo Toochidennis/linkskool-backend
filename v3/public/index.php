@@ -571,8 +571,23 @@ $dispatcher = FastRoute\simpleDispatcher(
         );
         $r->addRoute(
             'GET',
-            '/portal/payments/next-term-fees',
+            '/portal/payments/invoices',
             ['Portal\Payments\NextTermFeeController', 'get']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/dashboard/summary',
+            ['Portal\Payments\PaymentDashboardController', 'getDashboardSummary']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/invoices/paid',
+            ['Portal\Payments\PaymentDashboardController', 'getPaidInvoices']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/invoices/unpaid',
+            ['Portal\Payments\PaymentDashboardController', 'getUnPaidInvoices']
         );
         $r->addRoute(
             'GET',

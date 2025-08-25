@@ -164,7 +164,7 @@ class StudentPaymentService
         } else {
             return $this->transaction
                 ->where('tid', '=', $tid)
-                ->update(['approved' => 0]);
+                ->update(['approved' => 0, 'sub' => 0]);
         }
     }
 

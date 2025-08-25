@@ -105,7 +105,9 @@ class QuizSubmissionController extends BaseController
         $cleanedData = $this->validate(
             data: $vars,
             rules: [
-                'id' => 'required|integer',
+                'content_id' => 'required|integer',
+                'year' => 'required|integer',
+                'term' => 'required|integer|in:1,2,3',
                 'publish' => 'required|integer|in:0,1',
             ]
         );
