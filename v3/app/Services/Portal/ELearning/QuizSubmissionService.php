@@ -66,13 +66,11 @@ class QuizSubmissionService
 
     public function publishQuiz(array $data): bool
     {
-        foreach ($data as $row) {
-            $this->submission
-                ->where('response_id', $row['id'])
-                ->update(['marking' => $row['publish']]);
-        }
-
-        return true;
+        return $this->submission
+            ->where('exam', $data['content_id'])
+            ->where('year', $data['year'])
+            ->where('term', $data['term'])
+            ->update(['marking' => $data['publish']]);
     }
 
     public function getQuizSubmissions(array $filters): array
