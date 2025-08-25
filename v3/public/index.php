@@ -419,12 +419,12 @@ $dispatcher = FastRoute\simpleDispatcher(
         );
         $r->addRoute(
             'PUT',
-            '/portal/elearning/quiz/{id:\d+}/mark',
+            '/portal/elearning/quiz/mark',
             ['Portal\ELearning\QuizSubmissionController', 'markQuiz']
         );
         $r->addRoute(
             'PUT',
-            '/portal/elearning/quiz/{id:\d+}/publish',
+            '/portal/elearning/quiz/{content_id:\d+}/publish',
             ['Portal\ELearning\QuizSubmissionController', 'publishQuiz']
         );
         $r->addRoute(
@@ -444,12 +444,12 @@ $dispatcher = FastRoute\simpleDispatcher(
         );
         $r->addRoute(
             'PUT',
-            '/portal/elearning/assignment/{id:\d+}/mark',
+            '/portal/elearning/assignment/mark',
             ['Portal\ELearning\AssignmentSubmissionController', 'markAssignment']
         );
         $r->addRoute(
             'PUT',
-            '/portal/elearning/assignment/{id:\d+}/publish',
+            '/portal/elearning/assignment/{content_id:\d+}/publish',
             ['Portal\ELearning\AssignmentSubmissionController', 'publishAssignment']
         );
         $r->addRoute(

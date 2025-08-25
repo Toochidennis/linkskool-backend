@@ -21,22 +21,18 @@ class PaymentDashboardService
         $income = $this->transaction
             ->select(['SUM(amount) as total_income'])
             ->where('trans_type', 'receipts')
-            ->whereGroup($filters)
+            ->where('year', '=', $filters['year'])
+            ->where('term', '=', $filters['term'])
+            ->where('status', 1)
             ->first();
 
         $invoiced = $this->transaction
             ->select(['SUM(amount) as total_invoiced'])
             ->where('trans_type', 'invoice')
-            ->whereGroup($filters)
+            ->where('year', '=', $filters['year'])
+            ->where('term', '=', $filters['term'])
+            ->where('approved', 1)
             ->first();
-
-        $levels = $this->level
-            ->select(['id', 'level_name'])
-            ->get();
-
-        foreach ($levels as $level) {
-            $levelNames[$level['id']] = $level['level_name'];
-        }
 
         $transactions = $this->transaction
             ->select([
@@ -57,9 +53,18 @@ class PaymentDashboardService
                 'account_name',
             ])
             ->where('status', 1)
-            ->whereGroup($filters)
+            ->where('year', '=', $filters['year'])
+            ->where('term', '=', $filters['term'])
             ->orderBy(['date' => 'DESC', 'term' => 'DESC'])
-            ->paginate(1, 25);
+            ->get();
+
+        $levels = $this->level
+            ->select(['id', 'level_name'])
+            ->get();
+
+        foreach ($levels as $level) {
+            $levelNames[$level['id']] = $level['level_name'];
+        }
 
         foreach ($transactions as &$trans) {
             $levelId = $trans['level_id'];
@@ -90,15 +95,13 @@ class PaymentDashboardService
                 'class AS class_id',
                 'status',
             ])
-            ->where('class', '=', $filters['class_id'])
             ->where('level', '=', $filters['level_id'])
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
-            ->where('approved', '=', 0)
+            ->where('status', '=', 1)
             ->where('trans_type', '=', 'receipts')
             ->get();
     }
-
     public function unpaidInvoices(array $filters): array
     {
         return $this->transaction
@@ -114,7 +117,6 @@ class PaymentDashboardService
                 'level AS level_id',
                 'class AS class_id',
             ])
-            ->where('class', '=', $filters['class_id'])
             ->where('level', '=', $filters['level_id'])
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])

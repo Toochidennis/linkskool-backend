@@ -159,7 +159,7 @@ class AssignmentSubmissionController extends BaseController
     public function publishAssignment(array $vars)
     {
         $filteredVars = $this->validate(
-            data: $vars,
+            data: [...$this->post, ...$vars],
             rules: [
                 'content_id' => 'required|integer',
                 'year' => 'required|integer',

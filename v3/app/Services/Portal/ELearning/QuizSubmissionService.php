@@ -55,7 +55,7 @@ class QuizSubmissionService
     {
         $payload = [
             'unmarked' => SubmissionStatus::MARKED->value,
-            'marking' => SubmissionStatus::MARKED->value,
+            'marking' => SubmissionStatus::UNMARKED->value,
             'score' => $data['score'],
         ];
 
@@ -84,6 +84,7 @@ class QuizSubmissionService
                 'response AS answers',
                 'marking_score',
                 'unmarked',
+                'marking AS published',
                 'score',
                 'date'
             ])
@@ -129,12 +130,12 @@ class QuizSubmissionService
                 'score',
                 'date'
             ])
-            ->where('exam', $filters['id'])
+            ->where('exam', $filters['content_id'])
             ->where('student', $filters['student_id'])
             ->where('type', ContentType::QUIZ->value)
             ->where('year', $filters['year'])
             ->where('term', $filters['term'])
-            ->where('marking', SubmissionStatus::MARKED->value)
+            ->where('marking', SubmissionStatus::UNMARKED->value)
             ->orderBy('date', 'DESC')
             ->first();
 
