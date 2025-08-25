@@ -60,7 +60,7 @@ class AssignmentSubmissionService
     {
         $payload = [
             'unmarked' => SubmissionStatus::MARKED->value,
-            'marking' => SubmissionStatus::MARKED->value,
+            'marking' => SubmissionStatus::UNMARKED->value,
             'score' => $data['score'],
         ];
 
@@ -89,6 +89,7 @@ class AssignmentSubmissionService
                 'response AS files',
                 'marking_score',
                 'unmarked',
+                'marking AS published',
                 'score',
                 'date'
             ])
@@ -137,7 +138,7 @@ class AssignmentSubmissionService
             ->where('type', ContentType::ASSIGNMENT->value)
             ->where('year', $filters['year'])
             ->where('term', $filters['term'])
-            ->where('marking', SubmissionStatus::MARKED->value)
+            ->where('marking', SubmissionStatus::UNMARKED->value)
             ->orderBy('date', 'DESC')
             ->first();
 

@@ -66,7 +66,7 @@ class QuizSubmissionController extends BaseController
         }
     }
 
-    public function markQuizSubmission(array $vars)
+    public function markQuiz(array $vars)
     {
         $cleanedData = $this->validate(
             data: $vars,
@@ -103,7 +103,7 @@ class QuizSubmissionController extends BaseController
     public function publishQuiz(array $vars)
     {
         $cleanedData = $this->validate(
-            data: $vars,
+            data: [...$this->post, ...$vars],
             rules: [
                 'content_id' => 'required|integer',
                 'year' => 'required|integer',
@@ -167,7 +167,7 @@ class QuizSubmissionController extends BaseController
         $filteredVars = $this->validate(
             data: $vars,
             rules: [
-                'id' => 'required|integer',
+                'content_id' => 'required|integer',
                 'student_id' => 'required|integer',
                 'term' => 'required|integer|in:1,2,3',
                 'year' => 'required|integer',
