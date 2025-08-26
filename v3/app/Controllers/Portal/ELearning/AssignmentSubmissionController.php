@@ -125,7 +125,7 @@ class AssignmentSubmissionController extends BaseController
     public function markAssignment(array $vars)
     {
         $filteredVars = $this->validate(
-            data: $vars,
+            data: [...$this->post, ...$vars],
             rules: [
                 'id' => 'required|integer',
                 'score' => 'required|numeric',

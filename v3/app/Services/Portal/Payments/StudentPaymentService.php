@@ -80,26 +80,29 @@ class StudentPaymentService
 
     public function addPayment(array $data): bool
     {
-        $verify = $this->verifyPayment($data['reference']);
-
-        // Default to failed state
         $status = 0;
 
-        if (!$verify['success']) {
-            $status = 0;
+        if ($data['type'] === 'offline') {
+            $status = 1;
         } else {
-            $txStatus = $verify['status'];
+            $verify = $this->verifyPayment($data['reference']);
 
-            if ($txStatus === 'success') {
-                $status = 1;
-            } elseif (in_array($txStatus, ['failed', 'abandoned'])) {
+            if (!$verify['success']) {
                 $status = 0;
-                // keep defaults
-            } elseif ($txStatus === 'pending') {
-                $_SESSION['pending_payments'][$data['reference']] = [
-                    'timestamp' => time(),
-                    'data' => $data,
-                ];
+            } else {
+                $txStatus = $verify['status'];
+
+                if ($txStatus === 'success') {
+                    $status = 1;
+                } elseif (in_array($txStatus, ['failed', 'abandoned'])) {
+                    $status = 0;
+                    // keep defaults
+                } elseif ($txStatus === 'pending') {
+                    $_SESSION['pending_payments'][$data['reference']] = [
+                        'timestamp' => time(),
+                        'data' => $data,
+                    ];
+                }
             }
         }
 

@@ -531,7 +531,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         );
         $r->addRoute(
             'POST',
-            '/portal/payments/next-term-fees',
+            '/portal/payments/invoices',
             ['Portal\Payments\NextTermFeeController', 'upsert']
         );
         $r->addRoute(
