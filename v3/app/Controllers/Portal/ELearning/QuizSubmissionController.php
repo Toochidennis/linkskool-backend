@@ -69,7 +69,7 @@ class QuizSubmissionController extends BaseController
     public function markQuiz(array $vars)
     {
         $cleanedData = $this->validate(
-            data: $vars,
+            data: [...$this->post, ...$vars],
             rules: [
                 'id' => 'required|integer',
                 'score' => 'required|numeric',
