@@ -52,7 +52,8 @@ class PaymentDashboardService
                 'account AS account_number',
                 'account_name',
             ])
-            ->where('status', 1)
+            ->where('approved', 1)
+            ->where('sub', '=', 0)
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
             ->orderBy(['date' => 'DESC', 'term' => 'DESC'])
@@ -72,8 +73,8 @@ class PaymentDashboardService
         }
 
         return [
-            'income'      => $income['total_income'] ?? 0,
-            'invoiced'    => $invoiced['total_invoiced'] ?? 0,
+            'income' => $income['total_income'] ?? 0,
+            'invoiced' => $invoiced['total_invoiced'] ?? 0,
             'transactions' => $transactions,
         ];
     }
@@ -95,33 +96,58 @@ class PaymentDashboardService
                 'class AS class_id',
                 'status',
             ])
-            ->where('level', '=', $filters['level_id'])
+            ->where('class', '=', $filters['class_id'])
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
-            ->where('status', '=', 1)
             ->where('trans_type', '=', 'receipts')
             ->get();
     }
     public function unpaidInvoices(array $filters): array
     {
-        return $this->transaction
+        $invoices =  $this->transaction
             ->select([
                 'tid AS id',
-                'ref AS reference',
+                'cid AS student_id',
                 'cref AS reg_no',
                 'description as invoice_details',
                 'name',
-                'amount',
+                'amount_due AS amount',
                 'year',
                 'term',
                 'level AS level_id',
                 'class AS class_id',
             ])
-            ->where('level', '=', $filters['level_id'])
-            ->where('year', '=', $filters['year'])
-            ->where('term', '=', $filters['term'])
+            ->where('class', '=', $filters['class_id'])
             ->where('approved', '=', 1)
             ->where('trans_type', '=', 'invoice')
+            ->orderBy(['year' => 'DESC', 'term' => 'DESC'])
             ->get();
+
+        $grouped = [];
+        foreach ($invoices as $invoice) {
+            $sid = $invoice['student_id'];
+
+            if (!isset($grouped[$sid])) {
+                $grouped[$sid] = [
+                    'student_id' => $sid,
+                    'reg_no' => $invoice['reg_no'],
+                    'name' => $invoice['name'],
+                    'level_id' => $invoice['level_id'],
+                    'class_id' => $invoice['class_id'],
+                    'invoices' => [],
+                ];
+            }
+
+            $grouped[$sid]['invoices'][] = [
+                'id' => $invoice['id'],
+                'reference' => $invoice['reference'],
+                'invoice_details' => json_decode($invoice['invoice_details'], true),
+                'amount_due' => $invoice['amount_due'],
+                'year' => $invoice['year'],
+                'term' => $invoice['term'],
+            ];
+        }
+
+        return array_values($grouped);
     }
 }

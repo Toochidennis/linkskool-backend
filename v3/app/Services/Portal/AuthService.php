@@ -160,14 +160,16 @@ class AuthService
         return [
             'profile' => $this->studentModel
                 ->select([
-                    'id',
-                    'picture_ref AS picture_url',
-                    "id AS student_id, CONCAT(surname, ' ', first_name, ' ', middle) AS name",
-                    'registration_no',
-                    'student_class AS class_id',
-                    'student_level AS level_id'
+                    'students_record.id',
+                    'students_record.picture_ref AS picture_url',
+                    "CONCAT(surname, ' ', first_name, ' ', middle) AS name",
+                    'students_record.registration_no',
+                    'students_record.student_class AS class_id',
+                    'students_record.student_level AS level_id',
+                    'class_table.class_name'
                 ])
-                ->where('id', '=', $id)
+                ->join('class_table', 'students_record.student_class = class_table.id')
+                ->where('students_record.id', '=', $id)
                 ->first() + ['role' => 'student'],
 
             'settings' => $this->getSchoolSetting(),
