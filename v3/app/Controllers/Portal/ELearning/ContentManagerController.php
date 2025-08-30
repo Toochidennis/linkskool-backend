@@ -26,12 +26,42 @@ class ContentManagerController extends BaseController
         );
 
         try {
-            $dashboardData = $this->contentManagerService->getDashboardData($filteredVars['term']);
+            $dashboardData = $this->contentManagerService
+                ->getDashboard([
+                    ...$filteredVars['term'],
+                    'role' => 'admin'
+                ]);
 
             return $this->respond(
                 data: [
                     'success' => true,
                     'response' => $dashboardData,
+                ]
+            );
+        } catch (\Exception $e) {
+            return $this->respondError(message: $e->getMessage());
+        }
+    }
+
+    public function staffDashboardSummary(array $vars)
+    {
+        $filteredVars = $this->validate(
+            data: $vars,
+            rules: [
+                'teacher_id' => 'required|integer',
+                'term' => 'required|integer|in:1,2,3',
+                'year' => 'required|integer',
+            ]
+        );
+
+        try {
+            $summaryData = $this->contentManagerService
+                ->getDashboard([...$filteredVars, 'role' => 'staff']);
+
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'response' => $summaryData,
                 ]
             );
         } catch (\Exception $e) {
@@ -75,7 +105,10 @@ class ContentManagerController extends BaseController
                 );
             }
 
-            return $this->respondError('Content not found or already deleted.', HttpStatus::BAD_REQUEST);
+            return $this->respondError(
+                'Content not found or already deleted.',
+                HttpStatus::BAD_REQUEST
+            );
         } catch (\Exception $e) {
             return $this->respondError($e->getMessage());
         }

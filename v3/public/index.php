@@ -489,6 +489,11 @@ $dispatcher = FastRoute\simpleDispatcher(
         );
         $r->addRoute(
             'GET',
+            '/portal/elearning/staff/{teacher_id:\d+}/dashboard/summary',
+            ['Portal\ELearning\ContentManagerController', 'staffDashboardSummary']
+        );
+        $r->addRoute(
+            'GET',
             '/portal/elearning/assignment/{id:\d+}/submissions',
             ['Portal\ELearning\AssignmentSubmissionController', 'getSubmissions']
         );
