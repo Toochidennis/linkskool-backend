@@ -21,7 +21,7 @@ use V3\App\Common\Utilities\EnvLoader;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Common\Utilities\ResponseHandler;
 
-// Load environment variables if required
+// Load environment variables
 EnvLoader::load();
 
 $response = ['success' => false];
