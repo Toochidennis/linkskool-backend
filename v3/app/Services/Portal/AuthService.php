@@ -234,7 +234,6 @@ class AuthService
 
         return array_values($grouped);
     }
-
     private function getLevelsAndClasses($teacherId): array
     {
         $rows = $this->level

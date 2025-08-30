@@ -6,6 +6,7 @@ use PDO;
 use V3\App\Common\Enums\ContentType;
 use V3\App\Common\Enums\QuestionType;
 use V3\App\Common\Utilities\PathResolver;
+use V3\App\Models\Portal\Academics\ClassModel;
 use V3\App\Models\Portal\ELearning\Content;
 use V3\App\Models\Portal\ELearning\Quiz;
 
@@ -14,6 +15,7 @@ class ContentManagerService
     private Content $content;
     private Quiz $quiz;
     private string $contentPath;
+    private ClassModel $classModel;
 
     /**
      * ContentManagerService constructor.
@@ -25,60 +27,19 @@ class ContentManagerService
     {
         $this->content = new Content($pdo);
         $this->quiz = new Quiz($pdo);
+        $this->classModel = new ClassModel($pdo);
 
         $paths = PathResolver::getContentPaths();
         $this->contentPath = $paths['absolute'];
     }
 
-    private function getRecentQuiz(int $term)
-    {
-        $quizzes = [];
-        $results = $this->content
-            ->select(columns: [
-                'id',
-                'outline',
-                'title',
-                'course_name',
-                'course_id',
-                'level',
-                'path_label',
-                'upload_date',
-                'author_name'
-            ])
-            ->where('term', '=', $term)
-            ->where('type', '=', ContentType::QUIZ->value)
-            ->orderBy('upload_date', 'DESC')
-            ->get();
-
-        if (empty($results)) {
-            return [];
-        }
-
-        foreach ($results as $result) {
-            if (!empty($result['outline'])) {
-                $quizzes[] = [
-                    'id' => $result['id'],
-                    'syllabus_id' => $result['outline'],
-                    'course_id' => $result['course_id'],
-                    'title' => $result['title'],
-                    'course_name' => $result['course_name'],
-                    'level_id' => $result['level'],
-                    'classes' => $this->json($result['path_label']),
-                    'type' => ContentType::QUIZ->label(),
-                    'outline' => $result['outline'],
-                    'created_by' => $result['author_name'],
-                    'date_posted' => $result['upload_date'],
-                ];
-            }
-        }
-
-        return $quizzes;
-    }
-
-    private function getRecentActivities(int $term)
-    {
-        $results = $this->content
-            ->select(columns: [
+    private function getRecentContent(
+        int $term,
+        ?string $type = null,
+        array $filters = []
+    ): array {
+        $query = $this->content
+            ->select([
                 'id',
                 'outline',
                 'title',
@@ -92,41 +53,138 @@ class ContentManagerService
                 'upload_date'
             ])
             ->where('term', '=', $term)
-            ->orderBy('upload_date', 'DESC')
-            ->get();
+            ->orderBy('upload_date', 'DESC');
 
+        if ($type !== null) {
+            $query->where('type', '=', $type);
+        }
+
+        $results = $query->get();
         if (empty($results)) {
             return [];
         }
 
-        $activities = [];
+        $items = [];
         foreach ($results as $result) {
-            if (!empty($result['outline'])) {
-                $activities[] =  [
-                    'id' => $result['id'],
-                    'syllabus_id' => $result['outline'],
-                    'course_id' => $result['course_id'],
-                    'level_id' => $result['level'],
-                    'title' => $result['title'],
-                    'comment' => $result['body'] ?? '',
-                    'type' => ContentType::tryFrom($result['type'])?->label() ?? 'Unknown',
-                    'classes' => $this->json($result['path_label']),
-                    'course_name' => $result['course_name'],
-                    'created_by' => $result['author_name'],
-                    'date_posted' => $result['upload_date'],
-                ];
+            $classIds = $this->json($result['path_label']);
+            $contentType = ContentType::tryFrom($result['type'])?->label() ?? 'Unknown';
+
+            $item = [
+                'id' => $result['id'],
+                'syllabus_id' => $result['outline'],
+                'course_id' => $result['course_id'],
+                'level_id' => $result['level'],
+                'title' => $result['title'],
+                'course_name' => $result['course_name'],
+                'classes' => $classIds,
+                'created_by' => $result['author_name'],
+                'date_posted' => $result['upload_date'],
+                'type' => $contentType,
+            ];
+
+            // only activities have comment/body
+            if ($type === null || $type !== ContentType::QUIZ->value) {
+                $item['comment'] = $result['body'] ?? '';
             }
+
+            // staff filter
+            if (!empty($filters)) {
+                if (!in_array($result['course_id'], $filters['course_ids'] ?? [])) {
+                    continue;
+                }
+                if (empty(array_intersect($classIds, $filters['class_ids'] ?? []))) {
+                    continue;
+                }
+            }
+
+            $items[] = $item;
         }
 
-        return $activities;
+        return $items;
     }
 
-    public function getDashboardData(int $term): array
+    public function getStaffAssignedCourses(array $filters): array
     {
-        return [
-            'recent_quizzes' => $this->getRecentQuiz($term),
-            'recent_activities' => $this->getRecentActivities($term),
-        ];
+        $rows = $this->classModel
+            ->select([
+                'class_table.id AS class_id',
+                'class_table.class_name',
+                'course_table.id AS course_id',
+                'course_table.course_name',
+                'class_table.level AS level_id',
+            ])
+            ->join('staff_course_table', 'class_table.id = staff_course_table.class')
+            ->join('course_table', 'course_table.id = staff_course_table.course')
+            ->join(
+                'result_table',
+                function ($join) {
+                    $join->on('result_table.class', '=', 'class_table.id')
+                        ->on('result_table.course', '=', 'course_table.id');
+                },
+                'LEFT'
+            )
+            ->where('staff_course_table.ref_no', $filters['teacher_id'])
+            ->where('staff_course_table.term', $filters['term'])
+            ->where('staff_course_table.year', $filters['year'])
+            ->groupBy(['class_id', 'class_name', 'course_id', 'course_name'])
+            ->orderBy(['class_name' => 'ASC', 'course_name' => 'ASC'])
+            ->get();
+
+        $grouped = [];
+        foreach ($rows as $row) {
+            $classId = $row['class_id'];
+
+            if (!isset($grouped[$classId])) {
+                $grouped[$classId] = [
+                    'class_id' => $row['class_id'],
+                    'class_name' => $row['class_name'],
+                    'level_id' => $row['level_id'],
+                    'courses' => [],
+                    'recent_quizzes' => [],
+                    'recent_activities' => [],
+                ];
+            }
+
+            $grouped[$classId]['courses'][] = [
+                'course_id' => $row['course_id'],
+                'course_name' => $row['course_name'],
+            ];
+        }
+
+        return $grouped;
+    }
+
+    public function getDashboard(array $filters): array
+    {
+        $term = $filters['term'];
+
+        if ($filters['role'] === 'admin') {
+            return [
+                'recent_quizzes' => $this->getRecentContent($term, ContentType::QUIZ->value),
+                'recent_activities' => $this->getRecentContent($term),
+            ];
+        }
+
+        if ($filters['role'] === 'staff') {
+            $classes = $this->getStaffAssignedCourses($filters);
+
+            foreach ($classes as &$class) {
+                $classId = $class['class_id'];
+                $courseIds = array_column($class['courses'], 'course_id');
+
+                $staffFilter = [
+                    'class_ids' => [$classId],
+                    'course_ids' => $courseIds,
+                ];
+
+                $class['recent_quizzes'] = $this->getRecentContent($term, ContentType::QUIZ->value, $staffFilter);
+                $class['recent_activities'] = $this->getRecentContent($term, null, $staffFilter);
+            }
+
+            return array_values($classes);
+        }
+
+        return [];
     }
 
     private function getQuestions(array $questionIds): array
