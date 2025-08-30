@@ -13,8 +13,8 @@ class IncomeService
         $this->transaction = new Transaction($pdo);
     }
 
-    public funtion getLatestIcome(array $filters): array
+    public function getLatestIncome(array $filters): array
     {
         return [];
-    }   
+    }
 }
