@@ -1,59 +1,626 @@
 <?php
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
-use V3\App\Utilities\HttpStatus;
-use V3\App\Utilities\ResponseHandler;
+use V3\App\Common\Utilities\EnvLoader;
+use V3\App\Common\Utilities\HttpStatus;
+use V3\App\Common\Utilities\ResponseHandler;
+
+// Load environment variables if required
+EnvLoader::load();
 
 $response = ['success' => false];
 
-$dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
-    /**  Portal routes  */
-    // Login routes
-    $r->addRoute('POST', '/portal/auth/login', ['Portal\AuthController', 'handleAuthRequest']);
-    $r->addRoute('POST', '/portal/auth/logout', ['Portal\AuthController', 'logout']);
-    // Student routes
-    $r->addRoute('POST', '/portal/students', ['Portal\StudentController', 'addStudent']);
-    $r->addRoute('POST', '/portal/students/{id}/course-registrations', ['Portal\CourseRegistrationController', 'registerStudentCourses']);
-    $r->addRoute('GET', '/portal/students/{id}/course-registrations', ['Portal\CourseController', 'getStudentRegisteredCourses']);
-    $r->addRoute('GET', '/portal/students', ['Portal\StudentController', 'getAllStudents']);
-    $r->addRoute('GET', '/portal/students/{id}/result-terms', ['Portal\ResultController', 'getResultTermsByStudent']);
-    $r->addRoute('GET', '/portal/students/{id:\d+}', ['Portal\StudentController', 'getStudentById']);
+$dispatcher = FastRoute\simpleDispatcher(
+    function (RouteCollector $r) {
+        /**
+         * Portal routes
+         */
 
-    // Class routes
-    $r->addRoute('POST', '/portal/classes/{id}/attendance', ['Portal\AttendanceController', 'addClassAttendance']);
-    $r->addRoute('POST', '/portal/classes/{id}/course-registrations', ['Portal\CourseRegistrationController', 'registerClassCourses']);
-    $r->addRoute('POST', '/portal/classes/{id}/course-registrations/duplicate', ['Portal\CourseRegistrationController', 'duplicateRegistration']);
-    $r->addRoute('GET', '/portal/classes/{id}/attendance', ['Portal\AttendanceController', 'getClassAttendance']);
-    $r->addRoute('GET', '/portal/classes/{id}/students', ['Portal\StudentController', 'getStudentsByClass']);
-    $r->addRoute('GET', '/portal/classes/{id}/registered-students', ['Portal\StudentController', 'getClassRegisteredStudents']);
+        // Login routes
+        $r->addRoute(
+            'POST',
+            '/portal/auth/login',
+            ['Portal\AuthController', 'handleAuthRequest']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/auth/logout',
+            ['Portal\AuthController', 'logout']
+        );
 
-    // Staff routes
-    $r->addRoute('POST', '/portal/staff', ['Portal\StaffController', 'addStaff']);
-    $r->addRoute('GET', '/portal/staff', ['Portal\StaffController', 'getStaff']);
-    $r->addRoute('GET', '/portal/staff/{id}', ['Portal\StaffController', 'getStaffById']);
+        // Student routes
+        $r->addRoute(
+            'POST',
+            '/portal/students',
+            ['Portal\StudentController', 'addStudent']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/students/result/comment',
+            ['Portal\Results\ResultCommentController', 'store']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/students/skill-behavior',
+            ['Portal\Results\StudentSkillBehaviorController', 'store']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/students/{student_id:\d+}/course-registrations',
+            ['Portal\Results\CourseRegistrationController', 'registerStudentCourses']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/students/{student_id:\d+}/make-payment',
+            ['Portal\Payments\StudentPaymentController', 'makePayment']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/students/{student_id:\d+}/quiz-submissions',
+            ['Portal\ELearning\QuizSubmissionController', 'submit']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/students/{student_id:\d+}/assignment-submissions',
+            ['Portal\ELearning\AssignmentSubmissionController', 'submit']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students/{student_id:\d+}/registered-courses',
+            ['Portal\Results\CourseRegistrationController', 'getCoursesRegisteredByStudent']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students',
+            ['Portal\StudentController', 'getAllStudents']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students/{id:\d+}/elearning/dashboard',
+            ['Portal\ELearning\StudentContentManagerController', 'dashboard']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students/elearning/contents/{id:\d+}',
+            ['Portal\ELearning\StudentContentManagerController', 'listContents']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students/{id:\d+}/result-terms',
+            ['Portal\Results\StudentResultController', 'getResultTerms']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students/{student_id:\d+}/result/{term:\d+}',
+            ['Portal\Results\StudentResultController', 'getStudentTermResult']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students/{student_id:\d+}/result/annual',
+            ['Portal\Results\StudentResultController', 'getStudentAnnualResult']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students/{id:\d+}',
+            ['Portal\Academics\StudentController', 'getStudentById']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students/{student_id:\d+}/financial-records',
+            ['Portal\Payments\StudentPaymentController', 'getFinancialRecords']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students/{student_id:\d+}/assignment-submissions',
+            ['Portal\ELearning\AssignmentSubmissionController', 'getMarkedAssignment']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students/{student_id:\d+}/quiz-submissions',
+            ['Portal\ELearning\QuizSubmissionController', 'getMarkedQuiz']
+        );
 
-    // course routes
-    $r->addRoute('POST', '/portal/courses/{id}/attendance', ['Portal\AttendanceController', 'addCourseAttendance']);
-    $r->addRoute('GET', '/portal/course-registrations ', ['Portal\CourseRegistrationController', 'getAllCourseRegistrations']);
-    $r->addRoute('GET', '/portal/course-registrations/terms', ['Portal\CourseRegistrationController', 'getRegistrationTerms']);
-    $r->addRoute('GET', '/portal/courses/{id}/attendance', ['Portal\AttendanceController', 'getCourseAttendance']);
+        // Level routes
+        $r->addRoute(
+            'GET',
+            '/portal/levels/result/performance',
+            ['Portal\Results\ClassCourseResultController', 'getAllLevelsPerformance']
+        );
 
-    $r->addRoute('POST', '/portal/assessments', ['Portal\AssessmentController', 'addAssessment']);
-    $r->addRoute('GET', '/portal/assessments', ['Portal\AssessmentController', 'getAllAssessments']);
-    $r->addRoute('GET', '/portal/assessments/{id:\d+}', ['Portal\AssessmentController', 'getAssessmentById']);
+        // Class routes
+        $r->addRoute(
+            'POST',
+            '/portal/classes/{class_id:\d+}/attendance',
+            ['Portal\Academics\AttendanceController', 'addClassAttendance']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/classes/{class_id:\d+}/course-registrations',
+            ['Portal\Results\CourseRegistrationController', 'registerClassCourses']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/classes/{class_id:\d+}/course-registrations/duplicate',
+            ['Portal\Results\CourseRegistrationController', 'duplicateLastTermRegistrations']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/classes/{class_id:\d+}/course-registrations/history',
+            ['Portal\Results\CourseRegistrationController', 'getClassRegistrationHistory']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/classes/{class_id:\d+}/attendance/single',
+            ['Portal\Academics\AttendanceController', 'getSingleClassAttendance']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/classes/{class_id:\d+}/attendance',
+            ['Portal\Academics\AttendanceController', 'getAllClassAttendance']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/classes/{class_id:\d+}/students',
+            ['Portal\Academics\StudentController', 'getStudentsByClass']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/classes/{class_id:\d+}/registered-students',
+            ['Portal\Results\CourseRegistrationController', 'getStudentRegistrationStatusInClass']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/classes/{class_id:\d+}/registered-courses',
+            ['Portal\Results\CourseRegistrationController', 'getRegisteredCoursesForClass']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/classes/{class_id:\d+}/course-registrations/average-scores',
+            ['Portal\Results\CourseRegistrationController', 'getRegisteredCoursesWithAvgScores']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/classes/{class_id:\d+}/courses/{course_id}/results',
+            ['Portal\Results\ClassCourseResultController', 'getCourseResultsForClass']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/classes/{class_id:\d+}/students-result',
+            ['Portal\Results\ClassCourseResultController', 'getStudentsResultForClass']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/classes/{class_id:\d+}/composite-result',
+            ['Portal\Results\ClassCourseResultController', 'getClassCompositeResult']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/classes/{class_id:\d+}/skill-behavior',
+            ['Portal\Results\StudentSkillBehaviorController', 'getStudentsSkillBehavior']
+        );
 
-    $r->addRoute('POST', '/portal/grades', ['Portal\GradeController', 'addGrade']);
-    $r->addRoute('GET', '/portal/grades', ['Portal\GradeController', 'fetchGrades']);
+        // Staff routes
+        $r->addRoute(
+            'POST',
+            '/portal/staff',
+            ['Portal\Academics\StaffController', 'addStaff']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/staff',
+            ['Portal\Academics\StaffController', 'getStaff']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/staff/{id:\d+}',
+            ['Portal\Academics\StaffController', 'getStaffById']
+        );
 
-    $r->addRoute('PUT', '/portal/attendance/{id:\d+}', ['Portal\AttendanceController', 'updateAttendance']);
-    $r->addRoute('GET', '/portal/attendance', ['Portal\AttendanceController', 'getAllAttendance']);
-    $r->addRoute('GET', '/portal/attendance/{id:\d+}', ['Portal\AttendanceController', 'getAttendanceById']);
+        // course routes
+        $r->addRoute(
+            'POST',
+            '/portal/courses/{course_id:\d+}/attendance',
+            ['Portal\Academics\AttendanceController', 'addCourseAttendance']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/course-registrations/terms',
+            ['Portal\Results\CourseRegistrationController', 'getClassRegistrationTerms']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/courses/{course_id:\d+}/students',
+            ['Portal\Results\CourseRegistrationController', 'getStudentsForCourseInClass']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/courses/{course_id:\d+}/attendance/single',
+            ['Portal\Academics\AttendanceController', 'getSingleCourseAttendance']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/courses/{course_id:\d+}/attendance',
+            ['Portal\Academics\AttendanceController', 'getAllCourseAttendance']
+        );
 
-    $r->addRoute('GET', '/portal/course-assignments', ['Portal\CourseAssignmentController', 'getAssignments']);
-});
+        $r->addRoute(
+            'POST',
+            '/portal/assessments',
+            ['Portal\Results\AssessmentController', 'addAssessments']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/assessments/{id:\d+}',
+            ['Portal\Results\AssessmentController', 'updateAssessment']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/assessments',
+            ['Portal\Results\AssessmentController', 'getAllAssessments']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/assessments/{level_id:\d+}',
+            ['Portal\Results\AssessmentController', 'getAssessmentByLevel']
+        );
+        $r->addRoute(
+            'DELETE',
+            '/portal/assessments/{id:\d+}',
+            ['Portal\Results\AssessmentController', 'deleteAssessment']
+        );
+
+        $r->addRoute(
+            'POST',
+            '/portal/grades',
+            ['Portal\Results\GradeController', 'addGrades']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/grades/{id:\d+}',
+            ['Portal\Results\GradeController', 'updateGrade']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/grades',
+            ['Portal\Results\GradeController', 'getGrades']
+        );
+        $r->addRoute(
+            'DELETE',
+            '/portal/grades/{id:\d+}',
+            ['Portal\Results\GradeController', 'deleteGrade']
+        );
+
+        $r->addRoute(
+            'PUT',
+            '/portal/attendance/{id:\d+}',
+            ['Portal\Academics\AttendanceController', 'updateAttendance']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/attendance/history',
+            ['Portal\Academics\AttendanceController', 'getAttendanceHistory']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/attendance/{id:\d+}',
+            ['Portal\Academics\AttendanceController', 'getAttendanceDetails']
+        );
+
+        $r->addRoute(
+            'GET',
+            '/portal/course-assignments',
+            ['Portal\Academics\CourseAssignmentController', 'getCourseAssignments']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/result/class-result',
+            ['Portal\Results\ResultController', 'updateResult']
+        );
+
+        $r->addRoute(
+            'POST',
+            '/portal/skill-behavior',
+            ['Portal\Academics\SkillBehaviorController', 'store']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/skill-behavior/{id:\d+}',
+            ['Portal\Academics\SkillBehaviorController', 'update']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/skill-behavior',
+            ['Portal\Academics\SkillBehaviorController', 'get']
+        );
+
+        // Movies
+        $r->addRoute(
+            'GET',
+            '/public/movies/all',
+            ['Explore\MovieController', 'getSampleFromAllCategories']
+        );
+        $r->addRoute(
+            'GET',
+            '/public/movies/category/{cat}',
+            ['Explore\MovieController', 'getByCategory']
+        );
+        $r->addRoute(
+            'GET',
+            '/public/movies/genres',
+            ['Explore\MovieController', 'getAllGenres']
+        );
+        $r->addRoute(
+            'GET',
+            '/public/movies/genre/{id:\d+}',
+            ['Explore\MovieController', 'getByGenre']
+        );
+        $r->addRoute(
+            'GET',
+            '/public/movies/shorts',
+            ['Explore\MovieController', 'getAllShorts']
+        );
+        $r->addRoute(
+            'GET',
+            '/public/key-buddy/content',
+            ['Explore\TemporalController', 'getContent']
+        );
+
+        // Elearning
+        $r->addRoute(
+            'POST',
+            '/portal/elearning/syllabus',
+            ['Portal\ELearning\SyllabusController', 'store']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/elearning/topic',
+            ['Portal\ELearning\TopicController', 'store']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/elearning/material',
+            ['Portal\ELearning\MaterialController', 'store']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/elearning/assignment',
+            ['Portal\ELearning\AssignmentController', 'store']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/elearning/quiz',
+            ['Portal\ELearning\QuizController', 'store']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/elearning/{content_id:\d+}/comments',
+            ['Portal\ELearning\ContentCommentController', 'store']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/elearning/quiz',
+            ['Portal\ELearning\QuizController', 'update']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/elearning/quiz/mark',
+            ['Portal\ELearning\QuizSubmissionController', 'markQuiz']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/elearning/quiz/{content_id:\d+}/publish',
+            ['Portal\ELearning\QuizSubmissionController', 'publishQuiz']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/elearning/syllabus/{id:\d+}',
+            ['Portal\ELearning\SyllabusController', 'update']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/elearning/material/{id:\d+}',
+            ['Portal\ELearning\MaterialController', 'update']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/elearning/assignment/{id:\d+}',
+            ['Portal\ELearning\AssignmentController', 'update']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/elearning/assignment/mark',
+            ['Portal\ELearning\AssignmentSubmissionController', 'markAssignment']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/elearning/assignment/{content_id:\d+}/publish',
+            ['Portal\ELearning\AssignmentSubmissionController', 'publishAssignment']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/elearning/comments/{id:\d+}',
+            ['Portal\ELearning\ContentCommentController', 'update']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/elearning/syllabus',
+            ['Portal\ELearning\SyllabusController', 'get']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/elearning/syllabus/contents/{syllabus_id:\d+}',
+            ['Portal\ELearning\ContentManagerController', 'getAllContents']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/elearning/topic/{syllabus_id:\d+}',
+            ['Portal\ELearning\TopicController', 'get']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/elearning/{content_id:\d+}/comments',
+            ['Portal\ELearning\ContentCommentController', 'getCommentsByContentId']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/elearning/{syllabus_id:\d+}/comments/streams',
+            ['Portal\ELearning\ContentCommentController', 'streams']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/elearning/overview',
+            ['Portal\ELearning\ContentManagerController', 'getDashboard']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/elearning/assignment/{id:\d+}/submissions',
+            ['Portal\ELearning\AssignmentSubmissionController', 'getSubmissions']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/elearning/quiz/{id:\d+}/submissions',
+            ['Portal\ELearning\QuizSubmissionController', 'getSubmissions']
+        );
+        $r->addRoute(
+            'DELETE',
+            '/portal/elearning/contents/{content_id:\d+}',
+            ['Portal\ELearning\ContentManagerController', 'delete']
+        );
+        $r->addRoute(
+            'DELETE',
+            '/portal/elearning/quiz/{content_id:\d+}/{question_id:\d+}',
+            ['Portal\ELearning\QuizController', 'delete']
+        );
+        $r->addRoute(
+            'DELETE',
+            '/portal/elearning/comments/{id:\d+}',
+            ['Portal\ELearning\ContentCommentController', 'delete']
+        );
+
+        // Payment
+        $r->addRoute(
+            'POST',
+            '/portal/payments/accounts',
+            ['Portal\Payments\AccountController', 'store']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/payments/fee-names',
+            ['Portal\Payments\FeeTypeController', 'store']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/payments/vendors',
+            ['Portal\Payments\VendorController', 'store']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/payments/invoices',
+            ['Portal\Payments\NextTermFeeController', 'upsert']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/payments/expenditure',
+            ['Portal\Payments\ExpenditureController', 'store']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/payments/accounts/{id:\d+}',
+            ['Portal\Payments\AccountController', 'update']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/payments/fee-names/{id:\d+}',
+            ['Portal\Payments\FeeTypeController', 'update']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/payments/vendors/{id:\d+}',
+            ['Portal\Payments\VendorController', 'update']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/payments/expenditure/{id:\d+}',
+            ['Portal\Payments\ExpenditureController', 'update']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/accounts',
+            ['Portal\Payments\AccountController', 'get']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/fee-names',
+            ['Portal\Payments\FeeTypeController', 'get']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/invoices',
+            ['Portal\Payments\NextTermFeeController', 'get']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/dashboard/summary',
+            ['Portal\Payments\PaymentDashboardController', 'getDashboardSummary']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/invoices/paid',
+            ['Portal\Payments\PaymentDashboardController', 'getPaidInvoices']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/invoices/unpaid',
+            ['Portal\Payments\PaymentDashboardController', 'getUnPaidInvoices']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/vendors',
+            ['Portal\Payments\VendorController', 'get']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/vendors/{id:\d+}/transactions/annual',
+            ['Portal\Payments\VendorController', 'annualHistory']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/payments/vendors/{id:\d+}/transactions/{year:\d+}',
+            ['Portal\Payments\VendorController', 'transactions']
+        );
+        $r->addRoute(
+            'DELETE',
+            '/portal/payments/accounts/{id:\d+}',
+            ['Portal\Payments\AccountController', 'delete']
+        );
+        $r->addRoute(
+            'DELETE',
+            '/portal/payments/fee-names/{id:\d+}',
+            ['Portal\Payments\FeeTypeController', 'delete']
+        );
+        $r->addRoute(
+            'DELETE',
+            '/portal/payments/vendors/{id:\d+}',
+            ['Portal\Payments\VendorController', 'delete']
+        );
+    }
+);
 
 // Fetch method and URI
 $httpMethod = $_SERVER['REQUEST_METHOD'];
@@ -62,7 +629,7 @@ $queryString = '';
 
 // Strip query string (?foo=bar) from URI
 if (false !== $pos = strpos($uri, '?')) {
-    $queryString  = substr($uri,  $pos + 1);
+    $queryString  = substr($uri, $pos + 1);
     $uri  = substr($uri, 0, $pos);
 }
 

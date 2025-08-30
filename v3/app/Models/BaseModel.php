@@ -3,7 +3,7 @@
 namespace V3\App\Models;
 
 use PDO;
-use V3\App\Utilities\QueryBuilder;
+use V3\App\Database\Query\QueryBuilder;
 
 abstract class BaseModel extends QueryBuilder
 {
