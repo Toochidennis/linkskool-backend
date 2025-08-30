@@ -1,0 +1,146 @@
+<?php
+
+namespace V3\App\Services\Portal\Payments;
+
+use V3\App\Models\Portal\Payments\Transaction;
+use V3\App\Models\Portal\Payments\Vendor;
+
+class VendorService
+{
+    private Vendor $vendor;
+    private Transaction $transaction;
+
+    public function __construct(\PDO $pdo)
+    {
+        $this->vendor = new Vendor($pdo);
+        $this->transaction = new Transaction($pdo);
+    }
+
+    public function addVendor(array $data): bool|int
+    {
+        $payload = [
+            'customername' => $data['vendor_name'],
+            'customerid' => $data['reference'],
+            'telephone' => $data['phone_number'],
+            'email' => $data['email'] ?? '',
+            'address' => $data['address'] ?? '',
+        ];
+
+        if ($this->isDuplicate($data)) {
+            return false;
+        }
+
+        return $this->vendor->insert($payload);
+    }
+
+    public function updateVendor(array $data): bool
+    {
+        $payload = [
+            'customername' => $data['vendor_name'],
+            'customerid' => $data['reference'],
+            'telephone' => $data['phone_number'],
+            'email' => $data['email'] ?? '',
+            'address' => $data['address'] ?? '',
+        ];
+
+        if ($this->isDuplicate($data)) {
+            return false;
+        }
+
+        return $this->vendor
+            ->where('id', '=', $data['id'])
+            ->update($payload);
+    }
+
+    private function isDuplicate(array $conditions): bool
+    {
+        return $this->vendor
+            ->where('customername', '=', $conditions['vendor_name'])
+            ->where('customerid', '=', $conditions['reference'])
+            ->where('telephone', '=', $conditions['phone_number'])
+            ->where('email', '=', $conditions['email'])
+            ->exists();
+    }
+
+    public function getVendors(): array
+    {
+        return $this->vendor
+            ->select(columns: [
+                'id',
+                'customername AS vendor_name',
+                'customerid AS reference',
+                'telephone AS phone_number',
+                'email',
+                'address'
+            ])->get();
+    }
+
+    public function deleteVendor(int $id): bool|int
+    {
+        return $this->vendor
+            ->where(column: 'id', operator: '=', value: $id)
+            ->delete();
+    }
+
+    public function getAnnualHistory(int $customerId): array
+    {
+        $transactions = $this->transaction
+            ->select([
+                'amount',
+                'year',
+            ])
+            ->where('cid', $customerId)
+            ->where('status', 1)
+            ->where('trans_type', 'expenditure')
+            ->orderBy('year', 'DESC')
+            ->get();
+
+        $totals = [];
+
+        foreach ($transactions as $txn) {
+            $year = $txn['year'];
+
+            if (!isset($totals[$year])) {
+                $totals[$year] = 0;
+            }
+
+            $totals[$year] += $txn['amount'];
+        }
+
+        $result = [];
+        foreach ($totals as $year => $total) {
+            $result[] = [
+                'year'  => $year,
+                'total' => $total,
+            ];
+        }
+
+        return $result;
+    }
+
+    public function getTransactions(array $filters)
+    {
+        $transactions = $this->transaction
+            ->select([
+                'tid AS id',
+                'memo AS description',
+                'cid AS customer_id',
+                'cref AS customer_reference',
+                'name AS customer_name',
+                'amount',
+                'account AS account_number',
+                'account_name',
+                'year',
+                'term',
+                'date'
+            ])
+            ->where('cid', $filters['id'])
+            ->where('status', 1)
+            ->where('year', $filters['year'])
+            ->where('trans_type', 'expenditure')
+            ->orderBy(['year' => 'DESC', 'term' => 'ASC', 'date' => 'DESC'])
+            ->get();
+
+        return $transactions;
+    }
+}

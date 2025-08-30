@@ -2,25 +2,28 @@
 
 namespace V3\App\Controllers\Portal;
 
-use Exception;
 use PDO;
-use V3\App\Utilities\HttpStatus;
+use Exception;
 use V3\App\Models\Portal\AuthModel;
-use V3\App\Traits\ValidationTrait;
-use V3\App\Utilities\DataExtractor;
-use V3\App\Utilities\ResponseHandler;
+use V3\App\Database\DatabaseConnector;
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Portal\AuthService;
-use V3\App\Utilities\DatabaseConnector;
+use V3\App\Common\Traits\ValidationTrait;
+use V3\App\Common\Utilities\DataExtractor;
+use V3\App\Common\Utilities\ResponseHandler;
+use V3\App\Common\Traits\AuthenticatesRequests;
 
 class AuthController
 {
+    use ValidationTrait;
+    use AuthenticatesRequests;
+
     private array $response = ['success' => false, 'message' => ''];
     private AuthModel $authModel;
-    use ValidationTrait;
 
     public function __construct()
     {
-        AuthService::verifyAPIKey();
+        $this->verifyAPIKey();
     }
 
     public function handleAuthRequest()
@@ -40,7 +43,7 @@ class AuthController
                 ->first();
 
             if (!empty($result)) {
-                $dbname = $result['database_name'];
+                $dbname = getenv('DB_NAME_PREFIX') . $result['database_name'];
                 $schoolDb = DatabaseConnector::connect(dbname: $dbname);
 
                 $this->login(
@@ -55,7 +58,7 @@ class AuthController
                 ResponseHandler::sendJsonResponse($this->response);
             }
         } catch (Exception $e) {
-            $this->response['message'] =  $e->getMessage();
+            $this->response['message'] = $e->getMessage();
             http_response_code(HttpStatus::INTERNAL_SERVER_ERROR);
             ResponseHandler::sendJsonResponse($this->response);
         }
@@ -64,10 +67,10 @@ class AuthController
     /**
      * Delegating user authentication to auth service.
      *
-     * @param string $username
-     * @param string $password
-     * @param PDO $db
-     * @param string dbname
+     * @param string        $username
+     * @param string        $password
+     * @param PDO           $db
+     * @param string        $dbname
      */
     public function login(
         string $username,
@@ -82,7 +85,7 @@ class AuthController
             $this->response = [
                 'success' => true,
                 'message' => 'Login successful',
-                'response'   => $loginResponse + ['_db' => $dbname]
+                'response' => $loginResponse + ['_db' => $dbname]
             ];
             ResponseHandler::sendJsonResponse($this->response);
         } catch (Exception $e) {
@@ -91,7 +94,6 @@ class AuthController
             ResponseHandler::sendJsonResponse($this->response);
         }
     }
-
 
     public function logout()
     {

@@ -4,20 +4,20 @@ namespace V3\App\Services\Portal;
 
 use PDO;
 use Exception;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
-use V3\App\Utilities\EnvLoader;
-use V3\App\Models\Portal\Level;
-use V3\App\Models\Portal\Staff;
-use V3\App\Utilities\HttpStatus;
-use V3\App\Models\Portal\Student;
-use V3\App\Models\Portal\ClassModel;
-use V3\App\Utilities\ResponseHandler;
-use V3\App\Models\Portal\SchoolSettings;
+use V3\App\Common\Traits\AuthenticatesRequests;
+use V3\App\Models\Portal\Academics\ClassModel;
+use V3\App\Models\Portal\Academics\Course;
+use V3\App\Models\Portal\Academics\Level;
+use V3\App\Models\Portal\Academics\SchoolSettings;
+use V3\App\Models\Portal\Academics\Staff;
+use V3\App\Models\Portal\Academics\Student;
 
 class AuthService
 {
+    use AuthenticatesRequests;
+
     private Level $level;
+    private Course $course;
     private Staff $staffModel;
     private Student $studentModel;
     private ClassModel $classModel;
@@ -33,6 +33,7 @@ class AuthService
         $this->staffModel = new Staff($pdo);
         $this->studentModel = new Student($pdo);
         $this->level = new Level($pdo);
+        $this->course = new Course($pdo);
         $this->classModel = new ClassModel($pdo);
         $this->schoolSettings = new SchoolSettings($pdo);
     }
@@ -52,6 +53,7 @@ class AuthService
         $staff = $this->staffModel
             ->select(columns: ['id', 'staff_no', 'surname', 'access_level', 'password'])
             ->where('staff_no', '=', $username)
+            ->where('password', '=', $password)
             ->first();
 
         if ($staff && $this->verifyPassword($staff['password'], $password)) {
@@ -64,16 +66,14 @@ class AuthService
 
         // Attempt login as student
         $student = $this->studentModel
-            ->select(columns: ['id', 'registration_no', 'surname', 'password'])
+            ->select(columns: ['id', 'surname', 'password'])
             ->where('registration_no', '=', $username)
             ->first();
 
         if ($student && $this->verifyPassword($student['password'], $password)) {
-
             return [
-                'token' => $this->generateJWT($student['id'], $student['surname'], 'student'),
-                'role'  => 'student',
-                'data'  => $student
+                'data'  => $this->getStudentData($student['id']),
+                'token' => self::generateJWT($student['id'], $student['surname'], 'student'),
             ];
         }
 
@@ -96,7 +96,7 @@ class AuthService
      * @return array The response containing user data and a JWT token.
      */
 
-    private function generateLoginResponse(int $id, string $name, int $accessLevel)
+    private function generateLoginResponse(int $id, string $name, int $accessLevel): array
     {
         $role = match ($accessLevel) {
             2 => 'admin',
@@ -111,8 +111,8 @@ class AuthService
         };
 
         return [
-            'data'  => $data,
-            'token' => $this->generateJWT(userId: $id, name: $name, role: $role)
+            'data' => $data,
+            'token' => self::generateJWT(userId: $id, name: $name, role: $role)
         ];
     }
 
@@ -120,123 +120,154 @@ class AuthService
     {
         return [
             'profile' => $this->staffModel
-                ->select(["CONCAT(surname, ' ', first_name, ' ', middle) AS name", 'email'])
+                ->select(['id as staff_id', "CONCAT(surname, ' ', first_name, ' ', middle) AS name", 'email'])
                 ->where('id', '=', $id)
                 ->first() + ['role' => 'admin'],
 
-            'settings' => $this->schoolSettings
-                ->select(['name AS school_name', 'year', 'term'])
-                ->first() ?? [],
+            'settings' => $this->getSchoolSetting(),
 
             'classes' => $this->classModel
                 ->select(['id', 'class_name', 'level AS level_id', 'form_teacher'])
-                ->get() ?? [],
+                ->get(),
 
             'levels' => $this->level
                 ->select(['id', 'level_name'])
-                ->get() ?? [],
+                ->get(),
+            "courses" => $this->course
+                ->select(['id', 'course_name'])
+                ->get()
         ];
     }
 
-    private function getStaffData($id)
+    private function getStaffData($id): array
     {
-        return [];
-    }
+        return [
+            'profile' => $this->staffModel
+                ->select(["id AS staff_id, CONCAT(surname, ' ', first_name, ' ', middle) AS name", 'email'])
+                ->where('id', '=', $id)
+                ->first() + ['role' => 'staff'],
 
-    // Generate JWT Token
-    private function generateJWT($userId, $name, $role)
-    {
-        EnvLoader::load();
-        $secretKey = getenv('JWT_SECRET_KEY');
-        $issuedAt = time();
-        $expirationTime = $issuedAt + 2592000; // Token valid for 30 days
+            'settings' => $this->getSchoolSetting(),
 
-        $payload = [
-            'iss' => 'linkskool.com', // Issuer
-            'aud' => 'linkskool.com', // Audience
-            'iat' => $issuedAt,         // Issued at
-            'exp' => $expirationTime,   // Expiry time
-            'data' => [
-                'id' => $userId,
-                'name' => $name,
-                'role' => $role
-            ]
+            'form_classes' => $this->getLevelsAndClasses($id),
+
+            'courses' => $this->getStaffAssignedCourses($id)
         ];
-
-        return JWT::encode($payload, $secretKey, 'HS256');
     }
 
-    // Validate JWT Token
-    private static function validateJWT($token)
+    private function getStudentData($id): array
     {
-        try {
-            EnvLoader::load();
-            $secretKey = getenv('JWT_SECRET_KEY');
-            $decoded = JWT::decode($token, new Key($secretKey, 'HS256'));
+        return [
+            'profile' => $this->studentModel
+                ->select([
+                    'students_record.id',
+                    'students_record.picture_ref AS picture_url',
+                    "CONCAT(surname, ' ', first_name, ' ', middle) AS name",
+                    'students_record.registration_no',
+                    'students_record.student_class AS class_id',
+                    'students_record.student_level AS level_id',
+                    'class_table.class_name'
+                ])
+                ->join('class_table', 'students_record.student_class = class_table.id')
+                ->where('students_record.id', '=', $id)
+                ->first() + ['role' => 'student'],
 
-            $_SESSION['user_id'] = $decoded->data->id;
-            $_SESSION['role'] = $decoded->data->role;
-
-            return $decoded;
-        } catch (Exception $e) {
-            http_response_code(HttpStatus::BAD_REQUEST);
-            error_log('Token error' . $e->getMessage());
-            ResponseHandler::sendJsonResponse(['success' => false, 'message' => 'Invalid or expired token']);
-        }
+            'settings' => $this->getSchoolSetting(),
+        ];
     }
 
-    private static function validateAPIKey($apiKey): bool
+    private function getSchoolSetting(): array
     {
-        EnvLoader::load();
-        $API_KEY = getenv('API_KEY');
-        return hash_equals($API_KEY, $apiKey);
+        return $this->schoolSettings
+            ->select(['name AS school_name', 'year', 'term'])
+            ->first();
     }
 
-    public static function verifyJWT()
+    public function getStaffAssignedCourses($teacherId): array
     {
-        $response = ['success' => false, 'message' => ''];
+        $setting = $this->getSchoolSetting();
 
-        $headers = getallheaders();
-        if (!isset($headers['Authorization']) || empty($headers['Authorization'])) {
-            http_response_code(HttpStatus::BAD_REQUEST);
-            $response['message'] = 'Token is required.';
-            ResponseHandler::sendJsonResponse($response);
+        $rows = $this->classModel
+            ->select([
+                'class_table.id AS class_id',
+                'class_table.class_name',
+                'course_table.id AS course_id',
+                'course_table.course_name',
+                "COUNT(result_table.id) AS num_of_students"
+            ])
+            ->join('staff_course_table', 'class_table.id = staff_course_table.class')
+            ->join('course_table', 'course_table.id = staff_course_table.course')
+            ->join(
+                'result_table',
+                function ($join) {
+                    $join->on('result_table.class', '=', 'class_table.id')
+                        ->on('result_table.course', '=', 'course_table.id');
+                },
+                'LEFT'
+            )
+            ->where('staff_course_table.ref_no', $teacherId)
+            ->where('staff_course_table.term', $setting['term'])
+            ->where('staff_course_table.year', $setting['year'])
+            ->groupBy(['class_id', 'class_name', 'course_id', 'course_name'])
+            ->orderBy(['class_name' => 'ASC', 'course_name' => 'ASC'])
+            ->get();
+
+        $grouped = [];
+
+        foreach ($rows as $row) {
+            $classId = $row['class_id'];
+
+            if (!isset($grouped[$classId])) {
+                $grouped[$classId] = [
+                    'class_id' => $row['class_id'],
+                    'class_name' => $row['class_name'],
+                    'courses' => []
+                ];
+            }
+
+            $grouped[$classId]['courses'][] = [
+                'course_id' => $row['course_id'],
+                'course_name' => $row['course_name'],
+                'num_of_students' => $row['num_of_students'],
+            ];
         }
 
-        $authHeader = $headers['Authorization'];
-        if (!str_starts_with($authHeader, 'Bearer ')) {
-            http_response_code(HttpStatus::BAD_REQUEST);
-            $response['message'] = "Invalid token. Are you missing 'Bearer '?";
-            ResponseHandler::sendJsonResponse($response);
-        }
-
-        $token = substr($authHeader, 7);
-
-        if (!self::validateJWT($token)) {
-            http_response_code(HttpStatus::UNAUTHORIZED);
-            $response['message'] = 'Unauthorized: Have you logged in?';
-            ResponseHandler::sendJsonResponse($response);
-        }
+        return array_values($grouped);
     }
 
-    public static function verifyAPIKey()
+    private function getLevelsAndClasses($teacherId): array
     {
-        $response = ['success' => false, 'message' => ''];
+        $rows = $this->level
+            ->select([
+                'level_table.id AS level_id',
+                'level_table.level_name',
+                'class_table.id AS class_id',
+                'class_table.class_name'
+            ])
+            ->join('class_table', 'level_table.id = class_table.level')
+            ->where('class_table.form_teacher', $teacherId)
+            ->get();
 
-        $headers = getallheaders();
+        $grouped = [];
 
-        #die(print_r($headers));
-        if (!isset($headers['x-api-key']) || empty($headers['x-api-key'])) {
-            http_response_code(HttpStatus::BAD_REQUEST);
-            $response['message'] = 'API Key is required.';
-            ResponseHandler::sendJsonResponse($response);
+        foreach ($rows as $row) {
+            $levelId = $row['level_id'];
+
+            if (!isset($grouped[$levelId])) {
+                $grouped[$levelId] = [
+                    'level_id' => $row['level_id'],
+                    'level_name' => $row['level_name'],
+                    'classes' => []
+                ];
+            }
+
+            $grouped[$levelId]['classes'][] = [
+                'class_id' => $row['class_id'],
+                'class_name' => $row['class_name'],
+            ];
         }
 
-        if (!self::validateAPIKey(apiKey: $headers['x-api-key'])) {
-            http_response_code(HttpStatus::UNAUTHORIZED);
-            $response['message'] = 'Unauthorized: Invalid API Key.';
-            ResponseHandler::sendJsonResponse($response);
-        }
+        return array_values($grouped);
     }
 
     private function verifyPassword(string $userPassword, string $password): bool

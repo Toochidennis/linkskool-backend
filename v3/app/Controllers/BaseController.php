@@ -3,15 +3,21 @@
 namespace V3\App\Controllers;
 
 use PDO;
-use V3\App\Utilities\DatabaseConnector;
-use V3\App\Utilities\DataExtractor;
-use V3\App\Utilities\ResponseHandler;
-use V3\App\Services\Portal\AuthService;
-use V3\App\Utilities\HttpStatus;
-use V3\App\Utilities\Sanitizer;
+use V3\App\Common\Traits\PermissionTrait;
+use V3\App\Database\DatabaseConnector;
+use V3\App\Common\Utilities\DataExtractor;
+use V3\App\Common\Utilities\ResponseHandler;
+use V3\App\Common\Utilities\HttpStatus;
+use V3\App\Common\Utilities\Sanitizer;
+use V3\App\Common\Traits\ValidationTrait;
+use V3\App\Common\Traits\AuthenticatesRequests;
 
 abstract class BaseController
 {
+    use AuthenticatesRequests;
+    use PermissionTrait;
+    use ValidationTrait;
+
     /**
      * @var array The extracted POST data (if any).
      */
@@ -20,7 +26,7 @@ abstract class BaseController
     /**
      * @var string The database name extracted from the request.
      */
-   // protected string $dbname;
+    // protected string $dbname;
 
     /**
      * @var PDO The database connection name.
@@ -28,44 +34,69 @@ abstract class BaseController
     protected PDO $pdo;
 
     /**
-     * @var array Default response structure.
-     */
-    protected array $response;
-
-    /**
      * Initializes the controller by verifying API key/JWT and extracting request data.
      *
      * This method:
-     * - Calls AuthService::verifyAPIKey() and AuthService::verifyJWT() to ensure that the request is authenticated.
-     * - Extracts the POST data (if the request method is POST) or the query parameters (if GET) to obtain the '_db' parameter.
+     * - Calls AuthService::verifyAPIKey() and AuthService::verifyJWT()
+     * to ensure that the request is authenticated.
+     * - Extracts the POST data (if the request method is POST) or the
+     * query parameters (if GET) to obtain the '_db' parameter.
      *
      * @return void
      */
     public function __construct()
     {
-        AuthService::verifyAPIKey();
-        AuthService::verifyJWT();
+        self::verifyAPIKey();
+        self::verifyJWT();
+
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        $payload = match ($method) {
+            'POST', 'PUT', 'DELETE', 'PATCH' =>
+            Sanitizer::sanitizeInput(DataExtractor::extractPostData()),
+            'GET' => Sanitizer::sanitizeInput($_GET),
+            default => []
+        };
 
         // Extract the database name based on request method.
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->post = Sanitizer::sanitizeInput(DataExtractor::extractPostData());
-            $dbname = $this->post['_db'] ?? '';
-        } else {
-            $get = Sanitizer::sanitizeInput($_GET);
-            $dbname = $get['_db'] ?? '';
+        if (empty($payload)) {
+            $this->respondError(
+                'Request payload can not be empty',
+                HttpStatus::BAD_REQUEST
+            );
         }
-
-       // ResponseHandler::sendJsonResponse(['message'=>$dbname]);
 
         // Validate that _db is provided.
-        if (empty($dbname)) {
-            http_response_code(HttpStatus::BAD_REQUEST);
-            $this->response['message'] = '_db is required.';
-            ResponseHandler::sendJsonResponse($this->response);
+        if (empty($payload['_db'])) {
+            $this->respondError(
+                '_db field is required.',
+                HttpStatus::BAD_REQUEST
+            );
         }
 
+        $this->post = $payload;
+        $dbname = $this->post['_db'];
+        $_SESSION['_db'] = $dbname;
         $this->pdo = DatabaseConnector::connect(dbname: $dbname);
+    }
 
-        $this->response = ['success' => false];
+    protected function respond(
+        array $data = [],
+        int $statusCode = HttpStatus::OK
+    ): void {
+        http_response_code($statusCode);
+        ResponseHandler::sendJsonResponse(
+            ['statusCode' => $statusCode] + $data
+        );
+    }
+
+    protected function respondError(
+        string $message,
+        int $statusCode = HttpStatus::INTERNAL_SERVER_ERROR
+    ): void {
+        $this->respond(
+            ['success' => false, 'message' => $message],
+            $statusCode
+        );
     }
 }
