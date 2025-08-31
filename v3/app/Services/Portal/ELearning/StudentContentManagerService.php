@@ -189,6 +189,23 @@ class StudentContentManagerService
         ];
     }
 
+    public function getContent(int $contentId): array
+    {
+        $content = $this->content
+            ->where('id', '=', $contentId)
+            ->first();
+
+        if (!$content) {
+            return [];
+        }
+
+        if ($content['type'] == ContentType::QUIZ->value && $content['url']) {
+            return $this->appendQuestionsToContent($content);
+        }
+
+        return $this->formatContent($content);
+    }
+
     public function getContents(int $syllabusId): array
     {
         $contents = $this->content
