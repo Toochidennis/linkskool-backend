@@ -61,7 +61,7 @@ class ContentManagerController extends BaseController
             return $this->respond(
                 data: [
                     'success' => true,
-                    'response' => $summaryData,
+                    'data' => $summaryData,
                 ]
             );
         } catch (\Exception $e) {
@@ -73,7 +73,7 @@ class ContentManagerController extends BaseController
     {
         $filteredVars = $this->validate(
             data: $vars,
-            rules: ['syllabus_id' => 'required|integer',]
+            rules: ['syllabus_id' => 'required|integer|min:1',]
         );
 
         try {
