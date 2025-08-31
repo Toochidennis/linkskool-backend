@@ -79,4 +79,47 @@ class SyllabusService
             return $row;
         }, $results);
     }
+
+    public function getSyllabusByStaff(array $filters): array
+    {
+        $results = $this->content
+            ->select(columns: [
+                'id',
+                'title',
+                'description',
+                'course_id',
+                'course_name',
+                'path_label AS classes, author_name, term, upload_date'
+            ])
+            ->where('term', '=', $filters['term'])
+            ->where('level', '=', $filters['level_id'])
+            ->where('course_id', '=', $filters['course_id'])
+            ->where('type', '=', ContentType::SYLLABUS->value)
+            ->get();
+
+        $items = [];
+        foreach ($results as $row) {
+            $classes = json_decode($row['classes'], true);
+            $classIds = array_map(fn($item) => (int)$item['id'], $classes);
+
+            if ($row['course_id'] != $filters['course_id']) {
+                continue;
+            }
+            if (!in_array($filters['class_id'], $classIds)) {
+                continue;
+            }
+
+            $row['classes'] = $classes;
+            $items[] = $row;
+        }
+
+        return $items;
+    }
+
+    public function deleteSyllabus(int $id): bool
+    {
+        return $this->content
+            ->where('id', '=', $id)
+            ->delete();
+    }
 }

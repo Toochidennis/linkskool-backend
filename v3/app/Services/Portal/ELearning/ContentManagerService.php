@@ -66,7 +66,8 @@ class ContentManagerService
 
         $items = [];
         foreach ($results as $result) {
-            $classIds = $this->json($result['path_label']);
+            $classes = $this->json($result['path_label']);
+            $classIds = array_map(fn($item) => (int)$item['id'], $classes);
             $contentType = ContentType::tryFrom($result['type'])?->label() ?? 'Unknown';
 
             $item = [
@@ -76,7 +77,7 @@ class ContentManagerService
                 'level_id' => $result['level'],
                 'title' => $result['title'],
                 'course_name' => $result['course_name'],
-                'classes' => $classIds,
+                'classes' => $classes,
                 'created_by' => $result['author_name'],
                 'date_posted' => $result['upload_date'],
                 'type' => $contentType,
@@ -140,8 +141,6 @@ class ContentManagerService
                     'class_name' => $row['class_name'],
                     'level_id' => $row['level_id'],
                     'courses' => [],
-                    'recent_quizzes' => [],
-                    'recent_activities' => [],
                 ];
             }
 
@@ -151,7 +150,7 @@ class ContentManagerService
             ];
         }
 
-        return $grouped;
+        return array_values($grouped);
     }
 
     public function getDashboard(array $filters): array
@@ -168,20 +167,22 @@ class ContentManagerService
         if ($filters['role'] === 'staff') {
             $classes = $this->getStaffAssignedCourses($filters);
 
-            foreach ($classes as &$class) {
-                $classId = $class['class_id'];
-                $courseIds = array_column($class['courses'], 'course_id');
-
-                $staffFilter = [
-                    'class_ids' => [$classId],
-                    'course_ids' => $courseIds,
-                ];
-
-                $class['recent_quizzes'] = $this->getRecentContent($term, ContentType::QUIZ->value, $staffFilter);
-                $class['recent_activities'] = $this->getRecentContent($term, null, $staffFilter);
+            $classIds = array_column($classes, 'class_id');
+            $courseIds = [];
+            foreach ($classes as $class) {
+                $courseIds = array_merge($courseIds, array_column($class['courses'], 'course_id'));
             }
 
-            return array_values($classes);
+            $staffFilter = [
+                'class_ids' => $classIds,
+                'course_ids' => $courseIds,
+            ];
+
+            return [
+                'recent_quizzes'   => $this->getRecentContent($term, ContentType::QUIZ->value, $staffFilter),
+                'recent_activities' => $this->getRecentContent($term, null, $staffFilter),
+                'courses' => $classes,
+            ];
         }
 
         return [];

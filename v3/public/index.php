@@ -462,6 +462,13 @@ $dispatcher = FastRoute\simpleDispatcher(
             '/portal/elearning/syllabus',
             ['Portal\ELearning\SyllabusController', 'get']
         );
+
+        $r->addRoute(
+            'GET',
+            '/portal/elearning/syllabus/staff',
+            ['Portal\ELearning\SyllabusController', 'getByStaff']
+        );
+
         $r->addRoute(
             'GET',
             '/portal/elearning/syllabus/contents/{syllabus_id:\d+}',
@@ -489,7 +496,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         );
         $r->addRoute(
             'GET',
-            '/portal/elearning/staff/{teacher_id:\d+}/dashboard/summary',
+            '/portal/elearning/staff/{teacher_id:\d+}/overview',
             ['Portal\ELearning\ContentManagerController', 'staffDashboardSummary']
         );
         $r->addRoute(
@@ -509,6 +516,11 @@ $dispatcher = FastRoute\simpleDispatcher(
         );
         $r->addRoute(
             'DELETE',
+            '/portal/elearning/syllabus/{id:\d+}',
+            ['Portal\ELearning\SyllabusController', 'delete']
+        );
+        $r->addRoute(
+            'DELETE',
             '/portal/elearning/quiz/{content_id:\d+}/{question_id:\d+}',
             ['Portal\ELearning\QuizController', 'delete']
         );
@@ -517,6 +529,7 @@ $dispatcher = FastRoute\simpleDispatcher(
             '/portal/elearning/comments/{id:\d+}',
             ['Portal\ELearning\ContentCommentController', 'delete']
         );
+
 
         // Payment
         $r->addRoute(

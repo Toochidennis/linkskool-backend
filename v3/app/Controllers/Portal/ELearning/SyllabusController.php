@@ -24,15 +24,15 @@ class SyllabusController extends BaseController
             rules: [
                 'title' => 'required|string|filled',
                 'description' => 'required|string|filled',
-                'course_id' => 'required|integer',
+                'course_id' => 'required|integer|min:1',
                 'course_name' => 'required|string|filled',
-                'level_id' => 'required|integer',
+                'level_id' => 'required|integer|min:1',
                 'classes' => 'required|array|min:1',
-                'classes.*.id' => 'required|integer',
+                'classes.*.id' => 'required|integer|min:1',
                 'classes.*.name' => 'required|string|filled',
-                'creator_id' => 'required|integer',
+                'creator_id' => 'required|integer|min:1',
                 'creator_name' => 'required|string|filled',
-                'term' => 'required|integer'
+                'term' => 'required|integer|in:1,2,3'
             ]
         );
 
@@ -43,7 +43,6 @@ class SyllabusController extends BaseController
                 $this->respond(
                     data: [
                         'success' => true,
-                        'syllabusId' => $newId,
                         'message' => 'Syllabus created successfully.'
                     ],
                     statusCode: HttpStatus::CREATED
@@ -77,8 +76,7 @@ class SyllabusController extends BaseController
                 $this->respond(
                     data: [
                         'success' => true,
-                        'message' => 'Syllabus updated successfully.',
-                        'syllabusId' => $id
+                        'message' => 'Syllabus updated successfully.'
                     ]
                 );
             }
@@ -94,7 +92,7 @@ class SyllabusController extends BaseController
         $data = $this->validate(
             data: $vars,
             rules: [
-                'term' => 'required|integer',
+                'term' => 'required|integer|in:1,2,3',
                 'level_id' => 'required|integer',
                 'course_id' => 'required|integer'
             ]
@@ -109,6 +107,60 @@ class SyllabusController extends BaseController
             );
         } catch (Exception $e) {
             $this->respondError(message: $e->getMessage());
+        }
+    }
+
+    public function getByStaff(array $vars)
+    {
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'term' => 'required|integer|in:1,2,3',
+                'level_id' => 'required|integer',
+                'course_id' => 'required|integer',
+                'class_id' => 'required|integer|min:1'
+            ]
+        );
+
+        try {
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'response' => $this->service->getSyllabusByStaff(filters: $data)
+                ]
+            );
+        } catch (Exception $e) {
+            return $this->respondError(message: $e->getMessage());
+        }
+    }
+
+    public function delete(array $vars)
+    {
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'id' => 'required|integer|min:1'
+            ]
+        );
+
+        try {
+            $deleted = $this->service->deleteSyllabus($data['id']);
+
+            if ($deleted) {
+                return $this->respond(
+                    data: [
+                        'success' => true,
+                        'message' => 'Syllabus deleted successfully.'
+                    ]
+                );
+            }
+
+            return $this->respondError(
+                'Failed to delete syllabus',
+                HttpStatus::BAD_REQUEST
+            );
+        } catch (Exception $e) {
+            return $this->respondError(message: $e->getMessage());
         }
     }
 }
