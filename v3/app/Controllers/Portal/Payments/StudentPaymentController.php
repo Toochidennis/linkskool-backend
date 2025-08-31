@@ -23,13 +23,13 @@ class StudentPaymentController extends BaseController
             rules: [
                 'invoice_id' => 'required|string|filled',
                 'reference' => 'required|string|filled',
-                'student_id' => 'required|integer',
+                'student_id' => 'required|integer|min:1',
                 'reg_no' => 'required|string|filled',
                 'name' => 'required|string|filled',
                 'amount' => 'required|numeric|min:1',
                 'class_id' => 'required|integer',
                 'level_id' => 'required|integer',
-                'type' => 'sometimes|string|in:offline,online',
+                'type' => 'required|string|in:offline,online',
                 'year' => 'required|digits:4',
                 'term' => 'required|integer|in:1,2,3',
                 'invoice_details' => 'required|array|min:1',
@@ -46,7 +46,7 @@ class StudentPaymentController extends BaseController
                 $this->respond(
                     [
                         'success' => true,
-                        'message' => 'Validation successfully'
+                        'message' => 'Payment successful'
                     ],
                     HttpStatus::CREATED
                 );
