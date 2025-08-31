@@ -97,8 +97,13 @@ $dispatcher = FastRoute\simpleDispatcher(
         );
         $r->addRoute(
             'GET',
-            '/portal/students/elearning/contents/{id:\d+}',
+            '/portal/students/elearning/contents',
             ['Portal\ELearning\StudentContentManagerController', 'listContents']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/students/elearning/contents/{id:\d+}',
+            ['Portal\ELearning\StudentContentManagerController', 'listContent']
         );
         $r->addRoute(
             'GET',
@@ -471,12 +476,12 @@ $dispatcher = FastRoute\simpleDispatcher(
 
         $r->addRoute(
             'GET',
-            '/portal/elearning/syllabus/contents/{syllabus_id:\d+}',
+            '/portal/elearning/syllabus/{syllabus_id:\d+}/contents',
             ['Portal\ELearning\ContentManagerController', 'getAllContents']
         );
         $r->addRoute(
             'GET',
-            '/portal/elearning/topic/{syllabus_id:\d+}',
+            '/portal/elearning/syllabus/{syllabus_id:\d+}/topics',
             ['Portal\ELearning\TopicController', 'get']
         );
         $r->addRoute(
