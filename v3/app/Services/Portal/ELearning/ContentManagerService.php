@@ -188,54 +188,20 @@ class ContentManagerService
         return [];
     }
 
-    private function getQuestions(array $questionIds): array
+    public function getContent(int $contentId): array
     {
-        $ids = array_values(array_map(
-            fn($item) => (int)$item['id'],
-            $questionIds
-        ));
+        $content = $this->content
+            ->where('id', '=', $contentId)
+            ->first();
 
-        if (empty($ids)) {
+        if (!$content) {
             return [];
         }
 
-        $questions = $this->quiz
-            ->select([
-                'question_id',
-                'parent AS question_grade',
-                'content AS question_files',
-                'title AS question_text',
-                'type AS question_type',
-                'answer AS options',
-                'correct',
-            ])
-            ->in('question_id', $ids)
-            ->get();
-
-        if (!$questions) {
-            return [];
+        if ($content['type'] == ContentType::QUIZ->value && $content['url']) {
+            return $this->appendQuestionsToContent($content);
         }
 
-        $questions = array_map(function ($question) {
-            $question['question_type'] = QuestionType::tryFrom($question['question_type'])?->label() ?? 'Unknown';
-            $question['question_files'] = $this->json($question['question_files']);
-            $question['options'] = $this->json($question['options']);
-            $question['correct'] = $this->json($question['correct']);
-            return $question;
-        }, $questions);
-
-        return $questions;
-    }
-
-    private function appendQuestionsToContent($content)
-    {
-        $questionIds = $this->json($content['url']);
-        if (is_array($questionIds) && count($questionIds)) {
-            $questions = $this->getQuestions($questionIds);
-            $content['questions'] = $questions;
-        } else {
-            $content['questions'] = [];
-        }
         return $this->formatContent($content);
     }
 
@@ -317,6 +283,57 @@ class ContentManagerService
         }
 
         return $result;
+    }
+
+    private function getQuestions(array $questionIds): array
+    {
+        $ids = array_values(array_map(
+            fn($item) => (int)$item['id'],
+            $questionIds
+        ));
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $questions = $this->quiz
+            ->select([
+                'question_id',
+                'parent AS question_grade',
+                'content AS question_files',
+                'title AS question_text',
+                'type AS question_type',
+                'answer AS options',
+                'correct',
+            ])
+            ->in('question_id', $ids)
+            ->get();
+
+        if (!$questions) {
+            return [];
+        }
+
+        $questions = array_map(function ($question) {
+            $question['question_type'] = QuestionType::tryFrom($question['question_type'])?->label() ?? 'Unknown';
+            $question['question_files'] = $this->json($question['question_files']);
+            $question['options'] = $this->json($question['options']);
+            $question['correct'] = $this->json($question['correct']);
+            return $question;
+        }, $questions);
+
+        return $questions;
+    }
+
+    private function appendQuestionsToContent($content)
+    {
+        $questionIds = $this->json($content['url']);
+        if (is_array($questionIds) && count($questionIds)) {
+            $questions = $this->getQuestions($questionIds);
+            $content['questions'] = $questions;
+        } else {
+            $content['questions'] = [];
+        }
+        return $this->formatContent($content);
     }
 
     private function formatContent(array $content): array

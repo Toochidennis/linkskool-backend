@@ -89,6 +89,26 @@ class ContentManagerController extends BaseController
         }
     }
 
+    public function getContentById(array $vars)
+    {
+        $filteredVars = $this->validate(
+            data: $vars,
+            rules: ['id' => 'required|integer|min:1',]
+        );
+
+        try {
+            $this->respond(
+                data: [
+                    'success' => true,
+                    'response' => $this->contentManagerService
+                        ->getContent($filteredVars['id']),
+                ],
+            );
+        } catch (\Exception $e) {
+            $this->respondError(message: $e->getMessage());
+        }
+    }
+
     public function delete(array $vars)
     {
         $data = $this->validate(data: $vars, rules: ['content_id' => 'required|integer']);
