@@ -38,40 +38,4 @@ class StudentContentManagerController extends BaseController
             $this->respondError($e->getMessage());
         }
     }
-
-    public function listContents(array $vars)
-    {
-        $data = $this->validate(
-            data: $vars,
-            rules: ['syllabus_id' => 'required|integer']
-        );
-
-        try {
-            $this->respond([
-                'success' => true,
-                'data' => $this->studentContent->getContents($data['syllabus_id'])
-            ]);
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
-        }
-    }
-
-    public function listContent(array $vars)
-    {
-        $data = $this->validate(
-            data: $vars,
-            rules: ['id' => 'required|integer|min:1',]
-        );
-
-        try {
-            $this->respond(
-                data: [
-                    'success' => true,
-                    'response' => $this->studentContent->getContent($data['id']),
-                ],
-            );
-        } catch (Exception $e) {
-            $this->respondError(message: $e->getMessage());
-        }
-    }
 }
