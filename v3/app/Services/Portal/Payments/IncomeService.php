@@ -141,13 +141,19 @@ class IncomeService
                 case 'this_week':
                     $start = date('Y-m-d', strtotime('monday this week'));
                     $end = date('Y-m-d', strtotime('sunday this week'));
-                    $query->whereBetween('date', [$start, $end]);
+                    $query->whereBetween('date', $start, $end);
+                    break;
+
+                case 'last_week':
+                    $start = date('Y-m-d', strtotime('monday last week'));
+                    $end = date('Y-m-d', strtotime('sunday last week'));
+                    $query->whereBetween('date', $start, $end);
                     break;
 
                 case 'last_30_days':
                     $start = date('Y-m-d', strtotime('-30 days'));
                     $end = date('Y-m-d');
-                    $query->whereBetween('date', [$start, $end]);
+                    $query->whereBetween('date', $start, $end);
                     break;
 
                 case 'this_month':
@@ -216,7 +222,7 @@ class IncomeService
 
                 case 'month':
                     $key = date('Y-m', strtotime($row['date']));
-                    $name = $key; // you can format to "Sep 2025"
+                    $name = $this->formatDate($key);
                     break;
 
                 default:
@@ -296,5 +302,20 @@ class IncomeService
             array_keys($chart),
             $chart
         );
+    }
+
+    private function formatDate($date): string
+    {
+        try {
+            $dt = \DateTime::createFromFormat('Y-m', $date);
+            if ($dt) {
+                return $dt->format('M Y'); // Sep 2025
+            }
+        } catch (\Exception $e) {
+            // fallback if parsing fails
+            return $date;
+        }
+
+        return $date;
     }
 }
