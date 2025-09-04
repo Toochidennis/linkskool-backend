@@ -593,6 +593,16 @@ $dispatcher = FastRoute\simpleDispatcher(
             ['Portal\Payments\NextTermFeeController', 'get']
         );
         $r->addRoute(
+            'POST',
+            '/portal/payments/invoices/report/generate',
+            ['Portal\Payments\IncomeController', 'generateReport']
+        );
+        $r->addRoute(
+            'POST',
+            '/portal/payments/expenditure/report/generate',
+            ['Portal\Payments\ExpenditureController', 'generateReport']
+        );
+        $r->addRoute(
             'GET',
             '/portal/payments/dashboard/summary',
             ['Portal\Payments\PaymentDashboardController', 'getDashboardSummary']

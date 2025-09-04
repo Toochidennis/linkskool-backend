@@ -307,6 +307,48 @@ class QueryBuilder
         return $this;
     }
 
+    public function whereBetween(string $column, $start, $end): self
+    {
+        $quoted = $this->wrapIdentifier($column);
+        $this->whereConditions[] = "$quoted BETWEEN ? AND ?";
+        $this->whereBindings[] = $start;
+        $this->whereBindings[] = $end;
+
+        return $this;
+    }
+
+    public function whereNotBetween(string $column, $start, $end): self
+    {
+        $quoted = $this->wrapIdentifier($column);
+        $this->whereConditions[] = "$quoted NOT BETWEEN ? AND ?";
+        $this->whereBindings[] = $start;
+        $this->whereBindings[] = $end;
+
+        return $this;
+    }
+
+    public function whereNull(string $column): self
+    {
+        $quoted = $this->wrapIdentifier($column);
+        $this->whereConditions[] = "$quoted IS NULL";
+        return $this;
+    }
+
+    public function whereNotNull(string $column): self
+    {
+        $quoted = $this->wrapIdentifier($column);
+        $this->whereConditions[] = "$quoted IS NOT NULL";
+        return $this;
+    }
+
+    public function whereRaw(string $expression, array $bindings = []): self
+    {
+        $this->whereConditions[] = $expression;
+        $this->whereBindings = array_merge($this->whereBindings, $bindings);
+
+        return $this;
+    }
+
     /**
      * Deletes records from the table.
      *
