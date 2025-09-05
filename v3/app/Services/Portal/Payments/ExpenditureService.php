@@ -14,6 +14,7 @@ class ExpenditureService
     public function __construct(\PDO $pdo)
     {
         $this->transaction = new Transaction($pdo);
+        $this->schoolSettings = new SchoolSettings($pdo);
     }
 
     public function addExpenditure(array $data)
@@ -208,9 +209,13 @@ class ExpenditureService
             $query->in('year', $appliedFilters['sessions']);
         }
 
-        // Levels
+        // vendors
         if (!empty($appliedFilters['vendors'])) {
             $query->in('cid', $appliedFilters['vendors']);
+        }
+
+        if (!empty($appliedFilters['accounts'])) {
+            $query->in('cid', $appliedFilters['accounts']);
         }
 
         return $query;
@@ -225,6 +230,11 @@ class ExpenditureService
                 case 'vendor':
                     $key = $row['customer_id'];
                     $name = $row['name'];
+                    break;
+
+                case 'account':
+                    $key = $row['account_number'];
+                    $name = $row['account_name'];
                     break;
 
                 case 'month':
@@ -243,7 +253,7 @@ class ExpenditureService
                     'name' => $name,
                     'total_amount' => 0,
                     'total_transactions' => 0,
-                    'unique_students' => [],
+                    'unique_vendors' => [],
                 ];
             }
 
@@ -271,6 +281,12 @@ class ExpenditureService
                         $key = $row['customer_id'];
                         $label = $row['name'];
                         break;
+
+                    case 'account':
+                        $key = $row['account_number'];
+                        $label = $row['account_name'];
+                        break;
+
                     case 'month':
                         $key = date('Y-m', strtotime($row['date']));
                         $label = $this->formatDate($key);
