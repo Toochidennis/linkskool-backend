@@ -594,7 +594,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         );
         $r->addRoute(
             'POST',
-            '/portal/payments/invoices/report/generate',
+            '/portal/payments/income/report/generate',
             ['Portal\Payments\IncomeController', 'generateReport']
         );
         $r->addRoute(
