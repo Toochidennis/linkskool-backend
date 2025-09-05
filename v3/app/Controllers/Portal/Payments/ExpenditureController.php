@@ -82,4 +82,35 @@ class ExpenditureController extends BaseController
             $this->respondError($e->getMessage());
         }
     }
+
+    public function generateReport()
+    {
+        $filteredVars = $this->validate(
+            data: $this->post,
+            rules: [
+                'report_type' => 'required|string|in:termly,session,monthly,custom',
+                'custom_type' => 'nullable|string|in:range,today,yesterday,this_week,last_week,last_30_days,this_month,last_month',
+                'start_date' => 'required_if:custom_type,range|date',
+                'end_date' => 'required_if:custom_type,range|date|after_or_equal:start_date',
+                'group_by' => 'nullable|string|in:vendor,month',
+                'filters.terms' => 'nullable|array',
+                'filters.terms.*' => 'integer|in:1,2,3',
+                'filters.sessions' => 'nullable|array',
+                'filters.sessions.*' => 'integer',
+                'filters.vendors' => 'nullable|array',
+                'filters.vendors.*' => 'integer',
+            ]
+        );
+
+        try {
+            $reports = $this->expenditureService->report($filteredVars);
+
+            return $this->respond([
+                'success' => true,
+                'data' => $reports
+            ]);
+        } catch (\Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
 }

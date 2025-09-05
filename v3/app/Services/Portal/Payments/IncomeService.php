@@ -70,7 +70,6 @@ class IncomeService
             'transactions' => $transactions,
         ];
     }
-
     private function getLevels(): array
     {
         $levels = $this->level
@@ -112,23 +111,16 @@ class IncomeService
         $customType = $filters['custom_type'] ?? null;
         $settings = $this->getSchoolSettings();
 
-        // xQuick reports
+        // Quick reports
         if ($reportType === 'termly') {
             $query->where('term', '=', $settings['term']);
-        }
-
-        if ($reportType === 'session') {
+        } elseif ($reportType === 'session') {
             $query->where('year', '=', $settings['year']);
-        }
-
-        if ($reportType === 'monthly') {
+        } elseif ($reportType === 'monthly') {
             $month = date('m');
             $year  = date('Y');
             $query->whereRaw("MONTH(date) = ? AND YEAR(date) = ?", [$month, $year]);
-        }
-
-        // Custom reports
-        if ($reportType === 'custom') {
+        } elseif ($reportType === 'custom') {
             switch ($customType) {
                 case 'today':
                     $query->where('date', '=', date('Y-m-d'));
