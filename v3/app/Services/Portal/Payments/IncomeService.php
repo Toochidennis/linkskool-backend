@@ -112,7 +112,7 @@ class IncomeService
         $customType = $filters['custom_type'] ?? null;
         $settings = $this->getSchoolSettings();
 
-        // --- Quick reports ---
+        // xQuick reports
         if ($reportType === 'termly') {
             $query->where('term', '=', $settings['term']);
         }
@@ -127,7 +127,7 @@ class IncomeService
             $query->whereRaw("MONTH(date) = ? AND YEAR(date) = ?", [$month, $year]);
         }
 
-        // --- Custom reports ---
+        // Custom reports
         if ($reportType === 'custom') {
             switch ($customType) {
                 case 'today':
@@ -168,7 +168,7 @@ class IncomeService
 
                 case 'range':
                     if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
-                        $query->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
+                        $query->whereBetween('date', $filters['start_date'], $filters['end_date']);
                     }
                     break;
             }
