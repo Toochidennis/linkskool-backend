@@ -92,13 +92,15 @@ class ExpenditureController extends BaseController
                 'custom_type' => 'nullable|string|in:range,today,yesterday,this_week,last_week,last_30_days,this_month,last_month',
                 'start_date' => 'required_if:custom_type,range|date',
                 'end_date' => 'required_if:custom_type,range|date|after_or_equal:start_date',
-                'group_by' => 'nullable|string|in:vendor,month',
+                'group_by' => 'nullable|string|in:vendor,month,account',
                 'filters.terms' => 'nullable|array',
                 'filters.terms.*' => 'integer|in:1,2,3',
                 'filters.sessions' => 'nullable|array',
                 'filters.sessions.*' => 'integer',
                 'filters.vendors' => 'nullable|array',
                 'filters.vendors.*' => 'integer',
+                'filters.accounts' => 'nullable|array',
+                'filters.accounts.*' => 'integer'
             ]
         );
 
