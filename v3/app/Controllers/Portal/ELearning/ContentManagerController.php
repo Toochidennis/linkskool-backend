@@ -28,7 +28,7 @@ class ContentManagerController extends BaseController
         try {
             $dashboardData = $this->contentManagerService
                 ->getDashboard([
-                    ...$filteredVars['term'],
+                    ...$filteredVars,
                     'role' => 'admin'
                 ]);
 
