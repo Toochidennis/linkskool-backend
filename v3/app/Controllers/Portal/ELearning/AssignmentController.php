@@ -81,7 +81,7 @@ class AssignmentController extends BaseController
                 'classes.*.name' => 'required|string|filled',
                 'files' => 'sometimes|array',
                 'files.*.file_name' => 'sometimes|string',
-                'files.*.old_file_name' => 'required|string|filled',
+                'files.*.old_file_name' => 'sometimes|string',
                 'files.*.type' => 'required|string|filled',
                 'files.*.file' => 'sometimes|string',
                 'start_date' => 'required|string|filled',
