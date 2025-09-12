@@ -61,8 +61,11 @@ class FileHandler
                 $processed[] = $this->processFile($file);
                 continue;
             }
-
             $processed[] = !$isUpdate ? $this->processFile($file) : $file;
+            $processed = array_map(function ($f) {
+                $f['file'] = '';
+                return $f;
+            }, $processed);
         }
 
         return $processed;
