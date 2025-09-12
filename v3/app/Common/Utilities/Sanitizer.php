@@ -27,7 +27,7 @@ class Sanitizer
             }
 
             // Sanitize scalar value
-            return htmlspecialchars(strip_tags(trim((string) $value)), ENT_QUOTES, 'UTF-8');
+            return strip_tags(trim((string) $value));
         };
 
         $sanitizedData = $process($input, $parentKey);
