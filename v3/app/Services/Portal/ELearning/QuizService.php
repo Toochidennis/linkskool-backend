@@ -148,14 +148,25 @@ class QuizService
                     'answer' => $this->json($options)
                 ];
 
-                $isSuccess = $this->quiz
-                    ->where('question_id', '=', $question['question_id'])
-                    ->update($payload);
+                if ($question['question_id'] === 0) {
+                    $newId = $this->quiz->insert($payload);
+                    $question['question_id'] = $newId;
+                    $isSuccess = $newId > 0;
+                } else {
+                    $updated = $this->quiz
+                        ->where('question_id', '=', $question['question_id'])
+                        ->update($payload);
+
+                    $isSuccess = $updated !== false;
+                }
 
                 if ($isSuccess) {
-                    $questionIds[] = ['id' => $question['question_id'], 'rank' => $index];
+                    $questionIds[] = [
+                        'id' => $question['question_id'],
+                        'rank' => $index
+                    ];
                 } else {
-                    throw new \RuntimeException("Failed to update question at $index");
+                    throw new \RuntimeException("Failed to save question at $index");
                 }
             }
 

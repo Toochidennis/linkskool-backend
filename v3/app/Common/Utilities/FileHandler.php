@@ -55,7 +55,9 @@ class FileHandler
                 !empty($file['file_name'] ?? '') &&
                 ($file['file_name'] ?? '') !== $file['old_file_name']
             ) {
-                $this->deleteOldFile($file['old_file_name']);
+                if (!empty($file['old_file_name'] ?? '')) {
+                    $this->deleteOldFile($file['old_file_name']);
+                }
                 $processed[] = $this->processFile($file);
                 continue;
             }

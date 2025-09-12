@@ -114,7 +114,7 @@ class QuizController extends BaseController
 
                 'questions.*.question_files' => 'sometimes|array',
                 'questions.*.question_files.*.file_name' => 'sometimes|string',
-                'questions.*.question_files.*.old_file_name' => 'required|string|filled',
+                'questions.*.question_files.*.old_file_name' => 'sometimes|string',
                 'questions.*.question_files.*.type' => 'required|string|filled',
                 'questions.*.question_files.*.file' => 'sometimes|string',
 
@@ -123,10 +123,10 @@ class QuizController extends BaseController
                 'questions.*.options.*.text' => 'sometimes|string',
 
                 'questions.*.options.*.option_files' => 'sometimes|array',
-                'questions.*.options.*.option_files.*.file_name' => 'required|string|filled',
+                'questions.*.options.*.option_files.*.file_name' => 'sometimes|string',
                 'questions.*.options.*.option_files.*.old_file_name' => 'sometimes|string',
                 'questions.*.options.*.option_files.*.type' => 'required|string|filled',
-                'questions.*.options.*.option_files.*.file' => 'required|string|filled',
+                'questions.*.options.*.option_files.*.file' => 'sometimes|string',
 
                 'questions.*.correct' => 'required|array',
                 'questions.*.correct.order' => 'required|integer',
