@@ -20,9 +20,11 @@ use FastRoute\RouteCollector;
 use V3\App\Common\Utilities\EnvLoader;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Common\Utilities\ResponseHandler;
+use V3\App\Common\Utilities\BirthdayMessenger;
 
 // Load environment variables
 EnvLoader::load();
+BirthdayMessenger::send();
 
 $response = ['success' => false];
 
