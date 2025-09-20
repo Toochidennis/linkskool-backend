@@ -107,7 +107,7 @@ class QuizController extends BaseController
                 'setting.classes.*.name' => 'required|string|filled',
 
                 'questions' => 'required|array|min:1',
-                'questions.*.question_id' => 'required|integer',
+                'questions.*.question_id' => 'sometimes|integer',
                 'questions.*.question_text' => 'required|string|filled',
                 'questions.*.question_grade' => 'required|numeric',
                 'questions.*.question_type' => 'required|string|in:short_answer,multiple_choice',

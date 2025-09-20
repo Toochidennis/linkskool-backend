@@ -148,7 +148,7 @@ class QuizService
                     'answer' => $this->json($options)
                 ];
 
-                if ($question['question_id'] === 0) {
+                if (!isset($question['question_id']) || $question['question_id'] == 0) {
                     $newId = $this->quiz->insert($payload);
                     $question['question_id'] = $newId;
                     $isSuccess = $newId > 0;
