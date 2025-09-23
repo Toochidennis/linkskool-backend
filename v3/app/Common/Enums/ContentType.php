@@ -8,6 +8,9 @@ enum ContentType: int
     case QUIZ = 2;
     case ASSIGNMENT = 3;
     case TOPIC = 4;
+    case NEWS = 9;
+    case QUESTION = 20;
+    case REPLY = 21;
     case COMMENT = 50;
     case SYLLABUS = 100;
 

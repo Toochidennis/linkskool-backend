@@ -14,8 +14,6 @@ class StudentService
     /**
      * StudentRegistrationService constructor.
      *
-     * @param Student             $student
-     * @param SchoolSettings      $schoolSettings
      */
     public function __construct(PDO $pdo)
     {
