@@ -25,11 +25,11 @@ class StudentController extends BaseController
         $data = $this->validateData(
             data: $this->post,
             requiredFields: [
-                'surname',
-                'first_name',
-                'gender',
-                'class_id',
-                'level_id'
+                'surname' => 'required|string|filled',
+                'first_name' => 'required|string|filled',
+                'gender' => 'required|string|filled',
+                'class_id' => 'required|integer|filled',
+                'level_id' => 'required|integer|filled'
             ]
         );
 

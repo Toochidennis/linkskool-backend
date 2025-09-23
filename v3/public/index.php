@@ -25,6 +25,7 @@ use V3\App\Common\Utilities\BirthdayMessenger;
 // Load environment variables
 EnvLoader::load();
 BirthdayMessenger::send();
+die;
 
 $response = ['success' => false];
 

@@ -1,0 +1,7 @@
+[2025-09-23 12:49:43] School: Royal Prime | Student: Obi Somto |
+                Phone: 2349030270148 | Status: FAILED | Error: ApplicationSenderId not found for applicationId: 50151 and senderName: royalprim | Code: 404 | Status: error
+[2025-09-23 12:52:27] School: Royal Prime | Student: Obi Somto |
+        Phone: 2349030270148 | Status: FAILED |
+        Error: ApplicationSenderId not found for applicationId: 50151 and senderName: royalprim | Code: 404 | Status: error
+[2025-09-23 12:54:24] School: Royal Prime | Student: Obi Somto |
+                Phone: 2349030270148 | Status: SUCCESS | Message ID: 3017586248639179808425162, Balance: 4646.16
