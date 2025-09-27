@@ -16,24 +16,53 @@ class ClassService
 
     public function insertClass(array $data)
     {
-        $payload = array_map(function ($class) {
-            $class['level'] = $class['level_id'];
-            unset($class['level_id']);
-            return $class;
-        }, $data);
+        $form_teacher_ids = implode(',', $data['form_teacher_ids'] ?? []);
+        $payload = [
+            'class_name' => $data['class_name'],
+            'level' => $data['level_id'],
+            'result_template' => $data['result_template'] ?? '',
+            'form_teacher' => $form_teacher_ids
+        ];
 
         return $this->classModel->insert($payload);
     }
 
+    public function updateClass(array $data)
+    {
+        $form_teacher_ids = implode(',', $data['form_teacher_ids'] ?? []);
+        $payload = [
+            'class_name' => $data['class_name'],
+            'level' => $data['level_id'],
+            'result_template' => $data['result_template'] ?? '',
+            'form_teacher' => $form_teacher_ids
+        ];
+
+        return $this->classModel
+            ->where('id', $data['id'])
+            ->update($payload);
+    }
+
     public function fetchClasses()
     {
-        $results = $this->classModel->get();
+        $classes = $this->classModel
+            ->select([
+                'class_name',
+                'level AS level_id',
+                'result_template',
+                'form_teacher AS form_teacher_ids'
+            ])
+            ->get();
 
-        foreach ($results as &$result) {
-            $result['level_id'] = $result['level'];
-            unset($result['level']);
-        }
+        return array_map(function ($class) {
+            $class['form_teacher_ids'] = array_filter(explode(',', $class['form_teacher_ids']));
+            return $class;
+        }, $classes);
+    }
 
-        return $results;
+    public function deleteClass(int $id): bool|int
+    {
+        return $this->classModel
+            ->where('id', $id)
+            ->delete();
     }
 }

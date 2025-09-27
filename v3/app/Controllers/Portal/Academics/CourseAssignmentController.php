@@ -19,15 +19,15 @@ class CourseAssignmentController extends BaseController
 
     public function storeCourseAssignment()
     {
-        $data = $this->validateData(
-            $this->post,
-            [
-                'year',
-                'term',
-                'staff_id',
-                'courses',
-                'courses.*.course_id',
-                'courses*.*class_id'
+        $data = $this->validate(
+            data: $this->post,
+            rules: [
+                'year' => 'required|integer',
+                'term' => 'required|string|in:1,2,3',
+                'staff_id' => 'required|integer|min:1',
+                'courses' => 'required|array|filled',
+                'courses.*.course_id' => 'required|integer|filled',
+                'courses.*.class_id' => 'required|integer|filled'
             ]
         );
 
@@ -42,6 +42,38 @@ class CourseAssignmentController extends BaseController
             }
             return $this->respondError(
                 'Failed to assign course(s)',
+                HttpStatus::BAD_REQUEST
+            );
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
+
+    public function updateCourseAssignment()
+    {
+        $data = $this->validate(
+            data: $this->post,
+            rules: [
+                'year' => 'required|integer',
+                'term' => 'required|string|in:1,2,3',
+                'staff_id' => 'required|integer|min:1',
+                'courses' => 'required|array|filled',
+                'courses.*.course_id' => 'required|integer|filled',
+                'courses.*.class_id' => 'required|integer|filled'
+            ]
+        );
+
+        try {
+            $isUpdated = $this->service->updateCourseAssignments($data);
+
+            if ($isUpdated) {
+                return $this->respond([
+                    'success' => true,
+                    'message' => 'Course assignments updated successfully.'
+                ]);
+            }
+            return $this->respondError(
+                'Failed to update course assignments',
                 HttpStatus::BAD_REQUEST
             );
         } catch (Exception $e) {

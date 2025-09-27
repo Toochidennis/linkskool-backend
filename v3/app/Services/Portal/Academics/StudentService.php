@@ -3,6 +3,7 @@
 namespace V3\App\Services\Portal\Academics;
 
 use PDO;
+use V3\App\Common\Utilities\FileHandler;
 use V3\App\Models\Portal\Academics\Student;
 use V3\App\Models\Portal\Academics\SchoolSettings;
 
@@ -10,6 +11,7 @@ class StudentService
 {
     private Student $student;
     private SchoolSettings $schoolSettings;
+    private FileHandler $fileHandler;
 
     /**
      * StudentRegistrationService constructor.
@@ -19,23 +21,28 @@ class StudentService
     {
         $this->student = new Student($pdo);
         $this->schoolSettings = new SchoolSettings($pdo);
+        $this->fileHandler = new FileHandler();
     }
 
 
     public function insertStudentRecord(array $data): bool
     {
+        if (!empty($data['photo']) && is_array($data['photo'])) {
+            $file = $this->fileHandler->handleFiles($data['photo']);
+            $data['photo'] = $file['old_file_name'];
+        }
         $payload = [
-            'picture_ref' => $data['photo'] ?? null,
+            'picture_ref' => $data['photo'] ?? '',
             'surname' => $data['last_name'],
             'first_name' => $data['first_name'],
             'middle' => $data['middle_name'] ?? '',
             'sex' => $data['gender'],
-            'birthdate' => $data['birth_date'] ?? null,
-            'address' => $data['home_address'] ?? '',
-            'city' => $data['city_id'] ?? null,
-            'state' => $data['state_id'] ?? null,
-            'country' => $data['country_id'] ?? null,
-            'email' => $data['email_address'] ?? '',
+            'birthdate' => $data['birth_date'] ?? '',
+            'address' => $data['address'] ?? '',
+            'city' => $data['city'] ?? '',
+            'state' => $data['state'] ?? '',
+            'country' => $data['country'] ?? '',
+            'email' => $data['email'] ?? '',
             'religion' => $data['religion'] ?? '',
             'guardian_name' => $data['guardian_name'] ?? '',
             'guardian_address' => $data['guardian_address'] ?? '',
@@ -44,7 +51,7 @@ class StudentService
             'local_government_origin' => $data['lga_origin'] ?? '',
             'state_origin' => $data['state_origin'] ?? '',
             'nationality' => $data['nationality'] ?? '',
-            'health_status' => $data['health_info'] ?? '',
+            'health_status' => $data['health_status'] ?? '',
             'date_admitted' => date('Y-m-d H:i:s'),
             'status' => $data['student_status'] ?? '',
             'past_record' => $data['past_record'] ?? '',
@@ -76,6 +83,46 @@ class StudentService
         }
 
         return false;
+    }
+
+    public function updateStudentRecord(array $data): bool
+    {
+        if (!empty($data['photo']) && is_array($data['photo'])) {
+            $file = $this->fileHandler->handleFiles($data['photo']);
+            $data['photo'] = $file['old_file_name'];
+        }
+
+        $payload = [
+            'picture_ref' => $data['photo'] ?? '',
+            'surname' => $data['surname'],
+            'first_name' => $data['first_name'],
+            'middle' => $data['middle'] ?? '',
+            'sex' => $data['gender'],
+            'birthdate' => $data['birth_date'] ?? '',
+            'address' => $data['address'] ?? '',
+            'city' => $data['city'] ?? '',
+            'state' => $data['state'] ?? '',
+            'country' => $data['country'] ?? '',
+            'email' => $data['email'] ?? '',
+            'religion' => $data['religion'] ?? '',
+            'guardian_name' => $data['guardian_name'] ?? '',
+            'guardian_address' => $data['guardian_address'] ?? '',
+            'guardian_email' => $data['guardian_email'] ?? '',
+            'guardian_phone_no' => $data['guardian_phone_no'] ?? '',
+            'local_government_origin' => $data['lga_origin'] ?? '',
+            'state_origin' => $data['state_origin'] ?? '',
+            'nationality' => $data['nationality'] ?? '',
+            'health_status' => $data['health_status'] ?? '',
+            'status' => $data['status'] ?? '',
+            'past_record' => $data['past_record'] ?? '',
+            'result' => $data['result'] ?? '',
+            'student_class' => $data['class_id'],
+            'student_level' => $data['level_id']
+        ];
+
+        return $this->student
+            ->where('id', '=', $data['id'])
+            ->update(data: $payload);
     }
 
     /**

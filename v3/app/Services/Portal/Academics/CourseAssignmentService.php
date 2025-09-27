@@ -26,14 +26,31 @@ class CourseAssignmentService
                 'term' => $data['term']
             ];
 
-            $inserted = $this->courseAssignment->insert($payload);
-
-            if ($inserted) {
+            if ($this->courseAssignment->insert($payload)) {
                 $count++;
             }
         }
 
         return $count == count($data['courses']);
+    }
+
+    public function updateCourseAssignments(array $data)
+    {
+        $this->deleteExistingAssignments($data);
+        return $this->assignCourses($data);
+    }
+
+    private function deleteExistingAssignments(array $data)
+    {
+        $courseIds = array_map(fn($course) => $course['course_id'], $data['courses']);
+        $classIds = array_map(fn($course) => $course['class_id'], $data['courses']);
+        $this->courseAssignment
+            ->where('ref_no', '=', $data['staff_id'])
+            ->where('year', '=', $data['year'])
+            ->where('term', '=', $data['term'])
+            ->notIn('course', $courseIds)
+            ->notIn('class', $classIds)
+            ->delete();
     }
 
     public function getAssignedCourses(array $filters)
