@@ -15,6 +15,7 @@
 namespace V3\App\Controllers\Portal;
 
 use Exception;
+use Illuminate\Support\Arr;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\Academics\CourseService;
@@ -36,7 +37,13 @@ class CourseController extends BaseController
 
     public function addCourse()
     {
-        $data = $this->validateData(data: $this->post, requiredFields: ['course_name', 'course_code']);
+        $data = $this->validate(
+            data: $this->post,
+            rules: [
+                'course_name' => 'required|string|filled',
+                'course_code' => 'required|string|filled'
+            ]
+        );
 
         try {
             $courseId = $this->courseService->insertCourse($data);
@@ -54,9 +61,34 @@ class CourseController extends BaseController
         }
     }
 
-    public function updateCourse()
+    public function updateCourse(array $vars)
     {
-        // TODO
+        $data = $this->validate(
+            data: array_merge($this->post, $vars),
+            rules: [
+                'id' => 'required|integer|filled',
+                'course_name' => 'required|string|filled',
+                'course_code' => 'required|string|filled'
+            ]
+        );
+
+        try {
+            $updated = $this->courseService->updateCourse($data);
+
+            if ($updated) {
+                return $this->respond([
+                    'success' => true,
+                    'message' => 'Course updated successfully.'
+                ], HttpStatus::OK);
+            }
+
+            return $this->respondError(
+                'Failed to update course',
+                HttpStatus::BAD_REQUEST
+            );
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
     }
 
     public function getCourses()
@@ -71,13 +103,31 @@ class CourseController extends BaseController
         }
     }
 
-    public function getCourseById()
+    public function deleteCourse(array $vars)
     {
-        // TODO:
-    }
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'id' => 'required|integer|filled'
+            ]
+        );
 
-    public function deleteCourse()
-    {
-        // TODO:
+        try {
+            $deleted = $this->courseService->deleteCourse(Arr::get($data, 'id'));
+
+            if ($deleted) {
+                return $this->respond([
+                    'success' => true,
+                    'message' => 'Course deleted successfully.'
+                ], HttpStatus::OK);
+            }
+
+            return $this->respondError(
+                'Failed to delete course',
+                HttpStatus::BAD_REQUEST
+            );
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
     }
 }

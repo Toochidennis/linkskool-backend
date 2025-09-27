@@ -24,8 +24,8 @@ use V3\App\Common\Utilities\BirthdayMessenger;
 
 // Load environment variables
 EnvLoader::load();
-BirthdayMessenger::send();
-die;
+// BirthdayMessenger::send();
+// die;
 
 $response = ['success' => false];
 
@@ -84,6 +84,11 @@ $dispatcher = FastRoute\simpleDispatcher(
             ['Portal\ELearning\AssignmentSubmissionController', 'submit']
         );
         $r->addRoute(
+            'PUT',
+            '/portal/students/{id}',
+            ['Portal\Academics\StudentController', 'updateStudentRecord']
+        );
+        $r->addRoute(
             'GET',
             '/portal/students/{student_id:\d+}/registered-courses',
             ['Portal\Results\CourseRegistrationController', 'getCoursesRegisteredByStudent']
@@ -133,15 +138,45 @@ $dispatcher = FastRoute\simpleDispatcher(
             '/portal/students/{student_id:\d+}/quiz-submissions',
             ['Portal\ELearning\QuizSubmissionController', 'getMarkedQuiz']
         );
+        $r->addRoute(
+            'DELETE',
+            '/portal/students/{id:\d+}',
+            ['Portal\Academics\StudentController', 'deleteStudent']
+        );
 
         // Level routes
+        $r->addRoute(
+            'POST',
+            '/portal/levels',
+            ['Portal\Academics\LevelController', 'addLevel']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/levels/{id:\d+}',
+            ['Portal\Academics\LevelController', 'updateLevel']
+        );
         $r->addRoute(
             'GET',
             '/portal/levels/result/performance',
             ['Portal\Results\ClassCourseResultController', 'getAllLevelsPerformance']
         );
+        $r->addRoute(
+            'GET',
+            '/portal/levels',
+            ['Portal\Academics\LevelController', 'getLevels']
+        );
+        $r->addRoute(
+            'DELETE',
+            '/portal/levels/{id:\d+}',
+            ['Portal\Academics\LevelController', 'deleteLevel']
+        );
 
         // Class routes
+        $r->addRoute(
+            'POST',
+            '/portal/classes',
+            ['Portal\Academics\ClassController', 'addClass']
+        );
         $r->addRoute(
             'POST',
             '/portal/classes/{class_id:\d+}/attendance',
@@ -156,6 +191,16 @@ $dispatcher = FastRoute\simpleDispatcher(
             'POST',
             '/portal/classes/{class_id:\d+}/course-registrations/duplicate',
             ['Portal\Results\CourseRegistrationController', 'duplicateLastTermRegistrations']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/classes/{id:\d+}',
+            ['Portal\Academics\ClassController', 'updateClass']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/classes',
+            ['Portal\Academics\ClassController', 'getClasses']
         );
         $r->addRoute(
             'GET',
@@ -212,12 +257,22 @@ $dispatcher = FastRoute\simpleDispatcher(
             '/portal/classes/{class_id:\d+}/skill-behavior',
             ['Portal\Results\StudentSkillBehaviorController', 'getStudentsSkillBehavior']
         );
+        $r->addRoute(
+            'DELETE',
+            '/portal/classes/{id:\d+}',
+            ['Portal\Results\ClassCourseResultController', 'deleteClass']
+        );
 
         // Staff routes
         $r->addRoute(
             'POST',
             '/portal/staff',
             ['Portal\Academics\StaffController', 'addStaff']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/staff/{id:\d+}',
+            ['Portal\Academics\StaffController', 'updateStaff']
         );
         $r->addRoute(
             'GET',
@@ -229,17 +284,56 @@ $dispatcher = FastRoute\simpleDispatcher(
             '/portal/staff/{id:\d+}',
             ['Portal\Academics\StaffController', 'getStaffById']
         );
+        $r->addRoute(
+            'DELETE',
+            '/portal/staff/{id:\d+}',
+            ['Portal\Academics\StaffController', 'deleteStaff']
+        );
+
+        // Course assignments
+        $r->addRoute(
+            'POST',
+            '/portal/course-assignments',
+            ['Portal\Academics\CourseAssignmentController', 'storeCourseAssignment']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/course-assignments',
+            ['Portal\Academics\CourseAssignmentController', 'updateCourseAssignment']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/course-assignments',
+            ['Portal\Academics\CourseAssignmentController', 'getCourseAssignments']
+        );
+
+        // Course registration
+        $r->addRoute(
+            'GET',
+            '/portal/course-registrations/terms',
+            ['Portal\Results\CourseRegistrationController', 'getClassRegistrationTerms']
+        );
 
         // course routes
+        $r->addRoute(
+            'POST',
+            '/portal/courses',
+            ['Portal\Academics\CourseController', 'addCourse']
+        );
         $r->addRoute(
             'POST',
             '/portal/courses/{course_id:\d+}/attendance',
             ['Portal\Academics\AttendanceController', 'addCourseAttendance']
         );
         $r->addRoute(
+            'PUT',
+            '/portal/courses/{id:\d+}',
+            ['Portal\Academics\CourseController', 'updateCourse']
+        );
+        $r->addRoute(
             'GET',
-            '/portal/course-registrations/terms',
-            ['Portal\Results\CourseRegistrationController', 'getClassRegistrationTerms']
+            '/portal/courses',
+            ['Portal\Academics\CourseController', 'getCourses']
         );
         $r->addRoute(
             'GET',
@@ -256,7 +350,13 @@ $dispatcher = FastRoute\simpleDispatcher(
             '/portal/courses/{course_id:\d+}/attendance',
             ['Portal\Academics\AttendanceController', 'getAllCourseAttendance']
         );
+        $r->addRoute(
+            'DELETE',
+            '/portal/courses/{id:\d+}',
+            ['Portal\Academics\CourseController', 'deleteCourse']
+        );
 
+        // Assessment routes
         $r->addRoute(
             'POST',
             '/portal/assessments',
@@ -532,7 +632,6 @@ $dispatcher = FastRoute\simpleDispatcher(
             '/portal/elearning/comments/{id:\d+}',
             ['Portal\ELearning\ContentCommentController', 'delete']
         );
-
 
         // Payment
         $r->addRoute(

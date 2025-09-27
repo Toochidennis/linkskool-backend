@@ -14,13 +14,32 @@ class CourseService
         $this->course = new Course($pdo);
     }
 
-    public function insertCourse(array $data)
+    public function insertCourse(array $data): bool|int
     {
         return $this->course->insert($data);
+    }
+
+    public function updateCourse(array $data): bool|int
+    {
+        $payload = [
+            'course_name' => $data['course_name'],
+            'course_code' => $data['course_code']
+        ];
+
+        return $this->course
+            ->where('id', $data['id'])
+            ->update($payload);
     }
 
     public function fetchCourses()
     {
         return $this->course->get();
+    }
+
+    public function deleteCourse(int $id): bool|int
+    {
+        return $this->course
+            ->where('id', $id)
+            ->delete();
     }
 }
