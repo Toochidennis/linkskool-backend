@@ -12,7 +12,7 @@
  * @link https://www.linkskool.net
  */
 
-namespace V3\App\Controllers\Portal;
+namespace V3\App\Controllers\Portal\Academics;
 
 use Exception;
 use Illuminate\Support\Arr;
@@ -51,7 +51,8 @@ class CourseController extends BaseController
             if ($courseId) {
                 return $this->respond([
                     'success' => true,
-                    'message' => 'Course added successfully.'
+                    'message' => 'Course added successfully.',
+                    'course_id' => $courseId
                 ], HttpStatus::CREATED);
             }
 

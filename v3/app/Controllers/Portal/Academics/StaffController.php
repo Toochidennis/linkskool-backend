@@ -1,6 +1,6 @@
 <?php
 
-namespace V3\App\Controllers\Portal;
+namespace  V3\App\Controllers\Portal\Academics;
 
 use Exception;
 use V3\App\Common\Utilities\HttpStatus;
@@ -28,7 +28,7 @@ class StaffController extends BaseController
                 'photo.file'           => 'sometimes|string',
                 'photo.file_name'      => 'sometimes|string',
                 'photo.old_file_name'  => 'sometimes|string',
-                'last_name'              => 'required|string|filled',
+                'surname'              => 'required|string|filled',
                 'first_name'             => 'required|string|filled',
                 'middle_name'            => 'nullable|string',
                 'gender'                 => 'required|string|in:male,female',
@@ -64,7 +64,7 @@ class StaffController extends BaseController
                 'department'             => 'nullable|string',
                 'section'             => 'nullable|integer',
                 'designation'         => 'nullable|integer',
-                'access_level'           => 'required|string|in:1,2',
+                'access_level'           => 'required|string|in:staff,admin',
             ]
         );
 
@@ -97,7 +97,7 @@ class StaffController extends BaseController
                 'photo.file'           => 'sometimes|string',
                 'photo.file_name'      => 'sometimes|string',
                 'photo.old_file_name'  => 'sometimes|string',
-                'last_name'              => 'required|string|filled',
+                'surname'              => 'required|string|filled',
                 'first_name'             => 'required|string|filled',
                 'middle_name'            => 'nullable|string',
                 'gender'                 => 'required|string|in:male,female',
@@ -133,7 +133,7 @@ class StaffController extends BaseController
                 'department'             => 'nullable|string',
                 'section'                => 'nullable|integer',
                 'designation'            => 'nullable|integer',
-                'access_level'          => 'required|string|in:1,2',
+                'access_level'          => 'required|string|in:staff,admin',
             ]
         );
 
@@ -164,6 +164,34 @@ class StaffController extends BaseController
                     'success' => true,
                     'response' => $this->staffService->getStaff()
                 ]
+            );
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
+
+    public function deleteStaff(array $vars)
+    {
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'id' => 'required|integer|filled'
+            ]
+        );
+
+        try {
+            $deleted = $this->staffService->deleteStaff($data['id']);
+
+            if ($deleted) {
+                $this->respond([
+                    'success' => true,
+                    'message' => 'Staff record deleted successfully.'
+                ], HttpStatus::OK);
+            }
+
+            return $this->respondError(
+                'Failed to delete staff record',
+                HttpStatus::BAD_REQUEST
             );
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());

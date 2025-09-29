@@ -51,6 +51,7 @@ class ClassService
                 'result_template',
                 'form_teacher AS form_teacher_ids'
             ])
+            ->orderBy('class_name', 'ASC')
             ->get();
 
         return array_map(function ($class) {

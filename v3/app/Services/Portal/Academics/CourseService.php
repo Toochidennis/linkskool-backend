@@ -33,7 +33,7 @@ class CourseService
 
     public function fetchCourses()
     {
-        return $this->course->get();
+        return $this->course->orderBy('course_name')->get();
     }
 
     public function deleteCourse(int $id): bool|int
