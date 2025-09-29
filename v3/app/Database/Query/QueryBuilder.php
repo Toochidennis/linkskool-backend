@@ -105,6 +105,35 @@ class QueryBuilder
         return $this;
     }
 
+    public function whereNotInComposite(array $columns, array $pairs): self
+    {
+        if (empty($columns)) {
+            throw new InvalidArgumentException("Columns for NOT IN composite cannot be empty.");
+        }
+        if (empty($pairs)) {
+            throw new InvalidArgumentException("Values for NOT IN composite cannot be empty.");
+        }
+
+        // Wrap column names with backticks
+        $wrappedCols = array_map(fn($col) => $this->wrapIdentifier($col), $columns);
+        $colList = '(' . implode(', ', $wrappedCols) . ')';
+
+        // Generate placeholders for each pair
+        $placeholders = [];
+        foreach ($pairs as $pair) {
+            if (!is_array($pair) || count($pair) !== count($columns)) {
+                throw new InvalidArgumentException("Each pair must have exactly " . count($columns) . " values.");
+            }
+            $placeholders[] = '(' . implode(', ', array_fill(0, count($columns), '?')) . ')';
+            $this->whereBindings = array_merge($this->whereBindings, array_values($pair));
+        }
+
+        $this->whereConditions[] = "$colList NOT IN (" . implode(', ', $placeholders) . ")";
+
+        return $this;
+    }
+
+
     /**
      * Adds one or more ORDER BY clauses to the query.
      *

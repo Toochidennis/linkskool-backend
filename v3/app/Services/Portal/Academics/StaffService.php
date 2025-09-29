@@ -13,6 +13,11 @@ class StaffService
     private SchoolSettings $schoolSettings;
     private FileHandler $fileHandler;
 
+    private array $accessLevels =
+    [
+        'staff' => 1,
+        'admin' => 2
+    ];
     /**
      * staffRegistrationService constructor.
      *
@@ -36,7 +41,7 @@ class StaffService
 
         $payload = [
             'picture_ref' => $data['photo'] ?? '',
-            'surname' => $data['last_name'],
+            'surname' => $data['surname'],
             'first_name' => $data['first_name'],
             'middle' => $data['middle_name'] ?? '',
             'sex' => $data['gender'],
@@ -73,7 +78,7 @@ class StaffService
             'department' => $data['department'] ?? '',
             'section' => $data['section'] ?? '',
             'designation' => $data['designation'] ?? '',
-            'access_level' => $data['access_level'],
+            'access_level' => $this->accessLevels[$data['access_level']] ?? 1,
             'password' => $this->generatePassword($data['surname'])
         ];
 
@@ -111,7 +116,7 @@ class StaffService
 
         $payload = [
             'picture_ref' => $data['photo'] ?? '',
-            'surname' => $data['last_name'],
+            'surname' => $data['surname'],
             'first_name' => $data['first_name'],
             'middle' => $data['middle_name'] ?? '',
             'sex' => $data['gender'],
@@ -148,7 +153,7 @@ class StaffService
             'department' => $data['department'] ?? '',
             'section' => $data['section'] ?? '',
             'designation' => $data['designation'] ?? '',
-            'access_level' => $data['access_level'],
+            'access_level' => $this->accessLevels[$data['access_level']] ?? 1,
         ];
 
         return $this->staff->where('id', '=', $data['id'])
@@ -168,7 +173,7 @@ class StaffService
 
     public function getStaff(): array
     {
-        return $this->staff
+        $results = $this->staff
             ->select(
                 columns: [
                     'id',
@@ -214,7 +219,14 @@ class StaffService
                     'staff_no'
                 ]
             )
+            ->orderBy('surname')
             ->get();
+
+        return array_map(function ($staff) {
+            $staff['access_level'] =
+                in_array($staff['access_level'], [1, 3]) ? 'staff' : 'admin';
+            return $staff;
+        }, $results);
     }
 
     public function deleteStaff(int $id): bool

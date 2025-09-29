@@ -260,7 +260,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute(
             'DELETE',
             '/portal/classes/{id:\d+}',
-            ['Portal\Results\ClassCourseResultController', 'deleteClass']
+            ['Portal\Academics\ClassController', 'deleteClass']
         );
 
         // Staff routes
@@ -295,11 +295,6 @@ $dispatcher = FastRoute\simpleDispatcher(
             'POST',
             '/portal/course-assignments',
             ['Portal\Academics\CourseAssignmentController', 'storeCourseAssignment']
-        );
-        $r->addRoute(
-            'PUT',
-            '/portal/course-assignments',
-            ['Portal\Academics\CourseAssignmentController', 'updateCourseAssignment']
         );
         $r->addRoute(
             'GET',

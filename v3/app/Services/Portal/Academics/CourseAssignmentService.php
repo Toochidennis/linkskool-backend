@@ -14,42 +14,54 @@ class CourseAssignmentService
         $this->courseAssignment = new CourseAssignment($pdo);
     }
 
-    public function assignCourses(array $data)
+    public function assignCourses(array $data): bool
     {
-        $count = 0;
+        $this->syncAssignments($data);
+
         foreach ($data['courses'] as $course) {
             $payload = [
                 'ref_no' => $data['staff_id'],
                 'course' => $course['course_id'],
-                'class' => $course['class_id'],
-                'year' => $data['year'],
-                'term' => $data['term']
+                'class'  => $course['class_id'],
+                'year'   => $data['year'],
+                'term'   => $data['term']
             ];
 
-            if ($this->courseAssignment->insert($payload)) {
-                $count++;
+            $existPayload = [
+                ['ref_no', '=', $data['staff_id']],
+                ['course', '=', $course['course_id']],
+                ['class',  '=', $course['class_id']],
+                ['year',   '=', $data['year']],
+                ['term',   '=', $data['term']]
+            ];
+
+            $exists = $this->courseAssignment
+                ->whereGroup($existPayload)
+                ->first();
+
+            if (!$exists) {
+                $inserted = $this->courseAssignment->insert($payload);
+                if (!$inserted) {
+                    return false;
+                }
             }
         }
 
-        return $count == count($data['courses']);
+        return true;
     }
 
-    public function updateCourseAssignments(array $data)
+    private function syncAssignments(array $data): void
     {
-        $this->deleteExistingAssignments($data);
-        return $this->assignCourses($data);
-    }
+        $pairs = array_map(fn($c) => [
+            'course' => $c['course_id'],
+            'class'  => $c['class_id']
+        ], $data['courses']);
 
-    private function deleteExistingAssignments(array $data)
-    {
-        $courseIds = array_map(fn($course) => $course['course_id'], $data['courses']);
-        $classIds = array_map(fn($course) => $course['class_id'], $data['courses']);
         $this->courseAssignment
             ->where('ref_no', '=', $data['staff_id'])
             ->where('year', '=', $data['year'])
             ->where('term', '=', $data['term'])
-            ->notIn('course', $courseIds)
-            ->notIn('class', $classIds)
+            ->whereNotInComposite(['course', 'class'], $pairs)
             ->delete();
     }
 
@@ -58,13 +70,12 @@ class CourseAssignmentService
         return $this->courseAssignment
             ->select(
                 columns: [
-                    'staff_course_table.*',
-                    'course_table.id',
+                    'course_table.id as course_id',
                     'course_table.course_name',
                     'course_table.course_code',
-                    'class_table.id',
+                    'class_table.id as class_id',
                     'class_table.class_name',
-                    'class_table.level',
+                    'class_table.level as level_id',
                     'level_table.level_name'
                 ]
             )
@@ -74,6 +85,7 @@ class CourseAssignmentService
             ->where('staff_course_table.ref_no', '=', $filters['staff_id'])
             ->where('staff_course_table.year', '=', $filters['year'])
             ->where('staff_course_table.term', '=', $filters['term'])
+            ->orderBy('course_table.course_name', 'ASC')
             ->get();
     }
 }

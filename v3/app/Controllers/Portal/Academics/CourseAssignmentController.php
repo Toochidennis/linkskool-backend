@@ -1,6 +1,6 @@
 <?php
 
-namespace V3\App\Controllers\Portal;
+namespace V3\App\Controllers\Portal\Academics;
 
 use Exception;
 use V3\App\Common\Utilities\HttpStatus;
@@ -41,7 +41,7 @@ class CourseAssignmentController extends BaseController
                 ], HttpStatus::CREATED);
             }
             return $this->respondError(
-                'Failed to assign course(s)',
+                'Failed to assign course(s).',
                 HttpStatus::BAD_REQUEST
             );
         } catch (Exception $e) {
@@ -49,41 +49,16 @@ class CourseAssignmentController extends BaseController
         }
     }
 
-    public function updateCourseAssignment()
+    public function getCourseAssignments(array $vars)
     {
         $data = $this->validate(
-            data: $this->post,
-            rules: [
+            $vars,
+            [
                 'year' => 'required|integer',
                 'term' => 'required|string|in:1,2,3',
-                'staff_id' => 'required|integer|min:1',
-                'courses' => 'required|array|filled',
-                'courses.*.course_id' => 'required|integer|filled',
-                'courses.*.class_id' => 'required|integer|filled'
+                'staff_id' => 'required|integer|min:1'
             ]
         );
-
-        try {
-            $isUpdated = $this->service->updateCourseAssignments($data);
-
-            if ($isUpdated) {
-                return $this->respond([
-                    'success' => true,
-                    'message' => 'Course assignments updated successfully.'
-                ]);
-            }
-            return $this->respondError(
-                'Failed to update course assignments',
-                HttpStatus::BAD_REQUEST
-            );
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
-    }
-
-    public function getCourseAssignments(array $params)
-    {
-        $data = $this->validateData($params, ['year', 'term', 'staff_id']);
 
         try {
             $result = $this->service->getAssignedCourses($data);
