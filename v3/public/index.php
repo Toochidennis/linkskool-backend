@@ -51,7 +51,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute(
             'POST',
             '/portal/students',
-            ['Portal\StudentController', 'addStudent']
+            ['Portal\Academics\StudentController', 'addStudent']
         );
         $r->addRoute(
             'POST',
@@ -418,12 +418,6 @@ $dispatcher = FastRoute\simpleDispatcher(
             'GET',
             '/portal/attendance/{id:\d+}',
             ['Portal\Academics\AttendanceController', 'getAttendanceDetails']
-        );
-
-        $r->addRoute(
-            'GET',
-            '/portal/course-assignments',
-            ['Portal\Academics\CourseAssignmentController', 'getCourseAssignments']
         );
         $r->addRoute(
             'PUT',

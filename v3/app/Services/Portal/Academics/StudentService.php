@@ -28,12 +28,13 @@ class StudentService
     public function insertStudentRecord(array $data): bool
     {
         if (!empty($data['photo']) && is_array($data['photo'])) {
+            $data['photo']['type'] = 'image';
             $file = $this->fileHandler->handleFiles($data['photo']);
-            $data['photo'] = $file['old_file_name'];
+            $data['photo'] = $file[0]['old_file_name'];
         }
         $payload = [
             'picture_ref' => $data['photo'] ?? '',
-            'surname' => $data['last_name'],
+            'surname' => $data['surname'],
             'first_name' => $data['first_name'],
             'middle' => $data['middle_name'] ?? '',
             'sex' => $data['gender'],
@@ -88,8 +89,9 @@ class StudentService
     public function updateStudentRecord(array $data): bool
     {
         if (!empty($data['photo']) && is_array($data['photo'])) {
+            $data['photo']['type'] = 'image';
             $file = $this->fileHandler->handleFiles($data['photo']);
-            $data['photo'] = $file['old_file_name'];
+            $data['photo'] = $file[0]['old_file_name'];
         }
 
         $payload = [

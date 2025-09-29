@@ -25,9 +25,9 @@ class StaffController extends BaseController
         $data = $this->validate(
             data: $this->post,
             rules: [
-                'photo.*.file'           => 'sometimes|string',
-                'photo.*.file_name'      => 'sometimes|string',
-                'photo.*.old_file_name'  => 'sometimes|string',
+                'photo.file'           => 'sometimes|string',
+                'photo.file_name'      => 'sometimes|string',
+                'photo.old_file_name'  => 'sometimes|string',
                 'last_name'              => 'required|string|filled',
                 'first_name'             => 'required|string|filled',
                 'middle_name'            => 'nullable|string',
@@ -94,9 +94,9 @@ class StaffController extends BaseController
             rules: [
                 'id'                     => 'required|integer|filled',
                 'photo'                  => 'nullable|array',
-                'photo.*.file'           => 'sometimes|string',
-                'photo.*.file_name'      => 'sometimes|string',
-                'photo.*.old_file_name'  => 'sometimes|string',
+                'photo.file'           => 'sometimes|string',
+                'photo.file_name'      => 'sometimes|string',
+                'photo.old_file_name'  => 'sometimes|string',
                 'last_name'              => 'required|string|filled',
                 'first_name'             => 'required|string|filled',
                 'middle_name'            => 'nullable|string',

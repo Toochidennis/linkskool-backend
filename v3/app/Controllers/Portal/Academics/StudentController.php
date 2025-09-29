@@ -26,9 +26,9 @@ class StudentController extends BaseController
             data: $this->post,
             rules: [
                 'photo'            => 'nullable|array',
-                'photo.*.file'           => 'sometimes|string',
-                'photo.*.file_name'      => 'sometimes|string',
-                'photo.*.old_file_name'  => 'sometimes|string',
+                'photo.file'           => 'sometimes|string',
+                'photo.file_name'      => 'sometimes|string',
+                'photo.old_file_name'  => 'sometimes|string',
                 'surname'                => 'required|string|filled',
                 'first_name'             => 'required|string|filled',
                 'middle'                 => 'nullable|string',
@@ -64,7 +64,6 @@ class StudentController extends BaseController
                 $this->respond([
                     'success' => true,
                     'message' => 'Student added successfully.',
-                    'id' => $newId,
                 ], HttpStatus::CREATED);
             }
 
@@ -76,16 +75,16 @@ class StudentController extends BaseController
         }
     }
 
-    public function updateStudent(array $vars)
+    public function updateStudentRecord(array $vars)
     {
         $data = $this->validate(
             data: array_merge($this->post, $vars),
             rules: [
                 'id'                     => 'required|integer|filled',
                 'photo'            => 'nullable|array',
-                'photo.*.file'           => 'sometimes|string',
-                'photo.*.file_name'      => 'sometimes|string',
-                'photo.*.old_file_name'  => 'sometimes|string',
+                'photo.file'           => 'sometimes|string',
+                'photo.file_name'      => 'sometimes|string',
+                'photo.old_file_name'  => 'sometimes|string',
                 'surname'                => 'required|string|filled',
                 'first_name'             => 'required|string|filled',
                 'middle'                 => 'nullable|string',

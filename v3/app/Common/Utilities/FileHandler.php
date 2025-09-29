@@ -26,6 +26,10 @@ class FileHandler
     {
         $processed = [];
 
+        if (!empty($files) && array_keys($files) !== range(0, count($files) - 1)) {
+            $files = [$files];
+        }
+
         foreach ($files as $file) {
             if ($file['type'] === 'url') {
                 $processed[] = $file;
