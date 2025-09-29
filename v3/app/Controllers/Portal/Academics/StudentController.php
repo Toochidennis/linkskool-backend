@@ -141,7 +141,7 @@ class StudentController extends BaseController
         try {
             $this->respond([
                 'success' => true,
-                'response' => $this->studentService->getAllStudents()
+                'response' => $this->studentService->fetchStudents()
             ]);
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
@@ -162,6 +162,34 @@ class StudentController extends BaseController
                 'success' => true,
                 'students' => $this->studentService->getStudentsByClass($data['class_id'])
             ]);
+        } catch (Exception $e) {
+            return $this->respondError($e->getMessage());
+        }
+    }
+
+    public function deleteStudent(array $vars)
+    {
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'id' => 'required|integer|filled'
+            ]
+        );
+
+        try {
+            $deleted = $this->studentService->deleteStudent($data['id']);
+
+            if ($deleted) {
+                return $this->respond([
+                    'success' => true,
+                    'message' => 'Student deleted successfully.'
+                ], HttpStatus::OK);
+            }
+
+            return $this->respondError(
+                'Failed to delete student',
+                HttpStatus::BAD_REQUEST
+            );
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
