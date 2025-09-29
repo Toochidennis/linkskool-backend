@@ -166,40 +166,61 @@ class StaffService
         return substr($surname, 0, 4) . rand(10000, 90000);
     }
 
-    public function getStaff()
+    public function getStaff(): array
     {
-        $results = $this->staff->select(
-            columns: [
-                'id',
-                'picture_ref',
-                'surname',
-                'first_name',
-                'middle',
-                'staff_no'
-            ]
-        )->get();
-
-        return array_map(
-            fn($row) => [
-                'id' => $row['id'],
-                'profile_url' => $row['picture_ref'],
-                'surname' => $row['surname'],
-                'first_name' => $row['first_name'],
-                'middle' => $row['middle'],
-                'staff_no' => $row['staff_no'],
-            ],
-            $results
-        );
+        return $this->staff
+            ->select(
+                columns: [
+                    'id',
+                    'picture_ref AS photo',
+                    'surname AS last_name',
+                    'first_name',
+                    'middle AS middle_name',
+                    'sex AS gender',
+                    'birthdate AS birth_date',
+                    'address',
+                    'city',
+                    'state',
+                    'country',
+                    'phone AS phone_number',
+                    'email AS email_address',
+                    'religion',
+                    'marital_status',
+                    'local_government_origin AS lga_origin',
+                    'state_origin',
+                    'nationality',
+                    'town AS home_town',
+                    'health_status',
+                    'past_record',
+                    'past_record2 AS past_record_extra',
+                    'p_record AS personal_record',
+                    'work_record AS employment_history',
+                    'referees',
+                    'additional AS extra_note',
+                    'registrationtime',
+                    'kin_name AS next_of_kin_name',
+                    'kin_address AS next_of_kin_address',
+                    'kin_email AS next_of_kin_email',
+                    'kin_phone_no AS next_of_kin_phone',
+                    'date_employed AS employment_date',
+                    'status AS employment_status',
+                    'health_appraisal',
+                    'appraisal AS general_appraisal',
+                    'grade',
+                    'department',
+                    'section',
+                    'designation',
+                    'access_level',
+                    'staff_no'
+                ]
+            )
+            ->get();
     }
 
     public function deleteStaff(int $id): bool
     {
-        $results = $this->staff
+        return $this->staff
             ->where('id', '=', $id)
             ->delete();
-
-        return boolval(
-            $results
-        );
     }
 }

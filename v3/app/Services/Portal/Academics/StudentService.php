@@ -158,15 +158,36 @@ class StudentService
             ->select(
                 columns: [
                     'id',
-                    'picture_ref AS picture_url',
+                    'picture_ref AS photo',
                     'surname',
                     'first_name',
                     'middle',
-                    'registration_no',
+                    'sex AS gender',
+                    'birthdate AS birth_date',
+                    'address',
+                    'city',
+                    'state',
+                    'country',
+                    'email',
+                    'religion',
+                    'guardian_name',
+                    'guardian_address',
+                    'guardian_email',
+                    'guardian_phone_no',
+                    'local_government_origin AS lga_origin',
+                    'state_origin',
+                    'nationality',
+                    'health_status',
+                    'date_admitted',
+                    'status AS student_status',
+                    'past_record',
+                    'result AS academic_result',
                     'student_class AS class_id',
-                    'student_level AS level_id'
+                    'student_level AS level_id',
+                    'registration_no'
                 ]
             )
+            ->orderBy('surname', 'ASC')
             ->get();
     }
 
