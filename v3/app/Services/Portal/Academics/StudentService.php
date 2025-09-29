@@ -152,7 +152,7 @@ class StudentService
     /**
      * Get students record.
      */
-    public function getAllStudents(): array
+    public function fetchStudents(): array
     {
         return $this->student
             ->select(
@@ -168,5 +168,12 @@ class StudentService
                 ]
             )
             ->get();
+    }
+
+    public function deleteStudent(int $id): bool
+    {
+        return $this->student
+            ->where('id', '=', $id)
+            ->delete();
     }
 }
