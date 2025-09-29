@@ -96,7 +96,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute(
             'GET',
             '/portal/students',
-            ['Portal\StudentController', 'getAllStudents']
+            ['Portal\Academics\StudentController', 'getAllStudents']
         );
         $r->addRoute(
             'GET',
