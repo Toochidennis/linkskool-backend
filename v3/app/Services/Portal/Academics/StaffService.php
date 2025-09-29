@@ -29,9 +29,11 @@ class StaffService
     public function insertStaffRecord(array $data): bool
     {
         if (!empty($data['photo']) && is_array($data['photo'])) {
+            $data['photo']['type'] = 'image';
             $file = $this->fileHandler->handleFiles($data['photo']);
-            $data['photo'] = $file['old_file_name'];
+            $data['photo'] = $file[0]['old_file_name'];
         }
+
         $payload = [
             'picture_ref' => $data['photo'] ?? '',
             'surname' => $data['last_name'],
@@ -102,8 +104,9 @@ class StaffService
     public function updateStaffRecord(array $data): bool
     {
         if (!empty($data['photo']) && is_array($data['photo'])) {
+            $data['photo']['type'] = 'image';
             $file = $this->fileHandler->handleFiles($data['photo']);
-            $data['photo'] = $file['old_file_name'];
+            $data['photo'] = $file[0]['old_file_name'];
         }
 
         $payload = [
