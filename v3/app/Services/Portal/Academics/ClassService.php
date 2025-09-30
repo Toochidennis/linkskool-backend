@@ -55,7 +55,10 @@ class ClassService
             ->get();
 
         return array_map(function ($class) {
-            $class['form_teacher_ids'] = array_filter(explode(',', $class['form_teacher_ids']));
+            $formTeacherIds = $class['form_teacher_ids'];
+
+            $class['form_teacher_ids'] = (empty($formTeacherIds)) ? []
+                : array_filter(explode(',', (string) $formTeacherIds));
             return $class;
         }, $classes);
     }
