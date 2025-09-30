@@ -50,7 +50,12 @@ class LevelService
 
     public function fetchLevels(): array
     {
-        return $this->level->orderBy('level_name')->get();
+        $results = $this->level->orderBy('level_name')->get();
+
+        return array_map(function ($level) {
+            $level['school_type'] = SchoolType::tryFrom($level['school_type'])?->label();
+            return $level;
+        }, $results);
     }
 
     public function deleteLevel(int $id): bool|int

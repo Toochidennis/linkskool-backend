@@ -147,7 +147,7 @@ class StudentPaymentService
         $tid = $data['invoice_id'];
 
         $invoice = $this->transaction
-            ->select(['IFNULL(amount_due, 0) as amount'])
+            ->select(['IFNULL(amount_due, 0) as amount_due'])
             ->where('tid', '=', $tid)
             ->first();
 
@@ -155,7 +155,18 @@ class StudentPaymentService
             return false;
         }
 
-        $remainingBalance =  (float) $invoice['amount'] - (float) $data['amount'];
+        $amountDue = (float) $invoice['amount_due'];
+        $payment   = (float) $data['amount'];
+
+        if ($payment <= 0) {
+            return false;
+        }
+
+        if ($payment > $amountDue) {
+            $payment = $amountDue; // Cap payment to amount due
+        }
+
+        $remainingBalance =  $amountDue - $payment;
 
         if ($remainingBalance > 0) {
             return $this->transaction

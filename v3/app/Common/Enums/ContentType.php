@@ -23,6 +23,9 @@ enum ContentType: int
             self::ASSIGNMENT => 'assignment',
             self::QUIZ => 'quiz',
             self::COMMENT => 'comment',
+            self::NEWS => 'news',
+            self::QUESTION => 'question',
+            self::REPLY => 'reply',
         };
     }
 }

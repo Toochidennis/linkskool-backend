@@ -47,6 +47,49 @@ $dispatcher = FastRoute\simpleDispatcher(
             ['Portal\AuthController', 'logout']
         );
 
+        // dashboard routes
+        $r->addRoute(
+            'GET',
+            '/portal/dashboard/admin',
+            ['Portal\Academics\AcademicOverviewController', 'adminOverview']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/dashboard/staff/{teacher_id:\d+}',
+            ['Portal\Academics\AcademicOverviewController', 'teacherOverview']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/dashboard/student',
+            ['Portal\Academics\AcademicOverviewController', 'studentOverview']
+        );
+        // Feeds
+        $r->addRoute(
+            'POST',
+            '/portal/feeds',
+            ['Portal\Academics\FeedController', 'addContent']
+        );
+        $r->addRoute(
+            'PUT',
+            '/portal/feeds/{news_id:\d+}',
+            ['Portal\Academics\FeedController', 'updateContent']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/feeds',
+            ['Portal\Academics\FeedController', 'getContents']
+        );
+        $r->addRoute(
+            'GET',
+            '/portal/feeds/{news_id:\d+}',
+            ['Portal\Academics\FeedController', 'getContentById']
+        );
+        $r->addRoute(
+            'DELETE',
+            '/portal/feeds/{news_id:\d+}',
+            ['Portal\Academics\FeedController', 'deleteContent']
+        );
+
         // Student routes
         $r->addRoute(
             'POST',
@@ -549,13 +592,11 @@ $dispatcher = FastRoute\simpleDispatcher(
             '/portal/elearning/syllabus',
             ['Portal\ELearning\SyllabusController', 'get']
         );
-
         $r->addRoute(
             'GET',
             '/portal/elearning/syllabus/staff',
             ['Portal\ELearning\SyllabusController', 'getByStaff']
         );
-
         $r->addRoute(
             'GET',
             '/portal/elearning/syllabus/{syllabus_id:\d+}/contents',
