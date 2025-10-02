@@ -52,7 +52,7 @@ class BirthdayMessenger
             "from" => $senderId,
             "sms" => $message,
             "type" => "plain",
-            "channel" => "generic",
+            "channel" => "dnd",
             "api_key" => getenv('TERMII_API_KEY')
         ];
 
