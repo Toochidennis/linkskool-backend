@@ -46,6 +46,7 @@ class ClassService
     {
         $classes = $this->classModel
             ->select([
+                'id',
                 'class_name',
                 'level AS level_id',
                 'result_template',
