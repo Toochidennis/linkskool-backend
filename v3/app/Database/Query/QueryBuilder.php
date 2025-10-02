@@ -271,9 +271,14 @@ class QueryBuilder
      */
     public function insert(array $data)
     {
-        $columns = implode(", ", array_keys($data));
+        $columns = implode(", ", array_map(
+            [$this, 'wrapIdentifier'],
+            array_keys($data)
+        ));
         $placeholders = implode(", ", array_fill(0, count($data), "?"));
-        $stmt = $this->pdo->prepare("INSERT INTO `$this->table` ($columns) VALUES ($placeholders)");
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO " . $this->wrapIdentifier($this->table) . " ($columns) VALUES ($placeholders)"
+        );
 
         $this->reset();
         return $stmt->execute(array_values($data)) ? $this->pdo->lastInsertId() : false;

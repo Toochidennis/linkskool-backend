@@ -34,7 +34,22 @@ $dispatcher = FastRoute\simpleDispatcher(
         /**
          * Portal routes
          */
+        $r->addRoute(
+            'GET',
+            '/portal/status',
+            function () {
+                ResponseHandler::sendJsonResponse([
+                    'data' => ['message' => 'Portal is up and running'],
+                    'status' => HttpStatus::OK
+                ]);
+            }
+        );
 
+        $r->addRoute(
+            'GET',
+            '/portal/schools',
+            ['Portal\Academics\SchoolController', 'getSchools']
+        );
         // Login routes
         $r->addRoute(
             'POST',
@@ -63,6 +78,7 @@ $dispatcher = FastRoute\simpleDispatcher(
             '/portal/dashboard/student',
             ['Portal\Academics\AcademicOverviewController', 'studentOverview']
         );
+
         // Feeds
         $r->addRoute(
             'POST',
