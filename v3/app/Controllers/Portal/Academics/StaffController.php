@@ -61,10 +61,10 @@ class StaffController extends BaseController
                 'health_appraisal'       => 'nullable|string',
                 'general_appraisal'      => 'nullable|string',
                 'grade'               => 'nullable|integer',
-                'department'             => 'nullable|integer',
+                'department'           => 'nullable|integer',
                 'section'             => 'nullable|integer',
                 'designation'         => 'nullable|integer',
-                'access_level'           => 'required|string|in:staff,admin',
+                'access_level'         => 'required|string|in:staff,admin',
             ]
         );
 
