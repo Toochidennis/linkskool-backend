@@ -18,33 +18,17 @@ class SkillBehaviorService
         $this->skillBehavior = new SkillBehavior($pdo);
     }
 
-    /**
-     * Inserts a new skill behavior record.
-     *
-     * Converts 'level_id' to 'level', and removes it if level_id is 0.
-     *
-     * @param array $data Associative array containing skill behavior data.
-     * @return bool True if insert succeeds, false otherwise.
-     */
-    public function insertSkill(array $data)
+    public function insertSkill(array $data): bool|int
     {
-        $data['level'] = (int)$data['level_id'] !== 0 ? $data['level_id'] : null;
+        $data['level'] = $data['level_id'];
         unset($data['level_id']);
 
         return $this->skillBehavior->insert($data);
     }
 
-    /**
-     * Updates an existing skill behavior record.
-     *
-     * Requires 'id' to identify the record. Converts 'level_id' to 'level'.
-     *
-     * @param array $data Associative array with updated data, including 'id'.
-     * @return bool True if update succeeds, false otherwise.
-     */
     public function updateSkill(array $data): bool
     {
-        $data['level'] = (int)$data['level_id'] !== 0 ? $data['level_id'] : null;
+        $data['level'] = $data['level_id'];
         unset($data['level_id']);
 
         $id = $data['id'];

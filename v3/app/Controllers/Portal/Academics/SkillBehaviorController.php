@@ -19,9 +19,13 @@ class SkillBehaviorController extends BaseController
 
     public function store()
     {
-        $data = $this->validateData(
-            $this->post,
-            ['skill_name', 'level_id', 'type']
+        $data = $this->validate(
+            data: $this->post,
+            rules: [
+                'skill_name' => 'required|string|filled',
+                'level_id' => 'required|integer',
+                'type' => 'required|integer'
+            ]
         );
 
         try {
@@ -35,7 +39,10 @@ class SkillBehaviorController extends BaseController
                 ], HttpStatus::CREATED);
             }
 
-            return $this->respondError('Failed to add skill');
+            return $this->respondError(
+                'Failed to add skill',
+                HttpStatus::BAD_REQUEST
+            );
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -43,9 +50,14 @@ class SkillBehaviorController extends BaseController
 
     public function update(array $vars)
     {
-        $data = $this->validateData(
-            $this->post + $vars,
-            ['id', 'skill_name', 'level_id', 'type']
+        $data = $this->validate(
+            array_merge($this->post, $vars),
+            rules: [
+                'id' => 'required|integer',
+                'skill_name' => 'required|string',
+                'level_id' => 'required|integer',
+                'type' => 'required|integer'
+            ]
         );
 
         try {
@@ -55,10 +67,13 @@ class SkillBehaviorController extends BaseController
                 return $this->respond([
                     'success' => true,
                     'message' => 'Skill updated successfully.'
-                ]);
+                ], HttpStatus::CREATED);
             }
 
-            return $this->respondError('Failed to update skill');
+            return $this->respondError(
+                'Failed to update skill',
+                HttpStatus::BAD_REQUEST
+            );
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
