@@ -129,8 +129,8 @@ class ResultService
         }
 
         return [
-            'grade' => '',
-            'remark' => '',
+            'grade' => 'F',
+            'remark' => 'Fail',
             'status' =>  0
         ];
     }

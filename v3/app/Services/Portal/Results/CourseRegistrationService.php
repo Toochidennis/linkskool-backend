@@ -5,6 +5,7 @@ namespace V3\App\Services\Portal\Results;
 use PDO;
 use Exception;
 use V3\App\Common\Utilities\SubjectAbbreviation;
+use V3\App\Models\Portal\Academics\SchoolSettings;
 use V3\App\Models\Portal\Academics\Student;
 use V3\App\Models\Portal\Results\CourseRegistration;
 
@@ -12,12 +13,16 @@ class CourseRegistrationService
 {
     private CourseRegistration $courseRegistration;
     private Student $student;
+    private SchoolSettings $settings;
 
     public function __construct(PDO $pdo)
     {
         $this->courseRegistration = new CourseRegistration($pdo);
         $this->student = new Student($pdo);
+        $this->settings = new SchoolSettings($pdo);
     }
+
+
 
     /**
      * Duplicates the most recent course registrations of a class to the next academic term.
@@ -50,15 +55,42 @@ class CourseRegistrationService
             ->first();
 
         if (empty($lastReg)) {
-            throw new Exception('No existing registration found.');
+            return false;
         }
 
-        $oldYear = $lastReg['year'];
-        $oldTerm = $lastReg['term'];
+        $oldYear = (int) $lastReg['year'];
+        $oldTerm = (int) $lastReg['term'];
+
+        $currentSettings = $this->getSettings();
+        $currentYear = (int) $currentSettings['year'];
+        $currentTerm = (int) $currentSettings['term'];
 
         // Calculate the new year and term
         $newTerm = $oldTerm < 3 ? $oldTerm + 1 : 1;
         $newYear = $oldTerm < 3 ? $oldYear : $oldYear + 1;
+
+        // Guard 1: Do not duplicate if old year/term is already same as current settings
+        if ($oldYear === $currentYear && $oldTerm === $currentTerm) {
+            return false;
+        }
+
+        //  Guard 2: Do not duplicate beyond current term/year
+        // (e.g. system is 2025 term 3 but computed new is 2026 term 1 → not allowed)
+        if (
+            $newYear > $currentYear ||
+            ($newYear === $currentYear && $newTerm > $currentTerm)
+        ) {
+            return false;
+        }
+
+        //  Guard 3: Only duplicate forward if current session > last registration
+        // (oldTerm/oldYear are before currentTerm/currentYear)
+        if (
+            $oldYear > $currentYear ||
+            ($oldYear === $currentYear && $oldTerm > $currentTerm)
+        ) {
+            return false;
+        }
 
         // Fetch existing registrations for the class.
         $oldRegistrations = $this->courseRegistration
@@ -91,6 +123,13 @@ class CourseRegistrationService
                 'class_id' => $classId
             ]
         );
+    }
+
+    private function getSettings(): array
+    {
+        return $this->settings
+            ->select(['year', 'term'])
+            ->first();
     }
 
     /**

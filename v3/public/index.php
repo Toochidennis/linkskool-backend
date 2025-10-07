@@ -494,6 +494,11 @@ $dispatcher = FastRoute\simpleDispatcher(
             '/portal/skill-behavior',
             ['Portal\Academics\SkillBehaviorController', 'get']
         );
+        $r->addRoute(
+            'DELETE',
+            '/portal/skill-behavior',
+            ['Portal\Academics\SkillBehaviorController', 'delete']
+        );
 
         // Movies
         $r->addRoute(
