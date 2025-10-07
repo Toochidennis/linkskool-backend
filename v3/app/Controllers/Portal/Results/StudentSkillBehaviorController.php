@@ -17,7 +17,7 @@ class StudentSkillBehaviorController extends BaseController
         $this->service = new StudentSkillBehaviorService($this->pdo);
     }
 
-    public function store()
+    public function upsertSkills()
     {
         $data = $this->validate(
             $this->post,
@@ -34,11 +34,14 @@ class StudentSkillBehaviorController extends BaseController
         );
 
         try {
-            $inserted = $this->service->insertSkills($data);
+            $inserted = $this->service->upsertSkills($data);
 
             if ($inserted) {
                 return $this->respond(
-                    ['success' => true, 'message' => 'Student skills added successfully.'],
+                    [
+                        'success' => true,
+                        'message' => 'Student skills added successfully.'
+                    ],
                     HttpStatus::CREATED
                 );
             }
@@ -49,27 +52,17 @@ class StudentSkillBehaviorController extends BaseController
         }
     }
 
-    public function update()
-    {
-        $data = $this->validate(
-            $this->post,
-            [
-                'skills' => 'required|array|min:1',
-                'skills.*.id' => 'required|integer',
-                'skills.*.student_id' => 'required|integer',
-                'skills.*.student_skills' => 'required|array',
-                'skills.*.student_skills.*.skill_id'  => 'required|integer',
-                'skills.*.student_skills.*.label'  => 'required|string',
-                'skills.*.student_skills.*.value'  => 'required|integer',
-                'term'  => 'required|integer',
-                'year'  => 'required|integer',
-            ]
-        );
-    }
-
     public function getStudentsSkillBehavior(array $vars)
     {
-        $data = $this->validateData($vars, ['class_id', 'level_id', 'year', 'term']);
+        $data = $this->validate(
+            $vars,
+            [
+                'class_id' => 'required|integer',
+                'level_id' => 'required|integer',
+                'year' => 'required|integer',
+                'term' => 'required|integer'
+            ]
+        );
 
         try {
             return $this->respond([
