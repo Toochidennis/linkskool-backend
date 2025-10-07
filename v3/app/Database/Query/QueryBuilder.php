@@ -5,6 +5,7 @@ namespace V3\App\Database\Query;
 use Closure;
 use PDO;
 use InvalidArgumentException;
+use V3\App\Database\Schema\SchemaSynchronizer;
 use V3\App\Database\Tables;
 
 /**
@@ -15,6 +16,7 @@ use V3\App\Database\Tables;
 class QueryBuilder
 {
     private PDO $pdo;
+    private SchemaSynchronizer $schemaSynchronizer;
     private string $table;
     private array $selectColumns = ['*'];
     private array $whereConditions = [];
@@ -35,6 +37,7 @@ class QueryBuilder
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
+        $this->schemaSynchronizer =  new SchemaSynchronizer($this->pdo);
     }
 
     /**
@@ -47,6 +50,9 @@ class QueryBuilder
     {
         $this->validateTable($table);
         $this->table = $table;
+
+        $this->schemaSynchronizer->sync($table);
+
         return $this;
     }
 
@@ -484,6 +490,8 @@ class QueryBuilder
 
     /**
      * Validates whether the provided table name is allowed.
+     *
+     * Throws an InvalidArgumentException if the table is not allowed.
      *
      * @param  string $table The name of the table to validate.
      * @throws InvalidArgumentException If the table is not allowed.
