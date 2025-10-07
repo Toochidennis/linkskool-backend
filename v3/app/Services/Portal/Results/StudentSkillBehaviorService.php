@@ -26,42 +26,38 @@ class StudentSkillBehaviorService
      * @param array $data Includes 'year', 'term', and 'skills' (array of student_id and skill data).
      * @return bool True if all inserts succeed, false if any fail.
      */
-    public function insertSkills($data)
+    public function upsertSkills(array $data): bool
     {
         $count = 0;
+
         foreach ($data['skills'] as $skill) {
             $payload = [
-                'year' => $data['year'],
-                'term' => $data['term'],
+                'year'  => $data['year'],
+                'term'  => $data['term'],
                 'reg_no' => $skill['student_id'],
                 'skill' => json_encode($skill['student_skills'])
             ];
 
-            if ($this->studentSkillBehavior->insert($payload)) {
-                $count++;
-            }
-        }
+            // Check if record exists for this student in the same year/term
+            $existing = $this->studentSkillBehavior
+                ->select(['id'])
+                ->where('reg_no', $skill['student_id'])
+                ->where('year', $data['year'])
+                ->where('term', $data['term'])
+                ->first();
 
-        return $count === count($data['skills']);
-    }
-
-    private function updateSkills(array $data)
-    {
-        $count = 0;
-        foreach ($data['skills'] as $skill) {
-            $payload = [
-                'year' => $data['year'],
-                'term' => $data['term'],
-                'reg_no' => $skill['student_id'],
-                'skill' => json_encode($skill['student_skills'])
-            ];
-
-            $update = $this->studentSkillBehavior
-                ->where('id', $skill['id'])
-                ->update($payload);
-
-            if ($update) {
-                $count++;
+            if ($existing) {
+                $updated = $this->studentSkillBehavior
+                    ->where('id', $existing['id'])
+                    ->update($payload);
+                if ($updated) {
+                    $count++;
+                }
+            } else {
+                $inserted = $this->studentSkillBehavior->insert($payload);
+                if ($inserted) {
+                    $count++;
+                }
             }
         }
 
@@ -121,7 +117,7 @@ class StudentSkillBehaviorService
 
         foreach ($students as &$student) {
             $studentSkills = $this->studentSkillBehavior
-                ->select(columns: ['id', 'skill'])
+                ->select(columns: ['skill'])
                 ->where('year', '=', $filters['year'])
                 ->where('term', '=', $filters['term'])
                 ->where('reg_no', '=', $student['student_id'])
@@ -129,7 +125,6 @@ class StudentSkillBehaviorService
 
             if (!empty($studentSkills)) {
                 $rawSkillData = json_decode($studentSkills[0]['skill'], true);
-                $student['id'] = $studentSkills[0]['id'];
 
                 // Detect if it's the old format (associative with skill_id as key)
                 if (!isset($rawSkillData[0]) && is_array($rawSkillData)) {

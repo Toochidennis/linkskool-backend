@@ -120,7 +120,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute(
             'POST',
             '/portal/students/skill-behavior',
-            ['Portal\Results\StudentSkillBehaviorController', 'store']
+            ['Portal\Results\StudentSkillBehaviorController', 'upsertSkills']
         );
         $r->addRoute(
             'POST',
@@ -144,14 +144,9 @@ $dispatcher = FastRoute\simpleDispatcher(
         );
         $r->addRoute(
             'PUT',
-            '/portal/students/{id}',
+            '/portal/students/{id:\d+}',
             ['Portal\Academics\StudentController', 'updateStudentRecord']
         );
-        // $r->addRoute(
-        //     'PUT',
-        //     '/portal/students/skill-behavior',
-        //     ['Portal\Results\StudentSkillBehaviorController', 'update']
-        // );
         $r->addRoute(
             'GET',
             '/portal/students/{student_id:\d+}/registered-courses',
