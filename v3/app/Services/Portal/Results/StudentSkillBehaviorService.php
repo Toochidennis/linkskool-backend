@@ -45,11 +45,34 @@ class StudentSkillBehaviorService
         return $count === count($data['skills']);
     }
 
-    public function getStudents(array $filters)
+    private function updateSkills(array $data)
+    {
+        $count = 0;
+        foreach ($data['skills'] as $skill) {
+            $payload = [
+                'year' => $data['year'],
+                'term' => $data['term'],
+                'reg_no' => $skill['student_id'],
+                'skill' => json_encode($skill['student_skills'])
+            ];
+
+            $update = $this->studentSkillBehavior
+                ->where('id', $skill['id'])
+                ->update($payload);
+
+            if ($update) {
+                $count++;
+            }
+        }
+
+        return $count === count($data['skills']);
+    }
+
+    private function getStudents(array $filters)
     {
         return $this->student
             ->select(columns: [
-                'students_record.id',
+                'students_record.id as student_id',
                 "concat(surname,' ', first_name,' ', middle) AS student_name"
             ])
             ->join(
@@ -66,7 +89,7 @@ class StudentSkillBehaviorService
             ->get();
     }
 
-    public function getSkillBehavior($levelId)
+    private function getSkillBehavior($levelId)
     {
         $skills = $this->skillBehavior
             ->select(columns: ['id', 'skill_name'])
@@ -98,14 +121,15 @@ class StudentSkillBehaviorService
 
         foreach ($students as &$student) {
             $studentSkills = $this->studentSkillBehavior
-                ->select(columns: ['skill'])
+                ->select(columns: ['id', 'skill'])
                 ->where('year', '=', $filters['year'])
                 ->where('term', '=', $filters['term'])
-                ->where('reg_no', '=', $student['id'])
+                ->where('reg_no', '=', $student['student_id'])
                 ->get();
 
             if (!empty($studentSkills)) {
                 $rawSkillData = json_decode($studentSkills[0]['skill'], true);
+                $student['id'] = $studentSkills[0]['id'];
 
                 // Detect if it's the old format (associative with skill_id as key)
                 if (!isset($rawSkillData[0]) && is_array($rawSkillData)) {

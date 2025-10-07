@@ -147,6 +147,11 @@ $dispatcher = FastRoute\simpleDispatcher(
             '/portal/students/{id}',
             ['Portal\Academics\StudentController', 'updateStudentRecord']
         );
+        // $r->addRoute(
+        //     'PUT',
+        //     '/portal/students/skill-behavior',
+        //     ['Portal\Results\StudentSkillBehaviorController', 'update']
+        // );
         $r->addRoute(
             'GET',
             '/portal/students/{student_id:\d+}/registered-courses',

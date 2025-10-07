@@ -19,17 +19,17 @@ class StudentSkillBehaviorController extends BaseController
 
     public function store()
     {
-        $data = $this->validateData(
+        $data = $this->validate(
             $this->post,
             [
-                'skills',
-                'skills.*.student_id',
-                'skills.*.student_skills',
-                'skills.*.student_skills.*.skill_id',
-                'skills.*.student_skills.*.label',
-                'skills.*.student_skills.*.value',
-                'term',
-                'year',
+                'skills' => 'required|array|min:1',
+                'skills.*.student_id' => 'required|integer',
+                'skills.*.student_skills' => 'required|array',
+                'skills.*.student_skills.*.skill_id'  => 'required|integer',
+                'skills.*.student_skills.*.label'  => 'required|string',
+                'skills.*.student_skills.*.value'  => 'required|integer',
+                'term'  => 'required|integer',
+                'year'  => 'required|integer',
             ]
         );
 
@@ -47,6 +47,24 @@ class StudentSkillBehaviorController extends BaseController
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
+    }
+
+    public function update()
+    {
+        $data = $this->validate(
+            $this->post,
+            [
+                'skills' => 'required|array|min:1',
+                'skills.*.id' => 'required|integer',
+                'skills.*.student_id' => 'required|integer',
+                'skills.*.student_skills' => 'required|array',
+                'skills.*.student_skills.*.skill_id'  => 'required|integer',
+                'skills.*.student_skills.*.label'  => 'required|string',
+                'skills.*.student_skills.*.value'  => 'required|integer',
+                'term'  => 'required|integer',
+                'year'  => 'required|integer',
+            ]
+        );
     }
 
     public function getStudentsSkillBehavior(array $vars)
