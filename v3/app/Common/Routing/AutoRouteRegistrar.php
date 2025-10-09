@@ -15,7 +15,7 @@ class AutoRouteRegistrar
     {
         // sanitize prefix (/portal → portal)
         $safePrefix = trim(str_replace('/', '_', $prefix), '_');
-        return __DIR__ . "/../../public/storage/routes.{$safePrefix}.cache.php";
+        return __DIR__ . "/../../../public/storage/routes.{$safePrefix}.cache.php";
     }
 
     public function registerControllers(string $baseNamespace, string $basePrefix = '', bool $useCache = true): void

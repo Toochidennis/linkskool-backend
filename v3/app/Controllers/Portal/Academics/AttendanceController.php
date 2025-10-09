@@ -99,7 +99,7 @@ class AttendanceController extends BaseController
         ], true);
     }
 
-    #[Route("/courses/{course_id:\d+}/attendance", name: "", methods: 'GET')]
+    #[Route("/courses/{course_id:\d+}/attendance", method: 'GET')]
     public function getAllCourseAttendance(array $vars)
     {
         $data = $this->validate(
