@@ -84,7 +84,10 @@ class FeedController extends BaseController
                 ], HttpStatus::OK);
             }
 
-            $this->respondError('Failed to update content', HttpStatus::BAD_REQUEST);
+            $this->respondError(
+                'Failed to update content',
+                HttpStatus::BAD_REQUEST,
+            );
         } catch (\Exception $e) {
             $this->respondError($e->getMessage());
         }
@@ -95,7 +98,7 @@ class FeedController extends BaseController
         $filteredData = $this->validate(
             data: $vars,
             rules: [
-                'term' => 'integer|in:1,2,3',
+                'term' => 'required|integer|in:1,2,3',
                 "page" => "integer|min:1",
                 "limit" => "integer|min:1|max:100",
             ]
@@ -128,7 +131,10 @@ class FeedController extends BaseController
                 ], HttpStatus::OK);
             }
 
-            $this->respondError('Failed to delete content', HttpStatus::BAD_REQUEST);
+            $this->respondError(
+                'Failed to delete content',
+                HttpStatus::BAD_REQUEST,
+            );
         } catch (\Exception $e) {
             $this->respondError($e->getMessage());
         }

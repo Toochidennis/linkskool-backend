@@ -1,7 +1,5 @@
 <?php
 
-use V3\App\Controllers\Portal\Academics\AttendanceController;
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -23,6 +21,7 @@ use V3\App\Common\Utilities\EnvLoader;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Common\Utilities\ResponseHandler;
 use V3\App\Common\Utilities\BirthdayMessenger;
+use V3\App\Controllers\Portal\Academics\AttendanceController;
 
 // Load environment variables
 EnvLoader::load();
@@ -36,6 +35,7 @@ $dispatcher = FastRoute\simpleDispatcher(
         /**
          * Portal routes
          */
+
         $r->addRoute(
             'GET',
             '/portal/status',

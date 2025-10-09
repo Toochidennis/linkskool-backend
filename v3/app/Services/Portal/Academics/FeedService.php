@@ -81,7 +81,7 @@ class FeedService
                 ContentType::REPLY->value
             ])
             ->where('term', '=', $filters['term'])
-            ->paginate($filters['page'] ?? 1, $filters['limit'] ?? 10);
+            ->paginate($filters['page'] ?? 1, $filters['limit'] ?? 15);
 
         $grouped = [
             'news'      => [],
