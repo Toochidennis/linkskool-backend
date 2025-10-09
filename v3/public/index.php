@@ -19,6 +19,9 @@ use FastRoute\Dispatcher;
 use V3\App\Common\Utilities\EnvLoader;
 use V3\App\Common\Middleware\MiddlewareExecutor;
 use V3\App\Common\Utilities\{HttpStatus, ResponseHandler};
+use FastRoute\DataGenerator\GroupCountBased;
+use FastRoute\RouteParser\Std as RouteParser;
+use FastRoute\Dispatcher\GroupCountBased as GroupCountBasedDispatcher;
 use V3\App\Common\Routing\{CustomRouteCollector, AutoRouteRegistrar, BirthdayMessenger};
 
 // Load environment variables
@@ -29,12 +32,24 @@ EnvLoader::load();
 $response = ['success' => false];
 
 // Dispatcher
-$dispatcher = FastRoute\simpleDispatcher(function (CustomRouteCollector $r) {
-    $auto = new AutoRouteRegistrar($r);
-    $auto->registerControllers('V3\App\Controllers\Portal', '/portal');
-    $auto->registerControllers('V3\App\Controllers\Learning', '/learning');
-});
+// $dispatcher = FastRoute\simpleDispatcher(function (CustomRouteCollector $r) {
+//     $auto = new AutoRouteRegistrar($r);
+//     $auto->registerControllers('V3\App\Controllers\Portal', '/portal');
+//     $auto->registerControllers('V3\App\Controllers\Learning', '/learning');
+// });
 
+$collector =  new CustomRouteCollector(
+    new RouteParser(),
+    new GroupCountBased()
+);
+
+// Auto-register all controllers
+$auto = new AutoRouteRegistrar($collector);
+$auto->registerControllers('V3\App\Controllers\Portal', '/portal');
+$auto->registerControllers('V3\App\Controllers\Learning', '/learning');
+
+// Compile routes into a dispatcher
+$dispatcher = new GroupCountBasedDispatcher($collector->getData());
 
 $httpMethod = $_SERVER['REQUEST_METHOD'];
 $uri = strtok($_SERVER['REQUEST_URI'], '?');
