@@ -1,5 +1,7 @@
 <?php
 
+use V3\App\Controllers\Portal\Academics\AttendanceController;
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -239,7 +241,10 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute(
             'POST',
             '/portal/classes/{class_id:\d+}/attendance',
-            ['Portal\Academics\AttendanceController', 'addClassAttendance']
+            function (array $vars) {
+                $vars['type'] = 'class';
+                return (new AttendanceController())->addAttendance($vars);
+            }
         );
         $r->addRoute(
             'POST',
@@ -377,7 +382,10 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute(
             'POST',
             '/portal/courses/{course_id:\d+}/attendance',
-            ['Portal\Academics\AttendanceController', 'addCourseAttendance']
+            function (array $vars) {
+                $vars['type'] = 'course';
+                return (new AttendanceController())->addAttendance($vars);
+            }
         );
         $r->addRoute(
             'PUT',
@@ -458,11 +466,7 @@ $dispatcher = FastRoute\simpleDispatcher(
             ['Portal\Results\GradeController', 'deleteGrade']
         );
 
-        $r->addRoute(
-            'PUT',
-            '/portal/attendance/{id:\d+}',
-            ['Portal\Academics\AttendanceController', 'updateAttendance']
-        );
+        // Attendance
         $r->addRoute(
             'GET',
             '/portal/attendance/history',
@@ -825,6 +829,7 @@ $uri = str_replace('/api3/v3', '', $uri);
 
 // Dispatch the route
 $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
+
 switch ($routeInfo[0]) {
     case Dispatcher::NOT_FOUND:
         $response['message'] = 'Route not found.';
@@ -840,22 +845,38 @@ switch ($routeInfo[0]) {
 
     case Dispatcher::FOUND:
         $handler = $routeInfo[1];
-        $vars = $routeInfo[2];
+        $vars = array_merge($routeInfo[2], $queryParams);
 
-        $vars = array_merge($vars, $queryParams);
+        if (is_callable($handler)) {
+            $result = $handler($vars);
 
-        // Split the handler (e.g [AuthController, handleAuthRequest])
-        [$class, $method] = $handler;
-
-        // Instantiate and call the method
-        $controller = "V3\App\Controllers\\$class";
-
-        if (class_exists($controller) && method_exists($controller, $method)) {
-            (new $controller())->$method($vars);
-        } else {
-            $response['message'] = 'Invalid handler';
-            http_response_code(HttpStatus::SERVICE_UNAVAILABLE);
-            ResponseHandler::sendJsonResponse($response);
+            if ($result !== null) {
+                ResponseHandler::sendJsonResponse($result);
+            }
+            break;
         }
+
+        if (is_array($handler)) {
+            [$class, $method] = $handler;
+            $controller = "V3\\App\\Controllers\\$class";
+
+            if (class_exists($controller) && method_exists($controller, $method)) {
+                $result = (new $controller())->$method($vars);
+
+                if ($result !== null) {
+                    ResponseHandler::sendJsonResponse($result);
+                }
+            } else {
+                $response['message'] = 'Invalid handler';
+                http_response_code(HttpStatus::SERVICE_UNAVAILABLE);
+                ResponseHandler::sendJsonResponse($response);
+            }
+
+            break;
+        }
+
+        $response['message'] = 'Unrecognized route handler.';
+        http_response_code(HttpStatus::BAD_REQUEST);
+        ResponseHandler::sendJsonResponse($response);
         break;
 }
