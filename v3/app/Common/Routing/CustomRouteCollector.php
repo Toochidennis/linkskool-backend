@@ -18,29 +18,4 @@ class CustomRouteCollector extends RouteCollector
     {
         return $this->middlewares[$route] ?? [];
     }
-
-    public function get($route, $handler)
-    {
-        $this->addRoute('GET', $route, $handler);
-    }
-
-    public function post($route, $handler)
-    {
-        $this->addRoute('POST', $route, $handler);
-    }
-
-    public function put($route, $handler)
-    {
-        $this->addRoute('PUT', $route, $handler);
-    }
-
-    public function delete($route, $handler)
-    {
-        $this->addRoute('DELETE', $route, $handler);
-    }
-
-    public function patch($route, $handler)
-    {
-        $this->addRoute('PATCH', $route, $handler);
-    }
 }

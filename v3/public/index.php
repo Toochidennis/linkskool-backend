@@ -31,12 +31,6 @@ EnvLoader::load();
 
 $response = ['success' => false];
 
-// Dispatcher
-// $dispatcher = FastRoute\simpleDispatcher(function (CustomRouteCollector $r) {
-//     $auto = new AutoRouteRegistrar($r);
-//     $auto->registerControllers('V3\App\Controllers\Portal', '/portal');
-//     $auto->registerControllers('V3\App\Controllers\Learning', '/learning');
-// });
 
 $collector =  new CustomRouteCollector(
     new RouteParser(),
@@ -46,16 +40,35 @@ $collector =  new CustomRouteCollector(
 // Auto-register all controllers
 $auto = new AutoRouteRegistrar($collector);
 $auto->registerControllers('V3\App\Controllers\Portal', '/portal');
-$auto->registerControllers('V3\App\Controllers\Learning', '/learning');
+//$auto->registerControllers('V3\App\Controllers\Learning', '/learning');
 
 // Compile routes into a dispatcher
 $dispatcher = new GroupCountBasedDispatcher($collector->getData());
 
+
 $httpMethod = $_SERVER['REQUEST_METHOD'];
 $uri = strtok($_SERVER['REQUEST_URI'], '?');
-$uri = rawurldecode(str_replace('/api/v3', '', $uri));
+
+$script = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+$base   = rtrim(dirname(dirname($script)), '/'); // ex: /api3/v3
+
+if ($base && str_starts_with($uri, $base)) {
+    $uri = substr($uri, strlen($base)); // drop /api3/v3
+}
+
+// normalize
+if ($uri === '' || $uri[0] !== '/') {
+    $uri = "/$uri";
+}
+
+$uri = rawurldecode(preg_replace('#/+#', '/', $uri));
+if ($uri !== '/' && str_ends_with($uri, '/')) {
+    $uri = rtrim($uri, '/');
+}
 
 $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
+
+//var_dump($routeInfo);
 
 switch ($routeInfo[0]) {
     case Dispatcher::NOT_FOUND:
@@ -73,6 +86,12 @@ switch ($routeInfo[0]) {
     case Dispatcher::FOUND:
         [$class, $method] = $routeInfo[1];
         $vars = $routeInfo[2];
+
+        $queryParams = $_GET ?? [];
+        $vars = array_merge($vars, $queryParams);
+
+        var_dump($vars);
+        die;
 
         $middlewares = $collector->getMiddlewares($routeInfo[1][1] ?? $uri) ?? [];
         MiddlewareExecutor::run($middlewares);
