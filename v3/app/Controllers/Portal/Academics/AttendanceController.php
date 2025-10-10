@@ -3,11 +3,12 @@
 namespace V3\App\Controllers\Portal\Academics;
 
 use Exception;
-use V3\App\Common\Routing\Route;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
 use V3\App\Services\Portal\Academics\AttendanceService;
 
+#[Group('/portal')]
 class AttendanceController extends BaseController
 {
     private AttendanceService $attendanceService;
@@ -99,7 +100,7 @@ class AttendanceController extends BaseController
         ], true);
     }
 
-    #[Route("/courses/{course_id:\d+}/attendance", method: 'GET')]
+    #[Route("/courses/{course_id:\d+}/attendance", method: 'GET', middleware: ['auth'])]
     public function getAllCourseAttendance(array $vars)
     {
         $data = $this->validate(
