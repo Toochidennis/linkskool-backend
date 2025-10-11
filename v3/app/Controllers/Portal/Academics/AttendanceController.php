@@ -121,6 +121,7 @@ class AttendanceController extends BaseController
         ]);
     }
 
+    #[Route('/attendance/history', method:'GET', middleware: ['auth'])]
     public function getAttendanceHistory(array $vars)
     {
         $data = $this->validate(
