@@ -78,41 +78,31 @@ class AssessmentController extends BaseController
     #[Route('/assessments', 'GET', ['auth', 'role:admin'])]
     public function getAllAssessments()
     {
-        $assessments = $this->service->getAssessments();
-        $transformed = $this->service->transformAssessment($assessments);
-
-        if ($transformed) {
-            return $this->respond(['success' => true, 'assessments' => $transformed]);
-        }
-
-        return $this->respondError(
-            'Failed to fetch assessments',
-            HttpStatus::BAD_REQUEST
+        return $this->respond(
+            [
+                'success' => true,
+                'assessments' => $this->service->getAllAssessments()
+            ]
         );
     }
 
     #[Route('/assessments/{level_id:\d+}', 'GET', ['auth', 'role:admin'])]
     public function getAssessmentByLevel(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['level_id']);
+        $data = $this->validate($vars, ['level_id' => 'required|integer']);
 
-        $assessments = $this->service->getAssessments($data['level_id']);
-        $transformed = $this->service->transformAssessment($assessments);
-
-        if ($transformed) {
-            return $this->respond(['success' => true, 'assessments' => $transformed]);
-        }
-
-        return $this->respondError(
-            'Failed to fetch assessments',
-            HttpStatus::BAD_REQUEST
+        return $this->respond(
+            [
+                'success' => true,
+                'assessments' => $this->service->getAllAssessments($data['level_id']),
+            ]
         );
     }
 
     #[Route('/assessments/{id:\d+}', 'DELETE', ['auth', 'role:admin'])]
     public function deleteAssessment(array $vars)
     {
-        $data = $this->validate(data: $vars,  rules: ['id' => 'required|integer']);
+        $data = $this->validate(data: $vars, rules: ['id' => 'required|integer']);
         $delete = $this->service->deleteAssessment($data['id']);
 
         if ($delete) {
