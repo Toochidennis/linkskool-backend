@@ -2,10 +2,12 @@
 
 namespace V3\App\Controllers\Portal\Academics;
 
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Common\Utilities\ResponseHandler;
 use V3\App\Database\DatabaseConnector;
 use V3\App\Services\Portal\Academics\SchoolService;
 
+#[Group('/portal')]
 class SchoolController
 {
     private SchoolService $schoolService;
@@ -14,6 +16,7 @@ class SchoolController
         $this->schoolService = new SchoolService(DatabaseConnector::connect());
     }
 
+    #[Route('/schools', method: 'GET')]
     public function getSchools()
     {
         try {

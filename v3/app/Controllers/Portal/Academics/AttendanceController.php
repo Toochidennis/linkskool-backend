@@ -100,7 +100,7 @@ class AttendanceController extends BaseController
         ], true);
     }
 
-    #[Route("/courses/{course_id:\d+}/attendance", method: 'GET', middleware: ['auth'])]
+    #[Route("/courses/{course_id:\d+}/attendance", method: 'GET', middleware: ['auth', 'role:admin'])]
     public function getAllCourseAttendance(array $vars)
     {
         $data = $this->validate(

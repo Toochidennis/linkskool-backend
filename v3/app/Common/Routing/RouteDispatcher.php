@@ -13,14 +13,11 @@ class RouteDispatcher
 {
     public static function handle(): void
     {
-        // Load environment variables
-        EnvLoader::load();
-
         $response = ['success' => false];
 
         $collector =  new CustomRouteCollector(new RouteParser(), new DataGen());
         $auto = new AutoRouteRegistrar($collector);
-        $auto->registerControllers('V3\App\Controllers\Portal', '/portal');
+        $auto->registerControllers('V3\App\Controllers\Portal', '/portal', false);
         //$auto->registerControllers('V3\App\Controllers\Learning', '/learning');
 
         $dispatcher = new GroupCountBasedDispatcher($collector->getData());
