@@ -3,8 +3,10 @@
 namespace V3\App\Controllers\Portal\Academics;
 
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Academics\AcademicOverviewService;
 
+#[Group('/portal')]
 class AcademicOverviewController extends BaseController
 {
     private AcademicOverviewService $academicOverviewService;
@@ -15,6 +17,7 @@ class AcademicOverviewController extends BaseController
         $this->academicOverviewService = new AcademicOverviewService($this->pdo);
     }
 
+    #[Route('/dashboard/admin', 'GET', ['auth', 'role:admin'])]
     public function adminOverview(array $vars)
     {
         $filters = $this->validate(
@@ -22,19 +25,16 @@ class AcademicOverviewController extends BaseController
             ['term' => 'required|integer'],
         );
 
-        try {
-            $overview = $this->academicOverviewService->getAdminOverview($filters['term']);
-            $this->respond(
-                [
-                    'success' => true,
-                    'data'    => $overview,
-                ]
-            );
-        } catch (\Exception $e) {
-            $this->respondError($e->getMessage());
-        }
+        $overview = $this->academicOverviewService->getAdminOverview($filters['term']);
+        $this->respond(
+            [
+                'success' => true,
+                'data'    => $overview,
+            ]
+        );
     }
 
+    #[Route('/dashboard/staff/{teacher_id:\d+}', 'GET', ['auth', 'role:staff'])]
     public function teacherOverview(array $vars)
     {
         $filters = $this->validate(
@@ -46,19 +46,16 @@ class AcademicOverviewController extends BaseController
             ],
         );
 
-        try {
-            $overview = $this->academicOverviewService->getStaffOverview($filters);
-            $this->respond(
-                [
-                    'success' => true,
-                    'data'    => $overview,
-                ]
-            );
-        } catch (\Exception $e) {
-            $this->respondError($e->getMessage());
-        }
+        $overview = $this->academicOverviewService->getStaffOverview($filters);
+        $this->respond(
+            [
+                'success' => true,
+                'data'    => $overview,
+            ]
+        );
     }
 
+    #[Route('/dashboard/student', 'GET', ['auth', 'role:student'])]
     public function studentOverview(array $vars)
     {
         $filters = $this->validate(
@@ -70,16 +67,12 @@ class AcademicOverviewController extends BaseController
             ],
         );
 
-        try {
-            $overview = $this->academicOverviewService->getStudentOverview($filters);
-            $this->respond(
-                [
-                    'success' => true,
-                    'data'    => $overview,
-                ]
-            );
-        } catch (\Exception $e) {
-            $this->respondError($e->getMessage());
-        }
+        $overview = $this->academicOverviewService->getStudentOverview($filters);
+        $this->respond(
+            [
+                'success' => true,
+                'data'    => $overview,
+            ]
+        );
     }
 }

@@ -1,0 +1,6 @@
+[2025-10-13 18:45:47] EXCEPTION: Invalid credentials. in C:\xampp\htdocs\api3\v3\app\Services\Portal\AuthService.php on line 80
+Request: POST /api3/v3/portal/auth/login? from ::1
+
+[2025-10-13 18:46:18] SQL EXCEPTION: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it in C:\xampp\htdocs\api3\v3\app\Database\DatabaseConnector.php on line 17
+Request: POST /api3/v3/portal/auth/login? from ::1
+

@@ -3,18 +3,12 @@
 namespace V3\App\Controllers;
 
 use PDO;
-use V3\App\Common\Traits\PermissionTrait;
 use V3\App\Database\DatabaseConnector;
-use V3\App\Common\Utilities\DataExtractor;
-use V3\App\Common\Utilities\ResponseHandler;
-use V3\App\Common\Utilities\HttpStatus;
-use V3\App\Common\Utilities\Sanitizer;
-use V3\App\Common\Traits\ValidationTrait;
-use V3\App\Common\Traits\AuthenticatesRequests;
+use V3\App\Common\Traits\{ValidationTrait, PermissionTrait};
+use V3\App\Common\Utilities\{DataExtractor, ResponseHandler, HttpStatus, Sanitizer};
 
 abstract class BaseController
 {
-    use AuthenticatesRequests;
     use PermissionTrait;
     use ValidationTrait;
 
@@ -46,9 +40,6 @@ abstract class BaseController
      */
     public function __construct()
     {
-        self::verifyAPIKey();
-        self::verifyJWT();
-
         $method = $_SERVER['REQUEST_METHOD'];
 
         $payload = match ($method) {

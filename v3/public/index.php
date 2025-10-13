@@ -15,4 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+
+V3\App\Common\Utilities\EnvLoader::load();
+V3\App\Common\Utilities\Logger::init();
 V3\App\Common\Routing\RouteDispatcher::handle();
