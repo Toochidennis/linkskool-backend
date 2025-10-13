@@ -53,7 +53,7 @@ class AssessmentService
             ->update($assess);
     }
 
-    public function getAssessments(int $levelId = 0)
+    private function getAssessments(int $levelId = 0)
     {
         $assessments = $this->assessment
             ->select(
@@ -79,8 +79,10 @@ class AssessmentService
         return $assessments = $assessments->get();
     }
 
-    public function transformAssessment($assessments)
+    public function getAllAssessments($levelId = 0)
     {
+        $assessments = $this->getAssessments($levelId);
+
         $formatted = [];
 
         foreach ($assessments as $assessment) {
