@@ -2,11 +2,12 @@
 
 namespace  V3\App\Controllers\Portal\Academics;
 
-use Exception;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Academics\StaffService;
 
+#[Group('/portal')]
 class StaffController extends BaseController
 {
     private StaffService $staffService;
@@ -17,9 +18,7 @@ class StaffController extends BaseController
         $this->staffService = new StaffService($this->pdo);
     }
 
-    /**
-     * Adds a new staff.
-     */
+    #[Route('/staff', 'POST', ['auth', 'role:admin'])]
     public function addStaff()
     {
         $data = $this->validate(
@@ -68,25 +67,22 @@ class StaffController extends BaseController
             ]
         );
 
-        try {
-            $newId = $this->staffService->insertStaffRecord($data);
+        $newId = $this->staffService->insertStaffRecord($data);
 
-            if ($newId > 0) {
-                $this->respond([
-                    'success' => true,
-                    'message' => 'Staff added successfully.'
-                ], HttpStatus::CREATED);
-            }
-
-            return $this->respondError(
-                'Failed to add a new staff',
-                HttpStatus::BAD_REQUEST
-            );
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+        if ($newId > 0) {
+            $this->respond([
+                'success' => true,
+                'message' => 'Staff added successfully.'
+            ], HttpStatus::CREATED);
         }
+
+        return $this->respondError(
+            'Failed to add a new staff',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
+    #[Route('/staff/{id:\d+}', 'PUT', ['auth', 'role:admin'])]
     public function updateStaff(array $vars)
     {
         $data = $this->validate(
@@ -137,39 +133,33 @@ class StaffController extends BaseController
             ]
         );
 
-        try {
-            $updated = $this->staffService->updateStaffRecord($data);
+        $updated = $this->staffService->updateStaffRecord($data);
 
-            if ($updated) {
-                $this->respond([
-                    'success' => true,
-                    'message' => 'Staff record updated successfully.'
-                ], HttpStatus::OK);
-            }
-
-            return $this->respondError(
-                'Failed to update staff record',
-                HttpStatus::BAD_REQUEST
-            );
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+        if ($updated) {
+            $this->respond([
+                'success' => true,
+                'message' => 'Staff record updated successfully.'
+            ], HttpStatus::OK);
         }
+
+        return $this->respondError(
+            'Failed to update staff record',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
+    #[Route('/staff', 'GET', ['auth', 'role:admin'])]
     public function getStaff()
     {
-        try {
-            $this->respond(
-                [
-                    'success' => true,
-                    'response' => $this->staffService->getStaff()
-                ]
-            );
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
+        $this->respond(
+            [
+                'success' => true,
+                'response' => $this->staffService->getStaff()
+            ]
+        );
     }
 
+    #[Route('/staff/{id:\d+}', 'DELETE', ['auth', 'role:admin'])]
     public function deleteStaff(array $vars)
     {
         $data = $this->validate(
@@ -179,22 +169,18 @@ class StaffController extends BaseController
             ]
         );
 
-        try {
-            $deleted = $this->staffService->deleteStaff($data['id']);
+        $deleted = $this->staffService->deleteStaff($data['id']);
 
-            if ($deleted) {
-                $this->respond([
-                    'success' => true,
-                    'message' => 'Staff record deleted successfully.'
-                ], HttpStatus::OK);
-            }
-
-            return $this->respondError(
-                'Failed to delete staff record',
-                HttpStatus::BAD_REQUEST
-            );
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+        if ($deleted) {
+            $this->respond([
+                'success' => true,
+                'message' => 'Staff record deleted successfully.'
+            ], HttpStatus::OK);
         }
+
+        return $this->respondError(
+            'Failed to delete staff record',
+            HttpStatus::BAD_REQUEST
+        );
     }
 }
