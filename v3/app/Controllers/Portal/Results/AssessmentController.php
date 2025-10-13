@@ -21,14 +21,16 @@ class AssessmentController extends BaseController
     #[Route('/assessments', 'POST', ['auth', 'role:admin'])]
     public function addAssessments()
     {
-        $requiredFields = [
-            'assessments',
-            'assessments.*.assessment_name',
-            'assessments.*.max_score',
-            'assessments.*.level_id',
-            'assessments.*.type'
-        ];
-        $data = $this->validateData($this->post, $requiredFields);
+        $data = $this->validate(
+            $this->post,
+            [
+                'assessments' => 'required|array|min:1',
+                'assessments.*.assessment_name' => 'required|string',
+                'assessments.*.max_score' => 'required|integer',
+                'assessments.*.level_id' => 'required|integer|min:1',
+                'assessments.*.type' => 'required|integer'
+            ]
+        );
 
         $inserted = $this->service->insertAssessment($data['assessments']);
 
@@ -39,24 +41,38 @@ class AssessmentController extends BaseController
             );
         }
 
-        return $this->respondError('Failed to add assessment');
+        return $this->respondError(
+            'Failed to add assessment',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
     #[Route('/assessments/{id:\d+}', 'PUT', ['auth', 'role:admin'])]
     public function updateAssessment(array $vars)
     {
-        $requiredFields = ['id', 'assessment_name', 'max_score', 'level_id', 'type'];
-        $data = $this->validateData($this->post + $vars, $requiredFields);
+        $data = $this->validate(
+            array_merge($this->post, $vars),
+            [
+                'id' => 'required|integer|min:1',
+                'assessment_name' => 'required|string',
+                'max_score' => 'required|integer|min:1',
+                'level_id' => 'required|integer|min:1',
+                'type' => 'required|integer'
+            ]
+        );
 
         $updated = $this->service->updateAssessment($data);
 
         if ($updated) {
             return $this->respond(
-                ['success' => true, 'message' => 'Assessment updated successfully.']
+                ['success' => true, 'message' => 'Assessment updated successfully.',]
             );
         }
 
-        return $this->respondError('Failed to update assessment');
+        return $this->respondError(
+            'Failed to update assessment',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
     #[Route('/assessments', 'GET', ['auth', 'role:admin'])]
@@ -69,7 +85,10 @@ class AssessmentController extends BaseController
             return $this->respond(['success' => true, 'assessments' => $transformed]);
         }
 
-        return $this->respondError('Failed to fetch assessments');
+        return $this->respondError(
+            'Failed to fetch assessments',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
     #[Route('/assessments/{level_id:\d+}', 'GET', ['auth', 'role:admin'])]
@@ -84,13 +103,16 @@ class AssessmentController extends BaseController
             return $this->respond(['success' => true, 'assessments' => $transformed]);
         }
 
-        return $this->respondError('Failed to fetch assessments');
+        return $this->respondError(
+            'Failed to fetch assessments',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
     #[Route('/assessments/{id:\d+}', 'DELETE', ['auth', 'role:admin'])]
     public function deleteAssessment(array $vars)
     {
-        $data = $this->validateData(data: $vars, requiredFields: ['id']);
+        $data = $this->validate(data: $vars,  rules: ['id' => 'required|integer']);
         $delete = $this->service->deleteAssessment($data['id']);
 
         if ($delete) {
@@ -99,6 +121,9 @@ class AssessmentController extends BaseController
             );
         }
 
-        return $this->respondError('Failed to delete assessment');
+        return $this->respondError(
+            'Failed to delete assessment',
+            HttpStatus::BAD_REQUEST
+        );
     }
 }
