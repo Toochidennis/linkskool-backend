@@ -7,21 +7,19 @@ use V3\App\Models\Portal\AuthModel;
 use V3\App\Database\DatabaseConnector;
 use V3\App\Services\Portal\AuthService;
 use V3\App\Common\Routing\{Route, Group};
-use V3\App\Common\Traits\{AuthenticatesRequests, ValidationTrait};
+use V3\App\Common\Traits\ValidationTrait;
 use V3\App\Common\Utilities\{ResponseHandler, DataExtractor, HttpStatus};
 
 #[Group('/portal')]
 class AuthController
 {
     use ValidationTrait;
-    use AuthenticatesRequests;
 
     private array $response = ['success' => false, 'message' => ''];
     private AuthModel $authModel;
 
     public function __construct()
     {
-        $this->verifyAPIKey();
     }
 
     #[Route(path: '/auth/login', method: 'POST', middleware: ['api'])]
@@ -29,8 +27,14 @@ class AuthController
     {
         $post = DataExtractor::extractPostData();
 
-        $requiredFields = ['username', 'password', 'school_code'];
-        $data = $this->validateData($post, $requiredFields);
+        $data = $this->validate(
+            $post,
+            [
+                'username' => 'required|string|filled',
+                'password' => 'required|string|filled',
+                'school_code' => 'required|integer'
+            ]
+        );
 
         $pdo = DatabaseConnector::connect();
         $this->authModel = new AuthModel($pdo);
