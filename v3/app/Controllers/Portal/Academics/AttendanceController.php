@@ -19,8 +19,13 @@ class AttendanceController extends BaseController
     }
 
     #[Route(
-        "/courses/{course_id:\d+}/attendance/single",
-        method: 'GET',
+        "/courses/{course_id:\d+}/attendance",
+        method: 'POST',
+        middleware: ['auth', 'role:admin', 'role:staff']
+    )]
+    #[Route(
+        "/classes/{class_id:\d+}/attendance/single",
+        method: 'POST',
         middleware: ['auth', 'role:admin', 'role:staff']
     )]
     public function addAttendance(array $vars)
@@ -42,19 +47,20 @@ class AttendanceController extends BaseController
             ]
         );
 
-        try {
-            $response = $this->attendanceService->upsertAttendance($data);
-            return $response['success']
-                ? $this->respond($response, HttpStatus::CREATED)
-                : $this->respondError(
-                    $response['message'],
-                    HttpStatus::BAD_REQUEST
-                );
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
+        $response = $this->attendanceService->upsertAttendance($data);
+        return $response['success']
+            ? $this->respond($response, HttpStatus::CREATED)
+            : $this->respondError(
+                $response['message'],
+                HttpStatus::BAD_REQUEST
+            );
     }
 
+    #[Route(
+        "/classes/{class_id:\d+}/attendance/single",
+        method: 'GET',
+        middleware: ['auth', 'role:admin', 'role:staff']
+    )]
     public function getSingleClassAttendance(array $vars)
     {
         $data = $this->validate(
@@ -71,6 +77,11 @@ class AttendanceController extends BaseController
         ], true);
     }
 
+    #[Route(
+        "/classes/{class_id:\d+}/attendance",
+        method: 'GET',
+        middleware: ['auth', 'role:admin', 'role:staff']
+    )]
     public function getAllClassAttendance(array $vars)
     {
         $data = $this->validate(
@@ -153,14 +164,14 @@ class AttendanceController extends BaseController
             ]
         );
 
-        try {
-            $response = $this->attendanceService->getAttendanceHistory($data);
-            return $this->respond($response);
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
+        return $this->respond($this->attendanceService->getAttendanceHistory($data));
     }
 
+    #[Route(
+        "/attendance/{id:\d+}",
+        method: 'GET',
+        middleware: ['auth', 'role:admin', 'role:staff']
+    )]
     public function getAttendanceDetails(array $vars)
     {
         $data = $this->validate($vars, ['id' => 'required|integer']);
@@ -169,9 +180,9 @@ class AttendanceController extends BaseController
 
     private function handleAttendanceFetch(array $filters, bool $single = false)
     {
-            return $this->respond(
-                $this->attendanceService
-                    ->getAttendance($filters, singleRecord: $single)
-            );
+        return $this->respond(
+            $this->attendanceService
+                ->getAttendance($filters, singleRecord: $single)
+        );
     }
 }

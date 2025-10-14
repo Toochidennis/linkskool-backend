@@ -10,7 +10,8 @@ class Route
     public function __construct(
         public string $path,
         public string $method = 'GET',
-        public array $middleware = []
+        public array $middleware = [],
+        public ?string $type = null,
     ) {
     }
 }
