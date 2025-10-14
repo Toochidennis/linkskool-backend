@@ -20,15 +20,27 @@ class AttendanceController extends BaseController
 
     #[Route(
         "/courses/{course_id:\d+}/attendance",
-        method: 'POST',
-        middleware: ['auth', 'role:admin', 'role:staff']
+        'POST',
+        ['auth', 'role:admin', 'role:staff'],
     )]
+    public function addCourseAttendance(array $vars)
+    {
+        $vars['type'] = 'course';
+        $this->addAttendance($vars);
+    }
+
     #[Route(
-        "/classes/{class_id:\d+}/attendance/single",
-        method: 'POST',
-        middleware: ['auth', 'role:admin', 'role:staff']
+        "/classes/{class_id:\d+}/attendance",
+        'POST',
+        ['auth', 'role:admin', 'role:staff'],
     )]
-    public function addAttendance(array $vars)
+    public function addClassAttendance(array $vars)
+    {
+        $vars['type'] = 'class';
+        $this->addAttendance($vars);
+    }
+
+    private function addAttendance(array $vars)
     {
         $data = $this->validate(
             data: [...$this->post, ...$vars],
