@@ -48,7 +48,7 @@ class ClassController extends BaseController
     }
 
 
-    #[Route('/classes/{id:\id+}', 'PUT', ['auth', 'role:admin'])]
+    #[Route('/classes/{id:\d+}', 'PUT', ['auth', 'role:admin'])]
     public function updateClass(array $vars)
     {
         $data = $this->validate(
@@ -86,7 +86,7 @@ class ClassController extends BaseController
         ]);
     }
 
-    #[Route('/classes/{id:\id+}', 'DELETE', ['auth', 'role:admin'])]
+    #[Route('/classes/{id:\d+}', 'DELETE', ['auth', 'role:admin'])]
     public function deleteClass(array $vars)
     {
         $data = $this->validate(

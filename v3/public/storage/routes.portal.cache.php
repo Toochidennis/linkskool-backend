@@ -10,10 +10,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   1 => 
   array (
@@ -25,10 +21,6 @@
     array (
       0 => 'auth',
       1 => 'role:staff',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   2 => 
@@ -42,26 +34,18 @@
       0 => 'auth',
       1 => 'role:student',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   3 => 
   array (
     'method' => 'POST',
     'path' => '/portal/courses/{course_id:\\d+}/attendance',
     'class' => 'V3\\App\\Controllers\\Portal\\Academics\\AttendanceController',
-    'methodName' => 'addAttendance',
+    'methodName' => 'addCourseAttendance',
     'middleware' => 
     array (
       0 => 'auth',
       1 => 'role:admin',
       2 => 'role:staff',
-    ),
-    'meta' => 
-    array (
-      'type' => 'course',
     ),
   ),
   4 => 
@@ -69,16 +53,12 @@
     'method' => 'POST',
     'path' => '/portal/classes/{class_id:\\d+}/attendance',
     'class' => 'V3\\App\\Controllers\\Portal\\Academics\\AttendanceController',
-    'methodName' => 'addAttendance',
+    'methodName' => 'addClassAttendance',
     'middleware' => 
     array (
       0 => 'auth',
       1 => 'role:admin',
       2 => 'role:staff',
-    ),
-    'meta' => 
-    array (
-      'type' => 'class',
     ),
   ),
   5 => 
@@ -93,10 +73,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   6 => 
   array (
@@ -109,10 +85,6 @@
       0 => 'auth',
       1 => 'role:admin',
       2 => 'role:staff',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   7 => 
@@ -127,10 +99,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   8 => 
   array (
@@ -143,10 +111,6 @@
       0 => 'auth',
       1 => 'role:admin',
       2 => 'role:staff',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   9 => 
@@ -161,10 +125,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   10 => 
   array (
@@ -178,10 +138,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   11 => 
   array (
@@ -194,25 +150,17 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   12 => 
   array (
     'method' => 'PUT',
-    'path' => '/portal/classes/{id:\\id+}',
+    'path' => '/portal/classes/{id:\\d+}',
     'class' => 'V3\\App\\Controllers\\Portal\\Academics\\ClassController',
     'methodName' => 'updateClass',
     'middleware' => 
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   13 => 
@@ -226,25 +174,17 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   14 => 
   array (
     'method' => 'DELETE',
-    'path' => '/portal/classes/{id:\\id+}',
+    'path' => '/portal/classes/{id:\\d+}',
     'class' => 'V3\\App\\Controllers\\Portal\\Academics\\ClassController',
     'methodName' => 'deleteClass',
     'middleware' => 
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   15 => 
@@ -258,10 +198,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   16 => 
   array (
@@ -273,10 +209,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   17 => 
@@ -290,10 +222,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   18 => 
   array (
@@ -305,10 +233,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   19 => 
@@ -322,10 +246,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   20 => 
   array (
@@ -338,10 +258,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   21 => 
   array (
@@ -352,10 +268,6 @@
     'middleware' => 
     array (
       0 => 'auth',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   22 => 
@@ -368,10 +280,6 @@
     array (
       0 => 'auth',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   23 => 
   array (
@@ -382,10 +290,6 @@
     'middleware' => 
     array (
       0 => 'auth',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   24 => 
@@ -400,10 +304,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   25 => 
   array (
@@ -415,10 +315,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   26 => 
@@ -432,10 +328,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   27 => 
   array (
@@ -447,10 +339,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   28 => 
@@ -464,10 +352,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   29 => 
   array (
@@ -477,10 +361,6 @@
     'methodName' => 'getSchools',
     'middleware' => 
     array (
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   30 => 
@@ -494,10 +374,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   31 => 
   array (
@@ -509,10 +385,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   32 => 
@@ -526,25 +398,17 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   33 => 
   array (
     'method' => 'DELETE',
-    'path' => '/portal/skill-behavior{id\\d+}',
+    'path' => '/portal/skill-behavior{id:\\d+}',
     'class' => 'V3\\App\\Controllers\\Portal\\Academics\\SkillBehaviorController',
     'methodName' => 'delete',
     'middleware' => 
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   34 => 
@@ -558,10 +422,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   35 => 
   array (
@@ -573,10 +433,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   36 => 
@@ -590,10 +446,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   37 => 
   array (
@@ -605,10 +457,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   38 => 
@@ -622,10 +470,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   39 => 
   array (
@@ -637,10 +481,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   40 => 
@@ -654,10 +494,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   41 => 
   array (
@@ -669,10 +505,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   42 => 
@@ -686,10 +518,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   43 => 
   array (
@@ -700,10 +528,6 @@
     'middleware' => 
     array (
       0 => 'api',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   44 => 
@@ -718,10 +542,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   45 => 
   array (
@@ -735,10 +555,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   46 => 
   array (
@@ -750,10 +566,6 @@
     array (
       0 => 'auth',
       1 => 'role:student',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   47 => 
@@ -768,10 +580,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   48 => 
   array (
@@ -785,10 +593,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   49 => 
   array (
@@ -800,10 +604,6 @@
     array (
       0 => 'auth',
       1 => 'role:student',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   50 => 
@@ -818,10 +618,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   51 => 
   array (
@@ -834,10 +630,6 @@
       0 => 'auth',
       1 => 'role:admin',
       2 => 'role:staff',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   52 => 
@@ -852,10 +644,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   53 => 
   array (
@@ -868,10 +656,6 @@
       0 => 'auth',
       1 => 'role:admin',
       2 => 'role:staff',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   54 => 
@@ -886,10 +670,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   55 => 
   array (
@@ -903,10 +683,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   56 => 
   array (
@@ -918,10 +694,6 @@
     array (
       0 => 'auth',
       1 => 'role:student',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   57 => 
@@ -936,10 +708,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   58 => 
   array (
@@ -952,10 +720,6 @@
       0 => 'auth',
       1 => 'role:admin',
       2 => 'role:staff',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   59 => 
@@ -970,10 +734,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   60 => 
   array (
@@ -985,10 +745,6 @@
     array (
       0 => 'auth',
       1 => 'role:student',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   61 => 
@@ -1003,10 +759,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   62 => 
   array (
@@ -1020,10 +772,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   63 => 
   array (
@@ -1036,10 +784,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   64 => 
   array (
@@ -1051,10 +795,6 @@
     array (
       0 => 'auth',
       1 => 'role:staff',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   65 => 
@@ -1069,10 +809,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   66 => 
   array (
@@ -1085,10 +821,6 @@
       0 => 'auth',
       1 => 'role:admin',
       2 => 'role:staff',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   67 => 
@@ -1103,10 +835,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   68 => 
   array (
@@ -1120,10 +848,6 @@
       1 => 'role:admin',
       2 => 'role:staff',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   69 => 
   array (
@@ -1135,10 +859,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   70 => 
@@ -1152,10 +872,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   71 => 
   array (
@@ -1167,10 +883,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   72 => 
@@ -1184,10 +896,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   73 => 
   array (
@@ -1199,10 +907,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   74 => 
@@ -1216,10 +920,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   75 => 
   array (
@@ -1231,10 +931,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
   76 => 
@@ -1248,10 +944,6 @@
       0 => 'auth',
       1 => 'role:admin',
     ),
-    'meta' => 
-    array (
-      'type' => '',
-    ),
   ),
   77 => 
   array (
@@ -1263,10 +955,6 @@
     array (
       0 => 'auth',
       1 => 'role:admin',
-    ),
-    'meta' => 
-    array (
-      'type' => '',
     ),
   ),
 );
