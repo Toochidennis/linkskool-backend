@@ -4,8 +4,10 @@ namespace V3\App\Controllers\Portal\ELearning;
 
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\ELearning\AssignmentService;
 
+#[Group('/portal')]
 class AssignmentController extends BaseController
 {
     private AssignmentService $assignmentService;
@@ -16,6 +18,7 @@ class AssignmentController extends BaseController
         $this->assignmentService = new AssignmentService($this->pdo);
     }
 
+    #[Route('/elearning/assignment', 'POST', ['auth', 'role:admin', 'role:staff'])]
     public function store()
     {
         $data = $this->validate(
@@ -46,26 +49,23 @@ class AssignmentController extends BaseController
             ]
         );
 
-        try {
-            $id = $this->assignmentService->addAssignment($data);
+        $id = $this->assignmentService->addAssignment($data);
 
-            if ($id > 0) {
-                return $this->respond(
-                    data: [
-                        'success' => true,
-                        'message' => 'Assignment added successfully.',
-                        'id' => $id
-                    ],
-                    statusCode: HttpStatus::CREATED
-                );
-            }
-
-            return $this->respondError('Failed to add material');
-        } catch (\Exception $e) {
-            return $this->respondError($e->getMessage());
+        if ($id > 0) {
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'message' => 'Assignment added successfully.',
+                    'id' => $id
+                ],
+                statusCode: HttpStatus::CREATED
+            );
         }
+
+        return $this->respondError('Failed to add assignment', HttpStatus::BAD_REQUEST);
     }
 
+    #[Route('/elearning/assignment/{id:\d+}', 'PUT', ['auth', 'role:admin', 'role:staff'])]
     public function update(array $vars)
     {
         $data = $this->validate(
@@ -90,21 +90,17 @@ class AssignmentController extends BaseController
             ]
         );
 
-        try {
-            $id = $this->assignmentService->updateAssignment($data);
-            if ($id > 0) {
-                return $this->respond(
-                    data: [
-                        'success' => true,
-                        'message' => 'Assignment updated successfully.',
-                        'assignmentId' => $id
-                    ]
-                );
-            }
-
-            return $this->respondError('Failed to update material');
-        } catch (\Exception $e) {
-            return $this->respondError($e->getMessage());
+        $id = $this->assignmentService->updateAssignment($data);
+        if ($id > 0) {
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'message' => 'Assignment updated successfully.',
+                    'assignmentId' => $id
+                ]
+            );
         }
+
+        return $this->respondError('Failed to update assignment', HttpStatus::BAD_REQUEST);
     }
 }

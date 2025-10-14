@@ -2,7 +2,6 @@
 
 namespace V3\App\Controllers\Portal\Academics;
 
-use Exception;
 use V3\App\Common\Routing\{Route, Group};
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
@@ -19,6 +18,11 @@ class AttendanceController extends BaseController
         $this->attendanceService = new AttendanceService($this->pdo);
     }
 
+    #[Route(
+        "/courses/{course_id:\d+}/attendance/single",
+        method: 'GET',
+        middleware: ['auth', 'role:admin', 'role:staff']
+    )]
     public function addAttendance(array $vars)
     {
         $data = $this->validate(
@@ -42,7 +46,10 @@ class AttendanceController extends BaseController
             $response = $this->attendanceService->upsertAttendance($data);
             return $response['success']
                 ? $this->respond($response, HttpStatus::CREATED)
-                : $this->respondError($response['message'], HttpStatus::BAD_REQUEST);
+                : $this->respondError(
+                    $response['message'],
+                    HttpStatus::BAD_REQUEST
+                );
         } catch (Exception $e) {
             return $this->respondError($e->getMessage());
         }
@@ -82,6 +89,11 @@ class AttendanceController extends BaseController
         ]);
     }
 
+    #[Route(
+        "/courses/{course_id:\d+}/attendance/single",
+        method: 'GET',
+        middleware: ['auth', 'role:admin', 'role:staff']
+    )]
     public function getSingleCourseAttendance(array $vars)
     {
         $data = $this->validate(
@@ -100,7 +112,11 @@ class AttendanceController extends BaseController
         ], true);
     }
 
-    #[Route("/courses/{course_id:\d+}/attendance", method: 'GET', middleware: ['auth', 'role:admin'])]
+    #[Route(
+        "/courses/{course_id:\d+}/attendance",
+        method: 'GET',
+        middleware: ['auth', 'role:admin', 'role:staff']
+    )]
     public function getAllCourseAttendance(array $vars)
     {
         $data = $this->validate(
@@ -121,7 +137,11 @@ class AttendanceController extends BaseController
         ]);
     }
 
-    #[Route('/attendance/history', method:'GET', middleware: ['auth'])]
+    #[Route(
+        "/attendance/history",
+        method: 'GET',
+        middleware: ['auth', 'role:admin', 'role:staff']
+    )]
     public function getAttendanceHistory(array $vars)
     {
         $data = $this->validate(
@@ -149,13 +169,9 @@ class AttendanceController extends BaseController
 
     private function handleAttendanceFetch(array $filters, bool $single = false)
     {
-        try {
             return $this->respond(
                 $this->attendanceService
                     ->getAttendance($filters, singleRecord: $single)
             );
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
     }
 }
