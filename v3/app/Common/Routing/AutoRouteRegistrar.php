@@ -30,7 +30,8 @@ class AutoRouteRegistrar
                     $route['method'],
                     $route['path'],
                     [$route['class'], $route['methodName']],
-                    $route['middleware']
+                    $route['middleware'],
+                    $route['meta'],
                 );
             }
             return;
@@ -75,6 +76,7 @@ class AutoRouteRegistrar
                         'class'      => $className,
                         'methodName' => $method->getName(),
                         'middleware' => $route->middleware,
+                        'meta'       => ['type' => $route->type,
                     ];
 
                     $routes[] = $data;
@@ -83,7 +85,8 @@ class AutoRouteRegistrar
                         $data['method'],
                         $data['path'],
                         [$data['class'], $data['methodName']],
-                        $data['middleware']
+                        $data['middleware'],
+                        $data['meta'],
                     );
                 }
             }
