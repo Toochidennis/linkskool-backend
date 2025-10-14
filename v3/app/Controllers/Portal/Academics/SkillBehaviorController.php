@@ -83,7 +83,7 @@ class SkillBehaviorController extends BaseController
         ]);
     }
 
-    #[Route('/skill-behavior{id\d+}', 'DELETE', ['auth', 'role:admin'])]
+    #[Route('/skill-behavior{id:\d+}', 'DELETE', ['auth', 'role:admin'])]
     public function delete(array $vars)
     {
         $data = $this->validate($vars, ['id' => 'required|integer']);
