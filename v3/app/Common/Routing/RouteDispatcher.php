@@ -18,6 +18,7 @@ class RouteDispatcher
         $collector =  new CustomRouteCollector(new RouteParser(), new DataGen());
         $auto = new AutoRouteRegistrar($collector);
         $auto->registerControllers('V3\App\Controllers\Portal', '/portal', false);
+        $auto->registerControllers('V3\App\Controllers\Explore', '/public', false);
         //$auto->registerControllers('V3\App\Controllers\Learning', '/learning');
 
         $dispatcher = new GroupCountBasedDispatcher($collector->getData());

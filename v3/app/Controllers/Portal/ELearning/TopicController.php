@@ -5,8 +5,10 @@ namespace V3\App\Controllers\Portal\ELearning;
 use Exception;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\ELearning\TopicService;
 
+#[Group('/portal')]
 class TopicController extends BaseController
 {
     private TopicService $topicService;
@@ -17,6 +19,7 @@ class TopicController extends BaseController
         $this->topicService = new TopicService($this->pdo);
     }
 
+    #[Route('/elearning/topic', 'POST', ['auth', 'role:admin', 'role:staff'])]
     public function store()
     {
         $data =  $this->validate(
@@ -56,6 +59,9 @@ class TopicController extends BaseController
         }
     }
 
+
+    #[Route('/elearning/topic/{id:\d+}', 'PUT', ['auth', 'role:admin', 'role:staff'])]
+
     public function update()
     {
         $data = $this->validate(
@@ -86,6 +92,7 @@ class TopicController extends BaseController
         }
     }
 
+    #[Route('/elearning/syllabus/{syllabus_id:\d+}/topics', 'GET', ['auth', 'role:admin', 'role:staff'])]
     public function get(array $vars)
     {
         $data = $this->validate($vars, ['syllabus_id' => 'required|integer']);

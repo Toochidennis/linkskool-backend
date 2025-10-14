@@ -48,4 +48,11 @@ class SkillBehaviorService
     {
         return $this->skillBehavior->get();
     }
+
+    public function deleteSkill(int $id): bool
+    {
+        return $this->skillBehavior
+            ->where('id', $id)
+            ->delete();
+    }
 }
