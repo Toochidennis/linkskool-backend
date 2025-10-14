@@ -46,7 +46,7 @@ class SkillBehaviorController extends BaseController
         );
     }
 
-    #[Route('/skill-behavior/{id:\d+}', 'POST', ['auth', 'role:admin'])]
+    #[Route('/skill-behavior/{id:\d+}', 'PUT', ['auth', 'role:admin'])]
     public function update(array $vars)
     {
         $data = $this->validate(
@@ -74,7 +74,7 @@ class SkillBehaviorController extends BaseController
         );
     }
 
-    #[Route('/skill-behavior', 'POST', ['auth', 'role:admin'])]
+    #[Route('/skill-behavior', 'GET', ['auth', 'role:admin'])]
     public function get()
     {
         return $this->respond([
@@ -83,7 +83,7 @@ class SkillBehaviorController extends BaseController
         ]);
     }
 
-    #[Route('/skill-behavior{id\d+}', 'POST', ['auth', 'role:admin'])]
+    #[Route('/skill-behavior{id\d+}', 'DELETE', ['auth', 'role:admin'])]
     public function delete(array $vars)
     {
         $data = $this->validate($vars, ['id' => 'required|integer']);
