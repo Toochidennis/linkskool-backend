@@ -5,8 +5,10 @@ namespace V3\App\Controllers\Portal\Results;
 use Exception;
 use V3\App\Controllers\BaseController;
 use V3\App\Common\Utilities\HttpStatus;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Results\ResultCommentService;
 
+#[Group('/portal')]
 class ResultCommentController extends BaseController
 {
     private ResultCommentService $service;
@@ -17,52 +19,57 @@ class ResultCommentController extends BaseController
         $this->service = new ResultCommentService($this->pdo);
     }
 
+    #[Route('/students', 'POST', ['auth', 'role:admin', 'role:staff'])]
     public function store()
     {
-        $data = $this->validateData(
+        $data = $this->validate(
             $this->post,
-            ['student_id', 'comment', 'role', 'year', 'term']
+            [
+                'student_id' => 'required|integer',
+                'comment' => 'required|string',
+                'year' => 'required|integer',
+                'term' => 'required|integer|in:1,2,3'
+            ]
         );
 
-        try {
-            $commentId = $this->service->insertComment($data);
+        $commentId = $this->service->insertComment($data);
 
-            if ($commentId) {
-                return $this->respond([
-                    'success' => true,
-                    'message' => 'Comment added successfully.'
-                ], HttpStatus::CREATED);
-            }
-
-            return $this->respondError(
-                'Failed to add comment',
-                HttpStatus::BAD_REQUEST
-            );
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+        if ($commentId) {
+            return $this->respond([
+                'success' => true,
+                'message' => 'Comment added successfully.'
+            ], HttpStatus::CREATED);
         }
+
+        return $this->respondError(
+            'Failed to add comment',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
+    #[Route('/students', 'PUT', ['auth', 'role:admin', 'role:staff'])]
     public function update(array $vars)
     {
-        $data = $this->validateData($vars, ['id', 'comment']);
+        $data = $this->validate(
+            array_merge($vars, $this->post),
+            [
+                'id' => 'required|integer',
+                'comment' => 'required|string'
+            ]
+        );
 
-        try {
-            $updated = $this->service->updateComment($data);
+        $updated = $this->service->updateComment($data);
 
-            if ($updated) {
-                return $this->respond([
-                    'success' => true,
-                    'message' => 'Comment updated successfully.'
-                ], HttpStatus::CREATED);
-            }
-
-            return $this->respondError(
-                'Failed to update comment.',
-                HttpStatus::BAD_REQUEST
-            );
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+        if ($updated) {
+            return $this->respond([
+                'success' => true,
+                'message' => 'Comment updated successfully.'
+            ], HttpStatus::CREATED);
         }
+
+        return $this->respondError(
+            'Failed to update comment.',
+            HttpStatus::BAD_REQUEST
+        );
     }
 }
