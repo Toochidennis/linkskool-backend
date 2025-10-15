@@ -4,12 +4,11 @@ namespace V3\App\Controllers;
 
 use PDO;
 use V3\App\Database\DatabaseConnector;
-use V3\App\Common\Traits\{ValidationTrait, PermissionTrait};
+use V3\App\Common\Traits\ValidationTrait;
 use V3\App\Common\Utilities\{DataExtractor, ResponseHandler, HttpStatus, Sanitizer};
 
 abstract class BaseController
 {
-    use PermissionTrait;
     use ValidationTrait;
 
     /**
