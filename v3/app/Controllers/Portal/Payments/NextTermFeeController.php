@@ -18,7 +18,6 @@ class NextTermFeeController extends BaseController
         $this->nextTermFeeService = new NextTermFeeService($this->pdo);
     }
 
-
     #[Route(
         '/invoices',
         'POST',
