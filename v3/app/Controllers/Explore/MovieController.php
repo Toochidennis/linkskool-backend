@@ -6,7 +6,7 @@ use V3\App\Common\Utilities\ResponseHandler;
 use V3\App\Services\Explore\MovieService;
 use V3\App\Common\Routing\{Route, Group};
 
-#[Group('/public')]
+#[Group('/public/movies')]
 class MovieController
 {
     private MovieService $movieService;
@@ -17,7 +17,7 @@ class MovieController
         $this->movieService = new MovieService();
     }
 
-    #[Route('/movies/all', 'GET', [])]
+    #[Route('/all', 'GET', [])]
     public function getAllMovies()
     {
         $this->response['data'] = $this->movieService->getAll();
@@ -31,14 +31,14 @@ class MovieController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    #[Route('movies/category/{cat}', 'GET', [])]
+    #[Route('/category/{cat}', 'GET', [])]
     public function getByCategory(array $vars)
     {
         $this->response['data'] = $this->movieService->getMoviesByCategory(strtolower(($vars['cat'])));
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    #[Route('movies/genres/{id:\d+}', 'GET', [])]
+    #[Route('/genres/{id:\d+}', 'GET', [])]
     public function getByGenre(array $vars)
     {
         $this->response['data'] = $this->movieService->getMoviesByGenre($vars['id']);
@@ -52,14 +52,14 @@ class MovieController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    #[Route('movies/genres', 'GET', [])]
+    #[Route('/genres', 'GET', [])]
     public function getAllGenres()
     {
         $this->response['data'] = $this->movieService->getGenres();
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    #[Route('movies/shorts', 'GET', [])]
+    #[Route('/shorts', 'GET', [])]
     public function getAllShorts()
     {
         ResponseHandler::sendJsonResponse(
