@@ -30,7 +30,7 @@ class AutoRouteRegistrar
                     $route['method'],
                     $route['path'],
                     [$route['class'], $route['methodName']],
-                    $route['middleware'],
+                    $route['middleware']
                 );
             }
             return;
@@ -38,7 +38,11 @@ class AutoRouteRegistrar
 
         // Scan controllers recursively
         $routes = [];
-        $controllerPath = __DIR__ . '/../../Controllers/' . str_replace('\\', '/', basename($baseNamespace));
+        $controllerPath = $this->namespaceToPath($baseNamespace);
+
+        if (!$controllerPath || !is_dir($controllerPath)) {
+            throw new \RuntimeException("Controller path not found: {$controllerPath}");
+        }
         $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($controllerPath));
 
         foreach ($iterator as $file) {
@@ -92,6 +96,13 @@ class AutoRouteRegistrar
         if ($useCache) {
             $this->storeCache($routes, $cacheFile);
         }
+    }
+
+    private function namespaceToPath(string $namespace): string
+    {
+        $relative = str_replace('V3\\App\\', '', $namespace);
+        $path = __DIR__ . '/../../' . str_replace('\\', '/', $relative);
+        return realpath($path);
     }
 
     private function storeCache(array $routes, string $cacheFile): void
