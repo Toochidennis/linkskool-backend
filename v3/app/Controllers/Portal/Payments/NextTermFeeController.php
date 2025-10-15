@@ -4,8 +4,10 @@ namespace V3\App\Controllers\Portal\Payments;
 
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Payments\NextTermFeeService;
 
+#[Group('/portal/payments')]
 class NextTermFeeController extends BaseController
 {
     private NextTermFeeService $nextTermFeeService;
@@ -16,6 +18,12 @@ class NextTermFeeController extends BaseController
         $this->nextTermFeeService = new NextTermFeeService($this->pdo);
     }
 
+
+    #[Route(
+        '/invoices',
+        'POST',
+        ['auth', 'role:admin']
+    )]
     public function upsert()
     {
         $cleanedData = $this->validate(
@@ -31,24 +39,25 @@ class NextTermFeeController extends BaseController
             ]
         );
 
-        try {
-            $newId = $this->nextTermFeeService->upsertFeeAmount($cleanedData);
+        $newId = $this->nextTermFeeService->upsertFeeAmount($cleanedData);
 
-            if ($newId > 0) {
-                $this->respond([
-                    'success' => true,
-                    'message' => 'Next term fee added successfully'
-                ]);
-            }
-            $this->respondError(
-                'Failed to add fee. Are there students in this class?',
-                HttpStatus::BAD_REQUEST
-            );
-        } catch (\Exception $e) {
-            $this->respondError($e->getMessage());
+        if ($newId > 0) {
+            $this->respond([
+                'success' => true,
+                'message' => 'Next term fee added successfully'
+            ]);
         }
+        $this->respondError(
+            'Failed to add fee. Are there students in this class?',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
+    #[Route(
+        '/invoices',
+        'GET',
+        ['auth', 'role:admin']
+    )]
     public function get(array $vars)
     {
         $cleanedData = $this->validate(
@@ -60,49 +69,9 @@ class NextTermFeeController extends BaseController
             ]
         );
 
-        try {
-            $this->respond([
-                'success' => true,
-                'response' => $this->nextTermFeeService->termFeesByLevel($cleanedData),
-            ]);
-        } catch (\Exception $e) {
-            $this->respondError($e->getMessage());
-        }
+        $this->respond([
+            'success' => true,
+            'response' => $this->nextTermFeeService->termFeesByLevel($cleanedData),
+        ]);
     }
 }
-
-// /Models
-//   - Account.php
-//   - FeeType.php
-//   - FeeAmount.php
-//   - Vendor.php
-//   - Expenditure.php
-//   - Receipt.php
-//   - Transaction.php
-//   - Payment.php
-
-// /Controllers
-//   - AccountController.php
-//   - FeeTypeController.php
-//   - FeeAmountController.php
-//   - VendorController.php
-//   - ExpenditureController.php
-//   - ReceiptController.php
-//   - TransactionController.php
-//   - StudentPaymentController.php
-//   - PaymentStatusController.php
-//   - PaymentDashboardController.php
-//   - ReceiptViewerController.php
-
-// /Services
-//   - AccountService.php
-//   - FeeTypeService.php
-//   - FeeAmountService.php
-//   - VendorService.php
-//   - ExpenditureService.php
-//   - ReceiptService.php
-//   - TransactionService.php
-//   - StudentPaymentService.php
-//   - PaymentStatusService.php
-//   - PaymentAnalyticsService.php
-//   - ReceiptGeneratorService.php
