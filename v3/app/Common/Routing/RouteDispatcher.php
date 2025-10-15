@@ -65,10 +65,8 @@ class RouteDispatcher
                 $queryParams = $_GET ?? [];
                 $vars = array_merge($vars, $queryParams);
 
-                // Build the handler key (same as used in CustomRouteCollector)
                 $key = "$controller@$method";
 
-                // Fetch middleware by key
                 $middlewares = $collector->getMiddlewares($key);
                 MiddlewareExecutor::run($middlewares);
 
