@@ -2,11 +2,12 @@
 
 namespace V3\App\Controllers\Portal\Payments;
 
-use Exception;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Payments\AccountService;
 
+#[Group('/portal/payments')]
 class AccountController extends BaseController
 {
     private AccountService $service;
@@ -17,6 +18,11 @@ class AccountController extends BaseController
         $this->service = new AccountService($this->pdo);
     }
 
+    #[Route(
+        '/accounts',
+        'POST',
+        ['auth', 'role:admin']
+    )]
     public function store()
     {
         $cleanedData = $this->validate(
@@ -28,28 +34,29 @@ class AccountController extends BaseController
             ]
         );
 
-        try {
-            $newId = $this->service->addAccount($cleanedData);
+        $newId = $this->service->addAccount($cleanedData);
 
-            if ($newId > 0) {
-                $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Account added successfully'
-                    ],
-                    HttpStatus::CREATED
-                );
-            }
-
-            $this->respondError(
-                'Failed to add account. Maybe it already exist',
-                HttpStatus::BAD_REQUEST
+        if ($newId > 0) {
+            $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Account added successfully'
+                ],
+                HttpStatus::CREATED
             );
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
         }
+
+        $this->respondError(
+            'Failed to add account. Maybe it already exist',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
+    #[Route(
+        '/accounts/{id:\d+}',
+        'PUT',
+        ['auth', 'role:admin']
+    )]
     public function update(array $vars)
     {
         $cleanedData = $this->validate(
@@ -62,27 +69,28 @@ class AccountController extends BaseController
             ]
         );
 
-        try {
-            $newId = $this->service->updateAccount($cleanedData);
+        $newId = $this->service->updateAccount($cleanedData);
 
-            if ($newId > 0) {
-                $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Account updated successfully'
-                    ],
-                );
-            }
-
-            $this->respondError(
-                'Failed to update account. Maybe it already exist',
-                HttpStatus::BAD_REQUEST
+        if ($newId > 0) {
+            $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Account updated successfully'
+                ],
             );
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
         }
+
+        $this->respondError(
+            'Failed to update account. Maybe it already exist',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
+    #[Route(
+        '/accounts',
+        'GET',
+        ['auth', 'role:admin']
+    )]
     public function get(array $vars)
     {
         $cleanedData = $this->validate(
@@ -93,41 +101,38 @@ class AccountController extends BaseController
             ]
         );
 
-        try {
-            $this->respond([
-                'success' => true,
-                'response' => $this->service->getPaginatedAccounts(
-                    $cleanedData['page'],
-                    $cleanedData['limit']
-                ),
-            ]);
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
-        }
+        $this->respond([
+            'success' => true,
+            'response' => $this->service->getPaginatedAccounts(
+                $cleanedData['page'],
+                $cleanedData['limit']
+            ),
+        ]);
     }
 
+    #[Route(
+        '/accounts/{id:\d+}',
+        'DELETE',
+        ['auth', 'role:admin']
+    )]
     public function delete(array $vars)
     {
         $cleanedData = $this->validate($vars, ['id' => 'required|integer']);
 
-        try {
-            $newId = $this->service->deleteAccount($cleanedData['id']);
+        $newId = $this->service->deleteAccount($cleanedData['id']);
 
-            if ($newId > 0) {
-                $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Account deleted successfully'
-                    ],
-                );
-            }
-
-            $this->respondError(
-                'Failed to delete account. Maybe it doesn\'t exist',
-                HttpStatus::BAD_REQUEST
+        if ($newId > 0) {
+            $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Account deleted successfully'
+                ],
             );
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
         }
+
+        $this->respondError(
+            'Failed to delete account. Maybe it doesn\'t exist',
+            HttpStatus::BAD_REQUEST
+        );
     }
 }

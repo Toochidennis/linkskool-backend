@@ -35,8 +35,20 @@ class ResultCommentService
 
     public function updateComment(array $data)
     {
+        $payload = [
+            'year' => $data['year'],
+            'term' => $data['term'],
+            'reg_no' => $data['student_id'],
+        ];
+
+        if ($this->role === 'admin') {
+            $payload['principal'] = $data['comment'];
+        } else {
+            $payload['form_teacher'] = $data['comment'];
+        }
+
         return $this->resultComment
             ->where('id', '=', $data['id'])
-            ->update(['comment' => $data['comment']]);
+            ->update($payload);
     }
 }

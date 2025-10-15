@@ -2,11 +2,12 @@
 
 namespace V3\App\Controllers\Portal\Results;
 
-use Exception;
 use V3\App\Controllers\BaseController;
 use V3\App\Common\Utilities\HttpStatus;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Results\ResultService;
 
+#[Group('/portal')]
 class ResultController extends BaseController
 {
     private ResultService $service;
@@ -17,28 +18,34 @@ class ResultController extends BaseController
         $this->service = new ResultService($this->pdo);
     }
 
+    #[Route(
+        '/result/class-result',
+        'PUT',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function updateResult()
     {
-        $requiredFields = [
-            'course_results',
-            'course_results.*.result_id',
-            'course_results.*.staff_id',
-            'course_results.*.assessments',
-        ];
-        $data = $this->validateData($this->post, $requiredFields);
+        $data = $this->validate(
+            $this->post,
+            [
+                'course_results' => 'required|array|min:1',
+                'course_results.*.result_id' => 'required|integer',
+                'course_results.*.staff_id' => 'required|integer',
+                'course_results.*.assessments' => 'required|array',
+            ]
+        );
 
-        try {
-            $updated = $this->service->updateRecord($data['course_results']);
-            if ($updated) {
-                return $this->respond([
-                    'success' => true,
-                    'message' => 'Course results added successfully.'
-                ]);
-            }
-
-            return $this->respondError('Failed to add course results.', HttpStatus::BAD_REQUEST);
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
+        $updated = $this->service->updateRecord($data['course_results']);
+        if ($updated) {
+            return $this->respond([
+                'success' => true,
+                'message' => 'Course results added successfully.'
+            ]);
         }
+
+        return $this->respondError(
+            'Failed to add course results.',
+            HttpStatus::BAD_REQUEST
+        );
     }
 }
