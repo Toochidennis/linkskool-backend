@@ -54,5 +54,7 @@ class MiddlewareExecutor
                 'status'  => HttpStatus::FORBIDDEN
             ]);
         }
+
+        $_SESSION['role'] = $userRole;
     }
 }
