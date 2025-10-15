@@ -2,10 +2,11 @@
 
 namespace V3\App\Controllers\Portal\ELearning;
 
-use Exception;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\ELearning\StudentContentManagerService;
 
+#[Group('/portal')]
 class StudentContentManagerController extends BaseController
 {
     private StudentContentManagerService $studentContent;
@@ -16,6 +17,11 @@ class StudentContentManagerController extends BaseController
         $this->studentContent = new StudentContentManagerService($this->pdo);
     }
 
+    #[Route(
+        '/students/{id:\d+}/elearning/dashboard',
+        'GET',
+        ['auth', 'role:student']
+    )]
     public function dashboard(array $vars)
     {
         $data = $this->validate(
@@ -29,13 +35,9 @@ class StudentContentManagerController extends BaseController
             ]
         );
 
-        try {
-            $this->respond([
-                'success' => true,
-                'data' => $this->studentContent->getStudentDashboardData($data)
-            ]);
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
-        }
+        $this->respond([
+            'success' => true,
+            'data' => $this->studentContent->getStudentDashboardData($data)
+        ]);
     }
 }

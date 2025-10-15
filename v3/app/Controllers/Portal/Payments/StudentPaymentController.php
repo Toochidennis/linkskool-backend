@@ -4,8 +4,10 @@ namespace V3\App\Controllers\Portal\Payments;
 
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Payments\StudentPaymentService;
 
+#[Group('/portal')]
 class StudentPaymentController extends BaseController
 {
     private StudentPaymentService $studentPayment;
@@ -16,6 +18,11 @@ class StudentPaymentController extends BaseController
         $this->studentPayment = new StudentPaymentService($this->pdo);
     }
 
+    #[Route(
+        '/students/{student_id:\d+}/make-payment',
+        'POST',
+        ['auth', 'role:admin', 'role:student']
+    )]
     public function makePayment(array $vars)
     {
         $cleanedData = $this->validate(
@@ -39,40 +46,37 @@ class StudentPaymentController extends BaseController
             ],
         );
 
-        try {
-            $newId = $this->studentPayment->addPayment($cleanedData);
+        $newId = $this->studentPayment->addPayment($cleanedData);
 
-            if ($newId) {
-                $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Payment successful'
-                    ],
-                    HttpStatus::CREATED
-                );
-            }
-
-            $this->respondError(
-                'Validation failed',
-                HttpStatus::BAD_REQUEST
+        if ($newId) {
+            $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Payment successful'
+                ],
+                HttpStatus::CREATED
             );
-        } catch (\Exception $e) {
-            $this->respondError($e->getMessage());
         }
+
+        $this->respondError(
+            'Validation failed',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
+    #[Route(
+        '/students/{student_id:\d+}/financial-records',
+        'GET',
+        ['auth', 'role:student']
+    )]
     public function getFinancialRecords(array $vars)
     {
         $cleanedData = $this->validate($vars, ['student_id' => 'required|integer']);
 
-        try {
-            $this->respond([
-                'success' => true,
-                'response' => $this->studentPayment
-                    ->getInvoiceAndTransactionHistory($cleanedData['student_id']),
-            ]);
-        } catch (\Exception $e) {
-            $this->respondError($e->getMessage());
-        }
+        $this->respond([
+            'success' => true,
+            'response' => $this->studentPayment
+                ->getInvoiceAndTransactionHistory($cleanedData['student_id']),
+        ]);
     }
 }

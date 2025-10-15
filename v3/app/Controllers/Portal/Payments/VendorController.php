@@ -4,8 +4,10 @@ namespace V3\App\Controllers\Portal\Payments;
 
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Payments\VendorService;
 
+#[Group('/portal/payments')]
 class VendorController extends BaseController
 {
     private VendorService $vendorService;

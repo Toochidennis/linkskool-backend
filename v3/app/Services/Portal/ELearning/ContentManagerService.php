@@ -411,35 +411,31 @@ class ContentManagerService
     }
     public function deleteContent($id): bool
     {
-        try {
-            $content = $this->content
-                ->where('id', '=', $id)
-                ->first();
+        $content = $this->content
+            ->where('id', '=', $id)
+            ->first();
 
-            if (empty($content)) {
-                throw new \Exception("Content not found for ID: $id");
-            }
-
-            $type = $content['type'];
-
-            // Handle specific deletion logic based on type
-            match ($type) {
-                ContentType::QUIZ->value => $this->deleteQuizContent($content),
-                ContentType::MATERIAL->value, ContentType::ASSIGNMENT->value => $this->deleteContentFiles($content),
-                ContentType::TOPIC->value => $this->deleteTopicAndUpdateChildren($id),
-                ContentType::SYLLABUS->value => $this->deleteSyllabusIfNoChildren($id),
-                default => throw new \Exception("Unknown content type: {$type}")
-            };
-
-            // Finally delete the content row
-            $this->content
-                ->where('id', '=', $id)
-                ->delete();
-
-            return true;
-        } catch (\Throwable $e) {
-            throw $e;
+        if (empty($content)) {
+            throw new \Exception("Content not found for ID: $id");
         }
+
+        $type = $content['type'];
+
+        // Handle specific deletion logic based on type
+        match ($type) {
+            ContentType::QUIZ->value => $this->deleteQuizContent($content),
+            ContentType::MATERIAL->value, ContentType::ASSIGNMENT->value => $this->deleteContentFiles($content),
+            ContentType::TOPIC->value => $this->deleteTopicAndUpdateChildren($id),
+            ContentType::SYLLABUS->value => $this->deleteSyllabusIfNoChildren($id),
+            default => throw new \Exception("Unknown content type: {$type}")
+        };
+
+        // Finally delete the content row
+        $this->content
+            ->where('id', '=', $id)
+            ->delete();
+
+        return true;
     }
 
     private function deleteContentFiles(array $content): void

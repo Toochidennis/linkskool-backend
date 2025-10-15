@@ -2,7 +2,6 @@
 
 namespace V3\App\Controllers\Portal\Results;
 
-use Exception;
 use V3\App\Controllers\BaseController;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Common\Routing\{Route, Group};
@@ -19,7 +18,11 @@ class ResultCommentController extends BaseController
         $this->service = new ResultCommentService($this->pdo);
     }
 
-    #[Route('/students', 'POST', ['auth', 'role:admin', 'role:staff'])]
+    #[Route(
+        '/students/result/comment',
+        'POST',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function store()
     {
         $data = $this->validate(
@@ -47,14 +50,21 @@ class ResultCommentController extends BaseController
         );
     }
 
-    #[Route('/students', 'PUT', ['auth', 'role:admin', 'role:staff'])]
+    #[Route(
+        '/students/result/comment/{id:\d+}',
+        'PUT',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function update(array $vars)
     {
         $data = $this->validate(
             array_merge($vars, $this->post),
             [
                 'id' => 'required|integer',
-                'comment' => 'required|string'
+                'student_id' => 'required|integer',
+                'comment' => 'required|string',
+                'year' => 'required|integer',
+                'term' => 'required|integer|in:1,2,3'
             ]
         );
 

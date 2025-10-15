@@ -2,11 +2,12 @@
 
 namespace V3\App\Controllers\Portal\Results;
 
-use Exception;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Results\StudentSkillBehaviorService;
 
+#[Group('/portal')]
 class StudentSkillBehaviorController extends BaseController
 {
     private StudentSkillBehaviorService $service;
@@ -17,6 +18,11 @@ class StudentSkillBehaviorController extends BaseController
         $this->service = new StudentSkillBehaviorService($this->pdo);
     }
 
+    #[Route(
+        '/students/skill-behavior',
+        'POST',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function upsertSkills()
     {
         $data = $this->validate(
@@ -33,25 +39,29 @@ class StudentSkillBehaviorController extends BaseController
             ]
         );
 
-        try {
-            $inserted = $this->service->upsertSkills($data);
+        $inserted = $this->service->upsertSkills($data);
 
-            if ($inserted) {
-                return $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Student skills added successfully.'
-                    ],
-                    HttpStatus::CREATED
-                );
-            }
-
-            return $this->respondError('Failed to add student skills');
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+        if ($inserted) {
+            return $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Student skills added successfully.'
+                ],
+                HttpStatus::CREATED
+            );
         }
+
+        return $this->respondError(
+            'Failed to add student skills',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
+    #[Route(
+        '/classes/{class_id:\d+}/skill-behavior',
+        'GET',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function getStudentsSkillBehavior(array $vars)
     {
         $data = $this->validate(
@@ -64,13 +74,9 @@ class StudentSkillBehaviorController extends BaseController
             ]
         );
 
-        try {
-            return $this->respond([
-                'success' => true,
-                'response' => $this->service->getStudentsSkillBehavior($data)
-            ]);
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
+        return $this->respond([
+            'success' => true,
+            'response' => $this->service->getStudentsSkillBehavior($data)
+        ]);
     }
 }
