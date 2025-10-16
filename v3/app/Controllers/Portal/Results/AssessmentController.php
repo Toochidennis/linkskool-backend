@@ -27,7 +27,7 @@ class AssessmentController extends BaseController
                 'assessments' => 'required|array|min:1',
                 'assessments.*.assessment_name' => 'required|string',
                 'assessments.*.max_score' => 'required|integer',
-                'assessments.*.level_id' => 'required|integer|min:1',
+                'assessments.*.level_id' => 'required|integer',
                 'assessments.*.type' => 'required|integer'
             ]
         );
@@ -56,7 +56,7 @@ class AssessmentController extends BaseController
                 'id' => 'required|integer|min:1',
                 'assessment_name' => 'required|string',
                 'max_score' => 'required|integer|min:1',
-                'level_id' => 'required|integer|min:1',
+                'level_id' => 'required|integer',
                 'type' => 'required|integer'
             ]
         );
