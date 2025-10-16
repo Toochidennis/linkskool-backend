@@ -1,0 +1,3 @@
+[2025-10-16 18:00:53] EXCEPTION: Request not allowed for table videosTable in C:\xampp\htdocs\api3\v3\app\Database\Query\QueryBuilder.php on line 502
+Request: GET /api3/v3/public/videos? from ::1
+
