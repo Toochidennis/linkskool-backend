@@ -86,6 +86,8 @@ class Tables
         'ward',
         'question_table',
         'customer',
-        'responses'
+        'responses',
+        'exam',
+        'exam_type',
     ];
 }
