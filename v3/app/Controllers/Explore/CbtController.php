@@ -19,20 +19,43 @@ class CbtController
         $this->cbtService = new CbtService($pdo);
     }
 
-    #[Route('/exam-types', 'GET', ['api'])]
-    public function index()
+    /**
+     * GET /public/cbt/exams
+     * Returns all exam types with their courses and available years.
+     */
+    #[Route('/exams', 'GET', ['api'])]
+    public function getAllExams()
     {
-        ResponseHandler::sendJsonResponse(
-            response: [
-                'success' => true,
-                'data' => $this->cbtService->getFormattedExamHierarchy()
-            ]
-        );
+        ResponseHandler::sendJsonResponse([
+            'success' => true,
+            'data' => $this->cbtService->getFormattedExamHierarchy()
+        ]);
     }
 
-    #[Route('/exam-types/{id:\d+}', 'GET', ['api'])]
+    /**
+     * GET /public/cbt/exams/{examTypeId}/courses
+     * Returns all courses for a given exam type.
+     */
+    #[Route('/exams/{examTypeId:\d+}/courses', 'GET', ['api'])]
+    public function getCoursesByExamType(array $vars)
+    {
+        // You’ll later add logic to fetch specific courses for a given examTypeId
+        ResponseHandler::sendJsonResponse([
+            'success' => true,
+            'message' => 'Coming soon: fetch courses by exam type',
+            'params'  => $vars
+        ]);
+    }
+
+    /**
+     * GET /public/cbt/exams/{examTypeId}/courses/{courseId}/questions
+     * Returns all questions for a given exam type and course.
+     */
+    #[Route('/exams/{exam_id:\d+}/questions', 'GET', ['api'])]
     public function getQuestions(array $vars)
     {
-
+        ResponseHandler::sendJsonResponse(
+            $this->cbtService->getExamWithQuestions($vars['exam_id'])
+        );
     }
 }
