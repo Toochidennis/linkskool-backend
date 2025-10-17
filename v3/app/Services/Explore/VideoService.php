@@ -4,7 +4,6 @@ namespace V3\App\Services\Explore;
 
 use V3\App\Models\Explore\Video;
 use V3\App\Models\Explore\Category;
-use V3\App\Models\Explore\ExamType;
 use V3\App\Models\Portal\Academics\Course;
 
 class VideoService
@@ -12,14 +11,12 @@ class VideoService
     private Video $video;
     private Course $course;
     private Category $category;
-    private ExamType $examType;
 
     public function __construct(\PDO $pdo)
     {
         $this->video     = new Video($pdo);
         $this->course    = new Course($pdo);
         $this->category  = new Category($pdo);
-        $this->examType  = new ExamType($pdo);
     }
 
     /**
@@ -28,8 +25,17 @@ class VideoService
     public function getVideos(): array
     {
         $videos = $this->video
-            ->select(['id', 'title', 'description', 'course_id', 'category_id', 'exam_type_id', 'url'])
-            ->orderBy('id', 'DESC')
+            ->select([
+                'videosTable.id',
+                'videosTable.videoTitle as title',
+                'videosTable.thumbnail',
+                'videosTable.course_id',
+                'videosTable.categoryId',
+                'videosTable.videoUrl as url',
+                'level.name as level_name'
+            ])
+            ->join('level', 'level.id = videosTable.level')
+            ->where('videoUrl', '<>', '')
             ->get();
 
         if (!$videos) {
@@ -39,26 +45,73 @@ class VideoService
         // Load reference data
         $courses   = $this->loadCourse();
         $categories = $this->loadCategory();
-        $examTypes = $this->loadExamType();
 
         // Map data for quick lookup
-        $courseMap = array_column($courses, 'course_name', 'id');
+        $courseMap = [];
+        foreach ($courses as $c) {
+            $courseMap[$c['id']] = $c['course_name'];
+        }
+
         $categoryMap = [];
         foreach ($categories as $c) {
             $categoryMap[$c['id']] = [
                 'course_id' => $c['course_id'],
-                'category_name' => $c['category_name']
+                'category_name' => $c['category_name'],
             ];
         }
 
-        // Attach related info to videos
-        return array_map(function ($video) use ($courseMap, $categoryMap, $examTypes) {
-            $video['course_name'] = $courseMap[$video['course_id']] ?? null;
-            $video['category'] = $categoryMap[$video['category_id']]['category_name'] ?? null;
-            $video['exam_type'] = $examTypes[$video['exam_type_id']]['title'] ?? null;
-            $video['exam_type_meta'] = $examTypes[$video['exam_type_id']] ?? null;
-            return $video;
-        }, $videos);
+        $arr = [];
+        $vtr = [];
+
+        // Rebuild array structure
+        foreach ($videos as $row) {
+            $courseId  = $row['course_id'];
+            $categoryId = $row['categoryId'];
+
+            // Set up course block
+            if (!isset($arr[$courseId])) {
+                $arr[$courseId] = [
+                    'id' => $courseId,
+                    'name' => $courseMap[$courseId] ?? 'Unknown Course',
+                    'category' => [],
+                ];
+            }
+
+            // Set up category block
+            if (!isset($vtr[$courseId][$categoryId])) {
+                $vtr[$courseId][$categoryId] = [
+                    'id' => $categoryId,
+                    'level' => $row['level'],
+                    'level_name' => $row['level_name'],
+                    'name' => $categoryMap[$categoryId]['category_name'] ?? 'Unknown Category',
+                    'videos' => [],
+                ];
+            }
+
+            // Format YouTube embed URL
+            $videoUrl = "https://www.youtube.com/embed/" . $row['videoUrl'] . "?modestbranding=0&showinfo=0";
+
+            // Append video to category
+            $vtr[$courseId][$categoryId]['videos'][] = [
+                'id' => $row['id'],
+                'title' => $row['videoTitle'],
+                'url' => $videoUrl,
+                'thumbnail' => $row['thumbnail'],
+            ];
+
+            // Attach to course
+            $arr[$courseId]['category'] = $vtr[$courseId];
+        }
+
+        // Sort alphabetically by course name and category name
+        usort($arr, fn($a, $b) => strcmp($a['name'], $b['name']));
+        foreach ($arr as &$course) {
+            $categories = array_values($course['category']);
+            usort($categories, fn($a, $b) => strcmp($a['name'], $b['name']));
+            $course['category'] = $categories;
+        }
+
+        return array_values($arr);
     }
 
     /**
@@ -81,34 +134,6 @@ class VideoService
             ->select(['id', 'course_id', 'categoryName AS category_name'])
             ->orderBy('categoryName')
             ->get();
-    }
-
-    /**
-     * Fetch exam type metadata and map by ID.
-     */
-    private function loadExamType(): array
-    {
-        $rows = $this->examType
-            ->select([
-                'id',
-                'title',
-                'description',
-                'shortname',
-                'picref'
-            ])
-            ->get();
-
-        $meta = [];
-        foreach ($rows as $row) {
-            $meta[$row['id']] = [
-                'title' => $row['title'],
-                'desc' => $row['description'],
-                'short' => $row['shortname'],
-                'pic' => $this->formatRef($row['picref'] ?? '')
-            ];
-        }
-
-        return $meta;
     }
 
     /**
