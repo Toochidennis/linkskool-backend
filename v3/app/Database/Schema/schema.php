@@ -6891,4 +6891,6 @@ return [
     ],
     'exam' => [],
     'exam_type' => [],
+    'videosTable' => [],
+    'categoryTable' => [],
 ];

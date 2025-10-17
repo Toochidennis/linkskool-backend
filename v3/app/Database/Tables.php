@@ -89,5 +89,7 @@ class Tables
         'responses',
         'exam',
         'exam_type',
+        'videosTable',
+        'categoryTable',
     ];
 }
