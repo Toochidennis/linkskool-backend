@@ -55,7 +55,6 @@ class VideoService
         $categoryMap = [];
         foreach ($categories as $c) {
             $categoryMap[$c['id']] = [
-                'course_id' => $c['course_id'],
                 'category_name' => $c['category_name'],
             ];
         }
@@ -81,7 +80,7 @@ class VideoService
             if (!isset($vtr[$courseId][$categoryId])) {
                 $vtr[$courseId][$categoryId] = [
                     'id' => $categoryId,
-                    'level' => $row['level'],
+                    'level' => $row['level_id'],
                     'level_name' => $row['level_name'],
                     'name' => $categoryMap[$categoryId]['category_name'] ?? 'Unknown Category',
                     'videos' => [],
@@ -89,12 +88,12 @@ class VideoService
             }
 
             // Format YouTube embed URL
-            $videoUrl = "https://www.youtube.com/embed/" . $row['videoUrl'] . "?modestbranding=0&showinfo=0";
+            $videoUrl = "https://www.youtube.com/embed/" . $row['url'] . "?modestbranding=0&showinfo=0";
 
             // Append video to category
             $vtr[$courseId][$categoryId]['videos'][] = [
                 'id' => $row['id'],
-                'title' => $row['videoTitle'],
+                'title' => $row['title'],
                 'url' => $videoUrl,
                 'thumbnail' => $row['thumbnail'],
             ];
@@ -131,16 +130,8 @@ class VideoService
     private function loadCategory(): array
     {
         return $this->category
-            ->select(['id', 'course_id', 'categoryName AS category_name'])
+            ->select(['id', 'categoryName AS category_name'])
             ->orderBy('categoryName')
             ->get();
-    }
-
-    /**
-     * Format absolute image path for thumbnails.
-     */
-    private function formatRef(string $url): string
-    {
-        return "http://" . $_SERVER['SERVER_NAME'] . "/$url";
     }
 }
