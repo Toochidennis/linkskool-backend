@@ -1,12 +1,12 @@
-[2025-10-16 18:00:53] EXCEPTION: Request not allowed for table videosTable in C:\xampp\htdocs\api3\v3\app\Database\Query\QueryBuilder.php on line 502
+[2025-10-18 14:20:37] EXCEPTION: Cannot access offset of type string on string in C:\xampp\htdocs\api3\v3\app\Common\Routing\AutoRouteRegistrar.php on line 73
 Request: GET /api3/v3/public/videos? from ::1
 
-[2025-10-17 09:59:57] EXCEPTION: Request not allowed for table videosTable in C:\xampp\htdocs\api3\v3\app\Database\Query\QueryBuilder.php on line 502
+[2025-10-18 14:21:07] EXCEPTION: Cannot access offset of type string on string in C:\xampp\htdocs\api3\v3\app\Common\Routing\AutoRouteRegistrar.php on line 73
 Request: GET /api3/v3/public/videos? from ::1
 
-[2025-10-17 12:59:33] EXCEPTION: Request not allowed for table categoryTable in C:\xampp\htdocs\api3\v3\app\Database\Query\QueryBuilder.php on line 502
-Request: GET /api3/v3/public/videos? from ::1
+[2025-10-18 14:22:26] EXCEPTION: Cannot access offset of type string on string in C:\xampp\htdocs\api3\v3\app\Common\Routing\AutoRouteRegistrar.php on line 73
+Request: GET /api3/v3/public/cbt/exams/910/questions? from ::1
 
-[2025-10-17 13:00:17] SQL EXCEPTION: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'title' in 'field list' in C:\xampp\htdocs\api3\v3\app\Database\Query\QueryBuilder.php on line 253
-Request: GET /api3/v3/public/videos? from ::1
+[2025-10-18 14:24:30] EXCEPTION: Cannot access offset of type string on string in C:\xampp\htdocs\api3\v3\app\Common\Routing\AutoRouteRegistrar.php on line 73
+Request: GET /api3/v3/public/cbt/exams/910/questions? from ::1
 
