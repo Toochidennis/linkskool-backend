@@ -10,3 +10,27 @@ Request: GET /api3/v3/public/cbt/exams/910/questions? from ::1
 [2025-10-18 14:24:30] EXCEPTION: Cannot access offset of type string on string in C:\xampp\htdocs\api3\v3\app\Common\Routing\AutoRouteRegistrar.php on line 73
 Request: GET /api3/v3/public/cbt/exams/910/questions? from ::1
 
+[2025-10-18 15:51:26] EXCEPTION: Cannot access offset of type string on string in C:\xampp\htdocs\api3\v3\app\Common\Routing\AutoRouteRegistrar.php on line 73
+Request: GET /api3/v3/public/cbt/exams? from ::1
+
+[2025-10-20 17:03:31] ERROR [2]: Undefined array key "level_id" in C:\xampp\htdocs\api3\v3\app\Services\Explore\VideoService.php on line 83
+Request: GET /api3/v3/public/videos? from ::1
+
+[2025-10-20 17:03:31] ERROR [2]: Undefined array key "level_id" in C:\xampp\htdocs\api3\v3\app\Services\Explore\VideoService.php on line 83
+Request: GET /api3/v3/public/videos? from ::1
+
+[2025-10-20 17:03:31] ERROR [2]: Undefined array key "level_id" in C:\xampp\htdocs\api3\v3\app\Services\Explore\VideoService.php on line 83
+Request: GET /api3/v3/public/videos? from ::1
+
+[2025-10-20 17:03:31] ERROR [2]: Undefined array key "level_id" in C:\xampp\htdocs\api3\v3\app\Services\Explore\VideoService.php on line 83
+Request: GET /api3/v3/public/videos? from ::1
+
+[2025-10-20 17:03:31] ERROR [2]: Undefined array key "level_id" in C:\xampp\htdocs\api3\v3\app\Services\Explore\VideoService.php on line 83
+Request: GET /api3/v3/public/videos? from ::1
+
+[2025-10-20 17:03:31] ERROR [2]: Undefined array key "level_id" in C:\xampp\htdocs\api3\v3\app\Services\Explore\VideoService.php on line 83
+Request: GET /api3/v3/public/videos? from ::1
+
+[2025-10-20 17:03:31] ERROR [2]: Undefined array key "level_id" in C:\xampp\htdocs\api3\v3\app\Services\Explore\VideoService.php on line 83
+Request: GET /api3/v3/public/videos? from ::1
+

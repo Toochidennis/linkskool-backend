@@ -17,7 +17,7 @@ class NewsController
         $this->newsService = new NewsService();
     }
 
-    #[Route("/news", 'GET'['api'])]
+    #[Route("/news", 'GET', ['api'])]
     public function index()
     {
         ResponseHandler::sendJsonResponse(
