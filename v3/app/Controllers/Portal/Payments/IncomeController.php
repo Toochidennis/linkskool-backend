@@ -19,7 +19,7 @@ class IncomeController extends BaseController
 
     #[Route(
         '/income/report/generate',
-        'GET',
+        'POST',
         ['auth', 'role:admin']
     )]
     public function generateReport()
