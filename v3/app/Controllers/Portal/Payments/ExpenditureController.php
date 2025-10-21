@@ -95,7 +95,7 @@ class ExpenditureController extends BaseController
 
     #[Route(
         '/expenditure/report/generate',
-        'GET',
+        'POST',
         ['auth', 'role:admin']
     )]
     public function generateReport()

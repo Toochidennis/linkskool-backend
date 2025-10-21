@@ -52,7 +52,7 @@ class StudentService
             'state_origin' => $data['state_origin'] ?? '',
             'nationality' => $data['nationality'] ?? '',
             'health_status' => $data['health_status'] ?? '',
-            'date_admitted' => date('Y-m-d'),
+            'date_admitted' => date('Y'),
             'status' => $data['student_status'] ?? '',
             'past_record' => $data['past_record'] ?? '',
             'result' => $data['academic_result'] ?? '',

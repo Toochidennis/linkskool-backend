@@ -91,13 +91,13 @@ class CourseController extends BaseController
         ]);
     }
 
-    #[Route('/courses', 'DELETE', ['auth', 'role:admin'])]
+    #[Route('/courses/{id:\d+}', 'DELETE', ['auth', 'role:admin'])]
     public function deleteCourse(array $vars)
     {
         $data = $this->validate(
             data: $vars,
             rules: [
-                'id' => 'required|integer|filled'
+                'id' => 'required|integer'
             ]
         );
 
