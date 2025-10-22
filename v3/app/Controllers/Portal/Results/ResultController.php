@@ -31,6 +31,7 @@ class ResultController extends BaseController
                 'course_results' => 'required|array|min:1',
                 'course_results.*.result_id' => 'required|integer',
                 'course_results.*.staff_id' => 'required|integer',
+                'course_results.*.total_score' => 'required|numeric',
                 'course_results.*.assessments' => 'required|array',
             ]
         );

@@ -31,7 +31,7 @@ class CourseRegistrationController extends BaseController
     }
 
     #[Route(
-        '/students/{student_id:\d+}/course-registration',
+        '/students/{student_id:\d+}/course-registrations',
         'POST',
         ['auth', 'role:admin']
     )]

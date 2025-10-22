@@ -38,8 +38,8 @@ class CbtService
     {
         return $this->exam
             ->select([
-                'id',
-                'course_name',
+                'ANY_VALUE(id) AS id',
+                'ANY_VALUE(course_name) AS course_name',
                 'course_id',
                 'exam_type',
                 'year'
@@ -67,6 +67,7 @@ class CbtService
                 'shortname',
                 'picref'
             ])
+            ->whereNotNull('shortname')
             ->get();
 
         $meta = [];
@@ -95,15 +96,18 @@ class CbtService
             $courseId   = $row['course_id'];
             $examId     = $row['id'];
 
+            if (!isset($examMeta[$examTypeId])) {
+                continue;
+            }
             // Create exam type group
             if (!isset($formatted[$examTypeId])) {
-                $meta = $examMeta[$examTypeId] ?? [];
+                $meta = $examMeta[$examTypeId];
                 $formatted[$examTypeId] = [
                     'exam_type_id'   => $examTypeId,
-                    'exam_image'     => $meta['pic'] ?? '',
-                    'exam_title'     => $meta['title'] ?? '',
-                    'exam_desc'      => $meta['desc'] ?? '',
-                    'exam_shortname' => $meta['short'] ?? '',
+                    'exam_image'     => $meta['pic'],
+                    'exam_title'     => $meta['title'],
+                    'exam_desc'      => $meta['desc'],
+                    'exam_shortname' => $meta['short'],
                     'courses'        => []
                 ];
             }
