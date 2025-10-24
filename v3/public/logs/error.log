@@ -1,3 +1,0 @@
-[2025-10-24 19:00:58] SQL EXCEPTION: SQLSTATE[HY000] [1049] Unknown database 'aalmgzmy_linkskoo_ddljuniorate2' in C:\xampp\htdocs\api3\v3\app\Database\DatabaseConnector.php on line 17
-Request: POST /api3/v3/portal/send-results? from ::1
-
