@@ -32,7 +32,8 @@ class VideoService
                 'videosTable.course_id',
                 'videosTable.categoryId',
                 'videosTable.videoUrl as url',
-                'level.name as level_name'
+                'level.name as level_name',
+                'level.id AS level_id'
             ])
             ->join('level', 'level.id = videosTable.level')
             ->where('videoUrl', '<>', '')

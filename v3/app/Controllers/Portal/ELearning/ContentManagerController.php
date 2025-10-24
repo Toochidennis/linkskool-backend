@@ -76,7 +76,7 @@ class ContentManagerController extends BaseController
     #[Route(
         '/elearning/syllabus/{syllabus_id:\d+}/contents',
         'GET',
-        ['auth', 'role:admin', 'role:staff']
+        ['auth']
     )]
     public function getAllContents(array $vars)
     {
