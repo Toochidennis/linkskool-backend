@@ -4,6 +4,7 @@ namespace V3\App\Common\Routing;
 
 use ReflectionClass;
 use ReflectionMethod;
+use V3\App\Common\Docs\SwaggerGenerator;
 
 class AutoRouteRegistrar
 {
@@ -113,11 +114,16 @@ class AutoRouteRegistrar
             mkdir($dir, 0777, true);
         }
         file_put_contents($cacheFile, $content);
+
+        $swaggerPath = __DIR__ . '/../../../public/docs/swagger.json';
+        //$routes = include $cacheFile;
+
+        SwaggerGenerator::generate($routes, $swaggerPath);
     }
 
     public function clearCache(?string $prefix = null): void
     {
-        $storageDir = __DIR__ . '/../../public/storage/';
+        $storageDir = __DIR__ . '/../../../public/storage/';
         if ($prefix) {
             $safePrefix = trim(str_replace('/', '_', $prefix), '_');
             $file = "{$storageDir}routes.{$safePrefix}.cache.php";

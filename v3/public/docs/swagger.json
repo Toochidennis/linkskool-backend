@@ -1,0 +1,365 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "LinkSkool API",
+        "version": "1.0.0",
+        "description": "Auto-generated API documentation with parameter detection (path + query)."
+    },
+    "servers": [
+        {
+            "url": "/",
+            "description": "Base server"
+        }
+    ],
+    "tags": [
+        {
+            "name": "public",
+            "description": "Public module"
+        }
+    ],
+    "paths": {
+        "/public/books": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Index",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\BookController::index",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/exams": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GET /public/cbt/exams\n     * Returns all exam types with their courses and available years.\n     */",
+                "description": "GET /public/cbt/exams\nReturns all exam types with their courses and available years.",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtController::getAllExams",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/exams/{examTypeId:\\d+}/courses": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GET /public/cbt/exams/{examTypeId}/courses\n     * Returns all courses for a given exam type.\n     */",
+                "description": "GET /public/cbt/exams/{examTypeId}/courses\nReturns all courses for a given exam type.",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtController::getCoursesByExamType",
+                "parameters": [
+                    {
+                        "name": "examTypeId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'examTypeId'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/exams/{exam_id:\\d+}/questions": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GET /public/cbt/exams/{examTypeId}/courses/{courseId}/questions\n     * Returns all questions for a given exam type and course.\n     */",
+                "description": "GET /public/cbt/exams/{examTypeId}/courses/{courseId}/questions\nReturns all questions for a given exam type and course.",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtController::getQuestions",
+                "parameters": [
+                    {
+                        "name": "exam_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'exam_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/for-you": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "ForYou",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ForYouController::forYou",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/games": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Index",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\GameController::index",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/movies/all": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAllMovies",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\MovieController::getAllMovies",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/movies/category/{cat}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetByCategory",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\MovieController::getByCategory",
+                "parameters": [
+                    {
+                        "name": "cat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'cat'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/movies/genres/{id:\\d+}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetByGenre",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\MovieController::getByGenre",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/movies/genres": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAllGenres",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\MovieController::getAllGenres",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/movies/shorts": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAllShorts",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\MovieController::getAllShorts",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/news": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Index",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\NewsController::index",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/key-buddy/content": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetContent",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\TemporalController::getContent",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/videos": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Index",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\VideoController::index",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    }
+}

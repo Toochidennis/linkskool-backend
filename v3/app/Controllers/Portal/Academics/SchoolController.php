@@ -16,19 +16,12 @@ class SchoolController
         $this->schoolService = new SchoolService(DatabaseConnector::connect());
     }
 
-    #[Route('/schools', method: 'GET')]
+    #[Route('/schools', 'GET', ['api'])]
     public function getSchools()
     {
-        try {
-            ResponseHandler::sendJsonResponse([
-                'success' => true,
-                'data' => $this->schoolService->getSchools()
-            ]);
-        } catch (\Exception $e) {
-            ResponseHandler::sendJsonResponse([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]);
-        }
+        ResponseHandler::sendJsonResponse([
+            'success' => true,
+            'data' => $this->schoolService->getSchools()
+        ]);
     }
 }
