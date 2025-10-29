@@ -67,7 +67,7 @@ class StudentPaymentController extends BaseController
     #[Route(
         '/students/{student_id:\d+}/financial-records',
         'GET',
-        ['auth', 'role:student']
+        ['auth', 'role:student', 'role:admin']
     )]
     public function getFinancialRecords(array $vars)
     {

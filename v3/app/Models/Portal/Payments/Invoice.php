@@ -4,7 +4,7 @@ namespace V3\App\Models\Portal\Payments;
 
 use V3\App\Models\BaseModel;
 
-class NextTermFee extends BaseModel
+class Invoice extends BaseModel
 {
     private string $table = 'next_term_fees';
 

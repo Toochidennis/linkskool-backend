@@ -5,17 +5,17 @@ namespace V3\App\Controllers\Portal\Payments;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
 use V3\App\Common\Routing\{Route, Group};
-use V3\App\Services\Portal\Payments\NextTermFeeService;
+use V3\App\Services\Portal\Payments\InvoiceService;
 
 #[Group('/portal/payments')]
-class NextTermFeeController extends BaseController
+class InvoiceController extends BaseController
 {
-    private NextTermFeeService $nextTermFeeService;
+    private InvoiceService $invoiceService;
 
     public function __construct()
     {
         parent::__construct();
-        $this->nextTermFeeService = new NextTermFeeService($this->pdo);
+        $this->invoiceService = new InvoiceService($this->pdo);
     }
 
     #[Route(
@@ -38,7 +38,7 @@ class NextTermFeeController extends BaseController
             ]
         );
 
-        $newId = $this->nextTermFeeService->upsertFeeAmount($cleanedData);
+        $newId = $this->invoiceService->upsertInvoice($cleanedData);
 
         if ($newId > 0) {
             $this->respond([
@@ -70,7 +70,7 @@ class NextTermFeeController extends BaseController
 
         $this->respond([
             'success' => true,
-            'response' => $this->nextTermFeeService->termFeesByLevel($cleanedData),
+            'response' => $this->invoiceService->getInvoicesByLevel($cleanedData),
         ]);
     }
 }
