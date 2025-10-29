@@ -84,9 +84,10 @@ class InvoiceService
         }
 
         foreach ($students as $student) {
-            $description = json_encode($data['fees']);
+            $filteredFees = array_values(array_filter($data['fees'], fn($fee) => $fee['amount'] > 0));
+            $description = json_encode($filteredFees);
             $amount = array_reduce(
-                $data['fees'],
+                $filteredFees,
                 fn($carry, $fee) => bcadd($carry, $fee['amount'], 2),
                 '0.00'
             );
