@@ -7,7 +7,7 @@
     },
     "servers": [
         {
-            "url": "/",
+            "url": "https://linkskool.net/api/v3/",
             "description": "Base server"
         }
     ],

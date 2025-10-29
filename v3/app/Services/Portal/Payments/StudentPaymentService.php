@@ -18,7 +18,11 @@ class StudentPaymentService
 
     public function getInvoiceAndTransactionHistory(int $studentId): array
     {
-        $formatted = [];
+        $formatted = [
+            'invoice' => [],
+            'payments' => []
+        ];
+
         $levelNames = [];
 
         $transactions = $this->transaction
@@ -162,6 +166,11 @@ class StudentPaymentService
             return false;
         }
 
+        if ($amountDue <= 0) {
+            return false;
+        }
+
+
         if ($payment > $amountDue) {
             $payment = $amountDue; // Cap payment to amount due
         }
@@ -179,7 +188,7 @@ class StudentPaymentService
         } else {
             return $this->transaction
                 ->where('tid', '=', $tid)
-                ->update(['approved' => 0, 'sub' => 0]);
+                ->update(['approved' => 0, 'sub' => 0, 'amount_due' => 0]);
         }
     }
 

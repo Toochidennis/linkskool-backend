@@ -4,20 +4,20 @@ namespace V3\App\Services\Portal\Payments;
 
 use V3\App\Models\Portal\Academics\Student;
 use V3\App\Models\Portal\Payments\FeeType;
-use V3\App\Models\Portal\Payments\NextTermFee;
+use V3\App\Models\Portal\Payments\Invoice;
 use V3\App\Models\Portal\Payments\Transaction;
 
-class NextTermFeeService
+class InvoiceService
 {
     private FeeType $feeType;
-    private NextTermFee $nextTermFee;
+    private Invoice $invoice;
     private Transaction $transaction;
     private Student $student;
 
     public function __construct(\PDO $pdo)
     {
         $this->feeType = new FeeType($pdo);
-        $this->nextTermFee = new NextTermFee($pdo);
+        $this->invoice = new Invoice($pdo);
         $this->transaction = new Transaction($pdo);
         $this->student = new Student($pdo);
     }
@@ -25,7 +25,7 @@ class NextTermFeeService
     /**
      * Insert or skip (if exists)
      */
-    public function upsertFeeAmount(array $data): bool
+    public function upsertInvoice(array $data): bool
     {
         foreach ($data['fees'] as $fee) {
             $payload = [
@@ -44,18 +44,18 @@ class NextTermFeeService
                 ['level', '=', $data['level_id']]
             ];
 
-            $exists = $this->nextTermFee
+            $exists = $this->invoice
                 ->whereGroup($conditions)
                 ->exists();
 
             if (!$exists) {
-                $inserted = $this->nextTermFee->insert($payload);
+                $inserted = $this->invoice->insert($payload);
 
                 if (!$inserted) {
                     return false;
                 }
             } else {
-                $updated = $this->nextTermFee->whereGroup($conditions)
+                $updated = $this->invoice->whereGroup($conditions)
                     ->update(['amount' => $fee['amount']]);
 
                 if ($updated === false) {
@@ -84,7 +84,6 @@ class NextTermFeeService
         }
 
         foreach ($students as $student) {
-            $tid = $data['year'] . $data['term'] . $student['id'];
             $description = json_encode($data['fees']);
             $amount = array_reduce(
                 $data['fees'],
@@ -93,7 +92,13 @@ class NextTermFeeService
             );
 
             $existing = $this->transaction
-                ->where('tid', '=', $tid)
+                ->select(['tid'])
+                ->whereGroup([
+                    ['cid', '=', $student['id']],
+                    ['term', '=', $data['term']],
+                    ['year', '=', $data['year']],
+                    ['trans_type', '=', 'invoice']
+                ])
                 ->first();
 
             $payload = [
@@ -120,17 +125,12 @@ class NextTermFeeService
 
             $success = false;
 
-            if ($existing) {
-                $success = $this->transaction
-                    ->where('tid', '=', $tid)
-                    ->update([
-                        'amount_due' => $amount,
-                        'description' => $description
-                    ]);
-            } else {
-                $payload['tid'] = $tid;
-                $success = $this->transaction->insert($payload);
-            }
+            $success = $existing ? $this->transaction
+                ->where('tid', '=', $existing['tid'])
+                ->update([
+                    'amount_due' => $amount,
+                    'description' => $description
+                ]) : $this->transaction->insert($payload);
 
             if (!$success) {
                 return false;
@@ -143,7 +143,7 @@ class NextTermFeeService
     /**
      * Fetch fees and structure by fee_id
      */
-    public function termFeesByLevel(array $filters): array
+    public function getInvoicesByLevel(array $filters): array
     {
         return $this->feeType
             ->select([

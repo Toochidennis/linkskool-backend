@@ -17,7 +17,7 @@ class RouteDispatcher
 
         $collector =  new CustomRouteCollector(new RouteParser(), new DataGen());
         $auto = new AutoRouteRegistrar($collector);
-        $auto->registerControllers('V3\App\Controllers\Portal', '/portal', false);
+        $auto->registerControllers('V3\App\Controllers\Portal', '/portal', true);
         $auto->registerControllers('V3\App\Controllers\Explore', '/public', true);
         //$auto->registerControllers('V3\App\Controllers\Learning', '/learning');
 

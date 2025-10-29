@@ -131,7 +131,11 @@ class StudentController extends BaseController
         ]);
     }
 
-    #[Route('/students/{class_id:\d+}', 'GET', ['auth', 'role:admin'])]
+    #[Route(
+        '/classes/{class_id:\d+}/students',
+        'GET',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function getStudentsByClass(array $vars)
     {
         $data = $this->validate(
