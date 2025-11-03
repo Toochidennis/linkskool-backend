@@ -18,6 +18,27 @@
         }
     ],
     "paths": {
+        "/public/admissions": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAdmissions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\AdmissionController::getAdmissions",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/public/books": {
             "get": {
                 "tags": [
