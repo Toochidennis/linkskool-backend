@@ -15,24 +15,31 @@
 namespace V3\App\Database\Query;
 
 use Closure;
+use V3\App\Database\Schema\SchemaSynchronizer;
 
 class JoinBuilder
 {
     public array $conditions = [];
     public array $bindings = [];
 
+    public function __construct(private SchemaSynchronizer $schemaSynchronizer)
+    {
+    }
+
     public function on(string|Closure $left, ?string $operator = null, $right = null): self
     {
         if ($left instanceof Closure) {
-            $group = new self();
+            $group = new self($this->schemaSynchronizer);
             $left($group);
             $clause = '(' . $group->getClause() . ')';
             $this->conditions[] = ['AND', $clause];
             $this->bindings = array_merge($this->bindings, $group->bindings);
         } else {
+            $this->syncTablesFromIdentifiers($left, $right);
+
             $left = $this->wrapIdentifier($left);
 
-            if (is_string($right) && str_contains($right, '.')) {
+            if (\is_string($right) && str_contains($right, '.')) {
                 $right = $this->wrapIdentifier($right);
                 $this->conditions[] = ['AND', "$left $operator $right"];
             } else {
@@ -51,15 +58,16 @@ class JoinBuilder
     public function orOn(string|Closure $left, ?string $operator = null, $right = null): self
     {
         if ($left instanceof Closure) {
-            $group = new self();
+            $group = new self($this->schemaSynchronizer);
             $left($group);
             $clause = '(' . $group->getClause() . ')';
             $this->conditions[] = ['OR', $clause];
             $this->bindings = array_merge($this->bindings, $group->bindings);
         } else {
+            $this->syncTablesFromIdentifiers($left, $right);
             $left = $this->wrapIdentifier($left);
 
-            if (is_string($right) && str_contains($right, '.')) {
+            if (\is_string($right) && str_contains($right, '.')) {
                 $right = $this->wrapIdentifier($right);
                 $this->conditions[] = ['OR', "$left $operator $right"];
             } else {
@@ -96,5 +104,19 @@ class JoinBuilder
     {
         $parts = explode('.', $identifier);
         return implode('.', array_map(fn($part) => "`$part`", $parts));
+    }
+
+    private function syncTablesFromIdentifiers(...$args): void
+    {
+        if (!$this->schemaSynchronizer) {
+            return;
+        }
+
+        foreach ($args as $arg) {
+            if (\is_string($arg) && str_contains($arg, '.')) {
+                $table = explode('.', $arg)[0];
+                $this->schemaSynchronizer->sync($table);
+            }
+        }
     }
 }
