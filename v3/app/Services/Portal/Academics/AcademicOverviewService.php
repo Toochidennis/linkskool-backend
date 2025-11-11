@@ -76,7 +76,6 @@ class AcademicOverviewService
             ->limit(15)
             ->get();
 
-
         $grouped = [
             'news' => [],
             'questions' => []

@@ -84,7 +84,7 @@ class QueryBuilder
             $this->whereConditions[] = $builder->getClause();
             $this->whereBindings = array_merge($this->whereBindings, $builder->getBindings());
         } else {
-            if (func_num_args() === 2) {
+            if (\func_num_args() === 2) {
                 $value = $operator;
                 $operator = '=';
             }
@@ -127,7 +127,7 @@ class QueryBuilder
         // Generate placeholders for each pair
         $placeholders = [];
         foreach ($pairs as $pair) {
-            if (!is_array($pair) || count($pair) !== count($columns)) {
+            if (!\is_array($pair) || count($pair) !== count($columns)) {
                 throw new InvalidArgumentException("Each pair must have exactly " . count($columns) . " values.");
             }
             $placeholders[] = '(' . implode(', ', array_fill(0, count($columns), '?')) . ')';
@@ -149,7 +149,7 @@ class QueryBuilder
      */
     public function orderBy(string|array $columns, ?string $direction = 'ASC'): self
     {
-        if (is_array($columns)) {
+        if (\is_array($columns)) {
             foreach ($columns as $column => $dir) {
                 $this->orderBy[] = $this->wrapIdentifier($column) . ' ' . strtoupper($dir);
             }
@@ -168,8 +168,8 @@ class QueryBuilder
      */
     public function groupBy(string|array $columns): self
     {
-        if (is_array($columns)) {
-            $wrapped = array_map(fn($col) => $this->wrapIdentifier($col), $columns);
+        if (\is_array($columns)) {
+            $wrapped = \array_map(fn($col) => $this->wrapIdentifier($col), $columns);
             $this->groupBy = "GROUP BY " . implode(', ', $wrapped);
         } else {
             $this->groupBy = "GROUP BY " . $this->wrapIdentifier($columns);
@@ -206,13 +206,21 @@ class QueryBuilder
      */
     public function join(string $table, Closure|string $condition, string $type = 'INNER'): self
     {
+        $this->schemaSynchronizer->sync($table);
+
         if ($condition instanceof Closure) {
-            $joinBuilder = new JoinBuilder();
+            $joinBuilder = new JoinBuilder($this->schemaSynchronizer);
             $condition($joinBuilder);
 
             $onClause = $joinBuilder->getClause();
             $this->bindings = array_merge($this->bindings, $joinBuilder->bindings);
         } else {
+            foreach (explode(' ', $condition) as $token) {
+                if (str_contains($token, '.')) {
+                    $tbl = explode('.', $token)[0];
+                    $this->schemaSynchronizer->sync($tbl);
+                }
+            }
             $onClause = $condition;
         }
 
@@ -237,16 +245,16 @@ class QueryBuilder
             $query .= " WHERE " . implode(" AND ", $this->whereConditions);
         }
         if ($this->groupBy) {
-            $query .= " " . $this->groupBy;
+            $query .= " {$this->groupBy}";
         }
         if (!empty($this->orderBy)) {
             $query .= " ORDER BY " . implode(', ', $this->orderBy);
         }
         if ($this->limit) {
-            $query .= " " . $this->limit;
+            $query .= " {$this->limit}";
         }
         if ($this->offset) {
-            $query .= " " . $this->offset;
+            $query .= " {$this->offset}";
         }
 
         $stmt = $this->pdo->prepare($query);
@@ -498,7 +506,7 @@ class QueryBuilder
      */
     private function validateTable(string $table): void
     {
-        if (!in_array($table, Tables::ALLOWED_TABLES)) {
+        if (!\in_array($table, Tables::ALLOWED_TABLES)) {
             throw new InvalidArgumentException("Request not allowed for table $table");
         }
     }
