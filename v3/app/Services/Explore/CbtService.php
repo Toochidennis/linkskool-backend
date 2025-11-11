@@ -38,7 +38,7 @@ class CbtService
     {
         return $this->exam
             ->select([
-                ' id',
+                'id',
                 'course_name',
                 'course_id',
                 'exam_type',
