@@ -131,7 +131,7 @@ class ResultExportService
                         $scoresByName[$name] = is_numeric($score) ? (float)$score : ($score === null ? '' : $score);
                     }
                 }
-            } elseif (is_array($decoded)) {
+            } elseif (\is_array($decoded)) {
                 // Case B: {"1st CA": 10, "2nd CA": 8, "Exam": 70}
                 foreach ($decoded as $name => $score) {
                     $scoresByName[$name] = is_numeric($score) ? (float)$score : ($score === null ? '' : $score);
