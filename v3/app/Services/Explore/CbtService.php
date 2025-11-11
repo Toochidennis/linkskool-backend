@@ -38,8 +38,8 @@ class CbtService
     {
         return $this->exam
             ->select([
-                'ANY_VALUE(id) AS id',
-                'ANY_VALUE(course_name) AS course_name',
+                ' id',
+                'course_name',
                 'course_id',
                 'exam_type',
                 'year'
@@ -73,10 +73,10 @@ class CbtService
         $meta = [];
         foreach ($rows as $row) {
             $meta[$row['id']] = [
-                'title'       => $row['title'],
-                'desc'        => $row['description'],
-                'short'       => $row['shortname'],
-                'pic'         => $this->formatRef($row['picref'] ?? '')
+                'title' => $row['title'],
+                'desc' => $row['description'],
+                'short' => $row['shortname'],
+                'pic' => $this->formatRef($row['picref'] ?? '')
             ];
         }
 
@@ -168,7 +168,7 @@ class CbtService
 
         // 2. Extract question IDs from url (like old code)
         $url = str_replace('|', '', $exam['url'] ?? '');
-        $exam['url'] = ''; // old code wiped it
+        $exam['url'] = '';
         $questionPairs = array_filter(explode(',', $url));
         $questionIds = [];
         $orderMap = [];
@@ -181,7 +181,7 @@ class CbtService
             $parts = explode(':', $pair);
             $id = (int)($parts[0] ?? 0);
             if ($id) {
-                $questionIds[] = ['id' => $id];
+                $questionIds[] = $id;
                 $orderMap[$id] = $index;
             }
         }
@@ -225,12 +225,7 @@ class CbtService
 
     private function getQuestions(array $questionIds): array
     {
-        $ids = array_values(array_map(
-            fn($item) => (int)$item['id'],
-            $questionIds
-        ));
-
-        if (empty($ids)) {
+        if (empty($questionIds)) {
             return [];
         }
 
@@ -238,13 +233,12 @@ class CbtService
             ->select([
                 'question_id',
                 'parent AS question_grade',
-                'content AS question_files',
-                'title AS question_text',
+                'content AS question_text',
                 'type AS question_type',
                 'answer AS options',
                 'correct',
             ])
-            ->in('question_id', $ids)
+            ->in('question_id', $questionIds)
             ->get();
 
         if (!$questions) {
@@ -253,7 +247,7 @@ class CbtService
 
         $filtered = [];
 
-        foreach ($questions as $question) {
+        foreach ($questions as $index => $question) {
             // Decode and normalize
             $type = $question['question_type'] ?? '';
             $text = trim($question['question_text'] ?? '');
@@ -269,18 +263,30 @@ class CbtService
             }
 
             $question['question_type'] = $typeLabel;
-            $question['question_files'] = $this->json($question['question_files']);
+            // $question['question_files'] = $this->json($question['question_files']);
             $question['options'] = $this->json($question['options']);
-            $question['correct'] = $this->json($question['correct']);
 
             // Validation logic per type
             if ($typeLabel === 'multiple_choice') {
                 if (empty($question['options']) || empty($question['correct'])) {
                     continue;
+                } else {
+                    $options = [];
+                    foreach ($question['options'] as $optIndex => $option) {
+                        $options[] = [
+                            'order' => $optIndex,
+                            'text'  => $option['text'] ?? ''
+                        ];
+                    }
+                    $question['options'] = $options;
+                    $order = array_search($question['correct'], array_column($options, 'text'));
+                    $question['correct'] = ['order' => $order, 'text' => $question['correct']];
                 }
             } elseif ($typeLabel === 'short_answer') {
                 if (empty($question['correct'])) {
                     continue;
+                } else {
+                    $question['correct'] = ['order' => 0, 'text' => $question['correct']];
                 }
             }
 
@@ -297,6 +303,6 @@ class CbtService
         }
 
         $decoded = json_decode($data, true);
-        return is_array($decoded) ? $decoded : [];
+        return \is_array($decoded) ? $decoded : [];
     }
 }

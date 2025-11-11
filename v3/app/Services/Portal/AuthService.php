@@ -50,7 +50,7 @@ class AuthService
         if ($staff && $this->verifyPassword($staff['password'], $password)) {
             return $this->generateLoginResponse(
                 id: $staff['id'],
-                name: $staff['surname'],
+                name: $staff['surname'] ?? '',
                 accessLevel: $staff['access_level']
             );
         }
