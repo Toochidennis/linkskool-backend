@@ -197,9 +197,7 @@ class CbtService
         $questions = $this->getQuestions($questionIds);
 
         // 4. Preserve original order
-        usort($questions, function ($a, $b) use ($orderMap) {
-            return ($orderMap[$a['question_id']] ?? 0) <=> ($orderMap[$b['question_id']] ?? 0);
-        });
+        usort($questions, fn($a, $b) => ($orderMap[$a['question_id']] ?? 0) <=> ($orderMap[$b['question_id']] ?? 0));
 
         // 5. Group questions by parent (like old code)
         $grouped = [];
@@ -212,12 +210,12 @@ class CbtService
         return [
             'success' => true,
             'exam' => [
-                'id'          => $exam['id'],
-                'title'       => $exam['title'],
+                'id' => $exam['id'],
+                'title' => $exam['title'],
                 'description' => $exam['description'],
-                'course_id'   => $exam['course_id'],
+                'course_id' => $exam['course_id'],
                 'course_name' => $exam['course_name'],
-                'body'        => $this->json($exam['body'] ?? null),
+                'body' => $this->json($exam['body'] ?? null),
             ],
             'questions' => $grouped
         ];

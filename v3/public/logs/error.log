@@ -1,0 +1,3 @@
+[2025-11-12 18:45:28] EXCEPTION: 3!I455 -> internal error in C:\xampp\htdocs\api3\v3\vendor\phpoffice\phpspreadsheet\src\PhpSpreadsheet\Cell\Cell.php on line 563
+Request: GET /api3/v3/public/export-questions? from ::1
+
