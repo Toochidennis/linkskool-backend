@@ -12,7 +12,8 @@
         "zircote/swagger-php": "^5.5",
         "swagger-api/swagger-ui": "^5.29",
         "league/csv": "^9.27",
-        "phpoffice/phpspreadsheet": "^5.2"
+        "phpoffice/phpspreadsheet": "^5.2",
+        "box/spout": "^3.3"
     },
     "autoload": {
         "psr-4": {
