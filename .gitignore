@@ -29,4 +29,6 @@
 v3/config/*
 v3/vendor/*
 v3/public/.htaccess
+v3/public/exports/*
+v3/public/logs/*
 .vscode
