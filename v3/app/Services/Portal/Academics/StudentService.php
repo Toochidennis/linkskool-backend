@@ -4,6 +4,7 @@ namespace V3\App\Services\Portal\Academics;
 
 use PDO;
 use V3\App\Common\Utilities\FileHandler;
+use V3\App\Models\Portal\Academics\Level;
 use V3\App\Models\Portal\Academics\Student;
 use V3\App\Models\Portal\Academics\SchoolSettings;
 
@@ -12,6 +13,7 @@ class StudentService
     private Student $student;
     private SchoolSettings $schoolSettings;
     private FileHandler $fileHandler;
+    private Level $level;
 
     /**
      * StudentRegistrationService constructor.
@@ -22,6 +24,7 @@ class StudentService
         $this->student = new Student($pdo);
         $this->schoolSettings = new SchoolSettings($pdo);
         $this->fileHandler = new FileHandler();
+        $this->level = new Level($pdo);
     }
 
     public function insertStudentRecord(array $data): bool
@@ -148,46 +151,161 @@ class StudentService
             ->get();
     }
 
-    /**
-     * Get students record.
-     */
-    public function fetchStudents(): array
+    private function getLevels(): array
+    {
+        return $this->level
+            ->select(columns: [
+                'level_table.id AS level_id',
+                'level_table.level_name',
+                'class_table.class_name',
+                'class_table.id AS class_id'
+            ])
+            ->join(
+                table: 'class_table',
+                condition: 'level_table.id = class_table.level',
+                type: 'INNER'
+            )
+            ->orderBy(['level_table.level_name' => 'ASC', 'class_table.class_name' => 'ASC'])
+            ->get();
+    }
+
+    private function getStudents(): array
     {
         return $this->student
-            ->select(
-                columns: [
-                    'id',
-                    'picture_ref AS photo',
-                    'surname',
-                    'first_name',
-                    'middle',
-                    'sex AS gender',
-                    'birthdate AS birth_date',
-                    'address',
-                    'city',
-                    'state',
-                    'country',
-                    'email',
-                    'religion',
-                    'guardian_name',
-                    'guardian_address',
-                    'guardian_email',
-                    'guardian_phone_no',
-                    'local_government_origin AS lga_origin',
-                    'state_origin',
-                    'nationality',
-                    'health_status',
-                    'date_admitted',
-                    'status AS student_status',
-                    'past_record',
-                    'result AS academic_result',
-                    'student_class AS class_id',
-                    'student_level AS level_id',
-                    'registration_no'
-                ]
-            )
-            ->orderBy('surname', 'ASC')
+            ->where('status', '=', 1)
+            ->where('student_level', '>', 0)
             ->get();
+    }
+
+    private function maleStudentsCount(array $students): int
+    {
+        return \count(array_filter(
+            $students,
+            fn($s) => \in_array(strtolower(trim($s['sex'] ?? $s['gender'])), ['male', 'm'], true)
+        ));
+    }
+
+    private function femaleStudentsCount(array $students): int
+    {
+        return \count(array_filter(
+            $students,
+            fn($s) => \in_array(strtolower(trim($s['sex'] ?? $s['gender'])), ['female', 'f'], true)
+        ));
+    }
+
+    /**
+     * Create fast indexes for students.
+     */
+    private function indexStudents(array $students): array
+    {
+        $byLevel = [];
+        $byClass = [];
+
+        foreach ($students as $s) {
+            $levelId = $s['student_level'];
+            $classId = $s['student_class'];
+
+            $byLevel[$levelId][] = $s;
+            $byClass[$classId][] = $s;
+        }
+
+        return [
+            'byLevel' => $byLevel,
+            'byClass' => $byClass
+        ];
+    }
+
+    public function fetchStudentsMetrics(): array
+    {
+        $students = $this->getStudents();
+        $levels = $this->getLevels();
+
+        $indexed = $this->indexStudents($students);
+
+        $levelsMetrics = [];
+
+        foreach ($levels as $level) {
+            $levelId = $level['level_id'];
+            $classId = $level['class_id'];
+
+            $levelStudents  = $indexed['byLevel'][$levelId] ?? [];
+            $classStudents  = array_filter(
+                $levelStudents,
+                fn($s) => $s['student_class'] == $classId
+            );
+
+            if (!isset($levelsMetrics[$levelId])) {
+                $levelsMetrics[$levelId] = [
+                    'level_id' => $levelId,
+                    'level_name' => $level['level_name'],
+                    'total_students'  => \count($levelStudents),
+                    'classes' => []
+                ];
+            }
+
+            $levelsMetrics[$levelId]['classes'][] = [
+                'class_id' => $classId,
+                'class_name' => $level['class_name'],
+                'total_students'  => \count($classStudents)
+            ];
+        }
+
+        return [
+            'total_students' => \count($students),
+            'male_students'  => $this->maleStudentsCount($students),
+            'female_students' => $this->femaleStudentsCount($students),
+            'levels' => array_values($levelsMetrics)
+        ];
+    }
+
+    public function fetchStudentsByLevel($filters): array
+    {
+        $result = $this->student
+            ->select([
+                'id',
+                'picture_ref AS photo',
+                'surname',
+                'first_name',
+                'middle',
+                'sex AS gender',
+                'birthdate AS birth_date',
+                'address',
+                'city',
+                'state',
+                'country',
+                'email',
+                'religion',
+                'guardian_name',
+                'guardian_address',
+                'guardian_email',
+                'guardian_phone_no',
+                'local_government_origin AS lga_origin',
+                'state_origin',
+                'nationality',
+                'health_status',
+                'date_admitted',
+                'status AS student_status',
+                'past_record',
+                'result AS academic_result',
+                'student_class AS class_id',
+                'student_level AS level_id',
+                'registration_no'
+            ])
+            ->where('student_level', '=', $filters['level_id'])
+            ->where('status', '=', 1)
+            ->orderBy('surname', 'ASC')
+            ->paginate(
+                page: $filters['page'] ?? 1,
+                limit: $filters['limit'] ?? 15
+            );
+
+        $students = $result['data'] ?? [];
+
+        return [
+            'male_students' => $this->maleStudentsCount($students),
+            'female_students' => $this->femaleStudentsCount($students),
+            'students' => $result
+        ];
     }
 
     public function deleteStudent(int $id): bool

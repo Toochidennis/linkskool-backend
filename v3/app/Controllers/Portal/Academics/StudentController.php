@@ -75,9 +75,9 @@ class StudentController extends BaseController
         $data = $this->validate(
             data: array_merge($this->post, $vars),
             rules: [
-                'id'                   => 'required|integer|filled',
-                'photo'            => 'nullable|array',
-                'photo.file'           => 'sometimes|string',
+                'id' => 'required|integer|filled',
+                'photo' => 'nullable|array',
+                'photo.file' => 'sometimes|string',
                 'photo.file_name'      => 'sometimes|string',
                 'photo.old_file_name'  => 'sometimes|string',
                 'surname'                => 'required|string|filled',
@@ -122,12 +122,34 @@ class StudentController extends BaseController
         );
     }
 
-    #[Route('/students', 'GET', ['auth', 'role:admin'])]
-    public function getAllStudents()
+    #[Route('/levels/{level_id:\d+}/students', 'GET', ['auth', 'role:admin'])]
+    public function getStudentsByLevel(array $vars)
+    {
+        $filteredData = $this->validate(
+            data: $vars,
+            rules: [
+                'level_id' => 'nullable|integer',
+                'page' => 'nullable|integer',
+                'limit' => 'nullable|integer'
+            ]
+        );
+
+        $this->respond([
+            'success' => true,
+            'response' => $this->studentService->fetchStudentsByLevel($filteredData)
+        ]);
+    }
+
+    #[Route(
+        '/students/metrics',
+        'GET',
+        ['auth', 'role:admin']
+    )]
+    public function getStudentsMetrics()
     {
         $this->respond([
             'success' => true,
-            'response' => $this->studentService->fetchStudents()
+            'response' => $this->studentService->fetchStudentsMetrics()
         ]);
     }
 
