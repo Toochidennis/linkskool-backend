@@ -122,13 +122,14 @@ class StudentController extends BaseController
         );
     }
 
-    #[Route('/levels/{level_id:\d+}/students', 'GET', ['auth', 'role:admin'])]
+    #[Route('/students', 'GET', ['auth', 'role:admin'])]
     public function getStudentsByLevel(array $vars)
     {
         $filteredData = $this->validate(
             data: $vars,
             rules: [
-                'level_id' => 'nullable|integer',
+                'level_id' => 'nullable|integer|required_without:class_id',
+                'class_id' => 'nullable|integer|required_without:level_id',
                 'page' => 'nullable|integer',
                 'limit' => 'nullable|integer'
             ]

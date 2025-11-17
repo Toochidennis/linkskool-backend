@@ -33,7 +33,7 @@ class StaffService
 
     public function insertStaffRecord(array $data): bool
     {
-        if (!empty($data['photo']) && is_array($data['photo'])) {
+        if (!empty($data['photo']) && \is_array($data['photo'])) {
             $data['photo']['type'] = 'image';
             $file = $this->fileHandler->handleFiles($data['photo']);
             $data['photo'] = $file[0]['old_file_name'];
@@ -108,7 +108,7 @@ class StaffService
 
     public function updateStaffRecord(array $data): bool
     {
-        if (!empty($data['photo']) && is_array($data['photo'])) {
+        if (!empty($data['photo']) && \is_array($data['photo'])) {
             $data['photo']['type'] = 'image';
             $file = $this->fileHandler->handleFiles($data['photo']);
             $data['photo'] = $file[0]['old_file_name'];
@@ -219,12 +219,13 @@ class StaffService
                     'staff_no'
                 ]
             )
+            ->where('status', 'not like', 'terminated%')
             ->orderBy('surname')
             ->get();
 
         return array_map(function ($staff) {
             $staff['access_level'] =
-                in_array($staff['access_level'], [1, 3]) ? 'staff' : 'admin';
+                \in_array($staff['access_level'], [1, 3]) ? 'staff' : 'admin';
             return $staff;
         }, $results);
     }
