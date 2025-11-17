@@ -31,15 +31,20 @@ class AcademicOverviewService
         if ($classId !== null) {
             return $this->student
                 ->where('student_class', '=', $classId)
+                ->where('student_level', '>', 0)
                 ->count();
         } else {
-            return $this->student->count();
+            return $this->student
+                ->where('student_level', '>', 0)
+                ->count();
         }
     }
 
     private function getTotalTeachers(): int
     {
-        return $this->staff->count();
+        return $this->staff
+            ->where('status', 'not like', 'terminated%')
+            ->count();
     }
 
     private function getTotalClasses(): int

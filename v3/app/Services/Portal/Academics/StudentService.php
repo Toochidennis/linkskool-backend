@@ -29,7 +29,7 @@ class StudentService
 
     public function insertStudentRecord(array $data): bool
     {
-        if (!empty($data['photo']) && is_array($data['photo'])) {
+        if (!empty($data['photo']) && \is_array($data['photo'])) {
             $data['photo']['type'] = 'image';
             $file = $this->fileHandler->handleFiles($data['photo']);
             $data['photo'] = $file[0]['old_file_name'];
@@ -90,7 +90,7 @@ class StudentService
 
     public function updateStudentRecord(array $data): bool
     {
-        if (!empty($data['photo']) && is_array($data['photo'])) {
+        if (!empty($data['photo']) && \is_array($data['photo'])) {
             $data['photo']['type'] = 'image';
             $file = $this->fileHandler->handleFiles($data['photo']);
             $data['photo'] = $file[0]['old_file_name'];
@@ -169,10 +169,17 @@ class StudentService
             ->get();
     }
 
-    private function getStudents(): array
+    private function getStudents(array $filters = []): array
     {
+        if (!empty($filters)) {
+            $students = $this->student;
+            $students = isset($filters['level_id'])
+                ? $students->where('student_level', '=', $filters['level_id'])
+                : $students->where('student_class', '=', $filters['class_id']);
+
+            return $students->get();
+        }
         return $this->student
-            ->where('status', '=', 1)
             ->where('student_level', '>', 0)
             ->get();
     }
@@ -181,7 +188,11 @@ class StudentService
     {
         return \count(array_filter(
             $students,
-            fn($s) => \in_array(strtolower(trim($s['sex'] ?? $s['gender'])), ['male', 'm'], true)
+            fn($s) => \in_array(
+                strtolower(trim($s['sex'] ?? $s['gender'] ?? '')),
+                ['male', 'm'],
+                true
+            )
         ));
     }
 
@@ -189,13 +200,14 @@ class StudentService
     {
         return \count(array_filter(
             $students,
-            fn($s) => \in_array(strtolower(trim($s['sex'] ?? $s['gender'])), ['female', 'f'], true)
+            fn($s) => \in_array(
+                strtolower(trim($s['sex'] ?? $s['gender'] ?? '')),
+                ['female', 'f'],
+                true
+            )
         ));
     }
 
-    /**
-     * Create fast indexes for students.
-     */
     private function indexStudents(array $students): array
     {
         $byLevel = [];
@@ -223,16 +235,14 @@ class StudentService
         $indexed = $this->indexStudents($students);
 
         $levelsMetrics = [];
+        $charts = [];
 
         foreach ($levels as $level) {
             $levelId = $level['level_id'];
             $classId = $level['class_id'];
 
-            $levelStudents  = $indexed['byLevel'][$levelId] ?? [];
-            $classStudents  = array_filter(
-                $levelStudents,
-                fn($s) => $s['student_class'] == $classId
-            );
+            $levelStudents = $indexed['byLevel'][$levelId] ?? [];
+            $classStudents = $indexed['byClass'][$classId] ?? [];
 
             if (!isset($levelsMetrics[$levelId])) {
                 $levelsMetrics[$levelId] = [
@@ -240,6 +250,11 @@ class StudentService
                     'level_name' => $level['level_name'],
                     'total_students'  => \count($levelStudents),
                     'classes' => []
+                ];
+
+                $charts[] = [
+                    'x' => $level['level_name'],
+                    'y' => \count($levelStudents)
                 ];
             }
 
@@ -254,6 +269,7 @@ class StudentService
             'total_students' => \count($students),
             'male_students'  => $this->maleStudentsCount($students),
             'female_students' => $this->femaleStudentsCount($students),
+            'charts' => $charts,
             'levels' => array_values($levelsMetrics)
         ];
     }
@@ -290,16 +306,19 @@ class StudentService
                 'student_class AS class_id',
                 'student_level AS level_id',
                 'registration_no'
-            ])
-            ->where('student_level', '=', $filters['level_id'])
-            ->where('status', '=', 1)
-            ->orderBy('surname', 'ASC')
+            ]);
+
+        $result = isset($filters['level_id']) ?
+            $result->where('student_level', '=', $filters['level_id'])
+            : $result->where('student_class', '=', $filters['class_id']);
+
+        $result = $result->orderBy('surname', 'ASC')
             ->paginate(
                 page: $filters['page'] ?? 1,
-                limit: $filters['limit'] ?? 15
+                limit: $filters['limit'] ?? 25
             );
 
-        $students = $result['data'] ?? [];
+        $students = $this->getStudents($filters);
 
         return [
             'male_students' => $this->maleStudentsCount($students),
