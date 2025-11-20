@@ -6919,6 +6919,13 @@ return [
             'primary' => false,
             'unique' => true
         ],
+        'profile_picture' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         'attempt' => [
             'type' => 'int(11)',
             'nullable' => true,
