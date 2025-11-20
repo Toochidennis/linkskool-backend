@@ -25,6 +25,7 @@ class UserController extends ExploreBaseController
         $data = $this->validate($this->getRequestData(), [
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
+            'profile_picture' => 'sometimes|string|max:255',
             'attempts' => 'required|integer|min:0',
         ]);
 
