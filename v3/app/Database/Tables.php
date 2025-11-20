@@ -91,5 +91,6 @@ class Tables
         'exam_type',
         'videosTable',
         'categoryTable',
+        'users',
     ];
 }

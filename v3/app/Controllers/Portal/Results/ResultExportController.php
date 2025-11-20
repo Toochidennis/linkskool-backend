@@ -14,7 +14,7 @@ class ResultExportController
 
     public function __construct()
     {
-        $pdo = DatabaseConnector::connect('aalmgzmy_linkskoo_ddljuniorate2');
+        $pdo = DatabaseConnector::connect('aalkskoo');
         $this->resultExport = new ResultExportService($pdo);
     }
 

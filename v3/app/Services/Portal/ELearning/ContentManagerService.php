@@ -66,6 +66,10 @@ class ContentManagerService
 
         $items = [];
         foreach ($results as $result) {
+            if ($result['outline'] === null) {
+                continue;
+            }
+
             $classes = $this->json($result['path_label']);
             $classIds = array_map(fn($item) => (int)$item['id'], $classes);
             $contentType = ContentType::tryFrom($result['type'])?->label() ?? 'Unknown';
@@ -90,7 +94,7 @@ class ContentManagerService
 
             // staff filter
             if (!empty($filters)) {
-                if (!in_array($result['course_id'], $filters['course_ids'] ?? [])) {
+                if (!\in_array($result['course_id'], $filters['course_ids'] ?? [])) {
                     continue;
                 }
                 if (empty(array_intersect($classIds, $filters['class_ids'] ?? []))) {
@@ -179,7 +183,7 @@ class ContentManagerService
             ];
 
             return [
-                'recent_quizzes'   => $this->getRecentContent($term, ContentType::QUIZ->value, $staffFilter),
+                'recent_quizzes' => $this->getRecentContent($term, ContentType::QUIZ->value, $staffFilter),
                 'recent_activities' => $this->getRecentContent($term, null, $staffFilter),
                 'courses' => $classes,
             ];
@@ -220,6 +224,10 @@ class ContentManagerService
 
         // Separate contents into topics vs. others
         foreach ($contents as $content) {
+            if ($content['outline'] === null) {
+                continue;
+            }
+
             if ($content['type'] == ContentType::TOPIC->value) {
                 $topics[$content['id']] = $content;
             } else {
@@ -327,7 +335,7 @@ class ContentManagerService
     private function appendQuestionsToContent($content)
     {
         $questionIds = $this->json($content['url']);
-        if (is_array($questionIds) && count($questionIds)) {
+        if (\is_array($questionIds) && \count($questionIds)) {
             $questions = $this->getQuestions($questionIds);
             $content['questions'] = $questions;
         } else {
@@ -407,7 +415,7 @@ class ContentManagerService
         }
 
         $decoded = json_decode($data, true);
-        return is_array($decoded) ? $decoded : [];
+        return \is_array($decoded) ? $decoded : [];
     }
 
     public function deleteContent($id): bool
@@ -442,7 +450,7 @@ class ContentManagerService
     private function deleteContentFiles(array $content): void
     {
         $files = json_decode($content['url'], true, 512, JSON_THROW_ON_ERROR);
-        if (is_array($files)) {
+        if (\is_array($files)) {
             $this->deleteFiles($files);
         }
     }

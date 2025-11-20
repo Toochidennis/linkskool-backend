@@ -143,9 +143,12 @@ class CbtService
         return "http://" . $_SERVER["SERVER_NAME"] . "/$url";
     }
 
-    public function getExamWithQuestions(int $examId): array
+    /**
+     * Fetch exam details along with its questions
+     */
+    public function getExamWithQuestions(array $filters): array
     {
-        // 1. Fetch the exam record
+        // Fetch the exam record
         $exam = $this->exam
             ->select([
                 'id',
@@ -156,7 +159,7 @@ class CbtService
                 'body',
                 'url'
             ])
-            ->where('id', '=', $examId)
+            ->where('id', '=', $filters['exam_id'])
             ->first();
 
         if (!$exam) {
@@ -166,7 +169,7 @@ class CbtService
             ];
         }
 
-        // 2. Extract question IDs from url (like old code)
+        // Extract question IDs from url
         $url = str_replace('|', '', $exam['url'] ?? '');
         $exam['url'] = '';
         $questionPairs = array_filter(explode(',', $url));
@@ -194,19 +197,22 @@ class CbtService
             ];
         }
 
-        $questions = $this->getQuestions($questionIds);
+        $questions = $this->getQuestions($questionIds, $filters);
 
-        // 4. Preserve original order
-        usort($questions, fn($a, $b) => ($orderMap[$a['question_id']] ?? 0) <=> ($orderMap[$b['question_id']] ?? 0));
+        //Preserve original order
+        usort(
+            $questions,
+            fn($a, $b) => ($orderMap[$a['question_id']] ?? 0) <=> ($orderMap[$b['question_id']] ?? 0)
+        );
 
-        // 5. Group questions by parent (like old code)
+        // Group questions by parent
         $grouped = [];
         foreach ($questions as $q) {
             $parent = $q['question_grade'] ?? 0;
             $grouped[$parent][] = $q;
         }
 
-        // 6. Final structure
+        // Final structure
         return [
             'success' => true,
             'exam' => [
@@ -221,7 +227,7 @@ class CbtService
         ];
     }
 
-    private function getQuestions(array $questionIds): array
+    private function getQuestions(array $questionIds, array $filters): array
     {
         if (empty($questionIds)) {
             return [];
@@ -237,6 +243,8 @@ class CbtService
                 'correct',
             ])
             ->in('question_id', $questionIds)
+            ->limit($filters['limit'] ?? 50)
+            ->offset($filters['offset'] ?? 0)
             ->get();
 
         if (!$questions) {
@@ -245,7 +253,7 @@ class CbtService
 
         $filtered = [];
 
-        foreach ($questions as $index => $question) {
+        foreach ($questions as $question) {
             // Decode and normalize
             $type = $question['question_type'] ?? '';
             $text = trim($question['question_text'] ?? '');
@@ -277,7 +285,10 @@ class CbtService
                         ];
                     }
                     $question['options'] = $options;
-                    $order = array_search($question['correct'], array_column($options, 'text'));
+                    $order = array_search(
+                        $question['correct'],
+                        array_column($options, 'text')
+                    );
                     $question['correct'] = ['order' => $order, 'text' => $question['correct']];
                 }
             } elseif ($typeLabel === 'short_answer') {

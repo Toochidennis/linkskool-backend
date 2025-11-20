@@ -35,6 +35,10 @@ trait ValidationTrait
                 'in' => 'The selected :attribute is invalid.',
                 'required_if' => 'The :attribute field is required when :other is :value.',
                 'digits' => 'The :attribute field must be exactly :digits digits.',
+                'email' => 'The :attribute must be a valid email address.',
+                'max' => 'The :attribute may not be greater than :max.',
+                'unique' => 'The :attribute has already been taken.',
+                'required_without' => 'The :attribute field is required when :values is not present.',
             ]);
             $translator = new Translator($loader, 'en');
             $this->validationFactory = new Factory($translator);

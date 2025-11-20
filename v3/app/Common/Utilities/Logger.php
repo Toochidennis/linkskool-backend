@@ -14,11 +14,11 @@ class Logger
         set_exception_handler(function ($e) {
             self::write($e); // log full details for you
 
-            $isSQL     = $e instanceof PDOException;
+            $isSQL = $e instanceof PDOException;
             $isUserErr = self::isUserError($e);
 
             $status = $isSQL || !$isUserErr ? 500 : 400;
-            $msg    = $isSQL || !$isUserErr
+            $msg = $isSQL || !$isUserErr
                 ? 'Something went wrong. Please try again later.'
                 : $e->getMessage();
 
