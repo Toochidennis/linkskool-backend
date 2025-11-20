@@ -24,16 +24,16 @@ class UserController extends ExploreBaseController
     {
         $data = $this->validate($this->getRequestData(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email',
+            'email' => 'required|email|max:255',
             'profile_picture' => 'sometimes|string|max:255',
-            'attempts' => 'required|integer|min:0',
+            'attempt' => 'required|integer|min:0',
         ]);
 
         $userId = $this->userService->createUser($data);
 
         if ($userId <= 0) {
             $this->respondError(
-                'Failed to create user',
+                'Failed to create user, maybe email already exists.',
                 HttpStatus::BAD_REQUEST
             );
         }
@@ -49,9 +49,10 @@ class UserController extends ExploreBaseController
     {
         $data = $this->validate([$this->getRequestData(), ...$vars], [
             'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|max:255|unique:users,email',
-            'attempts' => 'sometimes|integer|min:0',
+            'email' => 'sometimes|email|max:255',
+            'attempt' => 'sometimes|integer|min:0',
             'subscribed' => 'sometimes|in:0,1',
+            'reference' => 'sometimes|string|max:100',
             'id' => 'required|integer|min:1',
         ]);
 

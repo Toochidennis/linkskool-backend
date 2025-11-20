@@ -38,7 +38,7 @@ trait ValidationTrait
                 'email' => 'The :attribute must be a valid email address.',
                 'max' => 'The :attribute may not be greater than :max.',
                 'unique' => 'The :attribute has already been taken.',
-                'required_without' => 'The :attribute field is required when :values is not present.',
+                'required_without' => 'The :attribute field is required when :values is not present.'
             ]);
             $translator = new Translator($loader, 'en');
             $this->validationFactory = new Factory($translator);

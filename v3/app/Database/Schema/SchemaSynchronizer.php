@@ -14,7 +14,7 @@ class SchemaSynchronizer
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
-        $this->pdo->exec("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'STRICT_TRANS_TABLES',''))");
+       // $this->pdo->exec("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'STRICT_TRANS_TABLES',''))");
         $this->schema = require __DIR__ . '/schema.php';
     }
 
@@ -28,8 +28,8 @@ class SchemaSynchronizer
 
         $definition = $this->schema[$table] ?? null;
         if (!$definition) {
-            // throw new \Exception("Schema definition for table {$table} not found.");
-            return;
+            throw new \Exception("Schema definition for table {$table} not found.");
+           // return;
         }
 
         $localTxn = !$this->pdo->inTransaction();
