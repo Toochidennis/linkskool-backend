@@ -19,8 +19,21 @@ class TableBuilder
 
             $colDef = "`$column` {$spec['type']}";
             $colDef .= $spec['nullable'] ? ' NULL' : ' NOT NULL';
+            $colDef .= !empty($spec['unique']) ? ' UNIQUE' : '';
             if (isset($spec['default'])) {
-                $colDef .= $spec['default'] === null ? ' DEFAULT NULL' : " DEFAULT '{$spec['default']}'";
+                if ($spec['default'] === null) {
+                    $colDef .= ' DEFAULT NULL';
+                } else {
+                    $upper = strtoupper(trim((string)$spec['default']));
+                    $sqlFunctions = ['CURRENT_TIMESTAMP', 'NOW()', 'UUID()', 'CURRENT_DATE', 'CURRENT_TIME'];
+
+                    if (\in_array($upper, $sqlFunctions, true)) {
+                        $colDef .= " DEFAULT $upper";
+                    } else {
+                        $safe = addslashes((string)$spec['default']);
+                        $colDef .= " DEFAULT '$safe'";
+                    }
+                }
             }
             if ($spec['auto_increment']) {
                 $colDef .= ' AUTO_INCREMENT';
@@ -43,7 +56,7 @@ class TableBuilder
         $charset = $meta['charset'] ?? 'utf8mb4';
         $collate = $meta['collate'] ?? 'utf8mb4_unicode_ci';
 
-        return sprintf(
+        return \sprintf(
             "CREATE TABLE IF NOT EXISTS `%s` (%s%s) ENGINE=%s DEFAULT CHARSET=%s COLLATE=%s;",
             $this->table,
             implode(',', $columns),

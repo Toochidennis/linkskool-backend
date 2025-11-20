@@ -6940,6 +6940,13 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'reference' => [
+            'type' => 'varchar(100)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         'created_at' => [
             'type' => 'datetime',
             'nullable' => false,
