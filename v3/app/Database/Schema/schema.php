@@ -6889,7 +6889,7 @@ return [
             'collate' => 'utf8mb4_unicode_ci',
         ],
     ],
-    'users' => [
+    'cbt_users' => [
         'id' => [
             'type' => 'int(10) UNSIGNED',
             'nullable' => false,

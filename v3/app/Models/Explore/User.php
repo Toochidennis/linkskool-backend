@@ -7,7 +7,7 @@ use V3\App\Models\BaseModel;
 
 class User extends BaseModel
 {
-    protected string $table = 'users';
+    protected string $table = 'cbt_users';
 
     public function __construct(PDO $pdo)
     {
