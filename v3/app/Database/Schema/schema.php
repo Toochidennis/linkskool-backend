@@ -6960,8 +6960,77 @@ return [
             'collate' => 'latin1_swedish_ci'
         ]
     ],
+    'exam_type' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'title' => [
+            'type' => 'varchar(250)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'description' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'shortname' => [
+            'type' => 'varchar(50)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'picref' => [
+            'type' => 'varchar(250)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'level' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'course_ids' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'type' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'active' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => 0,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'latin1',
+            'collate' => 'latin1_swedish_ci'
+        ]
+    ],
     'exam' => [],
-    'exam_type' => [],
     'videosTable' => [],
     'categoryTable' => [],
 ];
