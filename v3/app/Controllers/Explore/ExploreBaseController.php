@@ -1,12 +1,15 @@
 <?php
 
-namespace V3\App\Controllers;
+namespace V3\App\Controllers\Explore;
 
-use V3\App\Database\DatabaseConnector;
 use V3\App\Common\Traits\ValidationTrait;
-use V3\App\Common\Utilities\{DataExtractor, ResponseHandler, HttpStatus, Sanitizer};
+use V3\App\Common\Utilities\DataExtractor;
+use V3\App\Common\Utilities\HttpStatus;
+use V3\App\Common\Utilities\ResponseHandler;
+use V3\App\Common\Utilities\Sanitizer;
+use V3\App\Database\DatabaseConnector;
 
-abstract class BaseController
+abstract class ExploreBaseController
 {
     use ValidationTrait;
 
@@ -43,18 +46,13 @@ abstract class BaseController
             );
         }
 
-        // Validate that _db is provided.
-        if (empty($payload['_db'])) {
-            $this->respondError(
-                '_db field is required.',
-                HttpStatus::BAD_REQUEST
-            );
-        }
-
         $this->post = $payload;
-        $dbname = $this->post['_db'];
-        $_SESSION['_db'] = $dbname;
-        $this->pdo = DatabaseConnector::connect(dbname: $dbname);
+        $this->pdo = DatabaseConnector::connect();
+    }
+
+    protected function getRequestData(): array
+    {
+        return $this->post;
     }
 
     protected function respond(
@@ -63,7 +61,7 @@ abstract class BaseController
     ): void {
         http_response_code($statusCode);
         ResponseHandler::sendJsonResponse(
-            ['statusCode' => $statusCode] + $data
+            ['statusCode' => $statusCode, ...$data]
         );
     }
 

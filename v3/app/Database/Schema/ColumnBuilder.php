@@ -15,38 +15,39 @@ class ColumnBuilder
     {
         $type = strtoupper($this->spec['type']);
         $nullable = $this->spec['nullable'] ? 'NULL' : 'NOT NULL';
-        $default = $this->prepareDefault($this->spec['default'] ?? null, $type);
+        $default = $this->prepareDefault(
+            $this->spec['default'] ?? null,
+            $this->spec['nullable'] ?? false
+        );
+        $unique = !empty($this->spec['unique']) ? ' UNIQUE' : '';
         $auto = $this->spec['auto_increment'] ? ' AUTO_INCREMENT' : '';
 
         return \sprintf(
-            "ALTER TABLE `%s` ADD COLUMN `%s` %s %s%s%s;",
+            "ALTER TABLE `%s` ADD COLUMN `%s` %s %s%s%s%s;",
             $this->table,
             $this->column,
             $type,
             $nullable,
             $default,
+            $unique,
             $auto
         );
     }
 
-    private function prepareDefault($default, string $type): string
+    private function prepareDefault($default, bool $nullable): string
     {
-        if (str_contains(strtolower($type), 'datetime') || str_contains(strtolower($type), 'timestamp')) {
-            if ($default === '0000-00-00 00:00:00') {
-                return ' DEFAULT NULL';
-            }
-            if ($default === null) {
-                return ' DEFAULT NULL';
-            }
-            return " DEFAULT '{$default}'";
+        if ($default === null) {
+            return $nullable ? " DEFAULT NULL" : '';
         }
 
-        if ($default === null) {
-            return '';
+        $upper = strtoupper(trim((string)$default));
+        $sqlFunctions = ['CURRENT_TIMESTAMP', 'NOW()', 'UUID()', 'CURRENT_DATE', 'CURRENT_TIME'];
+
+        if (\in_array($upper, $sqlFunctions, true)) {
+            return " DEFAULT $upper";
         }
-        if ($default === '') {
-            return " DEFAULT ''";
-        }
-        return " DEFAULT '{$default}'";
+
+        $safe = addslashes((string)$default);
+        return " DEFAULT '{$safe}'";
     }
 }

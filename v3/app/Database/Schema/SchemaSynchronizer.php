@@ -14,6 +14,7 @@ class SchemaSynchronizer
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
+        $this->pdo->exec("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'STRICT_TRANS_TABLES',''))");
         $this->schema = require __DIR__ . '/schema.php';
     }
 
@@ -27,7 +28,7 @@ class SchemaSynchronizer
 
         $definition = $this->schema[$table] ?? null;
         if (!$definition) {
-            error_log("[SchemaSync] No schema found for table {$table}");
+            // throw new \Exception("Schema definition for table {$table} not found.");
             return;
         }
 
@@ -50,6 +51,7 @@ class SchemaSynchronizer
             if ($localTxn && $this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
+            //throw $e;
         }
     }
 
@@ -63,13 +65,16 @@ class SchemaSynchronizer
     {
         $builder = new TableBuilder($table, $definition);
         $sql = $builder->build();
-        $sql = str_replace("DEFAULT '0000-00-00 00:00:00'", "DEFAULT NULL", $sql);
         $this->pdo->exec($sql);
     }
 
     private function syncColumns(string $table, array $definition): void
     {
-        $columns = $this->pdo->query("SHOW COLUMNS FROM `$table`")->fetchAll(PDO::FETCH_ASSOC);
+        // Always fetch fresh column info for THIS table only.
+        $stmt = $this->pdo->query("SHOW COLUMNS FROM `$table`");
+        $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Re-index by column name
         $existing = array_column($columns, null, 'Field');
 
         foreach ($definition as $col => $spec) {
@@ -77,40 +82,72 @@ class SchemaSynchronizer
                 continue;
             }
 
-            // New column
-            if (!isset($existing[$col])) {
+            if (
+                str_contains($spec['type'] ?? '', 'datetime')
+                || str_contains($spec['type'] ?? '', 'time')
+                || str_contains($spec['type'] ?? '', 'date')
+            ) {
+                $this->cleanupInvalidDates($table, $col);
+            }
+
+            // If column doesn't exist, create it
+            if (!\array_key_exists($col, $existing)) {
                 $this->addColumn($table, $col, $spec);
                 continue;
             }
 
-            // Compare & alter drift
+            // Prepare clean comparison values
             $dbType = strtolower($existing[$col]['Type']);
-            $schemaType = strtolower($spec['type']);
+            $schemaType = strtolower($spec['type'] ?? '');
+            $dbNull = $existing[$col]['Null'] === 'YES';
+            $schemaNull = $spec['nullable'] ?? false;
 
-            $nullChanged = ($existing[$col]['Null'] === 'NO') !== (!$spec['nullable']);
             $typeChanged = $dbType !== $schemaType;
+            $nullChanged = $dbNull !== $schemaNull;
 
-            if ($nullChanged || $typeChanged) {
-                $alter = sprintf(
-                    "ALTER TABLE `%s` MODIFY `%s` %s %s",
-                    $table,
-                    $col,
-                    $spec['type'],
-                    $spec['nullable'] ? 'NULL' : 'NOT NULL'
-                );
+            if ($typeChanged || $nullChanged) {
+                $sql = "ALTER TABLE `$table` MODIFY `$col` {$spec['type']}";
 
-                if (isset($spec['default'])) {
-                    $default = $spec['default'] ?? null;
-                    if ($default === '0000-00-00 00:00:00' || $default === null) {
-                        $alter .= " DEFAULT NULL";
+                // Nullability
+                $sql .= $schemaNull ? " NULL" : " NOT NULL";
+
+                // Default handling
+                if (\array_key_exists('default', $spec)) {
+                    $default = $spec['default'];
+
+                    if ($default === null) {
+                        if ($schemaNull) {
+                            $sql .= " DEFAULT NULL";
+                        }
                     } else {
-                        $alter .= " DEFAULT '{$default}'";
+                        $upper = strtoupper(trim((string)$default));
+                        $sqlFunctions = ['CURRENT_TIMESTAMP', 'NOW()', 'UUID()', 'CURRENT_DATE', 'CURRENT_TIME'];
+
+                        if (\in_array($upper, $sqlFunctions, true)) {
+                            $sql .= " DEFAULT $upper";
+                        } else {
+                            $safe = addslashes((string)$default);
+                            $sql .= " DEFAULT '$safe'";
+                        }
                     }
                 }
 
-                $this->pdo->exec($alter);
+                $sql .= !empty($spec['unique']) ? " UNIQUE" : '';
+
+                $sql .= !empty($spec['auto_increment']) ? " AUTO_INCREMENT" : '';
+
+                $this->pdo->exec($sql);
             }
         }
+    }
+
+    private function cleanupInvalidDates(string $table, string $column): void
+    {
+        $this->pdo->exec("
+            UPDATE `$table`
+            SET `$column` = NULL
+            WHERE `$column` LIKE '0000-00-00%'
+        ");
     }
 
     private function addColumn(string $table, string $col, array $spec): void
@@ -124,7 +161,7 @@ class SchemaSynchronizer
             if (str_contains($msg, 'Duplicate column')) {
                 return;
             }
-            error_log("[SchemaSync] Add column failed for {$col} on {$table}: {$msg}");
+            throw $e;
         }
     }
 }

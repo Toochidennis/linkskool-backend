@@ -289,7 +289,7 @@ class QueryBuilder
             [$this, 'wrapIdentifier'],
             array_keys($data)
         ));
-        $placeholders = implode(", ", array_fill(0, count($data), "?"));
+        $placeholders = implode(", ", array_fill(0, \count($data), "?"));
         $stmt = $this->pdo->prepare(
             "INSERT INTO " . $this->wrapIdentifier($this->table) . " ($columns) VALUES ($placeholders)"
         );

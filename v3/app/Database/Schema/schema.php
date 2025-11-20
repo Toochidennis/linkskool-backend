@@ -6889,6 +6889,63 @@ return [
             'collate' => 'utf8mb4_unicode_ci',
         ],
     ],
+    'users' => [
+        'id' => [
+            'type' => 'int(10) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'username' => [
+            'type' => 'varchar(50)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'name' => [
+            'type' => 'varchar(100)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'email' => [
+            'type' => 'varchar(100)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+            'unique' => true
+        ],
+        'attempt' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => '0',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'subscribed' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => '0',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'created_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'latin1',
+            'collate' => 'latin1_swedish_ci'
+        ]
+    ],
     'exam' => [],
     'exam_type' => [],
     'videosTable' => [],

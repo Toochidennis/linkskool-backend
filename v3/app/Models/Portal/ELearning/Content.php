@@ -11,6 +11,6 @@ class Content extends BaseModel
     public function __construct(\PDO $pdo)
     {
         parent::__construct($pdo);
-        $this->table($this->table);
+        parent::table($this->table);
     }
 }

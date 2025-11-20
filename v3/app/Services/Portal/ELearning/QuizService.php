@@ -19,7 +19,7 @@ class QuizService
 
     private array $typeMap = [
         'multiple_choice' => QuestionType::MULTIPLE_CHOICE->value,
-        'short_answer'    => QuestionType::SHORT_ANSWER->value,
+        'short_answer' => QuestionType::SHORT_ANSWER->value,
     ];
 
     public function __construct(PDO $pdo)

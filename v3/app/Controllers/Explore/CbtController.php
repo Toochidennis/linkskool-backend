@@ -5,18 +5,17 @@ namespace V3\App\Controllers\Explore;
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\ResponseHandler;
-use V3\App\Database\DatabaseConnector;
 use V3\App\Services\Explore\CbtService;
 
 #[Group("/public/cbt")]
-class CbtController
+class CbtController extends ExploreBaseController
 {
     private CbtService $cbtService;
 
     public function __construct()
     {
-        $pdo = DatabaseConnector::connect();
-        $this->cbtService = new CbtService($pdo);
+        parent::__construct();
+        $this->cbtService = new CbtService($this->pdo);
     }
 
     /**
@@ -26,7 +25,7 @@ class CbtController
     #[Route('/exams', 'GET', ['api'])]
     public function getAllExams()
     {
-        ResponseHandler::sendJsonResponse([
+        $this->respond([
             'success' => true,
             'data' => $this->cbtService->getFormattedExamHierarchy()
         ]);
@@ -54,8 +53,15 @@ class CbtController
     #[Route('/exams/{exam_id:\d+}/questions', 'GET', ['api'])]
     public function getQuestions(array $vars)
     {
-        ResponseHandler::sendJsonResponse(
-            $this->cbtService->getExamWithQuestions($vars['exam_id'])
-        );
+        $validate = $this->validate($vars, [
+            'exam_id' => 'required|integer|min:1',
+            'limit' => 'sometimes|integer|min:1|max:100',
+            'offset' => 'sometimes|integer|min:0'
+        ]);
+
+        $this->respond([
+            'success' => true,
+            'data' => $this->cbtService->getExamWithQuestions($validate)
+        ]);
     }
 }
