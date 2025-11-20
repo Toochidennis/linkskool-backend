@@ -38,14 +38,6 @@ abstract class ExploreBaseController
             default => []
         };
 
-        // Extract the database name based on request method.
-        if (empty($payload)) {
-            $this->respondError(
-                'Request payload can not be empty',
-                HttpStatus::BAD_REQUEST
-            );
-        }
-
         $this->post = $payload;
         $this->pdo = DatabaseConnector::connect();
     }
