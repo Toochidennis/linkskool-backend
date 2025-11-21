@@ -51,27 +51,36 @@ class SchemaSynchronizer
             if ($localTxn && $this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
-            //throw $e;
+            // Swallowing here — we could log at debug level instead of ERROR to reduce noise.
         }
     }
 
     private function tableExists(string $table): bool
     {
-        $stmt = $this->pdo->query("SHOW TABLES LIKE " . $this->pdo->quote($table));
-        return (bool) $stmt?->fetchColumn();
+        $stmt = $this->queryWithRetries("SHOW TABLES LIKE " . $this->pdo->quote($table));
+        if (!$stmt) {
+            return false;
+        }
+        return (bool) $stmt->fetchColumn();
     }
 
     private function createTable(string $table, array $definition): void
     {
         $builder = new TableBuilder($table, $definition);
         $sql = $builder->build();
-        $this->pdo->exec($sql);
+        // try to execute with retries on transient concurrent-DDL
+        $this->execWithRetries($sql);
     }
 
     private function syncColumns(string $table, array $definition): void
     {
         // Always fetch fresh column info for THIS table only.
-        $stmt = $this->pdo->query("SHOW COLUMNS FROM `$table`");
+        $stmt = $this->queryWithRetries("SHOW COLUMNS FROM `$table`");
+
+        if (!$stmt) {
+            // Couldn't fetch columns (likely transient concurrent DDL); skip syncing this table this time.
+            return;
+        }
         $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Re-index by column name
@@ -136,14 +145,15 @@ class SchemaSynchronizer
 
                 $sql .= !empty($spec['auto_increment']) ? " AUTO_INCREMENT" : '';
 
-                $this->pdo->exec($sql);
+                $this->execWithRetries($sql);
             }
         }
     }
 
     private function cleanupInvalidDates(string $table, string $column): void
     {
-        $this->pdo->exec("
+        // run with retries; if it fails due to concurrent DDL we'll skip
+        $this->execWithRetries("
             UPDATE `$table`
             SET `$column` = NULL
             WHERE `$column` LIKE '0000-00-00%'
@@ -155,7 +165,7 @@ class SchemaSynchronizer
         try {
             $builder = new ColumnBuilder($table, $col, $spec);
             $sql = $builder->build();
-            $this->pdo->exec($sql);
+            $this->execWithRetries($sql);
         } catch (PDOException $e) {
             $msg = $e->getMessage();
             if (str_contains($msg, 'Duplicate column')) {
@@ -163,5 +173,72 @@ class SchemaSynchronizer
             }
             throw $e;
         }
+    }
+
+    /**
+     * Run a query() with retries on transient concurrent DDL errors.
+     * Returns PDOStatement on success, or null on persistent failure.
+     */
+    private function queryWithRetries(string $sql, int $attempts = 3): ?\PDOStatement
+    {
+        $wait = 100000; // 100ms
+        for ($i = 0; $i < $attempts; $i++) {
+            try {
+                $stmt = $this->pdo->query($sql);
+                return $stmt ?: null;
+            } catch (PDOException $e) {
+                if ($this->isConcurrentDdlError($e)) {
+                    // transient, back off and retry
+                    usleep($wait);
+                    $wait *= 2;
+                    continue;
+                }
+                // non-transient -> rethrow
+                throw $e;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Run an exec() with retries on transient concurrent DDL errors.
+     * Returns true if exec succeeded (non-false), false on persistent failure.
+     */
+    private function execWithRetries(string $sql, int $attempts = 3): bool
+    {
+        $wait = 100000; // 100ms
+        for ($i = 0; $i < $attempts; $i++) {
+            try {
+                $res = $this->pdo->exec($sql);
+                return $res !== false;
+            } catch (PDOException $e) {
+                if ($this->isConcurrentDdlError($e)) {
+                    usleep($wait);
+                    $wait *= 2;
+                    continue;
+                }
+                throw $e;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Detect the MySQL concurrent-DDL "table skipped" condition.
+     */
+    private function isConcurrentDdlError(PDOException $e): bool
+    {
+        $msg = $e->getMessage();
+        if (str_contains($msg, 'being modified by concurrent DDL') || str_contains($msg, 'Table .* was skipped')) {
+            return true;
+        }
+
+        // Try errorInfo array if available (SQLSTATE / driver code)
+        $info = $e->errorInfo ?? null;
+        if (is_array($info) && isset($info[1]) && ((int)$info[1]) === 1684) {
+            return true;
+        }
+
+        return false;
     }
 }

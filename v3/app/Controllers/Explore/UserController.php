@@ -47,7 +47,7 @@ class UserController extends ExploreBaseController
     #[Route('/users/{id:\d+}', 'PUT', ['api'])]
     public function updateUser(array $vars)
     {
-        $data = $this->validate([$this->getRequestData(), ...$vars], [
+        $data = $this->validate([...$this->getRequestData(), ...$vars], [
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|max:255',
             'attempt' => 'sometimes|integer|min:0',

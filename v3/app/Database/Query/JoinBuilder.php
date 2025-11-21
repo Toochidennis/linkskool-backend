@@ -114,9 +114,23 @@ class JoinBuilder
 
         foreach ($args as $arg) {
             if (\is_string($arg) && str_contains($arg, '.')) {
-                $table = explode('.', $arg)[0];
-                $this->schemaSynchronizer->sync($table);
+                $parts = explode('.', $arg);
+                $this->validateColumn($parts[1]);
+                $this->schemaSynchronizer->sync($parts[0]);
             }
+        }
+    }
+
+    /**
+     * Summary of validateColumn
+     * @param string $column
+     * @throws \InvalidArgumentException
+     * @return void
+     */
+    private function validateColumn(string $column): void
+    {
+        if ($column !== '*' && !preg_match('/^[a-zA-Z0-9_]+$/', $column)) {
+            throw new \InvalidArgumentException("Invalid column name: $column");
         }
     }
 }
