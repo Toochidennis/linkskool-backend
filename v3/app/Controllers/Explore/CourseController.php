@@ -28,7 +28,10 @@ class CourseController extends ExploreBaseController
         $courseId = $this->courseService->createCourse($data);
 
         if ($courseId <= 0) {
-            $this->respondError('Failed to create course.', HttpStatus::BAD_REQUEST);
+            $this->respondError(
+                'Failed to create course.',
+                HttpStatus::BAD_REQUEST
+            );
         }
 
         $this->respond([
@@ -41,15 +44,21 @@ class CourseController extends ExploreBaseController
     #[Route('/courses/{id:\d+}', 'PUT', ['api'])]
     public function updateCourse(array $vars): void
     {
-        $data = $this->validate([$this->getRequestData(), ...$vars], [
-            'id' => 'required|integer',
-            'course_name' => 'required|string|filled',
-        ]);
+        $data = $this->validate(
+            array_merge($this->getRequestData(), $vars),
+            [
+                'id' => 'required|integer',
+                'course_name' => 'required|string|filled',
+            ]
+        );
 
         $updated = $this->courseService->updateCourse($data['id'], $data);
 
         if (!$updated) {
-            $this->respondError('Failed to update course.', HttpStatus::BAD_REQUEST);
+            $this->respondError(
+                'Failed to update course.',
+                HttpStatus::BAD_REQUEST
+            );
         }
 
         $this->respond([

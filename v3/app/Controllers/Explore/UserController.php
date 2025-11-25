@@ -47,14 +47,17 @@ class UserController extends ExploreBaseController
     #[Route('/users/{id:\d+}', 'PUT', ['api'])]
     public function updateUser(array $vars)
     {
-        $data = $this->validate([...$this->getRequestData(), ...$vars], [
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|max:255',
-            'attempt' => 'sometimes|integer|min:0',
-            'subscribed' => 'sometimes|in:0,1',
-            'reference' => 'sometimes|string|max:100',
-            'id' => 'required|integer|min:1',
-        ]);
+        $data = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'id' => 'required|integer|min:1',
+                'type' => 'nullable|string|in:payment,update',
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'attempt' => 'nullable|integer|min:0',
+                'reference' => 'nullable|string|max:100',
+            ]
+        );
 
         $isUpdated = $this->userService->updateUser($data['id'], $data);
 
@@ -68,6 +71,33 @@ class UserController extends ExploreBaseController
         $this->respond([
             'success' => true,
             'message' => 'User updated successfully',
+        ]);
+    }
+
+    #[Route('/users/payment-status/{id:\d+}', 'PUT', ['api'])]
+    public function updatePaymentStatus(array $vars)
+    {
+        $data = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'id' => 'required|integer|min:1',
+                'name' => 'required|string|max:255',
+                'reference' => 'required|string|max:100',
+            ]
+        );
+
+        $isUpdated = $this->userService->updatePaymentStatus($data);
+
+        if (!$isUpdated) {
+            $this->respondError(
+                'Failed to update payment status',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Payment status updated successfully',
         ]);
     }
 
