@@ -126,7 +126,7 @@ class UserService
         return [
             'success' => true,
             'status' => $result['data']['status'],
-            'amount' => $result['data']['amount'] / 100,
+            'amount' => $result['data']['amount'] / 100, // Convert to standard currency format
         ];
     }
 
@@ -136,5 +136,12 @@ class UserService
             ->select(['*'])
             ->where('email', '=', $email)
             ->first();
+    }
+
+    public function deleteUser(int $id): bool
+    {
+        return $this->user
+            ->where('id', '=', $id)
+            ->delete();
     }
 }
