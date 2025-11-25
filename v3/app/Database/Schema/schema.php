@@ -6926,6 +6926,13 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'password' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         'attempt' => [
             'type' => 'int(11)',
             'nullable' => true,
@@ -6940,8 +6947,43 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'date_subscribed' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'expires_at' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'last_renewed' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'subscription_type' => [
+            'type' => 'varchar(100)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         'reference' => [
             'type' => 'varchar(100)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'amount_paid' => [
+            'type' => 'float',
             'nullable' => true,
             'default' => null,
             'auto_increment' => false,
@@ -7021,6 +7063,69 @@ return [
             'type' => 'int(11)',
             'nullable' => false,
             'default' => 0,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'latin1',
+            'collate' => 'latin1_swedish_ci'
+        ]
+    ],
+    'exam_attempts' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'exam_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'user_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'average_score' => [
+            'type' => 'float',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'completion_rate' => [
+            'type' => 'float',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'test_taken' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'history' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'date_taken' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => 'CURRENT_TIMESTAMP',
             'auto_increment' => false,
             'primary' => false
         ],

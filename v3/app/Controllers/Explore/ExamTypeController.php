@@ -44,7 +44,7 @@ class ExamTypeController extends ExploreBaseController
     #[Route('/exam-types/{id:\d+}', 'PUT', ['api'])]
     public function updateExamType(array $vars): void
     {
-        $data = $this->validate([$this->getRequestData(), ...$vars], [
+        $data = $this->validate([...$this->getRequestData(), ...$vars], [
             'id' => 'required|integer',
             'title' => 'required|string|filled',
             'shortname' => 'required|string|filled',
@@ -55,7 +55,10 @@ class ExamTypeController extends ExploreBaseController
         $updated = $this->examTypeService->updateExamType($data);
 
         if (!$updated) {
-            $this->respondError('Failed to update exam type.', HttpStatus::BAD_REQUEST);
+            $this->respondError(
+                'Failed to update exam type.',
+                HttpStatus::BAD_REQUEST
+            );
         }
 
         $this->respond([
@@ -68,7 +71,7 @@ class ExamTypeController extends ExploreBaseController
     public function getAllExamTypes(array $vars): void
     {
         $data = $this->validate($vars, [
-            'active' => 'sometimes|integer|in:0,1'
+            'active' => 'nullable|integer|in:0,1'
         ]);
 
         $this->respond([
