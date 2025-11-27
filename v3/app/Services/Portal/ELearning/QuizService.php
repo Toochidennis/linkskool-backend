@@ -244,7 +244,7 @@ class QuizService
             $filtered = array_values(array_filter($url, fn($q) => $q['id'] != $id));
 
             // Only update if something changed
-            if (count($filtered) !== count($url)) {
+            if (\count($filtered) !== \count($url)) {
                 $this->content
                     ->where('id', '=', $contentId)
                     ->update(['url' => $this->json($filtered)]);

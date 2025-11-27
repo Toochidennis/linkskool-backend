@@ -92,5 +92,6 @@ class Tables
         'videosTable',
         'categoryTable',
         'cbt_users',
+        'audit_logs',
     ];
 }

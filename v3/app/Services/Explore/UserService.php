@@ -34,59 +34,79 @@ class UserService
         $verification = $this->verifyPayment($data['reference']);
         $status = 1; // Default to success
         $description = 'Payment verification completed successfully';
+        $user = true;
 
         if (!$verification['success']) {
             $status = 0;
             $description = 'Payment verification failed: ' . $verification['message'];
-            return false;
+        } else {
+            if ($verification['amount'] != $data['amount']) {
+                $status = 0;
+                $description = 'Payment amount mismatch';
+            } elseif (\in_array($verification['status'], ['failed', 'abandoned'])) {
+                $status = 0;
+                $description = 'Payment was not successful: ' . $verification['status'];
+            } elseif ($verification['status'] === 'pending') {
+                $status = 2;
+                $description = 'Payment is still pending';
+                $_SESSION['pending_payments'][$data['reference']] = [
+                    'name' => $data['name'],
+                    'id' => $data['id'],
+                    'amount' => $data['amount'],
+                    'subscription_type' => $data['subscription_type'] ?? 'annual',
+                ];
+            } else {
+                $expireDate = match ($data['subscription_type'] ?? 'annual') {
+                    'monthly' => date('Y-m-d H:i:s', strtotime('+1 month')),
+                    'quarterly' => date('Y-m-d H:i:s', strtotime('+3 months')),
+                    default => date('Y-m-d H:i:s', strtotime('+1 year')),
+                };
+
+                $payload = [
+                    'subscribed' => 1,
+                    'date_subscribed' => date('Y-m-d H:i:s'),
+                    'expiry_date' => $expireDate,
+                    'amount' => $verification['amount'],
+                    'subscription_type' => $data['subscription_type'] ?? 'annual',
+                ];
+
+                $user = $this->user
+                    ->where('id', '=', $data['id'])
+                    ->update($payload);
+
+                $status = $user ? 1 : 0;
+                $description = $user
+                    ? 'Payment verification completed successfully'
+                    : 'Payment succeeded but user subscription update failed';
+            }
         }
 
-        if ($verification['status'] !== 'success') {
-            $status = 0;
-            $description = 'Payment not successful';
-            return false;
+        if ($status === 1 || $status === 2) {
+            $receiptPayload =  [
+                'trans_type' => 'receipts',
+                'memo' => $description,
+                'c_type' => 1,
+                'ref' => $data['reference'],
+                'cid' => $data['id'],
+                'cref' => $data['id'],
+                'name' => $data['name'],
+                'quantity' => 1,
+                'it_id' => 1,
+                'amount' => $data['amount'],
+                'date' => date('Y-m-d'),
+                'account' => 1980,
+                'account_name' => 'Income',
+                'approved' => 1,
+                'status' => $status,
+                'sub' => 0
+            ];
+
+            $receipt =  $this->transaction->insert($receiptPayload);
+
+            return $user && $receipt;
         }
 
-        $expireDate = match ($data['subscription_type'] ?? 'annual') {
-            'monthly' => date('Y-m-d H:i:s', strtotime('+1 month')),
-            'quarterly' => date('Y-m-d H:i:s', strtotime('+6 months')),
-            default => date('Y-m-d H:i:s', strtotime('+1 year')),
-        };
-
-        $payload = [
-            'subscribed' => 1,
-            'date_subscribed' => date('Y-m-d H:i:s'),
-            'expiry_date' => $expireDate,
-            'amount_paid' => $verification['amount'],
-            'subscription_type' => $data['subscription_type'] ?? 'annual',
-        ];
-
-        $user = $this->user
-            ->where('id', '=', $data['id'])
-            ->update($payload);
-
-        $receiptPayload =  [
-            'trans_type' => 'receipts',
-            'memo' => $description,
-            'c_type' => 1,
-            'ref' => $data['reference'],
-            'cid' => $data['student_id'],
-            'cref' => $data['id'],
-            'name' => $data['name'],
-            'quantity' => 1,
-            'it_id' => 1,
-            'amount' => $data['amount'],
-            'date' => date('Y-m-d'),
-            'account' => 1980,
-            'account_name' => 'Income',
-            'approved' => 1,
-            'status' => $status,
-            'sub' => 0
-        ];
-
-        $receipt =  $this->transaction->insert($receiptPayload);
-
-        return $user && $receipt;
+        return false;
     }
 
     private function verifyPayment(string $reference): array
@@ -96,6 +116,7 @@ class UserService
         curl_setopt_array($curl, [
             CURLOPT_URL => "https://api.paystack.co/transaction/verify/{$reference}",
             CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 15,
             CURLOPT_HTTPHEADER => [
                 "Authorization: Bearer " . getenv('PAYSTACK_SECRET_KEY'),
                 "Cache-Control: no-cache",
@@ -104,36 +125,50 @@ class UserService
 
         $response = curl_exec($curl);
         $err = curl_error($curl);
-        curl_close($curl);
 
         if ($err) {
             return [
-                'status' => false,
-                'message' => "cURL Error #: {$err}"
+                'success' => false,
+                'message' => "Network error: {$err}",
+                'status' => null,
+                'amount' => 0
             ];
         }
 
         $result = json_decode($response, true);
 
-        if (!$result['status']) {
+        if (!isset($result['status']) || $result['status'] !== true) {
             return [
                 'success' => false,
                 'message' => $result['message'] ?? 'Verification failed',
-                'status' => null
+                'status' => null,
+                'amount' => 0
             ];
         }
 
         return [
             'success' => true,
+            'message' => 'OK',
             'status' => $result['data']['status'],
-            'amount' => $result['data']['amount'] / 100, // Convert to standard currency format
+            'amount' => $result['data']['amount'] / 100
         ];
     }
+
+    // public function retryVerifyPayment(string $reference): array
+    // {
+    //     if(!isset($_SESSION['pending_payments'][$reference])) {
+    //         return [
+    //             'success' => false,
+    //             'message' => 'No pending payment found for the given reference.'
+    //         ];
+    //     }
+
+    //     return $this->verifyPayment($reference);
+    // }
 
     public function getUserByEmail(string $email): array
     {
         return $this->user
-            ->select(['*'])
             ->where('email', '=', $email)
             ->first();
     }

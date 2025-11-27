@@ -99,7 +99,7 @@ class StudentPaymentService
 
                 if ($txStatus === 'success') {
                     $status = 1;
-                } elseif (in_array($txStatus, ['failed', 'abandoned'])) {
+                } elseif (\in_array($txStatus, ['failed', 'abandoned'])) {
                     $status = 0;
                     // keep defaults
                 } elseif ($txStatus === 'pending') {
@@ -261,7 +261,7 @@ class StudentPaymentService
 
                 $this->updateInvoice($data);
                 unset($_SESSION['pending_payments'][$reference]);
-            } elseif (in_array($verify['status'], ['failed', 'abandoned'])) {
+            } elseif (\in_array($verify['status'], ['failed', 'abandoned'])) {
                 $this->transaction
                     ->where('ref', '=', $reference)
                     ->update([

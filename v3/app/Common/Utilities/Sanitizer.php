@@ -18,7 +18,7 @@ class Sanitizer
                 return null; // Keep null as-is, but record it
             }
 
-            if (is_array($value)) {
+            if (\is_array($value)) {
                 $sanitized = [];
                 foreach ($value as $k => $v) {
                     $sanitized[$k] = $process($v, $keyPath . ($keyPath ? '.' : '') . $k);

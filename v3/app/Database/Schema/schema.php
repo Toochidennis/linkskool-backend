@@ -3390,6 +3390,62 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'explanation' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'explanation_id' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'passage' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'passage_id' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'topic' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'topic_id' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'instruction' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'instruction_id' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         'title' => [
             'type' => 'varchar(255)',
             'nullable' => true,
@@ -6982,7 +7038,7 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
-        'amount_paid' => [
+        'amount' => [
             'type' => 'float',
             'nullable' => true,
             'default' => null,
@@ -7125,6 +7181,55 @@ return [
         'date_taken' => [
             'type' => 'datetime',
             'nullable' => true,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'latin1',
+            'collate' => 'latin1_swedish_ci'
+        ]
+    ],
+    'audit_logs' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'user_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'username' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'action' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'details' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'created_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
             'default' => 'CURRENT_TIMESTAMP',
             'auto_increment' => false,
             'primary' => false

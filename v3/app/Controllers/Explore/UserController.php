@@ -74,7 +74,7 @@ class UserController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/users/payment-status/{id:\d+}', 'PUT', ['api'])]
+    #[Route('/users/{id:\d+}/payment-status', 'PUT', ['api'])]
     public function updatePaymentStatus(array $vars)
     {
         $data = $this->validate(
