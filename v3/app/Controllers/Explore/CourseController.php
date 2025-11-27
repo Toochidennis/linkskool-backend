@@ -18,7 +18,7 @@ class CourseController extends ExploreBaseController
         $this->courseService = new CourseService($this->pdo);
     }
 
-    #[Route('/courses', 'POST', ['api'])]
+    #[Route('/courses', 'POST', ['api', 'auth', 'role:admin'])]
     public function storeCourse(): void
     {
         $data = $this->validate($this->getRequestData(), [
@@ -41,7 +41,7 @@ class CourseController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/courses/{id:\d+}', 'PUT', ['api'])]
+    #[Route('/courses/{id:\d+}', 'PUT', ['api', 'auth', 'role:admin'])]
     public function updateCourse(array $vars): void
     {
         $data = $this->validate(
@@ -67,7 +67,7 @@ class CourseController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/courses', 'GET', ['api'])]
+    #[Route('/courses', 'GET', ['api', 'auth', 'role:admin'])]
     public function getAllCourses(): void
     {
         $courses = $this->courseService->getAllCourses();
@@ -78,7 +78,7 @@ class CourseController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/courses/{id:\d+}', 'DELETE', ['api'])]
+    #[Route('/courses/{id:\d+}', 'DELETE', ['api', 'auth', 'role:admin'])]
     public function deleteCourse(array $vars): void
     {
         $data = $this->validate($vars, [

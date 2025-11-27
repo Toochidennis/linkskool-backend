@@ -22,13 +22,14 @@ class UserController extends ExploreBaseController
     public function storeUser(): void
     {
         $data = $this->validate($this->getRequestData(), [
+            'creator_id' => 'required|integer|min:1',
             'first_name' => 'required|string|filled|max:255',
             'last_name' => 'required|string|filled|max:255',
             'username' => 'required|string|filled|max:255',
             'email' => 'nullable|email|max:255',
             'password' => 'required|string|filled|min:6',
             'role_id' => 'nullable|integer|min:0',
-            'access_level' => 'required|string|in:student,staff',
+            'access_level' => 'required|string|in:admin,staff',
             'picture_ref' => 'nullable|string|max:255',
         ]);
 
@@ -92,7 +93,7 @@ class UserController extends ExploreBaseController
             'email' => 'nullable|email|max:255',
             'password' => 'nullable|string|min:6',
             'role_id' => 'nullable|integer|min:0',
-            'access_level' => 'required|string|in:student,staff',
+            'access_level' => 'required|string|in:admin,staff',
             'picture_ref' => 'nullable|string|max:255',
         ]);
 
@@ -123,6 +124,31 @@ class UserController extends ExploreBaseController
                 'data' => $this->userService->getUsers(),
             ],
             HttpStatus::OK
+        );
+    }
+
+    #[Route('/{id:\d+}', 'DELETE', ['api', 'auth', 'role:admin'])]
+    public function deleteUser(array $vars): void
+    {
+        $data = $this->validate($vars, [
+            'id' => 'required|integer|min:1',
+        ]);
+
+        $deleted = $this->userService->deleteUser($data['id']);
+
+        if ($deleted) {
+            $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'User deleted successfully',
+                ],
+                HttpStatus::OK
+            );
+        }
+
+        $this->respondError(
+            'Failed to delete user',
+            HttpStatus::BAD_REQUEST
         );
     }
 }
