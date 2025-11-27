@@ -7240,6 +7240,150 @@ return [
             'collate' => 'latin1_swedish_ci'
         ]
     ],
+    'users' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'picture_ref' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'first_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'middle_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'last_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'username' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+            'unique' => true
+        ],
+        'phone' => [
+            'type' => 'varchar(20)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+            'unique' => true
+        ],
+        'email' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+            'unique' => true
+        ],
+        'state' => [
+            'type' => 'varchar(70)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'password' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'bio' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'type' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'status' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => 0,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+
+        'roleId' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => 0,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'accessLevel' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => 0,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'address' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'website' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'other' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'date' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'latin1',
+            'collate' => 'latin1_swedish_ci'
+        ]
+    ],
     'exam' => [],
     'videosTable' => [],
     'categoryTable' => [],

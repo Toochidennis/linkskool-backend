@@ -5,10 +5,9 @@ namespace V3\App\Controllers\Explore;
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
-use V3\App\Controllers\Explore\ExploreBaseController;
 use V3\App\Services\Explore\UserService;
 
-#[Group('/public/cbt')]
+#[Group('/public/users')]
 class UserController extends ExploreBaseController
 {
     private UserService $userService;
@@ -19,107 +18,111 @@ class UserController extends ExploreBaseController
         $this->userService = new UserService($this->pdo);
     }
 
-    #[Route('/users', 'POST', ['api'])]
-    public function storeUser()
+    #[Route('', 'POST', ['api', 'auth', 'role:admin'])]
+    public function storeUser(): void
     {
         $data = $this->validate($this->getRequestData(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'profile_picture' => 'sometimes|string|max:255',
-            'attempt' => 'required|integer|min:0',
+            'first_name' => 'required|string|filled|max:255',
+            'last_name' => 'required|string|filled|max:255',
+            'username' => 'required|string|filled|max:255',
+            'email' => 'nullable|email|max:255',
+            'password' => 'required|string|filled|min:6',
+            'role_id' => 'nullable|integer|min:0',
+            'access_level' => 'required|string|in:student,staff',
+            'picture_ref' => 'nullable|string|max:255',
         ]);
 
         $userId = $this->userService->createUser($data);
 
-        if ($userId <= 0) {
-            $this->respondError(
-                'Failed to create user, maybe email already exists.',
-                HttpStatus::BAD_REQUEST
+        if ($userId) {
+            $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'User created successfully',
+                    'user_id' => $userId,
+                ],
+                HttpStatus::CREATED
             );
         }
-        $this->respond([
-            'success' => true,
-            'message' => 'User created successfully',
-            'userId' => $userId
-        ]);
+
+        $this->respondError(
+            'Failed to create user',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
-    #[Route('/users/{id:\d+}', 'PUT', ['api'])]
-    public function updateUser(array $vars)
+    #[Route('/login', 'POST', ['api'])]
+    public function login(): void
     {
-        $data = $this->validate(
-            [...$this->getRequestData(), ...$vars],
-            [
-                'id' => 'required|integer|min:1',
-                'type' => 'nullable|string|in:payment,update',
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|max:255',
-                'attempt' => 'nullable|integer|min:0',
-                'reference' => 'nullable|string|max:100',
-            ]
+        $data = $this->validate($this->getRequestData(), [
+            'username' => 'required|string|filled|max:255',
+            'password' => 'required|string|filled|min:6',
+        ]);
+
+        $user = $this->userService->login(
+            $data['username'],
+            $data['password']
         );
 
-        $isUpdated = $this->userService->updateUser($data['id'], $data);
-
-        if (!$isUpdated) {
-            $this->respondError(
-                'Failed to update user',
-                HttpStatus::BAD_REQUEST
+        if (!empty($user)) {
+            $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Login successful',
+                    ...$user,
+                ],
+                HttpStatus::OK
             );
         }
 
-        $this->respond([
-            'success' => true,
-            'message' => 'User updated successfully',
-        ]);
-    }
-
-    #[Route('/users/{id:\d+}/payment-status', 'PUT', ['api'])]
-    public function updatePaymentStatus(array $vars)
-    {
-        $data = $this->validate(
-            [...$this->getRequestData(), ...$vars],
-            [
-                'id' => 'required|integer|min:1',
-                'name' => 'required|string|max:255',
-                'reference' => 'required|string|max:100',
-            ]
+        $this->respondError(
+            'Invalid username or password',
+            HttpStatus::UNAUTHORIZED
         );
-
-        $isUpdated = $this->userService->updatePaymentStatus($data);
-
-        if (!$isUpdated) {
-            $this->respondError(
-                'Failed to update payment status',
-                HttpStatus::BAD_REQUEST
-            );
-        }
-
-        $this->respond([
-            'success' => true,
-            'message' => 'Payment status updated successfully',
-        ]);
     }
 
-    #[Route('/users/{email}', 'GET', ['api'])]
-    public function getUserByEmail(array $vars)
+    #[Route('', 'PUT', ['api', 'auth', 'role:admin'])]
+    public function updateUser(): void
     {
-        $data = $this->validate($vars, [
-            'email' => 'required|email|max:255',
+        $data = $this->validate($this->getRequestData(), [
+            'id' => 'required|integer|min:1',
+            'first_name' => 'required|string|filled|max:255',
+            'last_name' => 'required|string|filled|max:255',
+            'username' => 'required|string|filled|max:255',
+            'email' => 'nullable|email|max:255',
+            'password' => 'nullable|string|min:6',
+            'role_id' => 'nullable|integer|min:0',
+            'access_level' => 'required|string|in:student,staff',
+            'picture_ref' => 'nullable|string|max:255',
         ]);
 
-        $user = $this->userService->getUserByEmail($data['email']);
+        $updated = $this->userService->updateUser($data);
 
-        if (empty($user)) {
-            $this->respondError(
-                'User not found',
-                HttpStatus::NOT_FOUND
+        if ($updated) {
+            $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'User updated successfully',
+                ],
+                HttpStatus::OK
             );
         }
 
-        $this->respond([
-            'success' => true,
-            'data' => $user
-        ]);
+        $this->respondError(
+            'Failed to update user',
+            HttpStatus::BAD_REQUEST
+        );
+    }
+
+    #[Route('', 'GET', ['api', 'auth', 'role:admin'])]
+    public function getUsers(): void
+    {
+        $this->respond(
+            [
+                'success' => true,
+                'data' => $this->userService->getUsers(),
+            ],
+            HttpStatus::OK
+        );
     }
 }
