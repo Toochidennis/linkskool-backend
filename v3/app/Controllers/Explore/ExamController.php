@@ -18,19 +18,21 @@ class ExamController extends ExploreBaseController
         $this->examService = new ExamService($this->pdo);
     }
 
-    #[Route('/exams', 'POST', ['api'])]
-    public function storeExam(): void
+    #[Route('/questions', 'POST', ['api'])]
+    public function storeQuestions(): void
     {
         $data = $this->validate($this->getRequestData(), [
             'settings' => 'required|array|min:1',
             'settings.exam_type_id' => 'required|integer|min:1',
             'settings.course_id' => 'required|integer|min:1',
             'settings.course_name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'settings.description' => 'nullable|string',
+            'settings.user_id' => 'required|integer|min:1',
+            'settings.username' => 'required|string|max:255',
 
             'data' => 'required|array|min:1',
 
-            'data.*.year' => 'required|integer|min:1900|max: ' . (date('Y') + 1),
+            'data.*.year' => 'required|integer|min:1',
             'data.*.questions' => 'required|array|min:1',
 
             'data.*.questions.*.question_text' => 'required|string|filled',
@@ -38,6 +40,9 @@ class ExamController extends ExploreBaseController
             'data.*.questions.*.instruction_id' => 'nullable|integer|min:1',
             'data.*.questions.*.passage' => 'nullable|string',
             'data.*.questions.*.passage_id' => 'nullable|integer|min:1',
+            'data.*.questions.*.topic' => 'nullable|string',
+            'data.*.questions.*.topic_id' => 'nullable|integer|min:1',
+            'data.*.questions.*.explanation' => 'nullable|string',
             'data.*.questions.*.question_type' => 'required|string|in:short_answer,multiple_choice',
 
             'data.*.questions.*.question_files' => 'nullable|array',
@@ -61,9 +66,9 @@ class ExamController extends ExploreBaseController
             'data.*.questions.*.correct.text' => 'required|string|filled',
         ]);
 
-        $examId = $this->examService->createExam($data);
+        $examIds = $this->examService->createQuestions($data);
 
-        if ($examId <= 0) {
+        if (empty($examIds)) {
             $this->respondError(
                 'Failed to create exam.',
                 HttpStatus::BAD_REQUEST
@@ -73,7 +78,7 @@ class ExamController extends ExploreBaseController
         $this->respond([
             'success' => true,
             'message' => 'Exam created successfully.',
-            'exam_id' => $examId
+            'exam_ids' => $examIds
         ]);
     }
 }
