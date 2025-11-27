@@ -18,7 +18,7 @@ class ExamTypeController extends ExploreBaseController
         $this->examTypeService = new ExamTypeService($this->pdo);
     }
 
-    #[Route('/exam-types', 'POST', ['api'])]
+    #[Route('/exam-types', 'POST', ['api', 'auth', 'role:admin'])]
     public function storeExamType(): void
     {
         $data = $this->validate($this->getRequestData(), [
@@ -41,7 +41,7 @@ class ExamTypeController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/exam-types/{id:\d+}', 'PUT', ['api'])]
+    #[Route('/exam-types/{id:\d+}', 'PUT', ['api', 'auth', 'role:admin'])]
     public function updateExamType(array $vars): void
     {
         $data = $this->validate([...$this->getRequestData(), ...$vars], [
@@ -67,21 +67,26 @@ class ExamTypeController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/exam-types', 'GET', ['api'])]
-    public function getAllExamTypes(array $vars): void
+    #[Route('/exam-types/active', 'GET', ['api', 'auth'])]
+    public function getActiveExamTypes(array $vars): void
     {
-        $data = $this->validate($vars, [
-            'active' => 'nullable|integer|in:0,1'
-        ]);
-
         $this->respond([
             'success' => true,
-            'data' => $this->examTypeService->getAllExamTypes($data['active'])
+            'data' => $this->examTypeService->getAllExamTypes(1)
+        ]);
+    }
+
+    #[Route('/exam-types', 'GET', ['api', 'auth'])]
+    public function getAllExamTypes(): void
+    {
+        $this->respond([
+            'success' => true,
+            'data' => $this->examTypeService->getAllExamTypes(0)
         ]);
     }
 
 
-    #[Route('/exam-types/{id:\d+}', 'DELETE', ['api'])]
+    #[Route('/exam-types/{id:\d+}', 'DELETE', ['api', 'auth', 'role:admin'])]
     public function deleteExamType(array $vars): void
     {
         $data = $this->validate($vars, [

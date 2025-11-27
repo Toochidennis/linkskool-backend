@@ -3,6 +3,7 @@
 namespace V3\App\Services\Explore;
 
 use V3\App\Common\Traits\AuthenticatesRequests;
+use V3\App\Models\Explore\AuditLog;
 use V3\App\Models\Explore\User;
 
 class UserService
@@ -10,10 +11,12 @@ class UserService
     use AuthenticatesRequests;
 
     private User $user;
+    private AuditLog $auditLog;
 
     public function __construct(\PDO $pdo)
     {
         $this->user = new User($pdo);
+        $this->auditLog = new AuditLog($pdo);
     }
 
     public function createUser(array $data): int
@@ -29,6 +32,12 @@ class UserService
             'picture_ref' => $data['picture_ref'] ?? null,
 
         ];
+        $this->logAction(
+            action: 'create_user',
+            userId: $data['creator_id'],
+            username: 'User ID ' . $data['creator_id'],
+            details: 'Created user: ' . $data['username']
+        );
         return $this->user->insert($payload);
     }
 
@@ -80,6 +89,13 @@ class UserService
             return [];
         }
 
+        $this->logAction(
+            action: 'user_login',
+            userId: $user['id'],
+            username: $user['username'],
+            details: 'User logged in'
+        );
+
         return [
             'data' => $user,
             'token' => self::generateJWT(
@@ -115,5 +131,31 @@ class UserService
                 'access_level' => $user['access_level'] === 2 ? 'staff' : 'admin',
             ];
         }, $users);
+    }
+
+    public function deleteUser(int $id): bool
+    {
+        $this->logAction(
+            action: 'delete_user',
+            userId: $id,
+            username: "User ID $id",
+            details: "Deleted user with ID: $id"
+        );
+
+        return $this->user
+            ->where('id', '=', $id)
+            ->delete();
+    }
+
+    private function logAction(string $action, int $userId, string $username, ?string $details = null): void
+    {
+        $payload = [
+            'action' => $action,
+            'user_id' => $userId,
+            'username' => $username,
+            'details' => $details,
+        ];
+
+        $this->auditLog->insert($payload);
     }
 }
