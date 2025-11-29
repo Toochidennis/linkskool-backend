@@ -88,6 +88,8 @@ class ExamService
                     'File Upload',
                     $settings['user_id'],
                     $settings['username'],
+                    $examIds[$year],
+                    'exam_upload',
                     "Uploaded questions for {$settings['course_name']} for year $year"
                 );
 
@@ -119,13 +121,23 @@ class ExamService
         return $this->exam->insert($payload);
     }
 
-    private function logAction(string $action, int $userId, string $username, ?string $details = null): void
-    {
+    private function logAction(
+        string $action,
+        int $userId,
+        string $username,
+        int $actionId = 0,
+        ?string $actionType = null,
+        ?string $details = null
+    ): void {
+
         $payload = [
             'action' => $action,
             'user_id' => $userId,
             'username' => $username,
             'details' => $details,
+            'status' => 'Completed',
+            'action_id' => $actionId,
+            'action_type' => $actionType,
         ];
 
         $this->auditLog->insert($payload);

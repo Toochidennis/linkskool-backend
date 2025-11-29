@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\ExamService;
 
-#[Group('/public/cbt')]
+#[Group('/public')]
 class ExamController extends ExploreBaseController
 {
     private ExamService $examService;
@@ -37,12 +37,13 @@ class ExamController extends ExploreBaseController
 
             'data.*.questions.*.question_text' => 'required|string|filled',
             'data.*.questions.*.instruction' => 'nullable|string',
-            'data.*.questions.*.instruction_id' => 'nullable|integer|min:1',
+            'data.*.questions.*.instruction_id' => 'nullable|integer',
             'data.*.questions.*.passage' => 'nullable|string',
-            'data.*.questions.*.passage_id' => 'nullable|integer|min:1',
+            'data.*.questions.*.passage_id' => 'nullable|integer',
             'data.*.questions.*.topic' => 'nullable|string',
-            'data.*.questions.*.topic_id' => 'nullable|integer|min:1',
+            'data.*.questions.*.topic_id' => 'nullable|integer',
             'data.*.questions.*.explanation' => 'nullable|string',
+            'data.*.questions.*.explanation_id' => 'nullable|integer',
             'data.*.questions.*.question_type' => 'required|string|in:short_answer,multiple_choice',
 
             'data.*.questions.*.question_files' => 'nullable|array',

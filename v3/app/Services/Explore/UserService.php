@@ -27,8 +27,7 @@ class UserService
             'username' => $data['username'],
             'email' => $data['email'] ?? '',
             'password' => password_hash($data['password'], PASSWORD_BCRYPT),
-            'roleId' => $data['role_id'] ?? 0,
-            'accessLevel' => $data['access_level'] === 'staff' ? 2 : 1,
+            'accessLevel' => $data['role'] === 'user' ? 2 : 1,
             'picture_ref' => $data['picture_ref'] ?? null,
 
         ];
@@ -51,8 +50,7 @@ class UserService
             'password' => isset($data['password']) ?
                 password_hash($data['password'], PASSWORD_BCRYPT) :
                 $this->user->where('id', '=', $data['id'])->first()['password'],
-            'accessLevel' => $data['access_level'] === 'staff' ? 2 : 1,
-            'roleId' => $data['role_id'] ?? 0,
+            'accessLevel' => $data['role'] === 'user' ? 2 : 1,
             'picture_ref' => $data['picture_ref'] ?? null,
         ];
 
@@ -77,8 +75,7 @@ class UserService
                 'last_name',
                 'username',
                 'email',
-                'accessLevel AS access_level',
-                'roleId AS role_id',
+                'accessLevel AS role',
                 'password',
                 'picture_ref'
             ])
@@ -96,12 +93,16 @@ class UserService
             details: 'User logged in'
         );
 
+        unset($user['password']);
+
+        $user['role'] = $user['role'] === 2 ? 'user' : 'admin';
+
         return [
-            'data' => $user,
+            'user' => $user,
             'token' => self::generateJWT(
                 userId: $user['id'],
                 name: $user['first_name'] . ' ' . $user['last_name'],
-                role: $user['access_level'] === 2 ? 'staff' : 'admin'
+                role: $user['role'] === 2 ? 'user' : 'admin'
             )
         ];
     }
@@ -125,12 +126,10 @@ class UserService
             })
             ->get();
 
-        return array_map(function ($user) {
-            return [
-                ...$user,
-                'access_level' => $user['access_level'] === 2 ? 'staff' : 'admin',
-            ];
-        }, $users);
+        return array_map(fn($user) => [
+            ...$user,
+            'access_level' => $user['access_level'] === 2 ? 'user' : 'admin',
+        ], $users);
     }
 
     public function deleteUser(int $id): bool

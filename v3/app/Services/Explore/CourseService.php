@@ -27,7 +27,7 @@ class CourseService
 
     public function getAllCourses(): array
     {
-        return $this->course->get();
+        return $this->course->orderBy('course_name')->get();
     }
 
     public function deleteCourse(int $id): bool

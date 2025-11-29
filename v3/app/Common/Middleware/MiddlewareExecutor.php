@@ -47,7 +47,7 @@ class MiddlewareExecutor
         $payload = self::decodeJWT($token);
         $userRole = $payload['data']['role'] ?? null;
 
-        if (!$userRole || !in_array($userRole, $allowedRoles, true)) {
+        if (!$userRole || !\in_array($userRole, $allowedRoles, true)) {
             ResponseHandler::sendJsonResponse([
                 'success' => false,
                 'message' => 'Forbidden: insufficient privileges',

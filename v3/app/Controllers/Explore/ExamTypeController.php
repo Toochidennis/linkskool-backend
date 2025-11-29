@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\ExamTypeService;
 
-#[Group('/public/cbt')]
+#[Group('/public')]
 class ExamTypeController extends ExploreBaseController
 {
     private ExamTypeService $examTypeService;
@@ -22,10 +22,10 @@ class ExamTypeController extends ExploreBaseController
     public function storeExamType(): void
     {
         $data = $this->validate($this->getRequestData(), [
-            'title' => 'required|string|filled',
+            'name' => 'required|string|filled',
             'shortname' => 'required|string|filled',
             'course_ids' => 'required|array',
-            'active' => 'required|integer|in:0,1'
+            'is_active' => 'required|integer|in:0,1'
         ]);
 
         $examTypeId = $this->examTypeService->createExamType($data);
@@ -46,10 +46,10 @@ class ExamTypeController extends ExploreBaseController
     {
         $data = $this->validate([...$this->getRequestData(), ...$vars], [
             'id' => 'required|integer',
-            'title' => 'required|string|filled',
+            'name' => 'required|string|filled',
             'shortname' => 'required|string|filled',
             'course_ids' => 'required|array',
-            'active' => 'required|integer|in:0,1'
+            'is_active' => 'required|integer|in:0,1'
         ]);
 
         $updated = $this->examTypeService->updateExamType($data);

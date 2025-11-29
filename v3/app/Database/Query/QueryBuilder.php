@@ -64,7 +64,7 @@ class QueryBuilder
      */
     public function select(array $columns = ['*']): self
     {
-        array_map([$this, 'validateColumn'], $columns);
+        //array_map([$this, 'validateColumn'], $columns);
         $this->selectColumns = $columns;
         return $this;
     }
@@ -109,7 +109,7 @@ class QueryBuilder
         }
 
         $this->whereConditions[] = $builder->getClause();
-        $this->whereBindings = array_merge($this->whereBindings, $builder->getBindings());
+        $this->whereBindings = \array_merge($this->whereBindings, $builder->getBindings());
 
         return $this;
     }
@@ -135,7 +135,7 @@ class QueryBuilder
                 throw new InvalidArgumentException("Each pair must have exactly " . \count($columns) . " values.");
             }
             $placeholders[] = '(' . implode(', ', array_fill(0, \count($columns), '?')) . ')';
-            $this->whereBindings = array_merge($this->whereBindings, array_values($pair));
+            $this->whereBindings = \array_merge($this->whereBindings, array_values($pair));
         }
 
         $this->whereConditions[] = "$colList NOT IN (" . implode(', ', $placeholders) . ")";
@@ -175,8 +175,8 @@ class QueryBuilder
     public function groupBy(string|array $columns): self
     {
         if (\is_array($columns)) {
-            array_map([$this, 'validateColumn'], $columns);
-            $wrapped = \array_map(fn($col) => $this->wrapIdentifier($col), $columns);
+            array_map($this->validateColumn(...), $columns);
+            $wrapped = \array_map($this->wrapIdentifier(...), $columns);
             $this->groupBy = "GROUP BY " . implode(', ', $wrapped);
         } else {
             $this->validateColumn($columns);
@@ -270,7 +270,7 @@ class QueryBuilder
         }
 
         $stmt = $this->pdo->prepare($query);
-        $stmt->execute(array_merge($this->bindings, $this->whereBindings));
+        $stmt->execute(\array_merge($this->bindings, $this->whereBindings));
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $this->reset();
@@ -297,9 +297,9 @@ class QueryBuilder
      */
     public function insert(array $data)
     {
-        array_map([$this, 'validateColumn'], array_keys($data));
+        array_map($this->validateColumn(...), array_keys($data));
         $columns = implode(", ", array_map(
-            [$this, 'wrapIdentifier'],
+            $this->wrapIdentifier(...),
             array_keys($data)
         ));
         $placeholders = implode(", ", array_fill(0, \count($data), "?"));
@@ -336,7 +336,7 @@ class QueryBuilder
             implode(" AND ", $this->whereConditions);
         $stmt = $this->pdo->prepare($query);
 
-        $allBindings = array_merge($this->updateBindings, $this->whereBindings);
+        $allBindings = \array_merge($this->updateBindings, $this->whereBindings);
         $success = $stmt->execute($allBindings);
 
         $this->reset();
@@ -353,7 +353,7 @@ class QueryBuilder
 
         $placeholders = implode(", ", array_fill(0, \count($values), "?"));
         $this->whereConditions[] = "`$column` NOT IN ($placeholders)";
-        $this->whereBindings = array_merge($this->whereBindings, $values);
+        $this->whereBindings = \array_merge($this->whereBindings, $values);
 
         return $this;
     }
@@ -366,7 +366,7 @@ class QueryBuilder
 
         $placeholders = implode(", ", array_fill(0, \count($values), "?"));
         $this->whereConditions[] = "`$column` IN ($placeholders)";
-        $this->whereBindings = array_merge($this->whereBindings, $values);
+        $this->whereBindings = \array_merge($this->whereBindings, $values);
 
         return $this;
     }
@@ -412,7 +412,7 @@ class QueryBuilder
     public function whereRaw(string $expression, array $bindings = []): self
     {
         $this->whereConditions[] = $expression;
-        $this->whereBindings = array_merge($this->whereBindings, $bindings);
+        $this->whereBindings = \array_merge($this->whereBindings, $bindings);
 
         return $this;
     }
