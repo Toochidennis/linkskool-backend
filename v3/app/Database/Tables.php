@@ -93,5 +93,6 @@ class Tables
         'categoryTable',
         'cbt_users',
         'audit_logs',
+        'users',
     ];
 }

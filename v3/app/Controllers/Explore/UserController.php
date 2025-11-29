@@ -28,8 +28,7 @@ class UserController extends ExploreBaseController
             'username' => 'required|string|filled|max:255',
             'email' => 'nullable|email|max:255',
             'password' => 'required|string|filled|min:6',
-            'role_id' => 'nullable|integer|min:0',
-            'access_level' => 'required|string|in:admin,staff',
+            'role' => 'required|string|in:admin,user',
             'picture_ref' => 'nullable|string|max:255',
         ]);
 
@@ -70,7 +69,7 @@ class UserController extends ExploreBaseController
                 [
                     'success' => true,
                     'message' => 'Login successful',
-                    ...$user,
+                    'data' => $user,
                 ],
                 HttpStatus::OK
             );
@@ -82,7 +81,7 @@ class UserController extends ExploreBaseController
         );
     }
 
-    #[Route('', 'PUT', ['api', 'auth', 'role:admin'])]
+    #[Route('/{id:\d+}', 'PUT', ['api', 'auth', 'role:admin'])]
     public function updateUser(): void
     {
         $data = $this->validate($this->getRequestData(), [
@@ -92,8 +91,7 @@ class UserController extends ExploreBaseController
             'username' => 'required|string|filled|max:255',
             'email' => 'nullable|email|max:255',
             'password' => 'nullable|string|min:6',
-            'role_id' => 'nullable|integer|min:0',
-            'access_level' => 'required|string|in:admin,staff',
+            'role' => 'required|string|in:admin,user',
             'picture_ref' => 'nullable|string|max:255',
         ]);
 

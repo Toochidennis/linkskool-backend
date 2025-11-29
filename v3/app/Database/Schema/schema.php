@@ -1080,6 +1080,13 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'description' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         '__meta' => [
             'engine' => 'InnoDB',
             'charset' => 'latin1',
@@ -7115,7 +7122,7 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
-        'active' => [
+        'is_active' => [
             'type' => 'int(11)',
             'nullable' => false,
             'default' => 0,
@@ -7215,6 +7222,20 @@ return [
         ],
         'action' => [
             'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'action_id' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'action_type' => [
+            'type' => 'varchar(100)',
             'nullable' => true,
             'default' => null,
             'auto_increment' => false,

@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\CourseService;
 
-#[Group('/public/cbt')]
+#[Group('/public')]
 class CourseController extends ExploreBaseController
 {
     private CourseService $courseService;
@@ -45,7 +45,7 @@ class CourseController extends ExploreBaseController
     public function updateCourse(array $vars): void
     {
         $data = $this->validate(
-            array_merge($this->getRequestData(), $vars),
+            \array_merge($this->getRequestData(), $vars),
             [
                 'id' => 'required|integer',
                 'course_name' => 'required|string|filled',
