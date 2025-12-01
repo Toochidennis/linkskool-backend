@@ -7241,6 +7241,13 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'status' => [
+            'type' => 'varchar(50)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         'details' => [
             'type' => 'text',
             'nullable' => true,
@@ -7298,28 +7305,25 @@ return [
             'primary' => false
         ],
         'username' => [
-            'type' => 'varchar(255)',
+            'type' => 'varchar(50)',
             'nullable' => false,
             'default' => null,
             'auto_increment' => false,
             'primary' => false,
-            'unique' => true
         ],
         'phone' => [
-            'type' => 'varchar(20)',
+            'type' => 'varchar(70)',
             'nullable' => true,
             'default' => null,
             'auto_increment' => false,
             'primary' => false,
-            'unique' => true
         ],
         'email' => [
-            'type' => 'varchar(255)',
+            'type' => 'varchar(70)',
             'nullable' => true,
             'default' => null,
             'auto_increment' => false,
             'primary' => false,
-            'unique' => true
         ],
         'state' => [
             'type' => 'varchar(70)',
@@ -7396,6 +7400,13 @@ return [
             'type' => 'datetime',
             'nullable' => false,
             'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'last_active' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
             'auto_increment' => false,
             'primary' => false
         ],

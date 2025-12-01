@@ -94,6 +94,14 @@ class ExamService
                 );
 
                 if (!$examIds[$year] || $examIds[$year] <= 0) {
+                    $this->logAction(
+                        'Exam Creation Failed',
+                        $settings['user_id'],
+                        $settings['username'],
+                        0,
+                        'exam_upload_failed',
+                        "Failed to create exam for {$settings['course_name']} for year $year"
+                    );
                     throw new \Exception("Failed to create exam for year $year");
                 }
             }

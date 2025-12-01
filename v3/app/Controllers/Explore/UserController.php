@@ -24,11 +24,11 @@ class UserController extends ExploreBaseController
         $data = $this->validate($this->getRequestData(), [
             'creator_id' => 'required|integer|min:1',
             'first_name' => 'required|string|filled|max:255',
-            'last_name' => 'required|string|filled|max:255',
+            'last_name' => 'nullable|string|max:255',
             'username' => 'required|string|filled|max:255',
             'email' => 'nullable|email|max:255',
             'password' => 'required|string|filled|min:6',
-            'role' => 'required|string|in:admin,user',
+            'role' => 'required|string|in:Admin,User',
             'picture_ref' => 'nullable|string|max:255',
         ]);
 
@@ -82,16 +82,16 @@ class UserController extends ExploreBaseController
     }
 
     #[Route('/{id:\d+}', 'PUT', ['api', 'auth', 'role:admin'])]
-    public function updateUser(): void
+    public function updateUser(array $vars): void
     {
-        $data = $this->validate($this->getRequestData(), [
+        $data = $this->validate([...$this->getRequestData(), ...$vars], [
             'id' => 'required|integer|min:1',
             'first_name' => 'required|string|filled|max:255',
-            'last_name' => 'required|string|filled|max:255',
-            'username' => 'required|string|filled|max:255',
+            'last_name' => 'nullable|string|filled|max:255',
+            'username' => 'nullable|string|filled|max:255',
             'email' => 'nullable|email|max:255',
             'password' => 'nullable|string|min:6',
-            'role' => 'required|string|in:admin,user',
+            'role' => 'required|string|in:Admin,User',
             'picture_ref' => 'nullable|string|max:255',
         ]);
 

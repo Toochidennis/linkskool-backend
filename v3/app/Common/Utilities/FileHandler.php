@@ -88,7 +88,7 @@ class FileHandler
         $cleanName = basename($file['file_name']);
         $ext = strtolower(pathinfo($cleanName, PATHINFO_EXTENSION));
 
-        if (!in_array($ext, $this->allowedExtensions, true)) {
+        if (!\in_array($ext, $this->allowedExtensions, true)) {
             throw new \Exception("File type not allowed: .$ext");
         }
 
