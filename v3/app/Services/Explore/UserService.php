@@ -23,11 +23,11 @@ class UserService
     {
         $payload = [
             'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
+            'last_name' => $data['last_name'] ?? '',
             'username' => $data['username'],
             'email' => $data['email'] ?? '',
             'password' => password_hash($data['password'], PASSWORD_BCRYPT),
-            'accessLevel' => $data['role'] === 'user' ? 2 : 1,
+            'accessLevel' => strtolower($data['role']) === 'user' ? 2 : 1,
             'picture_ref' => $data['picture_ref'] ?? null,
 
         ];
@@ -44,13 +44,13 @@ class UserService
     {
         $payload = [
             'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
-            'username' => $data['username'],
+            'last_name' => $data['last_name'] ?? '',
+            'username' => $data['username'] ?? '',
             'email' => $data['email'] ?? '',
             'password' => isset($data['password']) ?
                 password_hash($data['password'], PASSWORD_BCRYPT) :
                 $this->user->where('id', '=', $data['id'])->first()['password'],
-            'accessLevel' => $data['role'] === 'user' ? 2 : 1,
+            'accessLevel' => strtolower($data['role']) === 'user' ? 2 : 1,
             'picture_ref' => $data['picture_ref'] ?? null,
         ];
 
@@ -77,7 +77,7 @@ class UserService
                 'email',
                 'accessLevel AS role',
                 'password',
-                'picture_ref'
+                'picture_ref',
             ])
             ->where('username', '=', $username)
             ->first();
@@ -85,6 +85,10 @@ class UserService
         if (!$user || !password_verify($password, $user['password'])) {
             return [];
         }
+
+        $this->user
+            ->where('id', '=', $user['id'])
+            ->update(['last_active' => date('Y-m-d H:i:s')]);
 
         $this->logAction(
             action: 'user_login',
@@ -118,7 +122,8 @@ class UserService
                 'email',
                 'accessLevel AS access_level',
                 'roleId AS role_id',
-                'picture_ref'
+                'picture_ref',
+                'last_active',
             ])
             ->where(function ($query) {
                 $query->where('accessLevel', '=', 1)
@@ -128,7 +133,7 @@ class UserService
 
         return array_map(fn($user) => [
             ...$user,
-            'access_level' => $user['access_level'] === 2 ? 'user' : 'admin',
+            'role' => $user['access_level'] === 2 ? 'User' : 'Admin',
         ], $users);
     }
 
@@ -153,6 +158,7 @@ class UserService
             'user_id' => $userId,
             'username' => $username,
             'details' => $details,
+            'status' => 'success',
         ];
 
         $this->auditLog->insert($payload);
