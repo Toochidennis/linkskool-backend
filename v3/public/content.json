@@ -1,0 +1,84 @@
+{
+  "25": [
+    {
+      "id": "456",
+      "course_id": "25",
+      "course_name": "CRK",
+      "title": "Mid term Test Christmas term Year 5 2025"
+    }
+  ],
+  "10": [
+    {
+      "id": "486",
+      "course_id": "10",
+      "course_name": "GEOGRAPHY",
+      "title": "Christmas Term Mid term Test 2025 year 5"
+    }
+  ],
+  "24": [
+    {
+      "id": "502",
+      "course_id": "24",
+      "course_name": "HISTORY",
+      "title": "Christmas Term Mid term Test 2025 year 5"
+    },
+    {
+      "id": "613",
+      "course_id": "24",
+      "course_name": "HISTORY",
+      "title": "Christmas Term Examination 2025"
+    }
+  ],
+  "23": [
+    {
+      "id": "488",
+      "course_id": "23",
+      "course_name": "LITERACY",
+      "title": "CHRISTMAS TERM MID TERM TEST 2025/2026 - YR 5"
+    }
+  ],
+  "22": [
+    {
+      "id": "478",
+      "course_id": "22",
+      "course_name": "NUMERACY",
+      "title": "Mid Term Test Christmas term year 5 2025"
+    },
+    {
+      "id": "609",
+      "course_id": "22",
+      "course_name": "NUMERACY",
+      "title": "Christmas Term Examination 2025"
+    }
+  ],
+  "11": [
+    {
+      "id": "463",
+      "course_id": "11",
+      "course_name": "PRE VOCATIONAL ",
+      "title": "Christmas Term Mid term Test 2025 year 5"
+    }
+  ],
+  "3": [
+    {
+      "id": "507",
+      "course_id": "3",
+      "course_name": "SCIENCE",
+      "title": "Christmas Term Mid term Test 2025 year 5"
+    },
+    {
+      "id": "515",
+      "course_id": "3",
+      "course_name": "SCIENCE",
+      "title": "Christmas term Exam 2025"
+    }
+  ],
+  "4": [
+    {
+      "id": "473",
+      "course_id": "4",
+      "course_name": "SOCIAL STUDIES",
+      "title": "Christmas Term Mid term Test  Social studies 2025 year 5"
+    }
+  ]
+}
