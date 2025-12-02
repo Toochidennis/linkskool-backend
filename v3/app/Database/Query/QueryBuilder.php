@@ -551,8 +551,43 @@ class QueryBuilder
      */
     private function validateColumn(string $column): void
     {
-        if ($column !== '*' && !preg_match('/^[a-zA-Z0-9_]+$/', $column)) {
-            throw new InvalidArgumentException("Invalid column name: $column");
+        if ($column === '*') {
+            return;
+        }
+
+        // Normalize spaces
+        $column = trim($column);
+
+        // Split alias: supports "AS alias" or just "alias"
+        $hasAlias = false;
+        $alias = null;
+
+        if (stripos($column, ' as ') !== false) {
+            list($column, $alias) = preg_split('/\s+as\s+/i', $column);
+            $hasAlias = true;
+        } else {
+            // Regex to catch trailing alias without AS
+            if (preg_match('/^(.+?)\s+([a-zA-Z_][a-zA-Z0-9_]*)$/', $column, $matches)) {
+                $column = $matches[1];
+                $alias = $matches[2];
+                $hasAlias = true;
+            }
+        }
+
+        // Validate alias if present
+        if ($hasAlias) {
+            if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $alias)) {
+                throw new InvalidArgumentException("Invalid column alias: $alias");
+            }
+        }
+
+        // Validate main column path: part1.part2.part3
+        $parts = explode('.', $column);
+
+        foreach ($parts as $part) {
+            if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $part)) {
+                throw new InvalidArgumentException("Invalid column name: $column");
+            }
         }
     }
 
