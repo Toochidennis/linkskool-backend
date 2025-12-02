@@ -170,24 +170,7 @@ class CbtService
         }
 
         // Extract question IDs from url
-        $url = str_replace('|', '', $exam['url'] ?? '');
-        $exam['url'] = '';
-        $questionPairs = array_filter(explode(',', $url));
-        $questionIds = [];
-        $orderMap = [];
-
-        foreach ($questionPairs as $index => $pair) {
-            if (empty($pair)) {
-                continue;
-            }
-
-            $parts = explode(':', $pair);
-            $id = (int)($parts[0] ?? 0);
-            if ($id) {
-                $questionIds[] = $id;
-                $orderMap[$id] = $index;
-            }
-        }
+        $questionIds = json_decode($exam['url'], true, 512, JSON_THROW_ON_ERROR);
 
         if (empty($questionIds)) {
             return [
@@ -229,20 +212,27 @@ class CbtService
 
     private function getQuestions(array $questionIds, array $filters): array
     {
-        if (empty($questionIds)) {
-            return [];
-        }
+        shuffle($questionIds);
+        $selectedIds = \array_slice($questionIds, 0, $filters['limit'] ?? 50);
 
         $questions = $this->quiz
             ->select([
                 'question_id',
-                'parent AS question_grade',
-                'content AS question_text',
-                'type AS question_type',
-                'answer AS options',
+                'title AS question_text',
+                'content AS question_files',
+                'topic',
+                'topic_id',
+                'passage',
+                'passage_id',
+                'instruction',
+                'instruction_id',
+                'explanation',
+                'explanation_id',
+                'type as question_type',
+                'answer as options',
                 'correct',
             ])
-            ->in('question_id', $questionIds)
+            ->in('question_id', $selectedIds)
             ->limit($filters['limit'] ?? 50)
             ->offset($filters['offset'] ?? 0)
             ->get();
@@ -250,59 +240,13 @@ class CbtService
         if (!$questions) {
             return [];
         }
-
-        $filtered = [];
-
-        foreach ($questions as $question) {
-            // Decode and normalize
-            $type = $question['question_type'] ?? '';
-            $text = trim($question['question_text'] ?? '');
-
-            // Skip if missing essential fields
-            if (empty($type) || empty($text)) {
-                continue;
-            }
-
-            $typeLabel = QuestionType::tryFrom($type)?->label() ?? '';
-            if (empty($typeLabel)) {
-                continue;
-            }
-
-            $question['question_type'] = $typeLabel;
-            // $question['question_files'] = $this->json($question['question_files']);
+        return array_map(function ($question) {
+            $question['question_type'] = QuestionType::tryFrom($question['question_type'])?->label() ?? 'Unknown';
+            $question['question_files'] = $this->json($question['question_files']);
             $question['options'] = $this->json($question['options']);
-
-            // Validation logic per type
-            if ($typeLabel === 'multiple_choice') {
-                if (empty($question['options']) || empty($question['correct'])) {
-                    continue;
-                } else {
-                    $options = [];
-                    foreach ($question['options'] as $optIndex => $option) {
-                        $options[] = [
-                            'order' => $optIndex,
-                            'text'  => $option['text'] ?? ''
-                        ];
-                    }
-                    $question['options'] = $options;
-                    $order = array_search(
-                        $question['correct'],
-                        array_column($options, 'text')
-                    );
-                    $question['correct'] = ['order' => $order, 'text' => $question['correct']];
-                }
-            } elseif ($typeLabel === 'short_answer') {
-                if (empty($question['correct'])) {
-                    continue;
-                } else {
-                    $question['correct'] = ['order' => 0, 'text' => $question['correct']];
-                }
-            }
-
-            $filtered[] = $question;
-        }
-
-        return $filtered;
+            $question['correct'] = $this->json($question['correct']);
+            return $question;
+        }, $questions);
     }
 
     private function json(?string $data): array
