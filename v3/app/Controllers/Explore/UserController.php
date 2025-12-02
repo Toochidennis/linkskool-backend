@@ -23,6 +23,7 @@ class UserController extends ExploreBaseController
     {
         $data = $this->validate($this->getRequestData(), [
             'creator_id' => 'required|integer|min:1',
+            'created_by' => 'required|string|filled|max:255',
             'first_name' => 'required|string|filled|max:255',
             'last_name' => 'nullable|string|max:255',
             'username' => 'required|string|filled|max:255',

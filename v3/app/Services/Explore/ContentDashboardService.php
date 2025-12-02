@@ -6,6 +6,7 @@ use V3\App\Models\Explore\AuditLog;
 use V3\App\Models\Explore\Exam;
 use V3\App\Models\Explore\ExamType;
 use V3\App\Models\Explore\User;
+use V3\App\Models\Portal\Academics\Course;
 
 class ContentDashboardService
 {
@@ -13,6 +14,7 @@ class ContentDashboardService
     private ExamType $examType;
     private AuditLog $auditLog;
     private Exam $exam;
+    private Course $course;
 
     public function __construct(\PDO $pdo)
     {
@@ -20,16 +22,17 @@ class ContentDashboardService
         $this->examType = new ExamType($pdo);
         $this->auditLog = new AuditLog($pdo);
         $this->exam = new Exam($pdo);
+        $this->course = new Course($pdo);
     }
 
     private function getTotalUsers(): int
     {
-        return $this->user->where('accesslevel', '<>', 1)->count();
+        return $this->user->where('accessLevel', '<>', 1)->count();
     }
 
     private function getTotalExamTypes(): int
     {
-        return $this->examType->where('active', 1)->count();
+        return $this->examType->where('is_active', 1)->count();
     }
 
     private function getTotalExams(): int
@@ -37,17 +40,9 @@ class ContentDashboardService
         return $this->exam->count();
     }
 
-    private function getTotalActivityLogs(): int
+    private function getTotalCourses(): int
     {
-        return $this->auditLog->count();
-    }
-
-    public function getActivityLogs(int $limit = 10): array
-    {
-        return $this->auditLog
-            ->orderBy('created_at', 'DESC')
-            ->limit($limit)
-            ->get();
+        return $this->course->count();
     }
 
     public function getDashboardData(): array
@@ -56,8 +51,14 @@ class ContentDashboardService
             'total_users' => $this->getTotalUsers(),
             'total_programs' => $this->getTotalExamTypes(),
             'total_exams' => $this->getTotalExams(),
-            'total_activity_logs' => $this->getTotalActivityLogs(),
-            'recent_activity_logs' => $this->getActivityLogs(30),
+            'total_courses' => $this->getTotalCourses()
         ];
+    }
+
+    public function getActivityLogs(array $filters): array
+    {
+        return $this->auditLog
+            ->orderBy('created_at', 'DESC')
+            ->paginate($filters['page'] ?? 1, $filters['limit'] ?? 25);
     }
 }

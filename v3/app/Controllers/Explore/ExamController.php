@@ -82,4 +82,33 @@ class ExamController extends ExploreBaseController
             'exam_ids' => $examIds
         ]);
     }
+
+    #[Route('/exams', 'GET', ['api', 'auth'])]
+    public function getExams(array $vars): void
+    {
+        $filters = $this->validate($vars, [
+            'page' => 'nullable|integer|min:1',
+            'limit' => 'nullable|integer|min:1|max:100'
+        ]);
+
+        $this->respond([
+            'success' => true,
+            'data' => $this->examService->getExams($filters)
+        ]);
+    }
+
+    #[Route('/exams/questions', 'GET', ['api', 'auth'])]
+    public function getQuestions(array $vars): void
+    {
+        $data = $this->validate($vars, [
+            'exam_id' => 'required|integer|min:1',
+        ]);
+
+        $questions = $this->examService->getQuestions($data['exam_id']);
+
+        $this->respond([
+            'success' => true,
+            'data' => $questions
+        ]);
+    }
 }
