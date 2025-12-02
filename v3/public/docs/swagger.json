@@ -39,6 +39,46 @@
                 ]
             }
         },
+        "/public/audit-logs/user/{userId:\\d+}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetLogsByUserId",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\AuditLogController::getLogsByUserId",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'userId'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
         "/public/books": {
             "get": {
                 "tags": [
@@ -139,6 +179,533 @@
                 "security": [
                     {
                         "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/users": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreUser",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtUserController::storeUser",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/users/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateUser",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtUserController::updateUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/users/{id:\\d+}/payment-status": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdatePaymentStatus",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtUserController::updatePaymentStatus",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/users/{email}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetUserByEmail",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtUserController::getUserByEmail",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'email'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/dashboard": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetDashboardData",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ContentDashboardController::getDashboardData",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/activity-logs": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetActivityLogs",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ContentDashboardController::getActivityLogs",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/courses": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CourseController::storeCourse",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAllCourses",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CourseController::getAllCourses",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/courses/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CourseController::updateCourse",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CourseController::deleteCourse",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/questions": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreQuestions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamController::storeQuestions",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/exams": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetExams",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamController::getExams",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/exams/questions": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetQuestions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamController::getQuestions",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/exam-types": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreExamType",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamTypeController::storeExamType",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAllExamTypes",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamTypeController::getAllExamTypes",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/exam-types/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateExamType",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamTypeController::updateExamType",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteExamType",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamTypeController::deleteExamType",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/exam-types/active": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetActiveExamTypes",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamTypeController::getActiveExamTypes",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/export-questions": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "ExportQuestions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExportQuestionsController::exportQuestions",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
                     }
                 ]
             }
@@ -348,6 +915,151 @@
                 "security": [
                     {
                         "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/users": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreUser",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\UserController::storeUser",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetUsers",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\UserController::getUsers",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/users/login": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Login",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\UserController::login",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/users/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateUser",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\UserController::updateUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteUser",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\UserController::deleteUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
                     }
                 ]
             }
