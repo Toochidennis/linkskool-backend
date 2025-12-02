@@ -3,17 +3,17 @@
 namespace V3\App\Services\Portal\Payments;
 
 use V3\App\Models\Portal\Payments\FeeType;
-use V3\App\Models\Portal\Payments\NextTermFee;
+use V3\App\Models\Portal\Payments\Invoice;
 
 class FeeTypeService
 {
     private FeeType $feeType;
-    private NextTermFee $nextTermFee;
+    private Invoice $invoice;
 
     public function __construct(\PDO $pdo)
     {
         $this->feeType = new FeeType($pdo);
-        $this->nextTermFee = new NextTermFee($pdo);
+        $this->invoice = new Invoice($pdo);
     }
 
     public function addFeeName(array $data): bool|int
@@ -61,7 +61,7 @@ class FeeTypeService
 
     public function deleteFeeName(array $filters): bool|int
     {
-        $this->nextTermFee
+        $this->invoice
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
             ->where('fee', '=', $filters['id'])
