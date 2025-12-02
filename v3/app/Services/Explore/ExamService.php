@@ -101,7 +101,8 @@ class ExamService
                         $settings['username'],
                         0,
                         'exam_upload_failed',
-                        "Failed to create exam for {$settings['course_name']} for year $year"
+                        "Failed to create exam for {$settings['course_name']} for year $year",
+                        'failed'
                     );
                     throw new \Exception("Failed to create exam for year $year");
                 }
@@ -131,12 +132,12 @@ class ExamService
         return $this->exam->insert($payload);
     }
 
-    public function getExams(int $page = 1, $limit = 25): array
+    public function getExams(array $filters): array
     {
         return $this->exam
-            ->select(['id', 'course_name',, 'year', 'upload_date'])
-            ->orderBy('course_name', 'DESC')
-            ->paginate($limit, $page);
+            ->select(['id', 'course_name', 'year', 'upload_date'])
+            ->orderBy('course_name')
+            ->paginate($filters['page'] ?? 1, $filters['limit'] ?? 25);
     }
 
     public function getQuestions(int $examId): array
@@ -197,7 +198,8 @@ class ExamService
         string $username,
         int $actionId = 0,
         ?string $actionType = null,
-        ?string $details = null
+        ?string $details = null,
+        string $status = 'success'
     ): void {
 
         $payload = [
@@ -205,7 +207,7 @@ class ExamService
             'user_id' => $userId,
             'username' => $username,
             'details' => $details,
-            'status' => 'Completed',
+            'status' => $status,
             'action_id' => $actionId,
             'action_type' => $actionType,
         ];

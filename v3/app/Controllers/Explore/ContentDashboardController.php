@@ -17,13 +17,29 @@ class ContentDashboardController extends ExploreBaseController
         $this->contentDashboardService = new ContentDashboardService($this->pdo);
     }
 
-    #[Route('/content-dashboard', 'GET', ['api', 'auth', 'role:admin'])]
+    #[Route('/dashboard', 'GET', ['api', 'auth', 'role:admin'])]
     public function getDashboardData()
     {
         $this->respond(
             [
                 'success' => true,
                 'data' => $this->contentDashboardService->getDashboardData()
+            ]
+        );
+    }
+
+    #[Route('/activity-logs', 'GET', ['api', 'auth', 'role:admin'])]
+    public function getActivityLogs(array $vars): void
+    {
+        $filters = $this->validate($vars, [
+            'page' => 'nullable|integer|min:1',
+            'limit' => 'nullable|integer|min:1|max:100'
+        ]);
+
+        $this->respond(
+            [
+                'success' => true,
+                'data' => $this->contentDashboardService->getActivityLogs($filters)
             ]
         );
     }

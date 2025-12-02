@@ -34,7 +34,7 @@ class UserService
         $this->logAction(
             action: 'create_user',
             userId: $data['creator_id'],
-            username: 'User ID ' . $data['creator_id'],
+            username: $data['created_by'],
             details: 'Created user: ' . $data['username']
         );
         return $this->user->insert($payload);
@@ -142,7 +142,7 @@ class UserService
         $this->logAction(
             action: 'delete_user',
             userId: $id,
-            username: "User ID $id",
+            username: "Admin ",
             details: "Deleted user with ID: $id"
         );
 
