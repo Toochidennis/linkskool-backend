@@ -30,7 +30,7 @@ class RouteDispatcher
         $base   = rtrim(dirname(dirname($script)), '/'); // ex: /api3/v3
 
         if ($base && str_starts_with($uri, $base)) {
-            $uri = substr($uri, strlen($base)); // drop /api3/v3
+            $uri = substr($uri, \strlen($base)); // drop /api3/v3
         }
 
         // normalize

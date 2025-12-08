@@ -13,7 +13,8 @@
         "swagger-api/swagger-ui": "^5.29",
         "league/csv": "^9.27",
         "phpoffice/phpspreadsheet": "^5.2",
-        "box/spout": "^3.3"
+        "box/spout": "^3.3",
+        "ezyang/htmlpurifier": "^4.19"
     },
     "autoload": {
         "psr-4": {
