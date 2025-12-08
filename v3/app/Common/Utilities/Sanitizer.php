@@ -26,8 +26,10 @@ class Sanitizer
                 return $sanitized;
             }
 
+            $purifier = new \HTMLPurifier(\HTMLPurifier_Config::createDefault());
+
             // Sanitize scalar value
-            return strip_tags(trim((string) $value));
+            return $purifier->purify(trim((string)$value));
         };
 
         $sanitizedData = $process($input, $parentKey);

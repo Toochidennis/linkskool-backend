@@ -111,4 +111,28 @@ class ExamController extends ExploreBaseController
             'data' => $questions
         ]);
     }
+
+    #[Route('/exams', 'DELETE', ['api', 'auth'])]
+    public function deleteExam(array $vars): void
+    {
+        $data = $this->validate($this->getRequestData(), [
+            'exam_id' => 'required|integer|min:1',
+            'user_id' => 'required|integer|min:1',
+            'username' => 'required|string|filled'
+        ]);
+
+        $deleted = $this->examService->deleteExam($data);
+
+        if (!$deleted) {
+            $this->respondError(
+                'Failed to delete exam.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Exam deleted successfully.'
+        ]);
+    }
 }

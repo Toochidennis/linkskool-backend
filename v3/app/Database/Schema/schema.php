@@ -3454,7 +3454,7 @@ return [
             'primary' => false
         ],
         'title' => [
-            'type' => 'varchar(255)',
+            'type' => 'text',
             'nullable' => true,
             'default' => null,
             'auto_increment' => false,

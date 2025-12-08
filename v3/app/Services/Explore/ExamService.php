@@ -135,9 +135,49 @@ class ExamService
     public function getExams(array $filters): array
     {
         return $this->exam
-            ->select(['id', 'course_name', 'year', 'upload_date'])
+            ->select(['id', 'description', 'course_name', 'year', 'upload_date'])
             ->orderBy('course_name')
             ->paginate($filters['page'] ?? 1, $filters['limit'] ?? 25);
+    }
+
+    public function deleteExam(array $filters): bool
+    {
+        $exam = $this->exam
+            ->select(columns: ['url', 'course_name', 'year'])
+            ->where('id', '=', $filters['exam_id'])
+            ->first();
+
+        if (!$exam) {
+            return false;
+        }
+
+        $questionIds = $this->decode($exam['url']);
+
+        if (empty($questionIds)) {
+            return false;
+        }
+
+        $deletedQuiz = $this->quiz
+            ->in('question_id', $questionIds)
+            ->delete();
+
+        $deletedExam = $this->exam
+            ->where('id', '=', $filters['exam_id'])
+            ->delete();
+
+        if ($deletedExam && $deletedQuiz) {
+            $this->logAction(
+                'Exam Deletion',
+                $filters['user_id'],
+                $filters['username'],
+                $filters['exam_id'],
+                'exam_deletion',
+                "Deleted exam for {$exam['course_name']} for year {$exam['year']}"
+            );
+            return true;
+        }
+
+        return false;
     }
 
     public function getQuestions(int $examId): array
@@ -151,7 +191,7 @@ class ExamService
             return [];
         }
 
-        $questionIds = json_decode($exam['url'], true, 512, JSON_THROW_ON_ERROR);
+        $questionIds = $this->decode($exam['url']);
 
         if (empty($questionIds) || !\is_array($questionIds)) {
             return [];
