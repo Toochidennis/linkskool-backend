@@ -30,7 +30,10 @@ class ExamController extends ExploreBaseController
             'settings.user_id' => 'required|integer|min:1',
             'settings.username' => 'required|string|max:255',
 
-            'file' => 'required|file|mimes:zip|max:10240',
+            'file' => 'required|array|min:1',
+            'file.name' => 'required|string|filled',
+            'file.type' => 'required|string|filled|in:application/zip',
+            'file.tmp_name' => 'required|string|filled',
         ]);
 
         $examIds = $this->examService->createQuestions($data);
