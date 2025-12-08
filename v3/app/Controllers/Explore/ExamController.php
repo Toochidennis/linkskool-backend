@@ -21,6 +21,36 @@ class ExamController extends ExploreBaseController
     #[Route('/questions', 'POST', ['api'])]
     public function storeQuestions(): void
     {
+        $data = $this->validate([...$this->post['data'], ...$this->post['files']], [
+            'settings' => 'required|array|min:1',
+            'settings.exam_type_id' => 'required|integer|min:1',
+            'settings.course_id' => 'required|integer|min:1',
+            'settings.course_name' => 'required|string|max:255',
+            'settings.description' => 'nullable|string',
+            'settings.user_id' => 'required|integer|min:1',
+            'settings.username' => 'required|string|max:255',
+
+            'file' => 'required|file|mimes:zip|max:10240',
+        ]);
+
+        $examIds = $this->examService->createQuestions($data);
+
+        if (empty($examIds)) {
+            $this->respondError(
+                'Failed to create exam.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Exam created successfully.',
+            'exam_ids' => $examIds
+        ]);
+    }
+
+    public function updateQuestions(): void
+    {
         $data = $this->validate($this->getRequestData(), [
             'settings' => 'required|array|min:1',
             'settings.exam_type_id' => 'required|integer|min:1',
@@ -65,21 +95,6 @@ class ExamController extends ExploreBaseController
             'data.*.questions.*.correct' => 'required|array',
             'data.*.questions.*.correct.order' => 'required|integer',
             'data.*.questions.*.correct.text' => 'required|string|filled',
-        ]);
-
-        $examIds = $this->examService->createQuestions($data);
-
-        if (empty($examIds)) {
-            $this->respondError(
-                'Failed to create exam.',
-                HttpStatus::BAD_REQUEST
-            );
-        }
-
-        $this->respond([
-            'success' => true,
-            'message' => 'Exam created successfully.',
-            'exam_ids' => $examIds
         ]);
     }
 

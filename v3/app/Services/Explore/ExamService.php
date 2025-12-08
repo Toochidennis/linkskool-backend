@@ -5,6 +5,7 @@ namespace V3\App\Services\Explore;
 use PDO;
 use V3\App\Common\Enums\QuestionType;
 use V3\App\Common\Utilities\FileHandler;
+use V3\App\Common\Utilities\PathResolver;
 use V3\App\Models\Explore\Exam;
 use V3\App\Models\Explore\AuditLog;
 use V3\App\Models\Portal\ELearning\Quiz;
@@ -16,6 +17,7 @@ class ExamService
     private AuditLog $auditLog;
     private FileHandler $handler;
     private Quiz $quiz;
+    private string $contentPath;
 
     public function __construct(PDO $pdo)
     {
@@ -24,10 +26,14 @@ class ExamService
         $this->auditLog = new AuditLog($pdo);
         $this->quiz = new Quiz($pdo);
         $this->handler = new FileHandler();
+        $paths = PathResolver::getContentPaths();
+        $this->contentPath = $paths['absolute'];
     }
 
     public function createQuestions(array $data): array
     {
+
+
         $questionsData = $data['data'];
         $settings = $data['settings'];
         $questionsByYear = [];
@@ -157,15 +163,13 @@ class ExamService
             return false;
         }
 
-        $deletedQuiz = $this->quiz
-            ->in('question_id', $questionIds)
-            ->delete();
+        $this->deleteQuizContent($questionIds);
 
         $deletedExam = $this->exam
             ->where('id', '=', $filters['exam_id'])
             ->delete();
 
-        if ($deletedExam && $deletedQuiz) {
+        if ($deletedExam) {
             $this->logAction(
                 'Exam Deletion',
                 $filters['user_id'],
@@ -178,6 +182,45 @@ class ExamService
         }
 
         return false;
+    }
+
+    private function deleteQuizContent(array $questionIds): void
+    {
+        foreach ($questionIds as $questionId) {
+            $question = $this->quiz->where('question_id', '=', $questionId)->first();
+
+            if (empty($question)) {
+                continue;
+            }
+
+            $questionFiles = $this->decode($question['content']);
+            $this->deleteFiles($questionFiles);
+
+            $options = $this->decode($question['answer']);
+            foreach ($options as $option) {
+                if (!empty($option['option_files'] ?? [])) {
+                    $this->deleteFiles($option['option_files']);
+                }
+            }
+
+            $this->quiz
+                ->where('question_id', '=', $questionId)
+                ->delete();
+        }
+    }
+
+    private function deleteFiles(array $files): void
+    {
+        foreach ($files as $file) {
+            $filePath = $file['file_name'] ?? $file['old_file_name'] ?? null;
+
+            if ($filePath) {
+                $absolute = $this->contentPath . basename($filePath);
+                if (file_exists($absolute)) {
+                    @unlink($absolute); // Suppress warning, continue even if file fails
+                }
+            }
+        }
     }
 
     public function getQuestions(int $examId): array

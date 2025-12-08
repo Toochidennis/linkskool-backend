@@ -38,8 +38,8 @@ class CbtService
     {
         return $this->exam
             ->select([
-                'id',
-                'course_name',
+                'ANY_VALUE(id) as id',
+                'ANY_VALUE(course_name) as course_name',
                 'course_id',
                 'exam_type',
                 'year'
