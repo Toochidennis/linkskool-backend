@@ -36,11 +36,11 @@ class ExamController extends ExploreBaseController
             'file.tmp_name' => 'required|string|filled',
         ]);
 
-        $examIds = $this->examService->createQuestions($data);
+        $response = $this->examService->createQuestions($data);
 
-        if (empty($examIds)) {
+        if (!$response['status']) {
             $this->respondError(
-                'Failed to create exam.',
+                "Failed to create exam questions. " . implode(', ', $response['errors']),
                 HttpStatus::BAD_REQUEST
             );
         }
@@ -48,7 +48,7 @@ class ExamController extends ExploreBaseController
         $this->respond([
             'success' => true,
             'message' => 'Exam created successfully.',
-            'exam_ids' => $examIds
+            'exam_ids' => $response['exam_ids']
         ]);
     }
 

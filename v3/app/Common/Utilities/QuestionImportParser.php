@@ -241,7 +241,7 @@ class QuestionImportParser
         foreach ($imageFiles as $filePath) {
             $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
 
-            if (!in_array($ext, $allowedExtensions, true)) {
+            if (!\in_array($ext, $allowedExtensions, true)) {
                 continue;
             }
 
