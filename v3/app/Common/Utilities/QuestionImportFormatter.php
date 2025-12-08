@@ -6,11 +6,10 @@ class QuestionImportFormatter
 {
     public static function format(array $parsedData): array
     {
-        $rows = $parsedData['data'];
+        $rows = $parsedData['data'][0]['content'];
         $images = $parsedData['images'];
         $hasZip = !empty($images);
 
-        // Build image lookup map for O(1) access
         $imageMap = [];
         foreach ($images as $img) {
             $imageName = strtolower(trim(basename($img['name'])));
@@ -105,14 +104,14 @@ class QuestionImportFormatter
                 $outputQuestions[] = [
                     'questionText' => $questionText,
                     'passage' => $row['passage'] ?? '',
-                    'passageId' => (int)($row['passage_id'] ?? 0),
+                    'passageId' => (int)($row['passage_id'] ?? null),
                     'questionType' => $isShort ? 'short_answer' : 'multiple_choice',
                     'instruction' => $row['instruction'] ?? '',
                     'topic' => $row['topic'] ?? '',
-                    'topicId' => (int)($row['topic_id'] ?? 0),
+                    'topicId' => (int)($row['topic_id'] ?? null),
                     'questionFiles' => self::processQuestionFiles($row, $imageMap, $hasZip),
                     'explanation' => $row['explanation'] ?? '',
-                    'explanationId' => (int)($row['explanation_id'] ?? 0),
+                    'explanationId' => (int)($row['explanation_id'] ?? null),
                     'options' => $options,
                     'correct' => $correct
                 ];

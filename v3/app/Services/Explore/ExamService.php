@@ -35,14 +35,14 @@ class ExamService
     public function createQuestions(array $data): array
     {
         $parsedData = QuestionImportParser::parse($data['file']);
-        $formattedData = [];
+        $formattedData = QuestionImportFormatter::format($parsedData);
 
-        // foreach ($parsedData as $file) {
-        //     $formattedData[] = QuestionImportFormatter::format($file);
-        // }
-
-        var_dump($formattedData); // Debugging line to inspect formatted data
-        die;
+        if (!empty($formattedData['errors'])) {
+            return [
+                'status' => false,
+                'errors' => $formattedData['errors']
+            ];
+        }
 
         $questionsData = $formattedData['data'];
         $settings = $data['settings'];
@@ -126,7 +126,10 @@ class ExamService
 
             $this->pdo->commit();
 
-            return $examIds;
+            return [
+                'status' => true,
+                'exam_ids' => $examIds
+            ];
         } catch (\Throwable $e) {
             $this->pdo->rollBack();
             throw $e;
