@@ -6,6 +6,8 @@ use PDO;
 use V3\App\Common\Enums\QuestionType;
 use V3\App\Common\Utilities\FileHandler;
 use V3\App\Common\Utilities\PathResolver;
+use V3\App\Common\Utilities\QuestionImportFormatter;
+use V3\App\Common\Utilities\QuestionImportParser;
 use V3\App\Models\Explore\Exam;
 use V3\App\Models\Explore\AuditLog;
 use V3\App\Models\Portal\ELearning\Quiz;
@@ -32,9 +34,17 @@ class ExamService
 
     public function createQuestions(array $data): array
     {
+        $parsedData = QuestionImportParser::parse($data['file']);
+        $formattedData = [];
 
+        // foreach ($parsedData as $file) {
+        //     $formattedData[] = QuestionImportFormatter::format($file);
+        // }
 
-        $questionsData = $data['data'];
+        var_dump($formattedData); // Debugging line to inspect formatted data
+        die;
+
+        $questionsData = $formattedData['data'];
         $settings = $data['settings'];
         $questionsByYear = [];
 
