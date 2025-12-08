@@ -89,7 +89,7 @@ class UserService
             return [];
         }
 
-        if ($user['status'] !== '1') {
+        if ($user['status'] !== 1) {
             return [];
         }
 
