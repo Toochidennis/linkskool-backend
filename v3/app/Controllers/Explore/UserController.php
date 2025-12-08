@@ -94,6 +94,7 @@ class UserController extends ExploreBaseController
             'password' => 'nullable|string|min:6',
             'role' => 'required|string|in:Admin,User',
             'picture_ref' => 'nullable|string|max:255',
+            'status' => 'required|string|in:1,0',
         ]);
 
         $updated = $this->userService->updateUser($data);

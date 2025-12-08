@@ -518,6 +518,28 @@
                         "bearerAuth": []
                     }
                 ]
+            },
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteExam",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamController::deleteExam",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/public/exams/questions": {

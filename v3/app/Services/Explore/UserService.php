@@ -29,6 +29,7 @@ class UserService
             'password' => password_hash($data['password'], PASSWORD_BCRYPT),
             'accessLevel' => strtolower($data['role']) === 'user' ? 2 : 1,
             'picture_ref' => $data['picture_ref'] ?? null,
+            'status' => 1,
 
         ];
         $this->logAction(
@@ -52,6 +53,7 @@ class UserService
                 $this->user->where('id', '=', $data['id'])->first()['password'],
             'accessLevel' => strtolower($data['role']) === 'user' ? 2 : 1,
             'picture_ref' => $data['picture_ref'] ?? null,
+            'status' => $data['status']
         ];
 
         return $this->user
@@ -78,11 +80,16 @@ class UserService
                 'accessLevel AS role',
                 'password',
                 'picture_ref',
+                'status',
             ])
             ->where('username', '=', $username)
             ->first();
 
         if (!$user || !password_verify($password, $user['password'])) {
+            return [];
+        }
+
+        if ($user['status'] !== '1') {
             return [];
         }
 
