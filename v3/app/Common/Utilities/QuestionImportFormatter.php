@@ -77,7 +77,7 @@ class QuestionImportFormatter
                             $options[] = [
                                 'order' => $i,
                                 'text' => $text,
-                                'optionFiles' => self::processOptionFiles($row, $i, $imageMap, $hasZip)
+                                'option_files' => self::processOptionFiles($row, $i, $imageMap, $hasZip)
                             ];
                         }
                     }
@@ -102,16 +102,16 @@ class QuestionImportFormatter
                 }
 
                 $outputQuestions[] = [
-                    'questionText' => $questionText,
+                    'question_text' => $questionText,
                     'passage' => $row['passage'] ?? '',
-                    'passageId' => (int)($row['passage_id'] ?? null),
-                    'questionType' => $isShort ? 'short_answer' : 'multiple_choice',
+                    'passage_id' => (int)($row['passage_id'] ?? null),
+                    'question_type' => $isShort ? 'short_answer' : 'multiple_choice',
                     'instruction' => $row['instruction'] ?? '',
                     'topic' => $row['topic'] ?? '',
-                    'topicId' => (int)($row['topic_id'] ?? null),
-                    'questionFiles' => self::processQuestionFiles($row, $imageMap, $hasZip),
+                    'topic_id' => (int)($row['topic_id'] ?? null),
+                    'question_files' => self::processQuestionFiles($row, $imageMap, $hasZip),
                     'explanation' => $row['explanation'] ?? '',
-                    'explanationId' => (int)($row['explanation_id'] ?? null),
+                    'explanation_id' => (int)($row['explanation_id'] ?? null),
                     'options' => $options,
                     'correct' => $correct
                 ];

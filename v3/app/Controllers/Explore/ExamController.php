@@ -32,7 +32,7 @@ class ExamController extends ExploreBaseController
 
             'file' => 'required|array|min:1',
             'file.name' => 'required|string|filled',
-            'file.type' => 'required|string|filled|in:application/zip',
+            'file.type' => 'required|string|filled|in:application/zip,application/x-zip-compressed,multipart/x-zip',
             'file.tmp_name' => 'required|string|filled',
         ]);
 
