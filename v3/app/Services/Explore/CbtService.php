@@ -38,8 +38,8 @@ class CbtService
     {
         return $this->exam
             ->select([
-                'ANY_VALUE(id) AS id',
-                'ANY_VALUE(course_name) AS course_name',
+                'id',
+                'course_name',
                 'course_id',
                 'exam_type',
                 'year'
@@ -68,7 +68,7 @@ class CbtService
                 'picref'
             ])
             ->where('is_active', '=', 1)
-            ->orderBy('display_order', 'ASC')
+            ->orderBy('display_order')
             ->get();
 
         $meta = [];
