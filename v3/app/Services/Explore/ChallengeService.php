@@ -3,16 +3,14 @@
 namespace V3\App\Services\Explore;
 
 use DateTime;
-use V3\App\Common\Enums\QuestionType;
 use V3\App\Models\Explore\Challenge;
 use V3\App\Models\Explore\Exam;
-use V3\App\Models\Portal\ELearning\Quiz;
 
 class ChallengeService
 {
     private Challenge $challenge;
     private Exam $exam;
-    private Quiz $quiz;
+    private QuestionService $questionService;
 
     private const ADMIN_USER = 'admin';
     private const PUBLISHED = 'published';
@@ -24,7 +22,7 @@ class ChallengeService
     {
         $this->challenge = new Challenge($pdo);
         $this->exam = new Exam($pdo);
-        $this->quiz = new Quiz($pdo);
+        $this->questionService = new QuestionService($pdo);
     }
 
     /**
@@ -239,52 +237,7 @@ class ChallengeService
             return [];
         }
 
-        shuffle($questionIds);
-
-        return $this->getQuestions($questionIds);
-    }
-
-    /**
-     * Summary of getQuestions
-     * @param array $questionIds
-     * @return array
-     */
-    public function getQuestions(array $questionIds): array
-    {
-
-        $questions = $this->quiz
-            ->select([
-                'question_id',
-                'title AS question_text',
-                'content AS question_files',
-                'topic',
-                'topic_id',
-                'passage',
-                'passage_id',
-                'instruction',
-                'instruction_id',
-                'explanation',
-                'explanation_id',
-                'type as question_type',
-                'answer as options',
-                'correct',
-            ])
-            ->in('question_id', $questionIds)
-            ->get();
-
-        if (empty($questions)) {
-            return [];
-        }
-
-        $questions = array_map(function ($question) {
-            $question['question_type'] = QuestionType::tryFrom($question['question_type'])?->label() ?? 'Unknown';
-            $question['question_files'] = $this->decode($question['question_files']);
-            $question['options'] = $this->decode($question['options']);
-            $question['correct'] = $this->decode($question['correct']);
-            return $question;
-        }, $questions);
-
-        return $questions;
+        return $this->questionService->fetchQuestions($questionIds, ['shuffle' => true]);
     }
 
     /**
