@@ -21,20 +21,23 @@ class ExamController extends ExploreBaseController
     #[Route('/questions', 'POST', ['api'])]
     public function storeQuestions(): void
     {
-        $data = $this->validate([...$this->post['data'], ...$this->post['files']], [
-            'settings' => 'required|array|min:1',
-            'settings.exam_type_id' => 'required|integer|min:1',
-            'settings.course_id' => 'required|integer|min:1',
-            'settings.course_name' => 'required|string|max:255',
-            'settings.description' => 'nullable|string',
-            'settings.user_id' => 'required|integer|min:1',
-            'settings.username' => 'required|string|max:255',
+        $data = $this->validate(
+            $this->getRequestData(),
+            [
+                'settings' => 'required|array|min:1',
+                'settings.exam_type_id' => 'required|integer|min:1',
+                'settings.course_id' => 'required|integer|min:1',
+                'settings.course_name' => 'required|string|max:255',
+                'settings.description' => 'nullable|string',
+                'settings.user_id' => 'required|integer|min:1',
+                'settings.username' => 'required|string|max:255',
 
-            'file' => 'required|array|min:1',
-            'file.name' => 'required|string|filled',
-            'file.type' => 'required|string|filled|in:application/zip,application/x-zip-compressed,multipart/x-zip',
-            'file.tmp_name' => 'required|string|filled',
-        ]);
+                'file' => 'required|array|min:1',
+                'file.name' => 'required|string|filled',
+                'file.type' => 'required|string|filled|in:application/zip,application/x-zip-compressed,multipart/x-zip',
+                'file.tmp_name' => 'required|string|filled',
+            ]
+        );
 
         $response = $this->examService->createQuestions($data);
 

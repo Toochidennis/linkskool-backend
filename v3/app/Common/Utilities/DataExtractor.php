@@ -24,7 +24,7 @@ class DataExtractor
             // Multipart Form Data
             $data = $_POST;
             $files = $_FILES;
-            return ['data' => $data, 'files' => $files];
+            return [...$data, ...$files];
         } else {
             http_response_code(400);
             $response['message'] = 'Unsupported Content-Type.';

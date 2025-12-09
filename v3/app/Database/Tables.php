@@ -94,5 +94,7 @@ class Tables
         'cbt_users',
         'audit_logs',
         'users',
+        'challenge',
+        'leaderboard',
     ];
 }
