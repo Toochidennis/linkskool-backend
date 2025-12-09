@@ -18,7 +18,7 @@ class ExamController extends ExploreBaseController
         $this->examService = new ExamService($this->pdo);
     }
 
-    #[Route('/questions', 'POST', ['api'])]
+    #[Route('/questions', 'POST', ['api', 'auth'])]
     public function storeQuestions(): void
     {
         $data = $this->validate(
