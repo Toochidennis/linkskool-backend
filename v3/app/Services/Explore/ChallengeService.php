@@ -96,6 +96,26 @@ class ChallengeService
             ->update($payload);
     }
 
+    public function updateStatus(int $challengeId, string $status): bool
+    {
+        $payload = [
+            'status' => $status === self::PUBLISHED ? 1 : 0,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+
+        return $this->challenge
+            ->where('id', $challengeId)
+            ->update($payload);
+    }
+
+    public function deleteChallenge(int $challengeId, int $authorId): bool
+    {
+        return $this->challenge
+            ->where('id', '=', $challengeId)
+            ->where('author_id', '=', $authorId)
+            ->delete();
+    }
+
     private function getQuestionIds(array $examIds, int $countPerExam): array
     {
         $url = $this->exam

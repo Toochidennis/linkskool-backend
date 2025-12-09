@@ -23,7 +23,7 @@ class ExamTypeService
             'shortname' => $data['shortname'],
             'course_ids' => json_encode($data['course_ids']),
             'is_active' => $data['is_active'],
-            'order' => $data['order']
+            'display_order' => $data['display_order']
         ];
 
         return $this->examType->insert($payload);
@@ -36,7 +36,7 @@ class ExamTypeService
             'shortname' => $data['shortname'],
             'course_ids' => json_encode($data['course_ids']),
             'is_active' => $data['is_active'],
-            'order' => $data['order']
+            'display_order' => $data['display_order']
         ];
         return $this->examType
             ->where('id', '=', $data['id'])
@@ -46,12 +46,13 @@ class ExamTypeService
     public function getAllExamTypes(int $active): array
     {
         $examTypes = $this->examType
-            ->select(['id, title AS name, shortname, course_ids, is_active']);
+            ->select(['id', 'title AS name', 'shortname', 'course_ids', 'is_active', 'display_order']);
 
         if ($active === 1) {
             $examTypes = $examTypes->where('is_active', '=', 1);
         }
-        $examTypes = $examTypes->orderBy('order')->get();
+
+        $examTypes = $examTypes->orderBy('display_order')->get();
 
         foreach ($examTypes as &$examType) {
             $courseIds = json_decode($examType['course_ids'] ?? '[]', true) ?? [];

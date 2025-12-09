@@ -7129,7 +7129,7 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
-        'order' => [
+        'display_order' => [
             'type' => 'int(11)',
             'nullable' => true,
             'default' => null,

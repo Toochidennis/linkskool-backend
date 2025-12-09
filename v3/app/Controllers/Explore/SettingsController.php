@@ -18,7 +18,7 @@ class SettingsController extends ExploreBaseController
     {
         $this->respond([
             'success' => true,
-            'settings' => [
+            'data' => [
                 'challenge_duration_limit' => 120,
                 'max_exams_per_challenge' => 4,
                 'min_questions_per_exam' => 10,
