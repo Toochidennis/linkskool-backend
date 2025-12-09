@@ -32,6 +32,12 @@ class ExamService
         $this->contentPath = $paths['absolute'];
     }
 
+    /**
+     * Summary of createQuestions
+     * @param array $data
+     * @throws \Exception
+     * @return array{errors: mixed, status: bool|array{exam_ids: array, status: bool}|array{exam_ids: int[], status: bool}}
+     */
     public function createQuestions(array $data): array
     {
         $parsedData = QuestionImportParser::parse($data['file']);
@@ -136,7 +142,14 @@ class ExamService
         }
     }
 
-    private function createExam(array $settings, array $questionIds, $year): int
+    /**
+     * Summary of createExam
+     * @param array $settings
+     * @param array $questionIds
+     * @param int $year
+     * @return bool|int
+     */
+    private function createExam(array $settings, array $questionIds, int $year): int
     {
         $payload = [
             'exam_type' => $settings['exam_type_id'],
@@ -151,6 +164,11 @@ class ExamService
         return $this->exam->insert($payload);
     }
 
+    /**
+     * Summary of getExams
+     * @param array $filters
+     * @return array
+     */
     public function getExams(array $filters): array
     {
         return $this->exam
@@ -159,6 +177,11 @@ class ExamService
             ->paginate($filters['page'] ?? 1, $filters['limit'] ?? 25);
     }
 
+    /**
+     * Summary of deleteExam
+     * @param array $filters
+     * @return bool
+     */
     public function deleteExam(array $filters): bool
     {
         $exam = $this->exam
@@ -197,6 +220,11 @@ class ExamService
         return false;
     }
 
+    /**
+     * Summary of deleteQuizContent
+     * @param array $questionIds
+     * @return void
+     */
     private function deleteQuizContent(array $questionIds): void
     {
         foreach ($questionIds as $questionId) {
@@ -222,6 +250,11 @@ class ExamService
         }
     }
 
+    /**
+     * Summary of deleteFiles
+     * @param array $files
+     * @return void
+     */
     private function deleteFiles(array $files): void
     {
         foreach ($files as $file) {
@@ -236,6 +269,11 @@ class ExamService
         }
     }
 
+    /**
+     * Summary of getQuestions
+     * @param int $examId
+     * @return array
+     */
     public function getQuestions(int $examId): array
     {
         $exam = $this->exam
