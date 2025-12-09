@@ -69,7 +69,6 @@ class CbtService
                 'display_order'
             ])
             ->where('is_active', '=', 1)
-            ->orderBy('display_order')
             ->get();
 
         $meta = [];
