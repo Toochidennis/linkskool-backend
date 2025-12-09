@@ -25,7 +25,8 @@ class ExamTypeController extends ExploreBaseController
             'name' => 'required|string|filled',
             'shortname' => 'required|string|filled',
             'course_ids' => 'required|array',
-            'is_active' => 'required|integer|in:0,1'
+            'is_active' => 'required|integer|in:0,1',
+            'order' => 'required|integer|min:0'
         ]);
 
         $examTypeId = $this->examTypeService->createExamType($data);
@@ -49,7 +50,8 @@ class ExamTypeController extends ExploreBaseController
             'name' => 'required|string|filled',
             'shortname' => 'required|string|filled',
             'course_ids' => 'required|array',
-            'is_active' => 'required|integer|in:0,1'
+            'is_active' => 'required|integer|in:0,1',
+            'order' => 'required|integer|min:0'
         ]);
 
         $updated = $this->examTypeService->updateExamType($data);

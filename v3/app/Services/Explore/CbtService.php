@@ -68,6 +68,8 @@ class CbtService
                 'picref'
             ])
             ->whereNotNull('shortname')
+            ->where('is_active', '=', 1)
+            ->orderBy('order', 'ASC')
             ->get();
 
         $meta = [];

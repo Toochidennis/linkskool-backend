@@ -96,7 +96,7 @@ class QuestionImportFormatter
                     }
 
                     $correct = [
-                        'order' => $ansIdx,
+                        'order' => $ansIdx > 0 ? $ansIdx - 1 : 0,
                         'text' => $ansText ?: $ansImg
                     ];
                 }

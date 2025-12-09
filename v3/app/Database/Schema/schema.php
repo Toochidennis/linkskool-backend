@@ -7129,6 +7129,13 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'order' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         '__meta' => [
             'engine' => 'InnoDB',
             'charset' => 'utf8mb4',
@@ -7360,7 +7367,6 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
-
         'roleId' => [
             'type' => 'int(11)',
             'nullable' => true,
@@ -7459,7 +7465,14 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
-        'total_questions' => [
+        'exam_ids' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'count_per_exam' => [
             'type' => 'int(11)',
             'nullable' => true,
             'default' => null,

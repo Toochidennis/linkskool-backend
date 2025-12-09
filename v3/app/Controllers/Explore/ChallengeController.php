@@ -18,10 +18,13 @@ class ChallengeController extends ExploreBaseController
         $this->challengeService = new ChallengeService($this->pdo);
     }
 
+    /**
+     * storeChallenge
+     */
     #[Route('', 'POST', ['api'])]
     public function storeChallenge(): void
     {
-        $data = $this->validate(
+        $filters = $this->validate(
             $this->post,
             [
                 'title' => 'required|string|max:255',
@@ -29,7 +32,7 @@ class ChallengeController extends ExploreBaseController
                 'start_date' => 'required|date',
                 'end_date' => 'required|date|after_or_equal:start_date',
                 'time_limit' => 'required|integer|min:0',
-                'count_per_question' => 'required|integer|min:1',
+                'count_per_exam' => 'required|integer|min:1',
                 'exam_ids' => 'required|array|min:1',
                 'exam_ids.*' => 'required|integer|min:1',
                 'exam_type_id' => 'required|integer|min:1',
@@ -40,7 +43,7 @@ class ChallengeController extends ExploreBaseController
             ]
         );
 
-        $response = $this->challengeService->createChallenge($data);
+        $response = $this->challengeService->createChallenge($filters);
 
         if (!$response) {
             $this->respondError(
@@ -58,13 +61,53 @@ class ChallengeController extends ExploreBaseController
         );
     }
 
+    #[Route('/{challenge_id}', 'PUT', ['api'])]
+    public function updateChallenge(array $vars): void
+    {
+        $filters = $this->validate(
+            [...$this->post, ...$vars],
+            [
+                'challenge_id' => 'required|integer|min:1',
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'time_limit' => 'required|integer|min:0',
+                'count_per_exam' => 'required|integer|min:1',
+                'exam_ids' => 'required|array|min:1',
+                'exam_ids.*' => 'required|integer|min:1',
+                'exam_type_id' => 'required|integer|min:1',
+                'status' => 'required|string|in:published,draft',
+                'author_id' => 'required|integer|min:1',
+                'author_name' => 'required|string|max:255',
+                'score' => 'required|integer|min:0',
+            ]
+        );
+
+        $response = $this->challengeService->updateChallenge($filters);
+
+        if (!$response) {
+            $this->respondError(
+                "Failed to update challenge. Please ensure that the selected exams have sufficient questions.",
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Challenge updated successfully.'
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('', 'GET', ['api'])]
     public function getChallenges(array $vars): void
     {
         $filters = $this->validate(
             $vars,
-            [
-                'author_id' => 'required|integer|min:1',
-            ]
+            ['author_id' => 'required|integer|min:1']
         );
 
         $challenges = $this->challengeService->getChallenges($filters['author_id']);
@@ -79,10 +122,11 @@ class ChallengeController extends ExploreBaseController
         );
     }
 
-    public function getChallengeQuestions(): void
+    #[Route('/questions', 'GET', ['api'])]
+    public function getChallengeQuestions(array $vars): void
     {
         $filters = $this->validate(
-            $this->getRequestData(),
+            $vars,
             [
                 'challenge_id' => 'required|integer|min:1',
                 'exam_id' => 'required|integer|min:1',
