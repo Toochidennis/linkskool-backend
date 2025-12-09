@@ -65,7 +65,8 @@ class CbtService
                 'title',
                 'description',
                 'shortname',
-                'picref'
+                'picref',
+                'display_order'
             ])
             ->where('is_active', '=', 1)
             ->orderBy('display_order')
@@ -77,7 +78,8 @@ class CbtService
                 'title' => $row['title'],
                 'desc' => $row['description'],
                 'short' => $row['shortname'],
-                'pic' => $this->formatRef($row['picref'] ?? '')
+                'pic' => $this->formatRef($row['picref'] ?? ''),
+                'display_order' => $row['display_order']
             ];
         }
 
@@ -94,8 +96,8 @@ class CbtService
 
         foreach ($rows as $row) {
             $examTypeId = $row['exam_type'];
-            $courseId   = $row['course_id'];
-            $examId     = $row['id'];
+            $courseId = $row['course_id'];
+            $examId = $row['id'];
 
             if (!isset($examMeta[$examTypeId])) {
                 continue;
@@ -104,36 +106,42 @@ class CbtService
             if (!isset($formatted[$examTypeId])) {
                 $meta = $examMeta[$examTypeId];
                 $formatted[$examTypeId] = [
-                    'exam_type_id'   => $examTypeId,
-                    'exam_image'     => $meta['pic'],
-                    'exam_title'     => $meta['title'],
-                    'exam_desc'      => $meta['desc'],
+                    'exam_type_id' => $examTypeId,
+                    'exam_image' => $meta['pic'],
+                    'exam_title' => $meta['title'],
+                    'exam_desc' => $meta['desc'],
                     'exam_shortname' => $meta['short'],
-                    'courses'        => []
+                    'exam_display_order' => $meta['display_order'],
+                    'courses' => []
                 ];
             }
 
             // Add course
             if (!isset($formatted[$examTypeId]['courses'][$courseId])) {
                 $formatted[$examTypeId]['courses'][$courseId] = [
-                    'course_id'   => $courseId,
+                    'course_id' => $courseId,
                     'course_name' => $row['course_name'],
-                    'years'       => []
+                    'years' => []
                 ];
             }
 
             // Add year
             $formatted[$examTypeId]['courses'][$courseId]['years'][] = [
                 'exam_id' => $examId,
-                'year'    => $row['year']
+                'year' => $row['year']
             ];
         }
 
         // Convert associative arrays to sequential arrays for JSON
-        return array_values(array_map(function ($exam) {
+        $formatted = array_values(array_map(function ($exam) {
             $exam['courses'] = array_values($exam['courses']);
             return $exam;
         }, $formatted));
+
+        // Sort by display_order in ascending order
+        usort($formatted, fn($a, $b) => $a['exam_display_order'] <=> $b['exam_display_order']);
+
+        return $formatted;
     }
 
     /**

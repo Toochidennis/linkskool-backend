@@ -78,7 +78,7 @@ class ExamTypeController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/exam-types', 'GET', ['api', ])]
+    #[Route('/exam-types', 'GET', ['api', 'auth'])]
     public function getAllExamTypes(): void
     {
         $this->respond([
