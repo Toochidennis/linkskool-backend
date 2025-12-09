@@ -2,7 +2,6 @@
 
 namespace V3\App\Services\Explore;
 
-use V3\App\Common\Enums\QuestionType;
 use V3\App\Models\Explore\Exam;
 use V3\App\Models\Explore\ExamType;
 use V3\App\Models\Portal\ELearning\Quiz;
@@ -11,13 +10,13 @@ class CbtService
 {
     private Exam $exam;
     private ExamType $examType;
-    private Quiz $quiz;
+    private QuestionService $questionService;
 
     public function __construct(\PDO $pdo)
     {
         $this->exam = new Exam($pdo);
         $this->examType = new ExamType($pdo);
-        $this->quiz = new Quiz($pdo);
+        $this->questionService = new QuestionService($pdo);
     }
 
     /**
@@ -221,40 +220,17 @@ class CbtService
     private function getQuestions(array $questionIds, array $filters): array
     {
         shuffle($questionIds);
-        $selectedIds = \array_slice($questionIds, 0, $filters['limit'] ?? 50);
+        $selectedIds = \array_slice($questionIds, 0, $filters['limit'] ?? 40);
 
-        $questions = $this->quiz
-            ->select([
-                'question_id',
-                'title AS question_text',
-                'content AS question_files',
-                'topic',
-                'topic_id',
-                'passage',
-                'passage_id',
-                'instruction',
-                'instruction_id',
-                'explanation',
-                'explanation_id',
-                'type as question_type',
-                'answer as options',
-                'correct',
-            ])
-            ->in('question_id', $selectedIds)
-            ->limit($filters['limit'] ?? 50)
-            ->offset($filters['offset'] ?? 0)
-            ->get();
-
-        if (!$questions) {
-            return [];
-        }
-        return array_map(function ($question) {
-            $question['question_type'] = QuestionType::tryFrom($question['question_type'])?->label() ?? 'Unknown';
-            $question['question_files'] = $this->json($question['question_files']);
-            $question['options'] = $this->json($question['options']);
-            $question['correct'] = $this->json($question['correct']);
-            return $question;
-        }, $questions);
+        return $this->questionService
+            ->fetchQuestions(
+                $selectedIds,
+                [
+                    'limit' => $filters['limit'] ?? 40,
+                    'offset' => $filters['offset'] ?? 0,
+                    'shuffle' => true
+                ]
+            );
     }
 
     private function json(?string $data): array

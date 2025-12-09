@@ -3,7 +3,6 @@
 namespace V3\App\Services\Explore;
 
 use PDO;
-use V3\App\Common\Enums\QuestionType;
 use V3\App\Common\Utilities\FileHandler;
 use V3\App\Common\Utilities\PathResolver;
 use V3\App\Common\Utilities\QuestionImportFormatter;
@@ -20,6 +19,7 @@ class ExamService
     private FileHandler $handler;
     private Quiz $quiz;
     private string $contentPath;
+    private QuestionService $questionService;
 
     public function __construct(PDO $pdo)
     {
@@ -30,6 +30,8 @@ class ExamService
         $this->handler = new FileHandler();
         $paths = PathResolver::getContentPaths();
         $this->contentPath = $paths['absolute'];
+
+        $this->questionService = new QuestionService($pdo);
     }
 
     /**
@@ -291,39 +293,7 @@ class ExamService
             return [];
         }
 
-        $questions = $this->quiz
-            ->select([
-                'question_id',
-                'title AS question_text',
-                'content AS question_files',
-                'topic',
-                'topic_id',
-                'passage',
-                'passage_id',
-                'instruction',
-                'instruction_id',
-                'explanation',
-                'explanation_id',
-                'type as question_type',
-                'answer as options',
-                'correct',
-            ])
-            ->in('question_id', $questionIds)
-            ->get();
-
-        if (empty($questions)) {
-            return [];
-        }
-
-        $questions = array_map(function ($question) {
-            $question['question_type'] = QuestionType::tryFrom($question['question_type'])?->label() ?? 'Unknown';
-            $question['question_files'] = $this->decode($question['question_files']);
-            $question['options'] = $this->decode($question['options']);
-            $question['correct'] = $this->decode($question['correct']);
-            return $question;
-        }, $questions);
-
-        return $questions;
+        return $this->questionService->fetchQuestions($questionIds);
     }
 
     private function logAction(
