@@ -22,7 +22,8 @@ class ExamTypeService
             'title' => $data['name'],
             'shortname' => $data['shortname'],
             'course_ids' => json_encode($data['course_ids']),
-            'is_active' => $data['is_active']
+            'is_active' => $data['is_active'],
+            'order' => $data['order']
         ];
 
         return $this->examType->insert($payload);
@@ -34,7 +35,8 @@ class ExamTypeService
             'title' => $data['name'],
             'shortname' => $data['shortname'],
             'course_ids' => json_encode($data['course_ids']),
-            'is_active' => $data['is_active']
+            'is_active' => $data['is_active'],
+            'order' => $data['order']
         ];
         return $this->examType
             ->where('id', '=', $data['id'])
@@ -49,7 +51,7 @@ class ExamTypeService
         if ($active === 1) {
             $examTypes = $examTypes->where('is_active', '=', 1);
         }
-        $examTypes = $examTypes->orderBy('name')->get();
+        $examTypes = $examTypes->orderBy('order')->get();
 
         foreach ($examTypes as &$examType) {
             $courseIds = json_decode($examType['course_ids'] ?? '[]', true) ?? [];

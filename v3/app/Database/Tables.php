@@ -96,5 +96,6 @@ class Tables
         'users',
         'challenge',
         'leaderboard',
+        'challenge_participants',
     ];
 }

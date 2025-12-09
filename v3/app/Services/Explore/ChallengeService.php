@@ -14,6 +14,12 @@ class ChallengeService
     private Exam $exam;
     private Quiz $quiz;
 
+    private const ADMIN_USER = 'admin';
+    private const PUBLISHED = 'published';
+    private const DRAFT = 'draft';
+    private const ACTIVE = 'active';
+    private const INACTIVE = 'inactive';
+
     public function __construct(\PDO $pdo)
     {
         $this->challenge = new Challenge($pdo);
@@ -21,11 +27,16 @@ class ChallengeService
         $this->quiz = new Quiz($pdo);
     }
 
+    /**
+     * Summary of createChallenge
+     * @param array $data
+     * @return bool|int
+     */
     public function createChallenge(array $data): bool
     {
         $questionIds = $this->getQuestionIds(
             $data['exam_ids'],
-            $data['count_per_question']
+            $data['count_per_exam']
         );
 
         if (empty($questionIds)) {
@@ -38,10 +49,10 @@ class ChallengeService
             'start_date' => $data['start_date'],
             'end_date' => $data['end_date'],
             'time_limit' => $data['time_limit'],
-            'count_per_question' => $data['count_per_question'],
+            'count_per_exam' => $data['count_per_exam'],
             'exam_ids' => json_encode($data['exam_ids']),
             'exam_type_id' => $data['exam_type_id'],
-            'status' => $data['status'],
+            'status' => $data['status'] === self::PUBLISHED ? 1 : 0,
             'author_id' => $data['author_id'],
             'author_name' => $data['author_name'],
             'score' => $data['score'],
@@ -51,10 +62,44 @@ class ChallengeService
         return $this->challenge->insert($payload);
     }
 
-    private function getQuestionIds(array $examIds, int $countPerQuestion): array
+    public function updateChallenge(array $data): bool
+    {
+        $questionIds = $this->getQuestionIds(
+            $data['exam_ids'],
+            $data['count_per_exam']
+        );
+
+        if (empty($questionIds)) {
+            return false;
+        }
+
+        $payload = [
+            'title' => $data['title'],
+            'description' => $data['description'] ?? null,
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'],
+            'time_limit' => $data['time_limit'],
+            'count_per_exam' => $data['count_per_exam'],
+            'exam_ids' => json_encode($data['exam_ids']),
+            'exam_type_id' => $data['exam_type_id'],
+            'status' => $data['status'] === self::PUBLISHED ? 1 : 0,
+            'author_id' => $data['author_id'],
+            'author_name' => $data['author_name'],
+            'score' => $data['score'],
+            'url' => json_encode($questionIds),
+            'updated_at' => date('Y-m-d H:i:s'),
+            'is_active' => 1,
+        ];
+
+        return $this->challenge
+            ->where('id', $data['challenge_id'])
+            ->update($payload);
+    }
+
+    private function getQuestionIds(array $examIds, int $countPerExam): array
     {
         $url = $this->exam
-            ->select(['id', 'url', 'course_id'])
+            ->select(['id', 'url'])
             ->in('id', $examIds)
             ->get();
 
@@ -68,36 +113,42 @@ class ChallengeService
             $questionIds = json_decode($exam['url'], true);
 
             shuffle($questionIds);
-            $selectedIds = \array_slice($questionIds, 0, $countPerQuestion);
+            $selectedIds = \array_slice($questionIds, 0, $countPerExam);
             $selectedQuestionIds[$exam['id']] = $selectedIds;
         }
         return $selectedQuestionIds;
     }
 
+    /**
+     * Summary of getChallenges
+     * @param int $authorId
+     * @return array[]|array{active: array, personal: array, recommended: array, upcoming: array}
+     */
     public function getChallenges(int $authorId): array
     {
         $challenges = $this->challenge
             ->select([
-                'id',
-                'title',
-                'description',
-                'start_date',
-                'end_date',
-                'time_limit',
-                'exam_ids',
-                'exam_type_id',
-                'status',
-                'author_id',
-                'author_name',
-                'score',
-                'is_active',
-                'created_at',
+                'challenge.id',
+                'challenge.title',
+                'challenge.description',
+                'challenge.start_date',
+                'challenge.end_date',
+                'challenge.time_limit',
+                'challenge.exam_ids',
+                'challenge.status',
+                'challenge.author_id',
+                'challenge.author_name',
+                'challenge.score',
+                'challenge.is_active',
+                'challenge.created_at',
                 'COUNT(challenge_participants.id) AS challengers'
             ])
-            ->join('challenge_participants', 'challenge_participants.challenge_id', 'LEFT')
+            ->join('challenge_participants', 'challenge_participants.challenge_id = challenge.id', 'LEFT')
             ->groupBy('challenge.id')
-            ->orderBy('created_at', 'DESC')
+            ->orderBy('challenge.created_at', 'DESC')
             ->get();
+
+        // var_dump($challenges); exit;
 
         $now = new DateTime();
         $grouped = [
@@ -111,10 +162,12 @@ class ChallengeService
             $start = new DateTime($challenge['start_date']);
             $end = new DateTime($challenge['end_date']);
             $challenge['exam_ids'] = json_decode($challenge['exam_ids'], true);
+            $challenge['status'] = $challenge['status'] == 1 ? self::PUBLISHED : self::DRAFT;
+            $challenge['is_active'] = $challenge['is_active'] === 1 ? self::ACTIVE : self::INACTIVE;
 
             // Auto-update expired challenges
-            if ($challenge['is_active'] == 1 && $end < $now) {
-                $challenge['is_active'] = 0;
+            if ($challenge['is_active'] == self::ACTIVE && $end < $now) {
+                $challenge['is_active'] = self::INACTIVE;
                 $this->challenge
                     ->where('id', $challenge['id'])
                     ->update(['is_active' => 0]);
@@ -122,14 +175,14 @@ class ChallengeService
 
             // Determine visibility
             $isOwner = $challenge['author_id'] == $authorId;
-            $isActive = $challenge['is_active'] == 1;
+            $isActive = $challenge['is_active'] == self::ACTIVE;
 
-            if (!$isOwner && (!$isActive || $challenge['status'] != 1)) {
+            if (!$isOwner && (!$isActive || $challenge['status'] != self::PUBLISHED)) {
                 // Public should not see inactive/unpublished challenges
                 continue;
             }
 
-            if ($challenge['author_name'] === 'admin') {
+            if ($challenge['author_name'] === self::ADMIN_USER) {
                 $grouped['recommended'][] = $challenge;
             } elseif ($isOwner) {
                 $grouped['personal'][] = $challenge;
@@ -143,6 +196,11 @@ class ChallengeService
         return $grouped;
     }
 
+    /**
+     * Summary of getChallengeQuestions
+     * @param array $filters
+     * @return array
+     */
     public function getChallengeQuestions(array $filters): array
     {
         $challenge = $this->challenge
@@ -166,6 +224,11 @@ class ChallengeService
         return $this->getQuestions($questionIds);
     }
 
+    /**
+     * Summary of getQuestions
+     * @param array $questionIds
+     * @return array
+     */
     public function getQuestions(array $questionIds): array
     {
 
@@ -204,6 +267,11 @@ class ChallengeService
         return $questions;
     }
 
+    /**
+     * Summary of decode
+     * @param mixed $data
+     * @return array
+     */
     private function decode(?string $data): array
     {
         if (empty($data) || $data === null) {
