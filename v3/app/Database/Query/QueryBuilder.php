@@ -83,7 +83,7 @@ class QueryBuilder
             $builder = new WhereBuilder();
             $column($builder);
             $this->whereConditions[] = $builder->getClause();
-            $this->whereBindings = array_merge($this->whereBindings, $builder->getBindings());
+            $this->whereBindings = [...$this->whereBindings, ...$builder->getBindings()];
         } else {
             if (\func_num_args() === 2) {
                 $value = $operator;
@@ -109,7 +109,7 @@ class QueryBuilder
         }
 
         $this->whereConditions[] = $builder->getClause();
-        $this->whereBindings = \array_merge($this->whereBindings, $builder->getBindings());
+        $this->whereBindings = [...$this->whereBindings, ...$builder->getBindings()];
 
         return $this;
     }
@@ -135,7 +135,7 @@ class QueryBuilder
                 throw new InvalidArgumentException("Each pair must have exactly " . \count($columns) . " values.");
             }
             $placeholders[] = '(' . implode(', ', array_fill(0, \count($columns), '?')) . ')';
-            $this->whereBindings = \array_merge($this->whereBindings, array_values($pair));
+            $this->whereBindings = [...$this->whereBindings, ...array_values($pair)];
         }
 
         $this->whereConditions[] = "$colList NOT IN (" . implode(', ', $placeholders) . ")";
@@ -221,7 +221,7 @@ class QueryBuilder
             $condition($joinBuilder);
 
             $onClause = $joinBuilder->getClause();
-            $this->bindings = array_merge($this->bindings, $joinBuilder->bindings);
+            $this->bindings = [...$this->bindings, ...$joinBuilder->bindings];
         } else {
             foreach (explode(' ', $condition) as $token) {
                 if (str_contains($token, '.')) {
@@ -270,7 +270,7 @@ class QueryBuilder
         }
 
         $stmt = $this->pdo->prepare($query);
-        $stmt->execute(\array_merge($this->bindings, $this->whereBindings));
+        $stmt->execute([...$this->bindings, ...$this->whereBindings]);
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $this->reset();
@@ -336,7 +336,7 @@ class QueryBuilder
             implode(" AND ", $this->whereConditions);
         $stmt = $this->pdo->prepare($query);
 
-        $allBindings = \array_merge($this->updateBindings, $this->whereBindings);
+        $allBindings = [...$this->updateBindings, ...$this->whereBindings];
         $success = $stmt->execute($allBindings);
 
         $this->reset();
@@ -353,7 +353,7 @@ class QueryBuilder
 
         $placeholders = implode(", ", array_fill(0, \count($values), "?"));
         $this->whereConditions[] = "`$column` NOT IN ($placeholders)";
-        $this->whereBindings = \array_merge($this->whereBindings, $values);
+        $this->whereBindings = [...$this->whereBindings, ...$values];
 
         return $this;
     }
@@ -366,7 +366,7 @@ class QueryBuilder
 
         $placeholders = implode(", ", array_fill(0, \count($values), "?"));
         $this->whereConditions[] = "`$column` IN ($placeholders)";
-        $this->whereBindings = \array_merge($this->whereBindings, $values);
+        $this->whereBindings = [...$this->whereBindings, ...$values];
 
         return $this;
     }
@@ -412,7 +412,7 @@ class QueryBuilder
     public function whereRaw(string $expression, array $bindings = []): self
     {
         $this->whereConditions[] = $expression;
-        $this->whereBindings = \array_merge($this->whereBindings, $bindings);
+        $this->whereBindings = [...$this->whereBindings, ...$bindings];
 
         return $this;
     }

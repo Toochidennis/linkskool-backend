@@ -26,7 +26,7 @@ class ExamTypeController extends ExploreBaseController
             'shortname' => 'required|string|filled',
             'course_ids' => 'required|array',
             'is_active' => 'required|integer|in:0,1',
-            'order' => 'required|integer|min:0'
+            'display_order' => 'required|integer|min:0'
         ]);
 
         $examTypeId = $this->examTypeService->createExamType($data);
@@ -51,7 +51,7 @@ class ExamTypeController extends ExploreBaseController
             'shortname' => 'required|string|filled',
             'course_ids' => 'required|array',
             'is_active' => 'required|integer|in:0,1',
-            'order' => 'required|integer|min:0'
+            'display_order' => 'required|integer|min:0'
         ]);
 
         $updated = $this->examTypeService->updateExamType($data);
@@ -78,7 +78,7 @@ class ExamTypeController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/exam-types', 'GET', ['api', 'auth'])]
+    #[Route('/exam-types', 'GET', ['api', ])]
     public function getAllExamTypes(): void
     {
         $this->respond([

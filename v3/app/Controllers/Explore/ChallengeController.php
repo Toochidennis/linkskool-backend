@@ -61,7 +61,7 @@ class ChallengeController extends ExploreBaseController
         );
     }
 
-    #[Route('/{challenge_id}', 'PUT', ['api'])]
+    #[Route('/{challenge_id:\d+}', 'PUT', ['api'])]
     public function updateChallenge(array $vars): void
     {
         $filters = $this->validate(
@@ -97,6 +97,38 @@ class ChallengeController extends ExploreBaseController
             [
                 'success' => true,
                 'message' => 'Challenge updated successfully.'
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/status', 'PUT', ['api'])]
+    public function updateChallengeStatus(): void
+    {
+        $filters = $this->validate(
+            $this->post,
+            [
+                'challenge_id' => 'required|integer|min:1',
+                'status' => 'required|string|in:published,draft',
+            ]
+        );
+
+        $response = $this->challengeService->updateStatus(
+            $filters['challenge_id'],
+            $filters['status']
+        );
+
+        if (!$response) {
+            $this->respondError(
+                "Failed to update challenge status.",
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Challenge status updated successfully.'
             ],
             HttpStatus::OK
         );
@@ -144,6 +176,38 @@ class ChallengeController extends ExploreBaseController
                 'message' => $message,
                 'data' => $questions
             ]
+        );
+    }
+
+    #[Route('/{challenge_id:\d+}', 'DELETE', ['api'])]
+    public function deleteChallenge(array $vars): void
+    {
+        $filters = $this->validate(
+            [...$vars, ...$this->post],
+            [
+                'challenge_id' => 'required|integer|min:1',
+                'author_id' => 'required|integer|min:1',
+            ]
+        );
+
+        $response = $this->challengeService->deleteChallenge(
+            $filters['challenge_id'],
+            $filters['author_id']
+        );
+
+        if (!$response) {
+            $this->respondError(
+                "Failed to delete challenge.",
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Challenge deleted successfully.'
+            ],
+            HttpStatus::OK
         );
     }
 }
