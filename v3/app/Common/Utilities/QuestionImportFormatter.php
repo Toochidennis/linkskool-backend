@@ -10,16 +10,22 @@ class QuestionImportFormatter
         $images = $parsedData['images'];
         $hasZip = !empty($images);
 
+        // Pre-allocate image map with expected size
         $imageMap = [];
         foreach ($images as $img) {
             $imageName = strtolower(trim(basename($img['name'])));
-            $imageMap[$imageName] = $img['data'];
+            // Remove data:image prefix once during map creation for faster access
+            $base64 = $img['data'];
+            if (str_contains($base64, ',')) {
+                $base64 = explode(',', $base64, 2)[1];
+            }
+            $imageMap[$imageName] = $base64;
         }
 
         $yearMap = [];
         $errors = [];
 
-        // Group by year
+        // Group by year and pre-validate
         foreach ($rows as $row) {
             $year = trim($row['year'] ?? '');
             if ($year === '') {
@@ -142,20 +148,13 @@ class QuestionImportFormatter
         if ($hasZip && $imageName !== '') {
             $lookupName = strtolower(trim(basename($imageName)));
 
-            // O(1) lookup in image map
+            // O(1) lookup in image map (base64 prefix already removed in map creation)
             if (isset($imageMap[$lookupName])) {
-                $base64 = $imageMap[$lookupName];
-
-                // Remove data:image/...;base64, prefix if present
-                if (str_contains($base64, ',')) {
-                    $base64 = explode(',', $base64)[1];
-                }
-
                 $files[] = [
                     'file_name' => $imageName,
                     'old_file_name' => '',
                     'type' => 'image',
-                    'file' => $base64
+                    'file' => $imageMap[$lookupName]
                 ];
             }
         }
@@ -171,20 +170,13 @@ class QuestionImportFormatter
         if ($hasZip && $imageName !== '') {
             $lookupName = strtolower(trim(basename($imageName)));
 
-            // O(1) lookup in image map
+            // O(1) lookup in image map (base64 prefix already removed in map creation)
             if (isset($imageMap[$lookupName])) {
-                $base64 = $imageMap[$lookupName];
-
-                // Remove data:image/...;base64, prefix if present
-                if (str_contains($base64, ',')) {
-                    $base64 = explode(',', $base64)[1];
-                }
-
                 $files[] = [
                     'file_name' => $imageName,
                     'old_file_name' => '',
                     'type' => 'image',
-                    'file' => $base64
+                    'file' => $imageMap[$lookupName]
                 ];
             }
         }

@@ -102,7 +102,7 @@ class QuestionImportParser
 
         $dom = new \DOMDocument();
         libxml_use_internal_errors(true);
-        $dom->loadHTML(mb_convert_encoding($htmlContent, 'HTML-ENTITIES', 'UTF-8'));
+        $dom->loadHTML(mb_convert_encoding($htmlContent, 'HTML-ENTITIES', 'UTF-8'), LIBXML_COMPACT | LIBXML_PARSEHUGE);
         libxml_clear_errors();
 
         $xpath = new \DOMXPath($dom);
@@ -110,6 +110,9 @@ class QuestionImportParser
         // Get all tables - each table represents one question
         $tables = $xpath->query('//table');
         $allQuestions = [];
+
+        // Reuse a single innerDom for all image processing to reduce overhead
+        $innerDom = new \DOMDocument();
 
         foreach ($tables as $table) {
             if (!$table instanceof \DOMElement) {
@@ -145,35 +148,38 @@ class QuestionImportParser
 
                 // Replace images if needed (O(1) lookup)
                 if (isset($convertKeys[$key]) && !empty($innerHTML)) {
-                    $innerDom = new \DOMDocument();
-                    libxml_use_internal_errors(true);
-                    $innerDom->loadHTML(mb_convert_encoding($innerHTML, 'HTML-ENTITIES', 'UTF-8'));
-                    libxml_clear_errors();
+                    // Check if there are any img tags before processing DOM
+                    if (strpos($innerHTML, '<img') !== false) {
+                        libxml_use_internal_errors(true);
+                        $innerDom->loadHTML(mb_convert_encoding($innerHTML, 'HTML-ENTITIES', 'UTF-8'), LIBXML_COMPACT);
+                        libxml_clear_errors();
 
-                    foreach ($innerDom->getElementsByTagName('img') as $img) {
-                        if (!$img instanceof \DOMElement) {
-                            continue;
+                        $imgTags = $innerDom->getElementsByTagName('img');
+                        foreach ($imgTags as $img) {
+                            if (!$img instanceof \DOMElement) {
+                                continue;
+                            }
+                            $src = $img->getAttribute('src');
+                            $imgName = strtolower(basename($src));
+                            if (isset($imageMap[$imgName])) {
+                                $img->setAttribute('src', $imageMap[$imgName]);
+                            }
                         }
-                        $src = $img->getAttribute('src');
-                        $imgName = strtolower(basename($src));
-                        if (isset($imageMap[$imgName])) {
-                            $img->setAttribute('src', $imageMap[$imgName]);
-                        }
-                    }
 
-                    // Save processed HTML
-                    $innerHTML = '';
-                    $bodyNode = $innerDom->getElementsByTagName('body')->item(0);
-                    if ($bodyNode) {
-                        foreach ($bodyNode->childNodes as $child) {
-                            $innerHTML .= $innerDom->saveHTML($child);
+                        // Save processed HTML
+                        $innerHTML = '';
+                        $bodyNode = $innerDom->getElementsByTagName('body')->item(0);
+                        if ($bodyNode) {
+                            foreach ($bodyNode->childNodes as $child) {
+                                $innerHTML .= $innerDom->saveHTML($child);
+                            }
                         }
                     }
 
                     // For option texts, simplify HTML if no images present
                     if (str_starts_with($key, 'option_') && str_ends_with($key, '_text')) {
                         // Check if there are images in the content
-                        if (!preg_match('/<img[^>]*>/i', $innerHTML)) {
+                        if (strpos($innerHTML, '<img') === false) {
                             // No images, just return plain text
                             $innerHTML = trim(strip_tags($innerHTML));
                         }

@@ -33,10 +33,13 @@ class ChallengeController extends ExploreBaseController
                 'end_date' => 'required|date|after_or_equal:start_date',
                 'time_limit' => 'required|integer|min:0',
                 'count_per_exam' => 'required|integer|min:1',
-                'exam_ids' => 'required|array|min:1',
-                'exam_ids.*' => 'required|integer|min:1',
+                'details' => 'required|array|min:1',
+                'details.*.exam_id' => 'required|integer|min:1',
+                'details.*.course_name' => 'required|string|filled',
+                'details.*.course_id' => 'required|integer|min:1',
+                'details.*.year' => 'required|integer|min:1',
                 'exam_type_id' => 'required|integer|min:1',
-                'status' => 'required|string|in:published,draft',
+                'status' => 'required|string|in:published,draft,archived',
                 'author_id' => 'required|integer|min:1',
                 'author_name' => 'required|string|max:255',
                 'score' => 'required|integer|min:0',
@@ -74,10 +77,13 @@ class ChallengeController extends ExploreBaseController
                 'end_date' => 'required|date|after_or_equal:start_date',
                 'time_limit' => 'required|integer|min:0',
                 'count_per_exam' => 'required|integer|min:1',
-                'exam_ids' => 'required|array|min:1',
-                'exam_ids.*' => 'required|integer|min:1',
+                'details' => 'required|array|min:1',
+                'details.*.exam_id' => 'required|integer|min:1',
+                'details.*.course_name' => 'required|string|filled',
+                'details.*.course_id' => 'required|integer|min:1',
+                'details.*.year' => 'required|integer|min:1',
                 'exam_type_id' => 'required|integer|min:1',
-                'status' => 'required|string|in:published,draft',
+                'status' => 'required|string|in:published,draft,archived',
                 'author_id' => 'required|integer|min:1',
                 'author_name' => 'required|string|max:255',
                 'score' => 'required|integer|min:0',
@@ -102,14 +108,14 @@ class ChallengeController extends ExploreBaseController
         );
     }
 
-    #[Route('/status', 'PUT', ['api'])]
-    public function updateChallengeStatus(): void
+    #[Route('/status/{challenge_id:\d+}', 'PUT', ['api'])]
+    public function updateChallengeStatus(array $vars): void
     {
         $filters = $this->validate(
-            $this->post,
+            [...$vars, ...$this->post],
             [
                 'challenge_id' => 'required|integer|min:1',
-                'status' => 'required|string|in:published,draft',
+                'status' => 'required|string|in:published,draft,archived',
             ]
         );
 
@@ -139,10 +145,13 @@ class ChallengeController extends ExploreBaseController
     {
         $filters = $this->validate(
             $vars,
-            ['author_id' => 'required|integer|min:1']
+            [
+                'author_id' => 'required|integer|min:1',
+                'exam_type_id' => 'required|integer|min:1',
+            ]
         );
 
-        $challenges = $this->challengeService->getChallenges($filters['author_id']);
+        $challenges = $this->challengeService->getChallenges($filters);
         $message = empty($challenges) ? 'No challenges found.' : 'Challenges retrieved successfully.';
 
         $this->respond(

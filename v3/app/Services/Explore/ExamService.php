@@ -59,25 +59,80 @@ class ExamService
         try {
             $this->pdo->beginTransaction();
 
-            foreach ($questionsData as $group) {
-                $year = $group['year'];
-                foreach ($group['questions'] as $question) {
-                    $questionFiles = $question['question_files'] ?? [];
-                    $options = $question['options'] ?? [];
+            // Collect all files first for batch processing
+            $allFiles = [];
+            $fileMap = [];
+            $fileIndex = 0;
 
-                    if (!empty($questionFiles)) {
-                        $questionFiles = $this->handler->handleFiles(files: $questionFiles);
-                    }
-
-                    if (!empty($options)) {
-                        foreach ($options as &$option) {
-                            if (isset($option['option_files']) && !empty($option['option_files'])) {
-                                $option['option_files'] =  $this->handler->handleFiles(files: $option['option_files']);
-                            }
+            foreach ($questionsData as $groupIdx => $group) {
+                foreach ($group['questions'] as $qIdx => $question) {
+                    if (!empty($question['question_files'])) {
+                        foreach ($question['question_files'] as $file) {
+                            $allFiles[] = $file;
+                            $fileMap[$fileIndex] = [$groupIdx, $qIdx, 'question'];
+                            $fileIndex++;
                         }
                     }
 
-                    $payload = [
+                    if (!empty($question['options'])) {
+                        foreach ($question['options'] as $optIdx => $option) {
+                            if (!empty($option['option_files'])) {
+                                foreach ($option['option_files'] as $file) {
+                                    $allFiles[] = $file;
+                                    $fileMap[$fileIndex] = [$groupIdx, $qIdx, 'option', $optIdx];
+                                    $fileIndex++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Process all files at once
+            $processedFiles = !empty($allFiles) ? $this->handler->handleFiles(files: $allFiles) : [];
+
+            // Map processed files back to questions
+            foreach ($fileMap as $idx => $fileInfo) {
+                if (!isset($processedFiles[$idx])) {
+                    continue;
+                }
+
+                $groupIdx = $fileInfo[0];
+                $qIdx = $fileInfo[1];
+                $type = $fileInfo[2];
+                $optIdx = $fileInfo[3] ?? null;
+
+                if ($type === 'question') {
+                    if (!isset($questionsData[$groupIdx]['questions'][$qIdx]['processed_question_files'])) {
+                        $questionsData[$groupIdx]['questions'][$qIdx]['processed_question_files'] = [];
+                    }
+                    $questionsData[$groupIdx]['questions'][$qIdx]['processed_question_files'][] = $processedFiles[$idx];
+                } else {
+                    if (!isset($questionsData[$groupIdx]['questions'][$qIdx]['options'][$optIdx]['processed_option_files'])) {
+                        $questionsData[$groupIdx]['questions'][$qIdx]['options'][$optIdx]['processed_option_files'] = [];
+                    }
+                    $questionsData[$groupIdx]['questions'][$qIdx]['options'][$optIdx]['processed_option_files'][] = $processedFiles[$idx];
+                }
+            }
+
+            // Prepare batch insert
+            foreach ($questionsData as $group) {
+                $year = $group['year'];
+                $batchPayloads = [];
+
+                foreach ($group['questions'] as $question) {
+                    $questionFiles = $question['processed_question_files'] ?? [];
+                    $options = $question['options'] ?? [];
+
+                    // Use processed files
+                    foreach ($options as &$option) {
+                        if (isset($option['processed_option_files'])) {
+                            $option['option_files'] = $option['processed_option_files'];
+                            unset($option['processed_option_files']);
+                        }
+                    }
+
+                    $batchPayloads[] = [
                         'title' => $question['question_text'],
                         'content' => $this->json($questionFiles),
                         'topic' => $question['topic'] ?? '',
@@ -95,15 +150,11 @@ class ExamService
                         'course_name' => $settings['course_name'],
                         'year' => $year,
                     ];
-
-                    $newId = $this->quiz->insert($payload);
-
-                    if (!$newId) {
-                        throw new \Exception('Failed to insert question');
-                    }
-
-                    $questionsByYear[$year][] = $newId;
                 }
+
+                // Batch insert for this year
+                $insertedIds = $this->batchInsertQuestions($batchPayloads);
+                $questionsByYear[$year] = $insertedIds;
             }
 
             $examIds = [];
@@ -317,6 +368,34 @@ class ExamService
         ];
 
         $this->auditLog->insert($payload);
+    }
+
+    /**
+     * Batch insert questions for better performance
+     * @param array $payloads
+     * @return array
+     */
+    private function batchInsertQuestions(array $payloads): array
+    {
+        if (empty($payloads)) {
+            return [];
+        }
+
+        $insertedIds = [];
+        $chunkSize = 50; // Insert 50 at a time to avoid memory issues
+        $chunks = array_chunk($payloads, $chunkSize);
+
+        foreach ($chunks as $chunk) {
+            foreach ($chunk as $payload) {
+                $newId = $this->quiz->insert($payload);
+                if (!$newId) {
+                    throw new \Exception('Failed to insert question');
+                }
+                $insertedIds[] = $newId;
+            }
+        }
+
+        return $insertedIds;
     }
 
     private function json(array $data): string
