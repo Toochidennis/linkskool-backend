@@ -36,7 +36,7 @@ class ExportQuestionService
             $spreadsheet = new Spreadsheet();
             $spreadsheet->removeSheetByIndex(0);
 
-            $exams = $this->getExamsByType(5);
+            $exams = $this->getExamsByType(34);
             if (empty($exams)) {
                 throw new Exception('No exam found');
             }
@@ -141,14 +141,14 @@ class ExportQuestionService
                 $sheet->setTitle($sheetTitle);
 
                 // Determine max number of options
-                $maxOptions = $this->getMaxOptions($questions);
+                //  $maxOptions = $this->getMaxOptions($questions);
 
                 // Build and write header
-                $header = $this->buildHeader($maxOptions);
+                $header = $this->buildHeader(6);
                 $sheet->fromArray($header, null, 'A1');
 
                 // Write data rows efficiently
-                $this->writeDataRows($sheet, $questions, $maxOptions);
+                $this->writeDataRows($sheet, $questions, 6);
 
                 // Free memory after processing each sheet
                 unset($questions);
@@ -216,10 +216,21 @@ class ExportQuestionService
 
     private function buildHeader(int $maxOptions): array
     {
-        $header = ['id', 'course_id', 'course_name', 'question_type', 'question_text'];
+        $header = [
+            'id',
+            'course_id',
+            'course_name',
+            'passage',
+            'question_image',
+            'instruction',
+            'explanation',
+            'question_type',
+            'question_text'
+        ];
 
         for ($i = 1; $i <= $maxOptions; $i++) {
-            $header[] = "option_$i";
+            $header[] = "option_{$i}_text";
+            $header[] = "option_{$i}_image";
         }
 
         $header[] = 'answer';
@@ -238,21 +249,26 @@ class ExportQuestionService
             $options = [];
 
             if ($q['question_type'] === 'multiple_choice' && !empty($q['options'])) {
-                $options = array_map(fn($opt) => $opt['text'] ?? '', $q['options']);
+                $options = $q['options'];
             }
 
             // Sanitize cell values to prevent Excel formula interpretation
             $record = [
                 $this->sanitizeCellValue($q['question_id'] ?? ''),
                 $this->sanitizeCellValue($q['course_id'] ?? ''),
+                '',
+                '',
+                '',
+                '',
                 $this->sanitizeCellValue($q['course_name'] ?? ''),
                 $this->sanitizeCellValue($q['question_type'] ?? ''),
                 $this->sanitizeCellValue($q['title'] ?? ''),
             ];
 
-            // Add options
+            // Add options (both text and image for each option)
             for ($i = 0; $i < $maxOptions; $i++) {
-                $record[] = $this->sanitizeCellValue($options[$i] ?? '');
+                $record[] = $this->sanitizeCellValue($options[$i]['text'] ?? '');
+                $record[] = $this->sanitizeCellValue($options[$i]['image'] ?? '');
             }
 
             $record[] = $this->sanitizeCellValue($q['answer'] ?? '');
@@ -370,6 +386,17 @@ class ExportQuestionService
 
             if (!isset($grouped[$courseName])) {
                 $grouped[$courseName] = [];
+            }
+
+            if ($row['question_type'] === 'multiple_choice') {
+                if (preg_match('/^\^[A-Z]/', $row['answer'] ?? '')) {
+                    $row['answer'] = substr($row['answer'], 1);
+                } elseif (!empty($row['options'])) {
+                    $optionTexts = array_column($row['options'], 'text');
+                    $index = array_search($row['answer'], $optionTexts, true);
+                    // Return 1-based index (or 0-based if you prefer)
+                    $row['answer'] = $index !== false ? ($index + 1) : $row['answer'];
+                }
             }
 
             $grouped[$courseName][] = $row;
