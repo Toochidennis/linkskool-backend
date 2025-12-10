@@ -13,9 +13,16 @@ class DatabaseConnector
         $dbName = empty($dbname) ? getenv('DB_NAME') : $dbname;
         $dbUser = getenv('DB_USER');
         $dbPass = getenv('DB_PASS');
+        $dbCollation = getenv('COLLATION');
+        $dbCharset = getenv('CHARSET');
 
-        $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
-        return $pdo;
+        $dsn = "mysql:host={$dbHost};dbname={$dbName};charset={$dbCharset}";
+        $options = [
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$dbCharset} COLLATE {$dbCollation}",
+        ];
+
+        return new PDO($dsn, $dbUser, $dbPass, $options);
     }
 }
