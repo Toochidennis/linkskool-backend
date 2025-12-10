@@ -7465,7 +7465,7 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
-        'exam_ids' => [
+        'details' => [
             'type' => 'text',
             'nullable' => true,
             'default' => null,
@@ -7479,7 +7479,7 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
-        'url' => [
+        'question_ids' => [
             'type' => 'text',
             'nullable' => true,
             'default' => null,
