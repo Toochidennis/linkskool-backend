@@ -5,6 +5,7 @@ namespace V3\App\Services\Explore;
 use DateTime;
 use V3\App\Common\Enums\ChallengeStatus;
 use V3\App\Models\Explore\Challenge;
+use V3\App\Models\Explore\ChallengeParticipants;
 use V3\App\Models\Explore\Exam;
 
 class ChallengeService
@@ -12,6 +13,7 @@ class ChallengeService
     private Challenge $challenge;
     private Exam $exam;
     private QuestionService $questionService;
+    private ChallengeParticipants $challengeParticipants;
 
     private const ADMIN_USER = 'admin';
 
@@ -20,6 +22,7 @@ class ChallengeService
         $this->challenge = new Challenge($pdo);
         $this->exam = new Exam($pdo);
         $this->questionService = new QuestionService($pdo);
+        $this->challengeParticipants = new ChallengeParticipants($pdo);
     }
 
     /**
@@ -52,6 +55,7 @@ class ChallengeService
             'author_name' => $data['author_name'],
             'score' => $data['score'],
             'question_ids' => json_encode($questionIds),
+            'published_at' => $data['status'] === 'published' ? date('Y-m-d H:i:s') : null,
         ];
 
         return $this->challenge->insert($payload);
@@ -84,6 +88,7 @@ class ChallengeService
             'question_ids' => json_encode($questionIds),
             'updated_at' => date('Y-m-d H:i:s'),
             'is_active' => 1,
+            'published_at' => $data['status'] === 'published' ? date('Y-m-d H:i:s') : null,
         ];
 
         return $this->challenge
@@ -96,6 +101,7 @@ class ChallengeService
         $payload = [
             'status' => ChallengeStatus::fromLabel($status)->value,
             'updated_at' => date('Y-m-d H:i:s'),
+            'published_at' => $status === 'published' ? date('Y-m-d H:i:s') : null,
         ];
 
         return $this->challenge
@@ -187,7 +193,8 @@ class ChallengeService
             'recommended' => [],
             'personal' => [],
             'active' => [],
-            'upcoming' => []
+            'upcoming' => [],
+            'completed' => []
         ];
 
         foreach ($challenges as &$challenge) {
@@ -213,9 +220,11 @@ class ChallengeService
             $isOwner = $challenge['author_id'] == $filters['author_id'];
             $isActive = $challenge['is_active'] === 'active';
             $isPublished = $challenge['status'] === 'published';
+            $hasEnded = $end < $now;
+            $userParticipated = !$isOwner && $hasEnded && $this->checkIfUserParticipated($challenge['id'], $filters['author_id']);
 
-            if (!$isOwner && (!$isActive || !$isPublished)) {
-                // Public should not see inactive/unpublished challenges
+            // Skip if not owner AND (not active OR not published) AND user didn't participate
+            if (!$isOwner && (!$isActive || !$isPublished) && !$userParticipated) {
                 continue;
             }
 
@@ -227,10 +236,21 @@ class ChallengeService
                 $grouped['active'][] = $challenge;
             } elseif ($start > $now) {
                 $grouped['upcoming'][] = $challenge;
+            } elseif ($userParticipated) {
+                // Challenge has ended, user is not owner, but they participated
+                $grouped['completed'][] = $challenge;
             }
         }
 
         return $grouped;
+    }
+
+    private function checkIfUserParticipated(int $challengeId, int $userId): bool
+    {
+        return $this->challengeParticipants
+            ->where('challenge_id', $challengeId)
+            ->where('user_id', $userId)
+            ->exists();
     }
 
     /**

@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\LeaderboardService;
 
-#[Group('/public/cbt/leaderboard')]
+#[Group('/public/cbt/challenges/leaderboard')]
 class LeaderboardController extends ExploreBaseController
 {
     private LeaderboardService $leaderboardService;
@@ -15,7 +15,7 @@ class LeaderboardController extends ExploreBaseController
     public function __construct()
     {
         parent::__construct();
-        $leaderboardService = new LeaderboardService($this->pdo);
+        $this->leaderboardService = new LeaderboardService($this->pdo);
     }
 
     #[Route('', 'POST', ['api'])]
@@ -27,14 +27,14 @@ class LeaderboardController extends ExploreBaseController
                 'username' => 'required|string',
                 'user_id' => 'required|integer',
                 'score' => 'required|integer',
-                'rank' => 'required|integer',
                 'challenge_id' => 'required|integer',
-                'correct_answers' => 'required|integer',
-                'total_questions' => 'required|integer',
+                'correct_answers' => 'nullable|integer',
+                'total_questions' => 'nullable|integer',
                 'time_taken' => 'required|integer',
                 'attempts_count' => 'required|integer',
                 'country' => 'nullable|string',
                 'state' => 'nullable|string',
+                'device' => 'nullable|string',
                 'extra_data' => 'nullable|string',
             ]
         );

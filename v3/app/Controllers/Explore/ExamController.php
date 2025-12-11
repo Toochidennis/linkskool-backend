@@ -55,52 +55,66 @@ class ExamController extends ExploreBaseController
         ]);
     }
 
+    #[Route('/questions', 'PUT', ['api', 'auth'])]
     public function updateQuestions(): void
     {
         $data = $this->validate($this->getRequestData(), [
             'settings' => 'required|array|min:1',
+            'settings.exam_id' => 'required|integer|min:1',
             'settings.exam_type_id' => 'required|integer|min:1',
             'settings.course_id' => 'required|integer|min:1',
             'settings.course_name' => 'required|string|max:255',
             'settings.description' => 'nullable|string',
             'settings.user_id' => 'required|integer|min:1',
             'settings.username' => 'required|string|max:255',
+            'settings.year' => 'required|integer',
 
-            'data' => 'required|array|min:1',
+            'questions' => 'required|array|min:1',
+            'questions.*.question_id' => 'sometimes|integer',
+            'questions.*.question_text' => 'required|string|filled',
+            'questions.*.instruction' => 'nullable|string',
+            'questions.*.instruction_id' => 'nullable|integer',
+            'questions.*.passage' => 'nullable|string',
+            'questions.*.passage_id' => 'nullable|integer',
+            'questions.*.topic' => 'nullable|string',
+            'questions.*.topic_id' => 'nullable|integer',
+            'questions.*.explanation' => 'nullable|string',
+            'questions.*.explanation_id' => 'nullable|integer',
+            'questions.*.question_type' => 'required|string|in:short_answer,multiple_choice',
 
-            'data.*.year' => 'required|integer|min:1',
-            'data.*.questions' => 'required|array|min:1',
+            'questions.*.question_files' => 'nullable|array',
+            'questions.*.question_files.*.file_name' => 'required_with:questions.*.question_files.*.file|string|filled',
+            'questions.*.question_files.*.old_file_name' => 'required_with:questions.*.question_files.*.file|string|filled',
+            'questions.*.question_files.*.type' => 'required_with:questions.*.question_files|string|filled',
+            'questions.*.question_files.*.file' => 'nullable|string',
 
-            'data.*.questions.*.question_text' => 'required|string|filled',
-            'data.*.questions.*.instruction' => 'nullable|string',
-            'data.*.questions.*.instruction_id' => 'nullable|integer',
-            'data.*.questions.*.passage' => 'nullable|string',
-            'data.*.questions.*.passage_id' => 'nullable|integer',
-            'data.*.questions.*.topic' => 'nullable|string',
-            'data.*.questions.*.topic_id' => 'nullable|integer',
-            'data.*.questions.*.explanation' => 'nullable|string',
-            'data.*.questions.*.explanation_id' => 'nullable|integer',
-            'data.*.questions.*.question_type' => 'required|string|in:short_answer,multiple_choice',
+            'questions.*.options' => 'required_if:questions.*.question_type,multiple_choice|array',
+            'questions.*.options.*.order' => 'required_with:questions.*.options|integer',
+            'questions.*.options.*.text' => 'nullable|string',
 
-            'data.*.questions.*.question_files' => 'nullable|array',
-            'data.*.questions.*.question_files.*.file_name' => 'required_with:data.*.questions.*.question_files|string|filled',
-            'data.*.questions.*.question_files.*.old_file_name' => 'nullable|string',
-            'data.*.questions.*.question_files.*.type' => 'required_with:data.*.questions.*.question_files|string|filled',
-            'data.*.questions.*.question_files.*.file' => 'required_with:data.*.questions.*.question_files|string|filled',
+            'questions.*.options.*.option_files' => 'nullable|array',
+            'questions.*.options.*.option_files.*.file_name' => 'required_with:questions.*.options.*.option_files.*.file|string|filled',
+            'questions.*.options.*.option_files.*.old_file_name' => 'required_with:questions.*.options.*.option_files.*.file|string|filled',
+            'questions.*.options.*.option_files.*.type' => 'required_with:questions.*.options.*.option_files|string|filled',
+            'questions.*.options.*.option_files.*.file' => 'nullable|string',
 
-            'data.*.questions.*.options' => 'required_if:data.*.questions.*.question_type,multiple_choice|array',
-            'data.*.questions.*.options.*.order' => 'required_with:data.*.questions.*.options|integer',
-            'data.*.questions.*.options.*.text' => 'nullable|string',
+            'questions.*.correct' => 'required|array',
+            'questions.*.correct.order' => 'required|integer',
+            'questions.*.correct.text' => 'required|string|filled',
+        ]);
 
-            'data.*.questions.*.options.*.option_files' => 'nullable|array',
-            'data.*.questions.*.options.*.option_files.*.file_name' => 'required_with:data.*.questions.*.options.*.option_files|string|filled',
-            'data.*.questions.*.options.*.option_files.*.old_file_name' => 'nullable|string',
-            'data.*.questions.*.options.*.option_files.*.type' => 'required_with:data.*.questions.*.options.*.option_files|string|filled',
-            'data.*.questions.*.options.*.option_files.*.file' => 'required_with:data.*.questions.*.options.*.option_files|string|filled',
+        $updated = $this->examService->updateQuestions($data);
 
-            'data.*.questions.*.correct' => 'required|array',
-            'data.*.questions.*.correct.order' => 'required|integer',
-            'data.*.questions.*.correct.text' => 'required|string|filled',
+        if (!$updated) {
+            $this->respondError(
+                'Failed to update exam questions.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Exam questions updated successfully.'
         ]);
     }
 

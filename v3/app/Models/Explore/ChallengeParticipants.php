@@ -1,6 +1,6 @@
 <?php
 
-namespace V3\APP\Models\Explore;
+namespace V3\App\Models\Explore;
 
 use V3\App\Models\BaseModel;
 

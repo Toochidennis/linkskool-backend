@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\ChallengeService;
 
-#[Group('/public/cbt/challenge')]
+#[Group('/public/cbt/challenges')]
 class ChallengeController extends ExploreBaseController
 {
     private ChallengeService $challengeService;
