@@ -37,8 +37,8 @@ class CbtService
     {
         return $this->exam
             ->select([
-                'ANY_VALUE(id) AS id',
-                'ANY_VALUE(course_name) AS course_name',
+                'id',
+                'course_name',
                 'course_id',
                 'exam_type',
                 'year'
@@ -116,9 +116,10 @@ class CbtService
 
             // Add course
             if (!isset($formatted[$examTypeId]['courses'][$courseId])) {
+                $courseName = ucwords(strtolower($row['course_name']));
                 $formatted[$examTypeId]['courses'][$courseId] = [
                     'course_id' => $courseId,
-                    'course_name' => $row['course_name'],
+                    'course_name' => $courseName,
                     'years' => []
                 ];
             }

@@ -3,10 +3,10 @@
 namespace V3\App\Services\Explore;
 
 use DateTime;
-use V3\App\Common\Enums\ChallengeStatus;
-use V3\App\Models\Explore\Challenge;
-use V3\App\Models\Explore\ChallengeParticipants;
 use V3\App\Models\Explore\Exam;
+use V3\App\Models\Explore\Challenge;
+use V3\App\Common\Enums\ChallengeStatus;
+use V3\App\Models\Explore\ChallengeParticipants;
 
 class ChallengeService
 {
@@ -223,7 +223,6 @@ class ChallengeService
             $hasEnded = $end < $now;
             $userParticipated = !$isOwner && $hasEnded && $this->checkIfUserParticipated($challenge['id'], $filters['author_id']);
 
-            die(var_export([$isOwner, $isActive, $isPublished, $userParticipated], true));
             // Skip if not owner AND (not active OR not published) AND user didn't participate
             if (!$isOwner && (!$isActive || !$isPublished) && !$userParticipated) {
                 continue;
