@@ -97,5 +97,6 @@ class Tables
         'challenge',
         'leaderboard',
         'challenge_participants',
+        'cbt_leaderboard',
     ];
 }

@@ -6,7 +6,7 @@ use V3\App\Models\BaseModel;
 
 class Leaderboard extends BaseModel
 {
-    protected $table = 'leaderboard';
+    protected $table = 'cbt_leaderboard';
 
     public function __construct(\PDO $pdo)
     {

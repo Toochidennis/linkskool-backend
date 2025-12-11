@@ -7597,7 +7597,7 @@ return [
             'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
-    'leaderboard' => [
+    'cbt_leaderboard' => [
         'id' => [
             'type' => 'int(11) UNSIGNED',
             'nullable' => false,
@@ -7668,35 +7668,21 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
-        'rank' => [
+        'position' => [
             'type' => 'int(11) UNSIGNED',
             'nullable' => true,
             'default' => null,
             'auto_increment' => false,
             'primary' => false
         ],
-        'extra' => [
-            'type' => 'text',
-            'nullable' => true,
-            'default' => null,
-            'auto_increment' => false,
-            'primary' => false,
-        ],
-        'country' => [
+        'location' => [
             'type' => 'varchar(100)',
             'nullable' => true,
             'default' => null,
             'auto_increment' => false,
             'primary' => false,
         ],
-        'state' => [
-            'type' => 'varchar(100)',
-            'nullable' => true,
-            'default' => null,
-            'auto_increment' => false,
-            'primary' => false,
-        ],
-        'device' => [
+        'device_id' => [
             'type' => 'varchar(255)',
             'nullable' => true,
             'default' => null,
@@ -7705,6 +7691,13 @@ return [
         ],
         'platform' => [
             'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
+        'extra' => [
+            'type' => 'text',
             'nullable' => true,
             'default' => null,
             'auto_increment' => false,

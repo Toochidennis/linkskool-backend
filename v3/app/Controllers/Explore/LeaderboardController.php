@@ -31,9 +31,8 @@ class LeaderboardController extends ExploreBaseController
                 'correct_answers' => 'nullable|integer',
                 'total_questions' => 'nullable|integer',
                 'time_taken' => 'required|integer',
-                'country' => 'nullable|string',
-                'state' => 'nullable|string',
-                'device' => 'nullable|string',
+                'location' => 'nullable|string',
+                'device_id' => 'nullable|string',
                 'platform' => 'nullable|string',
                 'extra_data' => 'nullable|string',
             ]
