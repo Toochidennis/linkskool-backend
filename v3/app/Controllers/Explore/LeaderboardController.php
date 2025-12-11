@@ -31,10 +31,10 @@ class LeaderboardController extends ExploreBaseController
                 'correct_answers' => 'nullable|integer',
                 'total_questions' => 'nullable|integer',
                 'time_taken' => 'required|integer',
-                'attempts_count' => 'required|integer',
                 'country' => 'nullable|string',
                 'state' => 'nullable|string',
                 'device' => 'nullable|string',
+                'platform' => 'nullable|string',
                 'extra_data' => 'nullable|string',
             ]
         );
@@ -57,6 +57,7 @@ class LeaderboardController extends ExploreBaseController
         );
     }
 
+    #[Route('/{challenge_id:\d+}', 'GET', ['api'])]
     public function getLeaderboardByChallenge(array $vars): void
     {
         $validatedData = $this->validate(

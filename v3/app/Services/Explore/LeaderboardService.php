@@ -78,7 +78,7 @@ class LeaderboardService
             // Update the rank for this entry
             $this->leaderboard
                 ->where('id', '=', $entry['id'])
-                ->update(['rank' => $currentRank]);
+                ->update(['rank' => $currentRank, 'updated_at' => date('Y-m-d H:i:s')]);
 
             $previousScore = $entry['score'];
             $actualRank++;

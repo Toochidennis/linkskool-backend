@@ -223,6 +223,7 @@ class ChallengeService
             $hasEnded = $end < $now;
             $userParticipated = !$isOwner && $hasEnded && $this->checkIfUserParticipated($challenge['id'], $filters['author_id']);
 
+            die(var_export([$isOwner, $isActive, $isPublished, $userParticipated], true));
             // Skip if not owner AND (not active OR not published) AND user didn't participate
             if (!$isOwner && (!$isActive || !$isPublished) && !$userParticipated) {
                 continue;
