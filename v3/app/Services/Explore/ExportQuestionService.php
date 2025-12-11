@@ -389,7 +389,7 @@ class ExportQuestionService
             }
 
             if ($row['question_type'] === 'multiple_choice') {
-                if (preg_match('/^\^[A-Z]/', $row['answer'] ?? '')) {
+                if (preg_match('/^[A-Z]\d+/', $row['answer'] ?? '')) {
                     $row['answer'] = substr($row['answer'], 1);
                 } elseif (!empty($row['options'])) {
                     $optionTexts = array_column($row['options'], 'text');

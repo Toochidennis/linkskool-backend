@@ -18,7 +18,7 @@ class TopicController extends ExploreBaseController
     }
 
     /**
-     * GET /public/explore/topics/{courseId}
+     * GET /public/cbt/topics/{courseId}
      * Returns all topics for a given course ID.
      */
     #[Route('/{course_id:\d+}', 'GET', ['api'])]

@@ -7597,7 +7597,111 @@ return [
             'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
-
+    'leaderboard' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'challenge_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'user_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'username' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'score' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'correct_answers' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'total_questions' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'time_taken' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'attempts_count' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => 1,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'submitted_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'rank' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'extra' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
+        'country' => [
+            'type' => 'varchar(100)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
+        'state' => [
+            'type' => 'varchar(100)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
     'exam' => [],
     'videosTable' => [],
     'categoryTable' => [],
