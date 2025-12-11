@@ -297,6 +297,158 @@
                 ]
             }
         },
+        "/public/cbt/challenge": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreChallenge",
+                "description": "storeChallenge",
+                "operationId": "V3\\App\\Controllers\\Explore\\ChallengeController::storeChallenge",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetChallenges",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ChallengeController::getChallenges",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/challenge/{challenge_id:\\d+}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateChallenge",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ChallengeController::updateChallenge",
+                "parameters": [
+                    {
+                        "name": "challenge_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'challenge_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteChallenge",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ChallengeController::deleteChallenge",
+                "parameters": [
+                    {
+                        "name": "challenge_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'challenge_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/challenge/status/{challenge_id:\\d+}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateChallengeStatus",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ChallengeController::updateChallengeStatus",
+                "parameters": [
+                    {
+                        "name": "challenge_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'challenge_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/challenge/questions": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetChallengeQuestions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ChallengeController::getChallengeQuestions",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
         "/public/dashboard": {
             "get": {
                 "tags": [
@@ -492,6 +644,9 @@
                 "security": [
                     {
                         "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
                     }
                 ]
             }
@@ -774,6 +929,27 @@
                 ]
             }
         },
+        "/public/cbt/leaderboard": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreLeaderboardData",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\LeaderboardController::storeLeaderboardData",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
         "/public/movies/all": {
             "get": {
                 "tags": [
@@ -920,6 +1096,27 @@
                 ]
             }
         },
+        "/public/cbt/settings": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetSettings",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\SettingsController::getSettings",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
         "/public/key-buddy/content": {
             "get": {
                 "tags": [
@@ -937,6 +1134,37 @@
                 "security": [
                     {
                         "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/topics/{course_id:\\d+}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GET /public/cbt/topics/{courseId}\n     * Returns all topics for a given course ID.\n     */",
+                "description": "GET /public/cbt/topics/{courseId}\nReturns all topics for a given course ID.",
+                "operationId": "V3\\App\\Controllers\\Explore\\TopicController::getTopicsByCourseId",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
                     }
                 ]
             }
