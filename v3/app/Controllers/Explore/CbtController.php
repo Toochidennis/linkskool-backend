@@ -55,8 +55,8 @@ class CbtController extends ExploreBaseController
     {
         $validate = $this->validate($vars, [
             'exam_id' => 'required|integer|min:1',
-            'limit' => 'sometimes|integer|min:1|max:100',
-            'offset' => 'sometimes|integer|min:0'
+            'limit' => 'nullable|integer|min:1|max:100',
+            'offset' => 'nullable|integer|min:0'
         ]);
 
         $this->respond([
