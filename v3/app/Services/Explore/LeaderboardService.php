@@ -2,15 +2,18 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Models\Explore\ChallengeParticipants;
 use V3\App\Models\Explore\Leaderboard;
 
 class LeaderboardService
 {
     private Leaderboard $leaderboard;
+    private ChallengeParticipants $challengeParticipants;
 
     public function __construct(\PDO $pdo)
     {
         $this->leaderboard = new Leaderboard($pdo);
+        $this->challengeParticipants = new ChallengeParticipants($pdo);
     }
 
     public function storeLeaderboardData(array $data): int
@@ -37,6 +40,14 @@ class LeaderboardService
         } else {
             // New user for this competition, insert new record
             $result = $this->leaderboard->insert($data);
+
+            if ($result) {
+                $this->storeParticipantData([
+                    'user_id' => $data['user_id'],
+                    'username' => $data['username'],
+                    'challenge_id' => $data['challenge_id'],
+                ]);
+            }
         }
 
         // Recalculate ranks for this challenge
@@ -72,6 +83,11 @@ class LeaderboardService
             $previousScore = $entry['score'];
             $actualRank++;
         }
+    }
+
+    private function storeParticipantData(array $data): void
+    {
+        $this->challengeParticipants->insert($data);
     }
 
     public function getLeaderboardByChallenge(int $challengeId): array

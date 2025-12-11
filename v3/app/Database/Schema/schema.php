@@ -7696,6 +7696,27 @@ return [
             'auto_increment' => false,
             'primary' => false,
         ],
+        'device' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
+        'created_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'updated_at' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         '__meta' => [
             'engine' => 'InnoDB',
             'charset' => 'utf8mb4',

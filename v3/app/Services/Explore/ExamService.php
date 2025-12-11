@@ -217,6 +217,97 @@ class ExamService
         return $this->exam->insert($payload);
     }
 
+    public function updateQuestions(array $data): bool
+    {
+        $settings = $data['settings'];
+        $questionsData = $data['questions'];
+        $questionIds = [];
+
+        try {
+            $this->pdo->beginTransaction();
+
+            foreach ($questionsData as $question) {
+                $questionId = $question['question_id'];
+
+                // Handle files
+                $processedQuestionFiles = $this->handler->handleFiles(
+                    files: $question['question_files'] ?? [],
+                    isUpdate: true
+                );
+
+                $options = $question['options'] ?? [];
+                foreach ($options as &$option) {
+                    $option['option_files'] = $this->handler->handleFiles(
+                        files: $option['option_files'] ?? [],
+                        isUpdate: true
+                    );
+                }
+
+                $payload = [
+                    'title' => $question['question_text'],
+                    'content' => $this->json($processedQuestionFiles),
+                    'topic' => $question['topic'] ?? '',
+                    'topic_id' => $question['topic_id'] ?? null,
+                    'passage' => $question['passage'] ?? '',
+                    'passage_id' => $question['passage_id'] ?? null,
+                    'instruction' => $question['instruction'] ?? '',
+                    'instruction_id' => $question['instruction_id'] ?? null,
+                    'explanation' => $question['explanation'] ?? '',
+                    'explanation_id' => $question['explanation_id'] ?? null,
+                    'type' => $question['question_type'] === 'multiple_choice' ? 'qo' : 'qs',
+                    'answer' => $this->json($options),
+                    'correct' => $this->json($question['correct']),
+                    'course_id' => $settings['course_id'],
+                    'course_name' => $settings['course_name'],
+                    'year' => $settings['year'],
+                ];
+
+                if (!isset($questionId) || $questionId == 0) {
+                    // Insert new question
+                    $questionIds[] = $this->quiz->insert($payload);
+                    continue;
+                }
+                // Update question
+                $this->quiz
+                    ->where('question_id', '=', $questionId)
+                    ->update($payload);
+            }
+
+            // Update exam with new question IDs
+            $res = $this->updateExam($settings, $questionIds, $settings['exam_id']);
+
+            $this->pdo->commit();
+            return $res;
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    private function updateExam(array $settings, array $questionIds, int $examId): bool
+    {
+        $result = $this->exam
+            ->select(['url'])
+            ->where('id', '=', $examId)
+            ->first();
+
+        $existingQuestionIds = $this->decode($result['url']);
+        $allQuestionIds = array_unique(array_merge($existingQuestionIds, $questionIds));
+
+        $payload = [
+            'exam_type' => $settings['exam_type_id'],
+            'course_id' => $settings['course_id'],
+            'course_name' => $settings['course_name'],
+            'description' => $settings['description'] ?? '',
+            'url' => $this->json($allQuestionIds),
+            'update_date' => date('Y-m-d H:i:s'),
+        ];
+
+        return $this->exam
+            ->where('id', '=', $examId)
+            ->update($payload);
+    }
+
     /**
      * Summary of getExams
      * @param array $filters
@@ -281,7 +372,9 @@ class ExamService
     private function deleteQuizContent(array $questionIds): void
     {
         foreach ($questionIds as $questionId) {
-            $question = $this->quiz->where('question_id', '=', $questionId)->first();
+            $question = $this->quiz
+                ->where('question_id', '=', $questionId)
+                ->first();
 
             if (empty($question)) {
                 continue;
@@ -382,7 +475,7 @@ class ExamService
         }
 
         $insertedIds = [];
-        $chunkSize = 50; // Insert 50 at a time to avoid memory issues
+        $chunkSize = 50; // Insert 50 at a time
         $chunks = array_chunk($payloads, $chunkSize);
 
         foreach ($chunks as $chunk) {
