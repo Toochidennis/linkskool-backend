@@ -14,11 +14,12 @@ class RouteDispatcher
     public static function handle(): void
     {
         $response = ['success' => false];
+        $isCacheEnabled = getenv('ROUTE_CACHE_ENABLED') === 'true';
 
         $collector =  new CustomRouteCollector(new RouteParser(), new DataGen());
         $auto = new AutoRouteRegistrar($collector);
-        $auto->registerControllers('V3\App\Controllers\Portal', '/portal', true);
-        $auto->registerControllers('V3\App\Controllers\Explore', '/public', true);
+        $auto->registerControllers('V3\App\Controllers\Portal', '/portal', $isCacheEnabled);
+        $auto->registerControllers('V3\App\Controllers\Explore', '/public', $isCacheEnabled);
         //$auto->registerControllers('V3\App\Controllers\Learning', '/learning');
 
         $dispatcher = new GroupCountBasedDispatcher($collector->getData());
