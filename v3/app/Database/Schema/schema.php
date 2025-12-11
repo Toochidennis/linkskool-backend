@@ -7703,6 +7703,13 @@ return [
             'auto_increment' => false,
             'primary' => false,
         ],
+        'platform' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
         'created_at' => [
             'type' => 'datetime',
             'nullable' => false,
