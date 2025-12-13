@@ -53,8 +53,18 @@ class QuestionService
                 'type as question_type',
                 'answer as options',
                 'correct',
+                'year'
             ])
             ->in('question_id', $questionIds);
+
+        if (!empty($options['pagination'])) {
+            $questions = $query->paginate($options['page'], $options['limit']);
+
+            return [
+                'data' => array_map($this->formatQuestion(...), $questions['data']),
+                'meta' => $questions['meta']
+            ];
+        }
 
         // Apply pagination if specified
         if (isset($options['limit'])) {
