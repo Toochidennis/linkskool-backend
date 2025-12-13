@@ -54,112 +54,114 @@ class ExamService
 
         $questionsData = $formattedData['data'];
         $settings = $data['settings'];
-        $questionsByYear = [];
 
-        try {
-            $this->pdo->beginTransaction();
+        // Collect files first, outside the DB transaction
+        $allFiles = [];
+        $fileMap = [];
+        $fileIndex = 0;
 
-            // Collect all files first for batch processing
-            $allFiles = [];
-            $fileMap = [];
-            $fileIndex = 0;
-
-            foreach ($questionsData as $groupIdx => $group) {
-                foreach ($group['questions'] as $qIdx => $question) {
-                    if (!empty($question['question_files'])) {
-                        foreach ($question['question_files'] as $file) {
-                            $allFiles[] = $file;
-                            $fileMap[$fileIndex] = [$groupIdx, $qIdx, 'question'];
-                            $fileIndex++;
-                        }
+        foreach ($questionsData as $groupIdx => $group) {
+            foreach ($group['questions'] as $qIdx => $question) {
+                if (!empty($question['question_files'])) {
+                    foreach ($question['question_files'] as $file) {
+                        $allFiles[] = $file;
+                        $fileMap[$fileIndex] = [$groupIdx, $qIdx, 'question'];
+                        $fileIndex++;
                     }
+                }
 
-                    if (!empty($question['options'])) {
-                        foreach ($question['options'] as $optIdx => $option) {
-                            if (!empty($option['option_files'])) {
-                                foreach ($option['option_files'] as $file) {
-                                    $allFiles[] = $file;
-                                    $fileMap[$fileIndex] = [$groupIdx, $qIdx, 'option', $optIdx];
-                                    $fileIndex++;
-                                }
+                if (!empty($question['options'])) {
+                    foreach ($question['options'] as $optIdx => $option) {
+                        if (!empty($option['option_files'])) {
+                            foreach ($option['option_files'] as $file) {
+                                $allFiles[] = $file;
+                                $fileMap[$fileIndex] = [$groupIdx, $qIdx, 'option', $optIdx];
+                                $fileIndex++;
                             }
                         }
                     }
                 }
             }
+        }
 
-            // Process all files at once
-            $processedFiles = !empty($allFiles) ? $this->handler->handleFiles(files: $allFiles) : [];
+        $processedFiles = !empty($allFiles) ? $this->handler->handleFiles(files: $allFiles) : [];
 
-            // Map processed files back to questions
-            foreach ($fileMap as $idx => $fileInfo) {
-                if (!isset($processedFiles[$idx])) {
-                    continue;
-                }
-
-                $groupIdx = $fileInfo[0];
-                $qIdx = $fileInfo[1];
-                $type = $fileInfo[2];
-                $optIdx = $fileInfo[3] ?? null;
-
-                if ($type === 'question') {
-                    if (!isset($questionsData[$groupIdx]['questions'][$qIdx]['processed_question_files'])) {
-                        $questionsData[$groupIdx]['questions'][$qIdx]['processed_question_files'] = [];
-                    }
-                    $questionsData[$groupIdx]['questions'][$qIdx]['processed_question_files'][] = $processedFiles[$idx];
-                } else {
-                    if (!isset($questionsData[$groupIdx]['questions'][$qIdx]['options'][$optIdx]['processed_option_files'])) {
-                        $questionsData[$groupIdx]['questions'][$qIdx]['options'][$optIdx]['processed_option_files'] = [];
-                    }
-                    $questionsData[$groupIdx]['questions'][$qIdx]['options'][$optIdx]['processed_option_files'][] = $processedFiles[$idx];
-                }
+        // Map processed files back to questions
+        foreach ($fileMap as $idx => $fileInfo) {
+            if (!isset($processedFiles[$idx])) {
+                continue;
             }
 
-            // Prepare batch insert
-            foreach ($questionsData as $group) {
-                $year = $group['year'];
-                $batchPayloads = [];
+            $groupIdx = $fileInfo[0];
+            $qIdx = $fileInfo[1];
+            $type = $fileInfo[2];
+            $optIdx = $fileInfo[3] ?? null;
 
-                foreach ($group['questions'] as $question) {
-                    $questionFiles = $question['processed_question_files'] ?? [];
-                    $options = $question['options'] ?? [];
-
-                    // Use processed files
-                    foreach ($options as &$option) {
-                        if (isset($option['processed_option_files'])) {
-                            $option['option_files'] = $option['processed_option_files'];
-                            unset($option['processed_option_files']);
-                        }
-                    }
-
-                    $batchPayloads[] = [
-                        'title' => $question['question_text'],
-                        'content' => $this->json($questionFiles),
-                        'topic' => $question['topic'] ?? '',
-                        'topic_id' => $question['topic_id'] ?? null,
-                        'passage' => $question['passage'] ?? '',
-                        'passage_id' => $question['passage_id'] ?? null,
-                        'instruction' => $question['instruction'] ?? '',
-                        'instruction_id' => $question['instruction_id'] ?? null,
-                        'explanation' => $question['explanation'] ?? '',
-                        'explanation_id' => $question['explanation_id'] ?? null,
-                        'type' => $question['question_type'] === 'multiple_choice' ? 'qo' : 'qs',
-                        'answer' => $this->json($options),
-                        'correct' => $this->json($question['correct']),
-                        'course_id' => $settings['course_id'],
-                        'course_name' => $settings['course_name'],
-                        'year' => $year,
-                    ];
+            if ($type === 'question') {
+                if (!isset($questionsData[$groupIdx]['questions'][$qIdx]['processed_question_files'])) {
+                    $questionsData[$groupIdx]['questions'][$qIdx]['processed_question_files'] = [];
                 }
+                $questionsData[$groupIdx]['questions'][$qIdx]['processed_question_files'][] = $processedFiles[$idx];
+            } else {
+                if (!isset($questionsData[$groupIdx]['questions'][$qIdx]['options'][$optIdx]['processed_option_files'])) {
+                    $questionsData[$groupIdx]['questions'][$qIdx]['options'][$optIdx]['processed_option_files'] = [];
+                }
+                $questionsData[$groupIdx]['questions'][$qIdx]['options'][$optIdx]['processed_option_files'][] = $processedFiles[$idx];
+            }
+        }
 
-                // Batch insert for this year
+        // Prepare all payloads ahead of the transaction
+        $batchPayloadsByYear = [];
+        foreach ($questionsData as $group) {
+            $year = $group['year'];
+            $batchPayloads = [];
+
+            foreach ($group['questions'] as $question) {
+                $questionFiles = $question['processed_question_files'] ?? [];
+                $options = $question['options'] ?? [];
+
+                foreach ($options as &$option) {
+                    if (isset($option['processed_option_files'])) {
+                        $option['option_files'] = $option['processed_option_files'];
+                        unset($option['processed_option_files']);
+                    }
+                }
+                unset($option);
+
+                $batchPayloads[] = [
+                    'title' => $question['question_text'],
+                    'content' => $this->json($questionFiles),
+                    'topic' => $question['topic'] ?? '',
+                    'topic_id' => $question['topic_id'] ?? null,
+                    'passage' => $question['passage'] ?? '',
+                    'passage_id' => $question['passage_id'] ?? null,
+                    'instruction' => $question['instruction'] ?? '',
+                    'instruction_id' => $question['instruction_id'] ?? null,
+                    'explanation' => $question['explanation'] ?? '',
+                    'explanation_id' => $question['explanation_id'] ?? null,
+                    'type' => $question['question_type'] === 'multiple_choice' ? 'qo' : 'qs',
+                    'answer' => $this->json($options),
+                    'correct' => $this->json($question['correct']),
+                    'course_id' => $settings['course_id'],
+                    'course_name' => $settings['course_name'],
+                    'year' => $year,
+                ];
+            }
+
+            $batchPayloadsByYear[$year] = $batchPayloads;
+        }
+
+        $questionsByYear = [];
+        $examIds = [];
+
+        try {
+            $this->pdo->beginTransaction();
+
+            foreach ($batchPayloadsByYear as $year => $batchPayloads) {
                 $insertedIds = $this->batchInsertQuestions($batchPayloads);
                 $questionsByYear[$year] = $insertedIds;
-            }
+                $examIds[$year] = $this->createExam($settings, $insertedIds, $year);
 
-            $examIds = [];
-            foreach ($questionsByYear as $year => $questionIds) {
-                $examIds[$year] = $this->createExam($settings, $questionIds, $year);
                 $this->logAction(
                     'File Upload',
                     $settings['user_id'],
@@ -221,60 +223,73 @@ class ExamService
     {
         $settings = $data['settings'];
         $questionsData = $data['questions'];
-        $questionIds = [];
+        $preparedQuestions = [];
+        $newQuestionIds = [];
 
+        // Process files and build payloads before touching the DB
+        foreach ($questionsData as $question) {
+            $processedQuestionFiles = $this->handler->handleFiles(
+                files: $question['question_files'] ?? [],
+                isUpdate: true
+            );
+
+            $options = $question['options'] ?? [];
+            foreach ($options as &$option) {
+                $option['option_files'] = $this->handler->handleFiles(
+                    files: $option['option_files'] ?? [],
+                    isUpdate: true
+                );
+            }
+            unset($option);
+
+            $payload = [
+                'title' => $question['question_text'],
+                'content' => $this->json($processedQuestionFiles),
+                'topic' => $question['topic'] ?? '',
+                'topic_id' => $question['topic_id'] ?? null,
+                'passage' => $question['passage'] ?? '',
+                'passage_id' => $question['passage_id'] ?? null,
+                'instruction' => $question['instruction'] ?? '',
+                'instruction_id' => $question['instruction_id'] ?? null,
+                'explanation' => $question['explanation'] ?? '',
+                'explanation_id' => $question['explanation_id'] ?? null,
+                'type' => $question['question_type'] === 'multiple_choice' ? 'qo' : 'qs',
+                'answer' => $this->json($options),
+                'correct' => $this->json($question['correct']),
+                'course_id' => $settings['course_id'],
+                'course_name' => $settings['course_name'],
+                'year' => $settings['year'],
+            ];
+
+            $preparedQuestions[] = [
+                'question_id' => $question['question_id'] ?? 0,
+                'payload' => $payload,
+            ];
+        }
+
+        // Perform only DB writes inside the transaction
         try {
             $this->pdo->beginTransaction();
 
-            foreach ($questionsData as $question) {
-                $questionId = $question['question_id'];
+            foreach ($preparedQuestions as $item) {
+                $questionId = $item['question_id'];
+                $payload = $item['payload'];
 
-                // Handle files
-                $processedQuestionFiles = $this->handler->handleFiles(
-                    files: $question['question_files'] ?? [],
-                    isUpdate: true
-                );
-
-                $options = $question['options'] ?? [];
-                foreach ($options as &$option) {
-                    $option['option_files'] = $this->handler->handleFiles(
-                        files: $option['option_files'] ?? [],
-                        isUpdate: true
-                    );
-                }
-
-                $payload = [
-                    'title' => $question['question_text'],
-                    'content' => $this->json($processedQuestionFiles),
-                    'topic' => $question['topic'] ?? '',
-                    'topic_id' => $question['topic_id'] ?? null,
-                    'passage' => $question['passage'] ?? '',
-                    'passage_id' => $question['passage_id'] ?? null,
-                    'instruction' => $question['instruction'] ?? '',
-                    'instruction_id' => $question['instruction_id'] ?? null,
-                    'explanation' => $question['explanation'] ?? '',
-                    'explanation_id' => $question['explanation_id'] ?? null,
-                    'type' => $question['question_type'] === 'multiple_choice' ? 'qo' : 'qs',
-                    'answer' => $this->json($options),
-                    'correct' => $this->json($question['correct']),
-                    'course_id' => $settings['course_id'],
-                    'course_name' => $settings['course_name'],
-                    'year' => $settings['year'],
-                ];
-
-                if (!isset($questionId) || $questionId == 0) {
-                    // Insert new question
-                    $questionIds[] = $this->quiz->insert($payload);
+                if (empty($questionId)) {
+                    $newId = $this->quiz->insert($payload);
+                    if (!$newId) {
+                        throw new \RuntimeException('Failed to insert question');
+                    }
+                    $newQuestionIds[] = $newId;
                     continue;
                 }
-                // Update question
+
                 $this->quiz
                     ->where('question_id', '=', $questionId)
                     ->update($payload);
             }
 
-            // Update exam with new question IDs
-            $res = $this->updateExam($settings, $questionIds, $settings['exam_id']);
+            $res = $this->updateExam($settings, $newQuestionIds, $settings['exam_id']);
 
             $this->pdo->commit();
             return $res;
@@ -300,7 +315,7 @@ class ExamService
             'course_name' => $settings['course_name'],
             'description' => $settings['description'] ?? '',
             'url' => $this->json($allQuestionIds),
-            'update_date' => date('Y-m-d H:i:s'),
+            'upload_date' => date('Y-m-d H:i:s'),
         ];
 
         return $this->exam
@@ -420,11 +435,11 @@ class ExamService
      * @param int $examId
      * @return array
      */
-    public function getQuestions(int $examId): array
+    public function getQuestions(array $filters): array
     {
         $exam = $this->exam
             ->select(['url'])
-            ->where('id', '=', $examId)
+            ->where('id', '=', $filters['exam_id'])
             ->first();
 
         if (!$exam) {

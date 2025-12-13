@@ -132,14 +132,16 @@ class ExamController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/exams/questions', 'GET', ['api', 'auth'])]
+    #[Route('/exams/{exam_id:\d+}/questions', 'GET', ['api', 'auth'])]
     public function getQuestions(array $vars): void
     {
         $data = $this->validate($vars, [
             'exam_id' => 'required|integer|min:1',
+            'limit' => 'nullable|integer|min:1|max:100',
+            'page' => 'nullable|integer|min:0'
         ]);
 
-        $questions = $this->examService->getQuestions($data['exam_id']);
+        $questions = $this->examService->getQuestions($data);
 
         $this->respond([
             'success' => true,

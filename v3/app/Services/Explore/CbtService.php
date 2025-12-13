@@ -37,8 +37,8 @@ class CbtService
     {
         return $this->exam
             ->select([
-                'id',
-                'course_name',
+                'ANY_VALUE(id) AS id',
+                'ANY_VALUE(course_name) AS course_name',
                 'course_id',
                 'exam_type',
                 'year'
@@ -178,7 +178,7 @@ class CbtService
         }
 
         // Extract question IDs from url
-        $questionIds = json_decode($exam['url'], true, 512, JSON_THROW_ON_ERROR);
+        $questionIds = json_decode($exam['url'], true);
 
         if (empty($questionIds)) {
             return [
@@ -211,7 +211,7 @@ class CbtService
                 'title' => $exam['title'],
                 'description' => $exam['description'],
                 'course_id' => $exam['course_id'],
-                'course_name' => $exam['course_name'],
+                'course_name' => ucwords(strtolower($exam['course_name'])),
                 'body' => $this->json($exam['body'] ?? null),
             ],
             'questions' => $grouped
