@@ -112,11 +112,13 @@ class ExamService
 
         // Prepare all payloads ahead of the transaction
         $batchPayloadsByYear = [];
-        foreach ($questionsData as $group) {
+        $encodingErrors = [];
+
+        foreach ($questionsData as $groupIdx => $group) {
             $year = $group['year'];
             $batchPayloads = [];
 
-            foreach ($group['questions'] as $question) {
+            foreach ($group['questions'] as $qIdx => $question) {
                 $questionFiles = $question['processed_question_files'] ?? [];
                 $options = $question['options'] ?? [];
 
@@ -128,27 +130,48 @@ class ExamService
                 }
                 unset($option);
 
-                $batchPayloads[] = [
-                    'title' => $question['question_text'],
-                    'content' => $this->json($questionFiles),
-                    'topic' => $question['topic'] ?? '',
-                    'topic_id' => $question['topic_id'] ?? null,
-                    'passage' => $question['passage'] ?? '',
-                    'passage_id' => $question['passage_id'] ?? null,
-                    'instruction' => $question['instruction'] ?? '',
-                    'instruction_id' => $question['instruction_id'] ?? null,
-                    'explanation' => $question['explanation'] ?? '',
-                    'explanation_id' => $question['explanation_id'] ?? null,
-                    'type' => $question['question_type'] === 'multiple_choice' ? 'qo' : 'qs',
-                    'answer' => $this->json($options),
-                    'correct' => $this->json($question['correct']),
-                    'course_id' => $settings['course_id'],
-                    'course_name' => $settings['course_name'],
-                    'year' => $year,
-                ];
+                try {
+                    $contentJson = $this->json($questionFiles);
+                    $answerJson = $this->json($options);
+                    $correctJson = $this->json($question['correct']);
+
+                    $batchPayloads[] = [
+                        'title' => $question['question_text'],
+                        'content' => $contentJson,
+                        'topic' => $question['topic'] ?? '',
+                        'topic_id' => $question['topic_id'] ?? null,
+                        'passage' => $question['passage'] ?? '',
+                        'passage_id' => $question['passage_id'] ?? null,
+                        'instruction' => $question['instruction'] ?? '',
+                        'instruction_id' => $question['instruction_id'] ?? null,
+                        'explanation' => $question['explanation'] ?? '',
+                        'explanation_id' => $question['explanation_id'] ?? null,
+                        'type' => $question['question_type'] === 'multiple_choice' ? 'qo' : 'qs',
+                        'answer' => $answerJson,
+                        'correct' => $correctJson,
+                        'course_id' => $settings['course_id'],
+                        'course_name' => $settings['course_name'],
+                        'year' => $year,
+                    ];
+                } catch (\Exception $e) {
+                    $encodingErrors[] = [
+                        'year' => $year,
+                        'questionIndex' => $qIdx,
+                        'questionText' => substr($question['question_text'] ?? 'N/A', 0, 100),
+                        'error' => $e->getMessage(),
+                    ];
+                }
             }
 
             $batchPayloadsByYear[$year] = $batchPayloads;
+        }
+
+        // If there are encoding errors, return them before attempting any DB operations
+        if (!empty($encodingErrors)) {
+            return [
+                'status' => false,
+                'errors' => $encodingErrors
+            ];
         }
 
         $questionsByYear = [];
@@ -225,9 +248,10 @@ class ExamService
         $questionsData = $data['questions'];
         $preparedQuestions = [];
         $newQuestionIds = [];
+        $encodingErrors = [];
 
-        // Process files and build payloads before touching the DB
-        foreach ($questionsData as $question) {
+        // Process files and validate encoding before touching the DB
+        foreach ($questionsData as $idx => $question) {
             $processedQuestionFiles = $this->handler->handleFiles(
                 files: $question['question_files'] ?? [],
                 isUpdate: true
@@ -242,29 +266,48 @@ class ExamService
             }
             unset($option);
 
-            $payload = [
-                'title' => $question['question_text'],
-                'content' => $this->json($processedQuestionFiles),
-                'topic' => $question['topic'] ?? '',
-                'topic_id' => $question['topic_id'] ?? null,
-                'passage' => $question['passage'] ?? '',
-                'passage_id' => $question['passage_id'] ?? null,
-                'instruction' => $question['instruction'] ?? '',
-                'instruction_id' => $question['instruction_id'] ?? null,
-                'explanation' => $question['explanation'] ?? '',
-                'explanation_id' => $question['explanation_id'] ?? null,
-                'type' => $question['question_type'] === 'multiple_choice' ? 'qo' : 'qs',
-                'answer' => $this->json($options),
-                'correct' => $this->json($question['correct']),
-                'course_id' => $settings['course_id'],
-                'course_name' => $settings['course_name'],
-                'year' => $settings['year'],
-            ];
+            try {
+                $contentJson = $this->json($processedQuestionFiles);
+                $answerJson = $this->json($options);
+                $correctJson = $this->json($question['correct']);
 
-            $preparedQuestions[] = [
-                'question_id' => $question['question_id'] ?? 0,
-                'payload' => $payload,
-            ];
+                $payload = [
+                    'title' => $question['question_text'],
+                    'content' => $contentJson,
+                    'topic' => $question['topic'] ?? '',
+                    'topic_id' => $question['topic_id'] ?? null,
+                    'passage' => $question['passage'] ?? '',
+                    'passage_id' => $question['passage_id'] ?? null,
+                    'instruction' => $question['instruction'] ?? '',
+                    'instruction_id' => $question['instruction_id'] ?? null,
+                    'explanation' => $question['explanation'] ?? '',
+                    'explanation_id' => $question['explanation_id'] ?? null,
+                    'type' => $question['question_type'] === 'multiple_choice' ? 'qo' : 'qs',
+                    'answer' => $answerJson,
+                    'correct' => $correctJson,
+                    'course_id' => $settings['course_id'],
+                    'course_name' => $settings['course_name'],
+                    'year' => $settings['year'],
+                ];
+
+                $preparedQuestions[] = [
+                    'question_id' => $question['question_id'] ?? 0,
+                    'payload' => $payload,
+                ];
+            } catch (\RuntimeException $e) {
+                $encodingErrors[] = [
+                    'question_index' => $idx,
+                    'question_text' => substr($question['question_text'] ?? 'N/A', 0, 100),
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        // If there are encoding errors, return them before attempting any DB operations
+        if (!empty($encodingErrors)) {
+            throw new \RuntimeException(
+                'Encoding errors detected in questions: ' . json_encode($encodingErrors)
+            );
         }
 
         // Perform only DB writes inside the transaction

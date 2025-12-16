@@ -316,7 +316,32 @@ class QuestionImportParser
 
     private static function parseCsvContent(string $filePath): array
     {
-        $rows = array_map('str_getcsv', file($filePath));
+        // Read and handle encoding
+        $content = file_get_contents($filePath);
+        if ($content === false) {
+            throw new \Exception("Failed to read CSV file: $filePath");
+        }
+
+        // Remove BOM if present
+        $bom = pack('H*', 'EFBBBF');
+        $content = preg_replace("/^$bom/", '', $content);
+
+        // Detect and convert encoding to UTF-8
+        $encoding = mb_detect_encoding($content, ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'ASCII'], true);
+        if ($encoding && $encoding !== 'UTF-8') {
+            $content = mb_convert_encoding($content, 'UTF-8', $encoding);
+        }
+
+        // Use a temporary stream to properly parse CSV with quoted fields
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, $content);
+        rewind($stream);
+
+        $rows = [];
+        while (($row = fgetcsv($stream)) !== false) {
+            $rows[] = $row;
+        }
+        fclose($stream);
 
         if (empty($rows)) {
             return [];
@@ -336,7 +361,7 @@ class QuestionImportParser
             $rowData = [];
             foreach ($headers as $index => $header) {
                 $key = trim($header);
-                $value = $row[$index] ?? '';
+                $value = isset($row[$index]) ? trim($row[$index]) : '';
                 $rowData[$key] = $value;
             }
 

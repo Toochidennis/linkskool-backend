@@ -15,27 +15,26 @@
 namespace V3\App\Database\Query;
 
 use Closure;
-use V3\App\Database\Schema\SchemaSynchronizer;
 
 class JoinBuilder
 {
     public array $conditions = [];
     public array $bindings = [];
 
-    public function __construct(private SchemaSynchronizer $schemaSynchronizer)
+    public function __construct()
     {
     }
 
     public function on(string|Closure $left, ?string $operator = null, $right = null): self
     {
         if ($left instanceof Closure) {
-            $group = new self($this->schemaSynchronizer);
+            $group = new self();
             $left($group);
             $clause = '(' . $group->getClause() . ')';
             $this->conditions[] = ['AND', $clause];
-            $this->bindings = array_merge($this->bindings, $group->bindings);
+            $this->bindings = \array_merge($this->bindings, $group->bindings);
         } else {
-            $this->syncTablesFromIdentifiers($left, $right);
+            //$this->syncTablesFromIdentifiers($left, $right);
 
             $left = $this->wrapIdentifier($left);
 
@@ -58,13 +57,13 @@ class JoinBuilder
     public function orOn(string|Closure $left, ?string $operator = null, $right = null): self
     {
         if ($left instanceof Closure) {
-            $group = new self($this->schemaSynchronizer);
+            $group = new self();
             $left($group);
             $clause = '(' . $group->getClause() . ')';
             $this->conditions[] = ['OR', $clause];
             $this->bindings = array_merge($this->bindings, $group->bindings);
         } else {
-            $this->syncTablesFromIdentifiers($left, $right);
+            // $this->syncTablesFromIdentifiers($left, $right);
             $left = $this->wrapIdentifier($left);
 
             if (\is_string($right) && str_contains($right, '.')) {
@@ -106,31 +105,26 @@ class JoinBuilder
         return implode('.', array_map(fn($part) => "`$part`", $parts));
     }
 
-    private function syncTablesFromIdentifiers(...$args): void
-    {
-        if (!$this->schemaSynchronizer) {
-            return;
-        }
+    // private function syncTablesFromIdentifiers(...$args): void
+    // {
+    //     foreach ($args as $arg) {
+    //         if (\is_string($arg) && str_contains($arg, '.')) {
+    //             $parts = explode('.', $arg);
+    //             $this->validateColumn($parts[1]);
+    //         }
+    //     }
+    // }
 
-        foreach ($args as $arg) {
-            if (\is_string($arg) && str_contains($arg, '.')) {
-                $parts = explode('.', $arg);
-                $this->validateColumn($parts[1]);
-                $this->schemaSynchronizer->sync($parts[0]);
-            }
-        }
-    }
-
-    /**
-     * Summary of validateColumn
-     * @param string $column
-     * @throws \InvalidArgumentException
-     * @return void
-     */
-    private function validateColumn(string $column): void
-    {
-        if ($column !== '*' && !preg_match('/^[a-zA-Z0-9_]+$/', $column)) {
-            throw new \InvalidArgumentException("Invalid column name: $column");
-        }
-    }
+    // /**
+    //  * Summary of validateColumn
+    //  * @param string $column
+    //  * @throws \InvalidArgumentException
+    //  * @return void
+    //  */
+    // private function validateColumn(string $column): void
+    // {
+    //     if ($column !== '*' && !preg_match('/^[a-zA-Z0-9_]+$/', $column)) {
+    //         throw new \InvalidArgumentException("Invalid column name: $column");
+    //     }
+    // }
 }
