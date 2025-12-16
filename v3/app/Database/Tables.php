@@ -98,5 +98,7 @@ class Tables
         'leaderboard',
         'challenge_participants',
         'cbt_leaderboard',
+        'topics',
+        'syllabi',
     ];
 }
