@@ -41,9 +41,17 @@ class ExamController extends ExploreBaseController
 
         $response = $this->examService->createQuestions($data);
 
+
         if (!$response['status']) {
+            $errorMessages = array_map(function ($error) {
+                if (\is_array($error)) {
+                    return $error['questionIndex'] . $error['year'] . ($error['questionText'] ?? 'N/A') . ": " . ($error['error'] ?? 'Unknown error');
+                }
+                return $error;
+            }, $response['errors']);
+
             $this->respondError(
-                "Failed to create exam questions. " . implode(', ', $response['errors']),
+                "Failed to create exam questions. " . implode('; ', $errorMessages),
                 HttpStatus::BAD_REQUEST
             );
         }
@@ -84,7 +92,7 @@ class ExamController extends ExploreBaseController
 
             'questions.*.question_files' => 'nullable|array',
             'questions.*.question_files.*.file_name' => 'required_with:questions.*.question_files.*.file|string|filled',
-            'questions.*.question_files.*.old_file_name' => 'required_with:questions.*.question_files.*.file|string|filled',
+            'questions.*.question_files.*.old_file_name' => 'nullable|string',
             'questions.*.question_files.*.type' => 'required_with:questions.*.question_files|string|filled',
             'questions.*.question_files.*.file' => 'nullable|string',
 
@@ -94,7 +102,7 @@ class ExamController extends ExploreBaseController
 
             'questions.*.options.*.option_files' => 'nullable|array',
             'questions.*.options.*.option_files.*.file_name' => 'required_with:questions.*.options.*.option_files.*.file|string|filled',
-            'questions.*.options.*.option_files.*.old_file_name' => 'required_with:questions.*.options.*.option_files.*.file|string|filled',
+            'questions.*.options.*.option_files.*.old_file_name' => 'nullable|string',
             'questions.*.options.*.option_files.*.type' => 'required_with:questions.*.options.*.option_files|string|filled',
             'questions.*.options.*.option_files.*.file' => 'nullable|string',
 

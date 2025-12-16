@@ -4,7 +4,6 @@ namespace V3\App\Services\Explore;
 
 use V3\App\Models\Explore\Exam;
 use V3\App\Models\Explore\ExamType;
-use V3\App\Models\Portal\ELearning\Quiz;
 
 class CbtService
 {
@@ -37,8 +36,8 @@ class CbtService
     {
         return $this->exam
             ->select([
-                'ANY_VALUE(id) AS id',
-                'ANY_VALUE(course_name) AS course_name',
+                'id',
+                'course_name',
                 'course_id',
                 'exam_type',
                 'year'
