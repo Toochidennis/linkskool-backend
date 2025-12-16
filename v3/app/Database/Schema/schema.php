@@ -7723,6 +7723,97 @@ return [
             'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
+    'syllabi' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'normalized_name' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'created_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'updated_at' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
+    'topics' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'normalized_name' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'syllabus_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'created_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'updated_at' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
     'exam' => [],
     'videosTable' => [],
     'categoryTable' => [],
