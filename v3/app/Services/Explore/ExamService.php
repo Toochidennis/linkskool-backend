@@ -152,6 +152,8 @@ class ExamService
                         'course_id' => $settings['course_id'],
                         'course_name' => $settings['course_name'],
                         'year' => $year,
+                        'exam_type' => $settings['exam_type_id'],
+                        'exam_name' => $settings['title'],
                     ];
                 } catch (\Exception $e) {
                     $encodingErrors[] = [
@@ -233,6 +235,8 @@ class ExamService
             'exam_type' => $settings['exam_type_id'],
             'course_id' => $settings['course_id'],
             'course_name' => $settings['course_name'],
+            'title' => $settings['title'],
+            'body' => $settings['duration'] ?? null,
             'description' => $settings['description'] ?? '',
             'url' => $this->json($questionIds),
             'upload_date' => date('Y-m-d H:i:s'),
@@ -288,6 +292,8 @@ class ExamService
                     'course_id' => $settings['course_id'],
                     'course_name' => $settings['course_name'],
                     'year' => $settings['year'],
+                    'exam_type' => $settings['exam_type_id'],
+                    'exam_name' => $settings['title'],
                 ];
 
                 $preparedQuestions[] = [
@@ -356,6 +362,8 @@ class ExamService
             'exam_type' => $settings['exam_type_id'],
             'course_id' => $settings['course_id'],
             'course_name' => $settings['course_name'],
+            'title' => $settings['title'],
+            'body' => $settings['duration'] ?? null,
             'description' => $settings['description'] ?? '',
             'url' => $this->json($allQuestionIds),
             'upload_date' => date('Y-m-d H:i:s'),
