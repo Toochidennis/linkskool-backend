@@ -3439,6 +3439,13 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'topic_status' => [
+            'type' => 'varchar(50)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         'instruction' => [
             'type' => 'longtext',
             'nullable' => true,
@@ -7745,6 +7752,13 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'course_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         'created_at' => [
             'type' => 'datetime',
             'nullable' => false,
@@ -7783,6 +7797,13 @@ return [
         'normalized_name' => [
             'type' => 'text',
             'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'course_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
             'default' => null,
             'auto_increment' => false,
             'primary' => false

@@ -2,20 +2,24 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Common\Enums\QuestionType;
 use V3\App\Models\Explore\Exam;
 use V3\App\Models\Explore\ExamType;
+use V3\App\Models\Portal\ELearning\Quiz;
 
 class CbtService
 {
     private Exam $exam;
     private ExamType $examType;
     private QuestionService $questionService;
+    private Quiz $quiz;
 
     public function __construct(\PDO $pdo)
     {
         $this->exam = new Exam($pdo);
         $this->examType = new ExamType($pdo);
         $this->questionService = new QuestionService($pdo);
+        $this->quiz = new Quiz($pdo);
     }
 
     /**
@@ -210,8 +214,8 @@ class CbtService
                 'title' => $exam['title'],
                 'description' => $exam['description'],
                 'course_id' => $exam['course_id'],
+                'duration' => $exam['body'] ?? 0,
                 'course_name' => ucwords(strtolower($exam['course_name'])),
-                'body' => $this->json($exam['body'] ?? null),
             ],
             'questions' => $grouped
         ];
@@ -233,13 +237,60 @@ class CbtService
             );
     }
 
+    public function fetchQuestionsByTopicId(array $filters): array
+    {
+        $questions = $this->quiz
+            ->select([
+                'question_id',
+                'title AS question_text',
+                'content AS question_files',
+                'topic',
+                'topic_id',
+                'passage',
+                'passage_id',
+                'instruction',
+                'instruction_id',
+                'explanation',
+                'explanation_id',
+                'type as question_type',
+                'answer as options',
+                'correct',
+                'year'
+            ])
+            ->where('topic_id', '=', $filters['topic_id'])
+            ->where('course_id', '=', $filters['course_id'])
+            ->where('exam_type', '=', $filters['exam_type_id'])
+            ->orderByRandom()
+            ->limit($filters['limit'] ?? 40)
+            ->get();
+
+
+        return array_map($this->formatQuestion(...), $questions);
+    }
+
+        /**
+     * Format a single question by decoding JSON fields
+     *
+     * @param array $question Raw question data from database
+     * @return array Formatted question
+     */
+    private function formatQuestion(array $question): array
+    {
+        $question['question_type'] = QuestionType::tryFrom($question['question_type'])?->label() ?? 'Unknown';
+        $question['question_files'] = $this->json($question['question_files']);
+        $question['options'] = $this->json($question['options']);
+        $question['correct'] = $this->json($question['correct']);
+
+        return $question;
+    }
+
     private function json(?string $data): array
     {
         if (empty($data) || $data === null) {
             return [];
         }
 
-        $decoded = json_decode($data, true);
+        $decoded = json_decode($data, associative: true);
         return \is_array($decoded) ? $decoded : [];
     }
 }

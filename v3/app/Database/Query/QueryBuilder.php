@@ -5,7 +5,6 @@ namespace V3\App\Database\Query;
 use Closure;
 use PDO;
 use InvalidArgumentException;
-use V3\App\Database\Schema\SchemaSynchronizer;
 use V3\App\Database\Tables;
 
 /**
@@ -27,7 +26,6 @@ class QueryBuilder
     private array $orderBy = [];
     private string $limit = '';
     private string $offset = '';
-    private SchemaSynchronizer $schemaSynchronizer;
 
     /**
      * Constructor to initialize the PDO instance.
@@ -37,7 +35,7 @@ class QueryBuilder
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
-        $this->schemaSynchronizer =  new SchemaSynchronizer($this->pdo);
+        //$this->schemaSynchronizer =  new SchemaSynchronizer($this->pdo);
     }
 
     /**
@@ -49,7 +47,6 @@ class QueryBuilder
     public function table(string $table): self
     {
         $this->validateTable($table);
-        $this->schemaSynchronizer->sync($table);
         $this->table = $table;
 
         return $this;
@@ -162,6 +159,17 @@ class QueryBuilder
             $this->orderBy[] = $this->wrapIdentifier($columns) . ' ' . strtoupper($direction);
         }
 
+        return $this;
+    }
+
+    /**
+     * Adds a RANDOM ORDER BY clause to the query.
+     *
+     * @return self
+     */
+    public function orderByRandom(): self
+    {
+        $this->orderBy[] = "RAND()";
         return $this;
     }
 

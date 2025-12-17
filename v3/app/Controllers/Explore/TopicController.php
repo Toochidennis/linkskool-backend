@@ -14,26 +14,42 @@ class TopicController extends ExploreBaseController
     public function __construct()
     {
         parent::__construct();
-        $this->topicService = new TopicService();
+        $this->topicService = new TopicService($this->pdo);
     }
 
-    /**
-     * GET /public/cbt/topics/{courseId}
-     * Returns all topics for a given course ID.
-     */
-    #[Route('/{course_id:\d+}', 'GET', ['api'])]
-    public function getTopicsByCourseId(array $vars)
+
+    #[Route('/generate/{limit:\d+}', 'GET', ['api'])]
+    public function generateTopics(array $vars): void
     {
         $validated = $this->validate($vars, [
-            'course_id' => 'required|integer|min:1'
+            'limit' => 'required|integer|min:1'
         ]);
 
-        $topics = $this->topicService->getTopicsByCourseId($validated['course_id']);
+        $result = $this->topicService->processQuestions($validated['limit']);
+        $this->respond([
+            'success' => true,
+            'data' => $result
+        ]);
+    }
+
+
+    #[Route('', 'GET', ['api'])]
+    public function fetchSyllabusAndTopics(array $vars)
+    {
+        $validated = $this->validate($vars, [
+            'course_id' => 'required|integer|min:1',
+            'exam_type_id' => 'required|integer|min:1'
+        ]);
+
+        $syllabusAndTopics = $this->topicService->getSyllabusAndTopics(
+            $validated['course_id'],
+            $validated['exam_type_id']
+        );
 
         $this->respond([
             'success' => true,
-            'message' => 'Topics fetched successfully.',
-            'data' => $topics
+            'message' => 'Syllabus and topics fetched successfully.',
+            'data' => $syllabusAndTopics
         ]);
     }
 }

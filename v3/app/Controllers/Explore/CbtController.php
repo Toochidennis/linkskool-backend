@@ -4,6 +4,7 @@ namespace V3\App\Controllers\Explore;
 
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Common\Utilities\ResponseHandler;
 use V3\App\Services\Explore\CbtService;
 
@@ -53,15 +54,49 @@ class CbtController extends ExploreBaseController
     #[Route('/exams/{exam_id:\d+}/questions', 'GET', ['api'])]
     public function getQuestions(array $vars)
     {
-        $validate = $this->validate($vars, [
+        $validated = $this->validate($vars, [
             'exam_id' => 'required|integer|min:1',
             'limit' => 'nullable|integer|min:1|max:100',
             'offset' => 'nullable|integer|min:0'
         ]);
 
+        $questions = $this->cbtService->getExamWithQuestions($validated);
+
+        if (empty($questions['questions'])) {
+            $this->respondError(
+                'No questions found for the specified exam.',
+                HttpStatus::NOT_FOUND
+            );
+        }
+
         $this->respond([
             'success' => true,
-            'data' => $this->cbtService->getExamWithQuestions($validate)
+            'data' => $questions
+        ]);
+    }
+
+    #[Route('/exams/questions/by-topic', 'GET', ['api'])]
+    public function getQuestionsByTopicId(array $vars)
+    {
+        $validated = $this->validate($vars, [
+            'topic_id' => 'required|integer|min:1',
+            'course_id' => 'required|integer|min:1',
+            'limit' => 'nullable|integer|min:1|max:100'
+        ]);
+
+        $questions = $this->cbtService->fetchQuestionsByTopicId($validated);
+
+        if (empty($questions)) {
+            $this->respondError(
+                'No questions found for the specified topic and course.',
+                HttpStatus::NOT_FOUND
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Questions fetched successfully.',
+            'data' => $questions
         ]);
     }
 }
