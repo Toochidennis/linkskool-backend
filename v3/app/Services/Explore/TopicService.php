@@ -3,6 +3,7 @@
 namespace V3\App\Services\Explore;
 
 use PDO;
+use V3\App\Common\Enums\QuestionType;
 use V3\App\Models\Explore\Syllabi;
 use V3\App\Models\Explore\Topic;
 use V3\App\Models\Portal\ELearning\Quiz;
@@ -138,7 +139,10 @@ class TopicService
                 $syllabusId = $this->insertSyllabus([
                     'name' => $syllabusResult['name'],
                     'normalized_name' => $this->normalize($syllabusResult['name']),
-                    'course_id' => $question['course_id']
+                    'course_id' => $question['course_id'],
+                    'course_name' => $question['course_name'],
+                    'exam_type' => $question['exam_type'],
+                    'exam_name' => $question['exam_name']
                 ]);
             }
 
@@ -169,7 +173,11 @@ class TopicService
                     'name' => $topicResult['name'],
                     'syllabus_id' => $syllabusId,
                     'normalized_name' => $this->normalize($topicResult['name']),
-                    'course_id' => $question['course_id']
+                    'course_id' => $question['course_id'],
+                    'course_name' => $question['course_name'],
+                    'exam_type' => $question['exam_type'],
+                    'exam_name' => $question['exam_name'],
+                    'syllabus' => $this->getSyllabusName($syllabusId),
                 ]);
                 $topicName = $topicResult['name'];
             }
@@ -178,14 +186,35 @@ class TopicService
                 throw new \RuntimeException('Failed to get or create topic');
             }
 
+            $explanation = null;
+            if ($this->shouldRequestExplanation($question)) {
+                $explanation = $this->askAIForExplanation([
+                    'question_text' => $question['question_text'],
+                    'instruction' => $question['instruction'],
+                    'passage' => $question['passage'],
+                    'options' => $question['options'],
+                    'selected_answer' => $question['correct'],
+                    'question_type' => $question['question_type'],
+                ]);
+            }
+
+            $updatePayload = [
+                'topic_id' => $topicId,
+                'topic' => $topicName,
+                'syllabus_id' => $syllabusId,
+                'syllabus' => $this->getSyllabusName($syllabusId),
+                'topic_status' => 'processed',
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
+
+            if ($explanation !== null) {
+                $updatePayload['explanation'] = $explanation;
+            }
+
             // Step 7: Update question with topic info
             $updated = $this->quiz
                 ->where('question_id', '=', $question['question_id'])
-                ->update([
-                    'topic_id' => $topicId,
-                    'topic' => $topicName,
-                    'topic_status' => 'processed'
-                ]);
+                ->update($updatePayload);
 
             if (!$updated) {
                 throw new \RuntimeException('Failed to update question with topic ID');
@@ -197,20 +226,52 @@ class TopicService
 
     private function fetchUnprocessedQuestions($limit, $offset = 0): array
     {
-        return $this->quiz
+        $result =  $this->quiz
             ->select([
                 'question_id',
                 'title AS question_text',
+                'type AS question_type',
                 'passage',
                 'instruction',
                 'course_name',
-                'course_id'
+                'course_id',
+                'exam_type',
+                'exam_name',
+                'answer AS options',
+                'correct'
             ])
             ->where('topic_status', '=', 'pending')
             ->orderBy('question_id')
             ->limit($limit)
             ->offset($offset)
             ->get();
+
+        return array_map($this->formatQuestion(...), $result);
+    }
+
+    private function formatQuestion(array $question): array
+    {
+        $question['question_type'] = QuestionType::tryFrom($question['question_type'])?->label() ?? 'Unknown';
+        $question['options'] = $this->decode($question['options']);
+        $question['correct'] = $this->decode($question['correct']);
+
+        return $question;
+    }
+
+    /**
+     * Decode JSON string to array
+     *
+     * @param string|null $data JSON string
+     * @return array Decoded array or empty array
+     */
+    private function decode(?string $data): array
+    {
+        if (empty($data) || $data === null) {
+            return [];
+        }
+
+        $decoded = json_decode($data, true);
+        return \is_array($decoded) ? $decoded : [];
     }
 
     private function insertSyllabus(array $data): int
@@ -240,6 +301,9 @@ class TopicService
             'name' => $data['name'],
             'normalized_name' => $normalized,
             'course_id' => $courseId,
+            'course_name' => $data['course_name'],
+            'exam_type' => $data['exam_type'],
+            'exam_name' => $data['exam_name']
         ]);
 
         $this->syllabusCache[$cacheKey] = $id;
@@ -273,7 +337,11 @@ class TopicService
             'name' => $data['name'],
             'normalized_name' => $normalized,
             'syllabus_id' => $syllabusId,
+            'syllabus' => $data['syllabus'],
             'course_id' => $data['course_id'],
+            'course_name' => $data['course_name'],
+            'exam_type' => $data['exam_type'],
+            'exam_name' => $data['exam_name']
         ]);
 
         $this->topicCache[$cacheKey] = $id;
@@ -439,58 +507,67 @@ PROMPT;
         return $this->callAIWithRetry($prompt, 0, 'topic');
     }
 
-    //     private function getSyllabusAndTopicFromAI(array $data): array
-    //     {
-    //         // Rate limiting: enforce minimum delay between API calls
-    //         $timeSinceLastCall = (microtime(true) - $this->lastApiCallTime) * 1000;
-    //         if ($timeSinceLastCall < self::API_DELAY_MS) {
-    //             usleep((self::API_DELAY_MS - $timeSinceLastCall) * 1000);
-    //         }
+    private function askAIForExplanation(array $data): ?string
+    {
+        $timeSinceLastCall = (microtime(true) - $this->lastApiCallTime) * 1000;
+        if ($timeSinceLastCall < self::API_DELAY_MS) {
+            usleep((int)((self::API_DELAY_MS - $timeSinceLastCall) * 1000));
+        }
 
-    //         $contextParts = [];
+        $questionType = $data['question_type'] ?? '';
+        $isMultipleChoice = $questionType === QuestionType::MULTIPLE_CHOICE->label();
+        $isShortAnswer = $questionType === QuestionType::SHORT_ANSWER->label();
 
-    //         if (!empty($data['passage'])) {
-    //             // Summarize long passages
-    //             $passage = \strlen($data['passage']) > 300
-    //                 ? substr($data['passage'], 0, 300) . '...'
-    //                 : $data['passage'];
-    //             $contextParts[] = "Passage:\n$passage";
-    //         }
+        $contextParts = [];
 
-    //         if (!empty($data['instruction'])) {
-    //             $contextParts[] = "Instruction:\n{$data['instruction']}";
-    //         }
+        if (!empty($data['instruction'])) {
+            $contextParts[] = "Instruction:\n" . $this->truncateText($data['instruction']);
+        }
 
-    //         $contextParts[] = "Question:\n{$data['question_text']}";
+        if (!empty($data['passage'])) {
+            $contextParts[] = "Passage:\n" . $this->truncateText($data['passage']);
+        }
 
-    //         $context = implode("\n\n", $contextParts);
+        $contextParts[] = "Question:\n{$data['question_text']}";
 
-    //         $prompt = <<<PROMPT
-    // You are an expert educational curriculum classifier. Your task is to analyze exam questions and assign them to specific academic topics and syllabus areas.
+        if ($isMultipleChoice) {
+            $optionsJson = json_encode($data['options'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            $selectedAnswerJson = json_encode($data['selected_answer'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-    // IMPORTANT: Identify the MOST SPECIFIC topic for this question. Avoid generic topics. Look for specific concepts, skills, or knowledge areas being tested.
+            $contextParts[] = "Options (JSON):\n{$optionsJson}";
+            $contextParts[] = "Selected answer (JSON):\n{$selectedAnswerJson}";
+        } else {
+            // Default to short-answer style payload
+            $selectedAnswerJson = json_encode($data['selected_answer'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            $contextParts[] = "Correct answer (JSON):\n{$selectedAnswerJson}";
+        }
 
-    // Analyze:
-    // Course: {$data['course_name']}
+        $context = implode("\n\n", $contextParts);
 
-    // {$context}
+        $prompt = $isMultipleChoice
+            ? <<<PROMPT
+Provide an objective explanation of why the correct answer is correct. Do not speak to the student, do not reference any "selected answer," and do not assume what the user chose. Keep it under 100 words, one short paragraph. Use simple language, rely only on the provided material, and output strictly JSON with no extra text or markdown.
 
-    // Return ONLY valid JSON (no explanations, no markdown, no code blocks, no numbering) in the following format:
-    // {
-    //   "syllabus": "curriculum area or unit (2-4 words)",
-    //   "topic": "specific topic/concept being tested (3-6 words, be precise)"
-    // }
+{$context}
 
-    // Examples of good responses:
-    // {"syllabus": "Thermodynamics", "topic": "Heat transfer and conduction"}
-    // {"syllabus": "Shakespearean Literature", "topic": "Character analysis and motivation"}
-    // {"syllabus": "Cellular Biology", "topic": "Mitochondrial respiration and energy production"}
+Return ONLY valid JSON (no markdown):
+{"explanation": "your explanation here"}
+PROMPT
+            : <<<PROMPT
+Provide an objective explanation of why the correct answer is correct. Do not speak to the student, do not reference any "selected answer," and do not assume what the user chose. Keep it under 100 words, one short paragraph. Use simple language, rely only on the provided material, and output strictly JSON with no extra text or markdown.
 
-    // Be specific. Avoid vague topics like "general knowledge" or "reading comprehension".
-    // PROMPT;
+{$context}
 
-    //         return $this->callAIWithRetry($prompt);
-    //     }
+Return ONLY valid JSON (no markdown):
+{"explanation": "your explanation here"}
+PROMPT;
+
+        $response = $this->callAIWithRetry($prompt, 0, 'explanation');
+
+        $explanation = trim($response['explanation'] ?? '');
+
+        return $explanation !== '' ? $explanation : null;
+    }
 
     private function callAIWithRetry(string $prompt, int $retryCount = 0, string $type = 'general'): array
     {
@@ -532,7 +609,7 @@ PROMPT;
             if ($httpCode === 429) {
                 if ($retryCount < self::MAX_RETRIES) {
                     $backoffMs = self::RETRY_BACKOFF_MS * pow(2, $retryCount);
-                    usleep($backoffMs * 1000);
+                    usleep((int)($backoffMs * 1000));
                     return $this->callAIWithRetry($prompt, $retryCount + 1, $type);
                 }
                 throw new \RuntimeException('DeepSeek API rate limit exceeded after retries');
@@ -580,6 +657,10 @@ PROMPT;
                     // Find the ID from existing topics
                     throw new \RuntimeException('Missing topic_id for existing topic');
                 }
+            } elseif ($type === 'explanation') {
+                if (!\is_array($result) || !isset($result['explanation'])) {
+                    throw new \RuntimeException('AI returned invalid explanation payload: ' . $content);
+                }
             } else {
                 // General type
                 if (!\is_array($result) || empty($result['syllabus']) || empty($result['topic'])) {
@@ -591,10 +672,51 @@ PROMPT;
         } catch (\Throwable $e) {
             if ($retryCount < self::MAX_RETRIES) {
                 $backoffMs = self::RETRY_BACKOFF_MS * pow(2, $retryCount);
-                usleep($backoffMs * 1000);
+                usleep((int)($backoffMs * 1000));
                 return $this->callAIWithRetry($prompt, $retryCount + 1, $type);
             }
             throw $e;
         }
+    }
+
+    private function shouldRequestExplanation(array $question): bool
+    {
+        $type = $question['question_type'] ?? '';
+
+        if ($type === QuestionType::MULTIPLE_CHOICE->label()) {
+            if (empty($question['options']) || !\is_array($question['options'])) {
+                return false;
+            }
+
+            foreach ($question['options'] as $option) {
+                $text = trim($option['text'] ?? '');
+                if ($text === '') {
+                    return false;
+                }
+            }
+
+            $selectedText = trim($question['correct']['text'] ?? '');
+            if ($selectedText === '') {
+                return false;
+            }
+
+            return true;
+        }
+
+        if ($type === QuestionType::SHORT_ANSWER->label()) {
+            $selectedText = trim($question['correct']['text'] ?? '');
+            return $selectedText !== '';
+        }
+
+        return false;
+    }
+
+    private function truncateText(string $value, int $limit = 800): string
+    {
+        if (strlen($value) <= $limit) {
+            return $value;
+        }
+
+        return substr($value, 0, $limit) . '...';
     }
 }
