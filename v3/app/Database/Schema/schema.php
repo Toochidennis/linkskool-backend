@@ -3390,6 +3390,20 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'exam_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'exam_type' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         'content' => [
             'type' => 'text',
             'nullable' => true,
@@ -3441,6 +3455,20 @@ return [
         ],
         'topic_status' => [
             'type' => 'varchar(50)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'syllabus' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'syllabus_id' => [
+            'type' => 'int(11)',
             'nullable' => true,
             'default' => null,
             'auto_increment' => false,
@@ -7752,7 +7780,28 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'course_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         'course_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'exam_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'exam_type' => [
             'type' => 'int(11)',
             'nullable' => false,
             'default' => null,
@@ -7801,6 +7850,13 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'course_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         'course_id' => [
             'type' => 'int(11)',
             'nullable' => false,
@@ -7809,6 +7865,27 @@ return [
             'primary' => false
         ],
         'syllabus_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'syllabus' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'exam_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'exam_type' => [
             'type' => 'int(11)',
             'nullable' => false,
             'default' => null,

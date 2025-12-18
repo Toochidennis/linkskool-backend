@@ -100,5 +100,6 @@ class Tables
         'cbt_leaderboard',
         'topics',
         'syllabi',
+        'level',
     ];
 }
