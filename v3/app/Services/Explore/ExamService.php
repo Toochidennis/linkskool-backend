@@ -153,7 +153,7 @@ class ExamService
                         'course_name' => $settings['course_name'],
                         'year' => $year,
                         'exam_type' => $settings['exam_type_id'],
-                        'exam_name' => $settings['title'],
+                        'exam_name' => $settings['title'] ?? '',
                     ];
                 } catch (\Exception $e) {
                     $encodingErrors[] = [
@@ -235,7 +235,7 @@ class ExamService
             'exam_type' => $settings['exam_type_id'],
             'course_id' => $settings['course_id'],
             'course_name' => $settings['course_name'],
-            'title' => $settings['title'],
+            'title' => $settings['title'] ?? '',
             'body' => $settings['duration'] ?? null,
             'description' => $settings['description'] ?? '',
             'url' => $this->json($questionIds),
@@ -362,7 +362,7 @@ class ExamService
             'exam_type' => $settings['exam_type_id'],
             'course_id' => $settings['course_id'],
             'course_name' => $settings['course_name'],
-            'title' => $settings['title'],
+            'title' => $settings['title'] ?? '',
             'body' => $settings['duration'] ?? null,
             'description' => $settings['description'] ?? '',
             'url' => $this->json($allQuestionIds),
@@ -382,7 +382,7 @@ class ExamService
     public function getExams(array $filters): array
     {
         return $this->exam
-            ->select(['id', 'description', 'course_name', 'year', 'upload_date'])
+            ->select(['id', 'title AS description', 'course_name', 'year', 'upload_date'])
             ->orderBy('course_name')
             ->paginate($filters['page'] ?? 1, $filters['limit'] ?? 25);
     }
