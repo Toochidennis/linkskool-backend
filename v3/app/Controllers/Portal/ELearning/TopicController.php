@@ -2,11 +2,12 @@
 
 namespace V3\App\Controllers\Portal\ELearning;
 
-use Exception;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\ELearning\TopicService;
 
+#[Group('/portal')]
 class TopicController extends BaseController
 {
     private TopicService $topicService;
@@ -17,6 +18,11 @@ class TopicController extends BaseController
         $this->topicService = new TopicService($this->pdo);
     }
 
+    #[Route(
+        '/elearning/topic',
+        'POST',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function store()
     {
         $data =  $this->validate(
@@ -37,24 +43,26 @@ class TopicController extends BaseController
             ]
         );
 
-        try {
-            $newId = $this->topicService->addTopic($data);
-            if ($newId) {
-                return $this->respond(
-                    data: [
-                        'success' => true,
-                        'topicId' => $newId,
-                        'message' => 'Topic created successfully.'
-                    ],
-                    statusCode: HttpStatus::CREATED
-                );
-            }
-
-            return $this->respondError('Failed to create topic');
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+        $newId = $this->topicService->addTopic($data);
+        if ($newId) {
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'topicId' => $newId,
+                    'message' => 'Topic created successfully.'
+                ],
+                statusCode: HttpStatus::CREATED
+            );
         }
+
+        return $this->respondError('Failed to create topic');
     }
+
+    #[Route(
+        '/elearning/topic/{id:\d+}',
+        'PUT',
+        ['auth', 'role:admin', 'role:staff']
+    )]
 
     public function update()
     {
@@ -70,33 +78,30 @@ class TopicController extends BaseController
             ]
         );
 
-        try {
-            $newId = $this->topicService->updateTopic($data);
+        $newId = $this->topicService->updateTopic($data);
 
-            if ($newId > 0) {
-                $this->respond([
-                    'success' => true,
-                    'message' => 'Topic updated successfully'
-                ]);
-            }
-
-            $this->respondError('Failed to update', HttpStatus::BAD_REQUEST);
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
+        if ($newId > 0) {
+            $this->respond([
+                'success' => true,
+                'message' => 'Topic updated successfully'
+            ]);
         }
+
+        $this->respondError('Failed to update', HttpStatus::BAD_REQUEST);
     }
 
+    #[Route(
+        '/elearning/syllabus/{syllabus_id:\d+}/topics',
+        'GET',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function get(array $vars)
     {
         $data = $this->validate($vars, ['syllabus_id' => 'required|integer']);
 
-        try {
-            $this->respond([
-                'success' => true,
-                'response' => $this->topicService->getTopics($data['syllabus_id'])
-            ]);
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
-        }
+        $this->respond([
+            'success' => true,
+            'response' => $this->topicService->getTopics($data['syllabus_id'])
+        ]);
     }
 }

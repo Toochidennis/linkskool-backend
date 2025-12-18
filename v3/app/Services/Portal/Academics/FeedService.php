@@ -48,7 +48,7 @@ class FeedService
         $payload = [
             "title" => $data['title'],
             "body" => $data['content'],
-            "parent" => $data['parent_id'] ?? 0,
+            "parent" => empty($data['parent_id']) ? 0 : $data['parent_id'],
             "author_name" => $data['author_name'],
             "author_id" => $data['author_id'],
             "url" => $files,

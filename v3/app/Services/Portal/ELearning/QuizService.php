@@ -19,7 +19,7 @@ class QuizService
 
     private array $typeMap = [
         'multiple_choice' => QuestionType::MULTIPLE_CHOICE->value,
-        'short_answer'    => QuestionType::SHORT_ANSWER->value,
+        'short_answer' => QuestionType::SHORT_ANSWER->value,
     ];
 
     public function __construct(PDO $pdo)
@@ -244,7 +244,7 @@ class QuizService
             $filtered = array_values(array_filter($url, fn($q) => $q['id'] != $id));
 
             // Only update if something changed
-            if (count($filtered) !== count($url)) {
+            if (\count($filtered) !== \count($url)) {
                 $this->content
                     ->where('id', '=', $contentId)
                     ->update(['url' => $this->json($filtered)]);

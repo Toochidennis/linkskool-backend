@@ -18,7 +18,11 @@ class StudentPaymentService
 
     public function getInvoiceAndTransactionHistory(int $studentId): array
     {
-        $formatted = [];
+        $formatted = [
+            'invoice' => [],
+            'payments' => []
+        ];
+
         $levelNames = [];
 
         $transactions = $this->transaction
@@ -95,7 +99,7 @@ class StudentPaymentService
 
                 if ($txStatus === 'success') {
                     $status = 1;
-                } elseif (in_array($txStatus, ['failed', 'abandoned'])) {
+                } elseif (\in_array($txStatus, ['failed', 'abandoned'])) {
                     $status = 0;
                     // keep defaults
                 } elseif ($txStatus === 'pending') {
@@ -162,6 +166,11 @@ class StudentPaymentService
             return false;
         }
 
+        if ($amountDue <= 0) {
+            return false;
+        }
+
+
         if ($payment > $amountDue) {
             $payment = $amountDue; // Cap payment to amount due
         }
@@ -179,7 +188,7 @@ class StudentPaymentService
         } else {
             return $this->transaction
                 ->where('tid', '=', $tid)
-                ->update(['approved' => 0, 'sub' => 0]);
+                ->update(['approved' => 0, 'sub' => 0, 'amount_due' => 0]);
         }
     }
 
@@ -199,7 +208,6 @@ class StudentPaymentService
 
         $response = curl_exec($curl);
         $error = curl_error($curl);
-        curl_close($curl);
 
         if ($error) {
             return [
@@ -253,7 +261,7 @@ class StudentPaymentService
 
                 $this->updateInvoice($data);
                 unset($_SESSION['pending_payments'][$reference]);
-            } elseif (in_array($verify['status'], ['failed', 'abandoned'])) {
+            } elseif (\in_array($verify['status'], ['failed', 'abandoned'])) {
                 $this->transaction
                     ->where('ref', '=', $reference)
                     ->update([

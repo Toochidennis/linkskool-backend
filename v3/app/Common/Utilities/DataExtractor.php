@@ -20,6 +20,11 @@ class DataExtractor
         } elseif (stripos($contentType, 'application/x-www-form-urlencoded') !== false) {
             // Form-urlencoded Request
             return $_POST;
+        } elseif (stripos($contentType, 'multipart/form-data') !== false) {
+            // Multipart Form Data
+            $data = $_POST;
+            $files = $_FILES;
+            return [...$data, ...$files];
         } else {
             http_response_code(400);
             $response['message'] = 'Unsupported Content-Type.';

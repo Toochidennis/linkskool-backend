@@ -2,11 +2,12 @@
 
 namespace V3\App\Controllers\Portal\ELearning;
 
-use Exception;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\ELearning\MaterialService;
 
+#[Group('/portal')]
 class MaterialController extends BaseController
 {
     private MaterialService $materialService;
@@ -17,6 +18,7 @@ class MaterialController extends BaseController
         $this->materialService = new MaterialService($this->pdo);
     }
 
+    #[Route('/elearning/material', 'POST', ['auth', 'role:admin', 'role:staff'])]
     public function store()
     {
         $data = $this->validate(
@@ -44,26 +46,26 @@ class MaterialController extends BaseController
             ]
         );
 
-        try {
-            $id = $this->materialService->addMaterial($data);
+        $id = $this->materialService->addMaterial($data);
 
-            if ($id > 0) {
-                return $this->respond(
-                    data: [
-                        'success' => true,
-                        'message' => 'Material added successfully.',
-                        'id' => $id
-                    ],
-                    statusCode: HttpStatus::CREATED
-                );
-            }
-
-            return $this->respondError('Failed to add material');
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+        if ($id > 0) {
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'message' => 'Material added successfully.',
+                    'id' => $id
+                ],
+                statusCode: HttpStatus::CREATED
+            );
         }
+
+        return $this->respondError(
+            'Failed to add material',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
+    #[Route('/elearning/material/{id:\d+}', 'PUT', ['auth', 'role:admin', 'role:staff'])]
     public function update(array $vars)
     {
         $data = $this->validate(
@@ -85,22 +87,21 @@ class MaterialController extends BaseController
             ]
         );
 
-        try {
-            $id = $this->materialService->updateMaterial($data);
+        $id = $this->materialService->updateMaterial($data);
 
-            if ($id > 0) {
-                return $this->respond(
-                    data: [
-                        'success' => true,
-                        'message' => 'Material updated successfully.',
-                        'materialId' => $id
-                    ]
-                );
-            }
-
-            return $this->respondError('Failed to update material');
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+        if ($id > 0) {
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'message' => 'Material updated successfully.',
+                    'materialId' => $id
+                ]
+            );
         }
+
+        return $this->respondError(
+            'Failed to update material',
+            HttpStatus::BAD_REQUEST
+        );
     }
 }

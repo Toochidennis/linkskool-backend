@@ -36,36 +36,23 @@ class FileHandler
                 continue;
             }
 
-            if (
-                $isUpdate &&
-                !empty($file['file_name'] ?? '') &&
-                ($file['file_name'] ?? '') !== $file['old_file_name'] &&
-                empty($file['file'] ?? '')
-            ) {
-                throw new \Exception('Missing new file data for changed file.');
-            }
-
-            if (
-                $isUpdate &&
-                empty($file['file_name'] ?? '') &&
-                ($file['file_name'] ?? '') !== $file['old_file_name'] &&
-                !empty($file['file'] ?? '')
-            ) {
-                throw new \Exception("You uploaded a new file but didn't provide its name.");
-            }
-
-            if (
-                $isUpdate &&
-                !empty($file['file_name'] ?? '') &&
-                ($file['file_name'] ?? '') !== $file['old_file_name']
-            ) {
-                if (!empty($file['old_file_name'] ?? '')) {
-                    $this->deleteOldFile($file['old_file_name']);
+            // For update operations
+            if ($isUpdate) {
+                // If file is provided, it means new/updated image
+                if (!empty($file['file'] ?? '')) {
+                    // New or updated image - delete old file if exists
+                    if (!empty($file['old_file_name'] ?? '')) {
+                        $this->deleteOldFile($file['old_file_name']);
+                    }
+                    $processed[] = $this->processFile($file);
+                } else {
+                    // No file provided - keep existing file (no update)
+                    $processed[] = $file;
                 }
+            } else {
+                // For insert operations - always process the file
                 $processed[] = $this->processFile($file);
-                continue;
             }
-            $processed[] = !$isUpdate ? $this->processFile($file) : $file;
             $processed = array_map(function ($f) {
                 $f['file'] = '';
                 return $f;
@@ -78,8 +65,8 @@ class FileHandler
     private function deleteOldFile(string $oldFileName): void
     {
         $oldPath = $this->contentPath . basename($oldFileName);
-        if (file_exists($oldPath) && !unlink($oldPath)) {
-            throw new \Exception("Failed to delete old file: $oldPath");
+        if (file_exists($oldPath)) {
+            @unlink($oldPath); // Suppress warning, continue even if file fails
         }
     }
 
@@ -88,7 +75,7 @@ class FileHandler
         $cleanName = basename($file['file_name']);
         $ext = strtolower(pathinfo($cleanName, PATHINFO_EXTENSION));
 
-        if (!in_array($ext, $this->allowedExtensions, true)) {
+        if (!\in_array($ext, $this->allowedExtensions, true)) {
             throw new \Exception("File type not allowed: .$ext");
         }
 

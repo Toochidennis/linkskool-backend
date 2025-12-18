@@ -39,8 +39,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'account_type' => [
@@ -74,8 +74,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'admission_criteria' => [
@@ -165,8 +165,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'admission_form_table' => [
@@ -333,8 +333,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'admission_table' => [
@@ -375,8 +375,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'allowance' => [
@@ -424,8 +424,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'allowance_table' => [
@@ -445,8 +445,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'alumni_record' => [
@@ -669,8 +669,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'assessment_table' => [
@@ -711,8 +711,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'attendance' => [
@@ -781,8 +781,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'card_data' => [
@@ -851,8 +851,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'chatroom_table' => [
@@ -879,8 +879,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'class_table' => [
@@ -956,8 +956,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'comment_table' => [
@@ -1033,8 +1033,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'country' => [
@@ -1054,8 +1054,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'course_table' => [
@@ -1080,10 +1080,17 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'description' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'customer' => [
@@ -1264,8 +1271,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'default_account_settings' => [
@@ -1418,8 +1425,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'department' => [
@@ -1439,8 +1446,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'department_table' => [
@@ -1460,8 +1467,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'designation' => [
@@ -1481,8 +1488,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'designation_table' => [
@@ -1502,8 +1509,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'employee' => [
@@ -1537,8 +1544,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'entrance_form' => [
@@ -1796,8 +1803,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'fees_table' => [
@@ -1838,8 +1845,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'file_count' => [
@@ -1866,8 +1873,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'gender' => [
@@ -1887,8 +1894,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'grade_allowance' => [
@@ -1922,8 +1929,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'grade_level' => [
@@ -1943,8 +1950,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'hall_of_fame' => [
@@ -1985,8 +1992,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'hall_of_fame_room' => [
@@ -2006,8 +2013,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'hostel_table' => [
@@ -2041,8 +2048,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'insurable_earning' => [
@@ -2069,8 +2076,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'item' => [
@@ -2258,8 +2265,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'leave_table' => [
@@ -2293,8 +2300,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'leave_type' => [
@@ -2314,8 +2321,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'level_table' => [
@@ -2363,8 +2370,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'lga' => [
@@ -2391,8 +2398,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'link' => [
@@ -2566,8 +2573,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'marital_status' => [
@@ -2587,8 +2594,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'monthly_assessment_table' => [
@@ -2657,8 +2664,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'nametitle' => [
@@ -2678,8 +2685,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'new_student_table' => [
@@ -2713,8 +2720,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'next_term_fees' => [
@@ -2769,8 +2776,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'next_term_table' => [
@@ -2804,8 +2811,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'paid_table' => [
@@ -2853,8 +2860,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'payment_table' => [
@@ -2930,8 +2937,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'productline' => [
@@ -2972,8 +2979,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'promoted_table' => [
@@ -3007,8 +3014,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'prospective_staff_table' => [
@@ -3182,8 +3189,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'prospective_students_table' => [
@@ -3364,8 +3371,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'question_table' => [
@@ -3383,6 +3390,20 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
+        'exam_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'exam_type' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
         'content' => [
             'type' => 'text',
             'nullable' => true,
@@ -3390,8 +3411,85 @@ return [
             'auto_increment' => false,
             'primary' => false
         ],
-        'title' => [
+        'explanation' => [
+            'type' => 'longtext',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'explanation_id' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'passage' => [
+            'type' => 'longtext',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'passage_id' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'topic' => [
             'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'topic_id' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'topic_status' => [
+            'type' => 'varchar(50)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'syllabus' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'syllabus_id' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'instruction' => [
+            'type' => 'longtext',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'instruction_id' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'title' => [
+            'type' => 'longtext',
             'nullable' => true,
             'default' => null,
             'auto_increment' => false,
@@ -3405,14 +3503,14 @@ return [
             'primary' => false
         ],
         'answer' => [
-            'type' => 'text',
+            'type' => 'longtext',
             'nullable' => true,
             'default' => null,
             'auto_increment' => false,
             'primary' => false
         ],
         'correct' => [
-            'type' => 'text',
+            'type' => 'longtext',
             'nullable' => true,
             'default' => null,
             'auto_increment' => false,
@@ -3448,8 +3546,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'relief' => [
@@ -3483,8 +3581,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'responses' => [
@@ -3651,8 +3749,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'response_table' => [
@@ -3777,8 +3875,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'result_table' => [
@@ -3910,8 +4008,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'saved_report' => [
@@ -4057,8 +4155,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'school_alumni_table' => [
@@ -4092,8 +4190,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'school_calender' => [
@@ -4197,8 +4295,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'school_chat_table' => [
@@ -4232,8 +4330,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'school_forum_table' => [
@@ -4302,8 +4400,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'school_news_table' => [
@@ -4372,8 +4470,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'school_pictures' => [
@@ -4393,8 +4491,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'school_prefix' => [
@@ -4435,8 +4533,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'school_settings_table' => [
@@ -4624,8 +4722,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'school_timetable' => [
@@ -4673,8 +4771,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'score_grade_table' => [
@@ -4708,8 +4806,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'section' => [
@@ -4736,8 +4834,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'section_table' => [
@@ -4757,8 +4855,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'sent_messages' => [
@@ -4806,8 +4904,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'skill_table' => [
@@ -4841,8 +4939,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_access_table' => [
@@ -4883,8 +4981,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_account_table' => [
@@ -4925,8 +5023,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_allowance' => [
@@ -4960,8 +5058,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_anual_leave_table' => [
@@ -4995,8 +5093,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_bank_table' => [
@@ -5016,8 +5114,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_course_table' => [
@@ -5065,8 +5163,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_grade_table' => [
@@ -5100,8 +5198,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_payroll' => [
@@ -5149,8 +5247,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_query_table' => [
@@ -5198,8 +5296,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_record' => [
@@ -5499,8 +5597,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_relief' => [
@@ -5534,8 +5632,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_sack_table' => [
@@ -5569,8 +5667,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'staff_suspension_table' => [
@@ -5611,8 +5709,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'state' => [
@@ -5639,8 +5737,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'statutory_allowance' => [
@@ -5674,8 +5772,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'students_drop_table' => [
@@ -5709,8 +5807,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'students_expulsion_table' => [
@@ -5744,8 +5842,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'students_hostel_table' => [
@@ -5786,8 +5884,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'students_payment_record' => [
@@ -5814,8 +5912,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'students_promotion_criteria_table' => [
@@ -5870,8 +5968,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'students_record' => [
@@ -6080,8 +6178,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'students_registration_table' => [
@@ -6136,8 +6234,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'students_skill_table' => [
@@ -6178,8 +6276,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'students_suspension_table' => [
@@ -6220,8 +6318,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'students_transfer_table' => [
@@ -6255,8 +6353,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'student_access_table' => [
@@ -6290,8 +6388,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'sync_table' => [
@@ -6311,8 +6409,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'tax_rates' => [
@@ -6339,8 +6437,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'transactions' => [
@@ -6577,8 +6675,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'voucher_bonus_table' => [
@@ -6612,8 +6710,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'voucher_deduction_table' => [
@@ -6647,8 +6745,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'ward' => [
@@ -6675,8 +6773,8 @@ return [
         ],
         '__meta' => [
             'engine' => 'InnoDB',
-            'charset' => 'latin1',
-            'collate' => 'latin1_swedish_ci'
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
         ]
     ],
     'school_data' => [
@@ -6888,5 +6986,933 @@ return [
             'charset' => 'utf8mb4',
             'collate' => 'utf8mb4_unicode_ci',
         ],
-    ]
+    ],
+    'cbt_users' => [
+        'id' => [
+            'type' => 'int(10) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'username' => [
+            'type' => 'varchar(50)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'name' => [
+            'type' => 'varchar(100)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'email' => [
+            'type' => 'varchar(100)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+            'unique' => true
+        ],
+        'profile_picture' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'password' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'attempt' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => '0',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'subscribed' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => '0',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'date_subscribed' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'expires_at' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'last_renewed' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'subscription_type' => [
+            'type' => 'varchar(100)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'reference' => [
+            'type' => 'varchar(100)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'amount' => [
+            'type' => 'float',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'created_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
+    'exam_type' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'title' => [
+            'type' => 'varchar(250)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'description' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'shortname' => [
+            'type' => 'varchar(50)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'picref' => [
+            'type' => 'varchar(250)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'level' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'course_ids' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'type' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'is_active' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => 0,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'display_order' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
+    'exam_attempts' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'exam_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'user_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'average_score' => [
+            'type' => 'float',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'completion_rate' => [
+            'type' => 'float',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'test_taken' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'history' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'date_taken' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
+    'audit_logs' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'user_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'username' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'action' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'action_id' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'action_type' => [
+            'type' => 'varchar(100)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'status' => [
+            'type' => 'varchar(50)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'details' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'created_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
+    'users' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'picture_ref' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'first_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'middle_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'last_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'username' => [
+            'type' => 'varchar(50)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
+        'phone' => [
+            'type' => 'varchar(70)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
+        'email' => [
+            'type' => 'varchar(70)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
+        'state' => [
+            'type' => 'varchar(70)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'password' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'bio' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'type' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'status' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => 0,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'roleId' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => 0,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'accessLevel' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => 0,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'address' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'website' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'other' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'date' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'last_active' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
+    'challenge' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'title' => [
+            'type' => 'varchar(250)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'description' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'start_date' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'end_date' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'time_limit' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'details' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'count_per_exam' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'question_ids' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'exam_type_id' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'score' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'status' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => 0,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'author_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'author_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'is_active' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => 1,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'created_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'updated_at' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'published_at' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
+    'challenge_participants' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'challenge_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'user_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'username' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'joined_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
+    'cbt_leaderboard' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'challenge_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'user_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'username' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'score' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'correct_answers' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'total_questions' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'time_taken' => [
+            'type' => 'int(11)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'attempts_count' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => 1,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'submitted_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'position' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'location' => [
+            'type' => 'varchar(100)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
+        'device_id' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
+        'platform' => [
+            'type' => 'varchar(255)',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
+        'extra' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false,
+        ],
+        'created_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'updated_at' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
+    'syllabi' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'normalized_name' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'course_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'course_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'exam_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'exam_type' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'created_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'updated_at' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
+    'topics' => [
+        'id' => [
+            'type' => 'int(11) UNSIGNED',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => true,
+            'primary' => true
+        ],
+        'name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'normalized_name' => [
+            'type' => 'text',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'course_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'course_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'syllabus_id' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'syllabus' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'exam_name' => [
+            'type' => 'varchar(255)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'exam_type' => [
+            'type' => 'int(11)',
+            'nullable' => false,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'created_at' => [
+            'type' => 'datetime',
+            'nullable' => false,
+            'default' => 'CURRENT_TIMESTAMP',
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        'updated_at' => [
+            'type' => 'datetime',
+            'nullable' => true,
+            'default' => null,
+            'auto_increment' => false,
+            'primary' => false
+        ],
+        '__meta' => [
+            'engine' => 'InnoDB',
+            'charset' => 'utf8mb4',
+            'collate' => 'utf8mb4_unicode_ci'
+        ]
+    ],
+    'exam' => [],
+    'videosTable' => [],
+    'categoryTable' => [],
 ];

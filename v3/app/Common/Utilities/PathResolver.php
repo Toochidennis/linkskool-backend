@@ -6,20 +6,20 @@ class PathResolver
 {
     public static function getContentPaths(): array
     {
-        $v3root = realpath(__DIR__ . '/../../../');
+        $v3root = realpath(__DIR__ . '/../../../../../');
+
+        if (getenv('APP_ENV') === 'development') {
+            $v3root = realpath(__DIR__ . '/../../../') . DIRECTORY_SEPARATOR . 'public';
+        }
 
         if (!$v3root) {
             throw new \RuntimeException("Could not resolve v3 root path.");
         }
 
-        $publicPath = "$v3root/public";
-
-        $db = $_SESSION['_db'] ?? '';
-        $parts = explode('_', $db);
-        $dbName = $parts[2] ?? 'default_db';
-
+        $db = $_SESSION['_db'] ?? 'lrm_default_lrm';
+        $dbName = explode('_', $db)[2] ?? 'default_lrm';
         $relativePath = "assets/elearning/$dbName/";
-        $contentPath = $publicPath . DIRECTORY_SEPARATOR . $relativePath;
+        $contentPath = $v3root . DIRECTORY_SEPARATOR . $relativePath;
 
         if (!is_dir($contentPath) && !mkdir($contentPath, 0755, true)) {
             throw new \RuntimeException("Failed to create directory: {$contentPath}");

@@ -8,10 +8,12 @@ use V3\App\Models\Portal\Results\ResultCommentModel;
 class ResultCommentService
 {
     private ResultCommentModel $resultComment;
+    private string $role;
 
     public function __construct(PDO $pdo)
     {
         $this->resultComment = new ResultCommentModel($pdo);
+        $this->role = $_SESSION['role'] ?? '';
     }
 
     public function insertComment(array $data)
@@ -22,7 +24,7 @@ class ResultCommentService
             'reg_no' => $data['student_id'],
         ];
 
-        if ($data['role'] === 'admin') {
+        if ($this->role === 'admin') {
             $payload['principal'] = $data['comment'];
         } else {
             $payload['form_teacher'] = $data['comment'];
@@ -33,8 +35,20 @@ class ResultCommentService
 
     public function updateComment(array $data)
     {
+        $payload = [
+            'year' => $data['year'],
+            'term' => $data['term'],
+            'reg_no' => $data['student_id'],
+        ];
+
+        if ($this->role === 'admin') {
+            $payload['principal'] = $data['comment'];
+        } else {
+            $payload['form_teacher'] = $data['comment'];
+        }
+
         return $this->resultComment
             ->where('id', '=', $data['id'])
-            ->update(['comment' => $data['comment']]);
+            ->update($payload);
     }
 }

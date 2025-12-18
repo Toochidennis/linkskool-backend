@@ -2,20 +2,12 @@
 
 namespace V3\App\Controllers;
 
-use PDO;
-use V3\App\Common\Traits\PermissionTrait;
 use V3\App\Database\DatabaseConnector;
-use V3\App\Common\Utilities\DataExtractor;
-use V3\App\Common\Utilities\ResponseHandler;
-use V3\App\Common\Utilities\HttpStatus;
-use V3\App\Common\Utilities\Sanitizer;
 use V3\App\Common\Traits\ValidationTrait;
-use V3\App\Common\Traits\AuthenticatesRequests;
+use V3\App\Common\Utilities\{DataExtractor, ResponseHandler, HttpStatus, Sanitizer};
 
 abstract class BaseController
 {
-    use AuthenticatesRequests;
-    use PermissionTrait;
     use ValidationTrait;
 
     /**
@@ -24,31 +16,16 @@ abstract class BaseController
     protected array $post = [];
 
     /**
-     * @var string The database name extracted from the request.
+     * @var \PDO The active PDO connection instance.
      */
-    // protected string $dbname;
+    protected \PDO $pdo;
 
     /**
-     * @var PDO The database connection name.
-     */
-    protected PDO $pdo;
-
-    /**
-     * Initializes the controller by verifying API key/JWT and extracting request data.
+     * Constructor to initialize common properties and handle request data
      *
-     * This method:
-     * - Calls AuthService::verifyAPIKey() and AuthService::verifyJWT()
-     * to ensure that the request is authenticated.
-     * - Extracts the POST data (if the request method is POST) or the
-     * query parameters (if GET) to obtain the '_db' parameter.
-     *
-     * @return void
      */
     public function __construct()
     {
-        self::verifyAPIKey();
-        self::verifyJWT();
-
         $method = $_SERVER['REQUEST_METHOD'];
 
         $payload = match ($method) {

@@ -2,11 +2,12 @@
 
 namespace V3\App\Controllers\Portal\Academics;
 
-use Exception;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Academics\CourseAssignmentService;
 
+#[Group('/portal')]
 class CourseAssignmentController extends BaseController
 {
     private CourseAssignmentService $service;
@@ -17,6 +18,7 @@ class CourseAssignmentController extends BaseController
         $this->service = new CourseAssignmentService($this->pdo);
     }
 
+    #[Route('/course-assignments', 'POST', ['auth', 'role:admin'])]
     public function storeCourseAssignment()
     {
         $data = $this->validate(
@@ -31,24 +33,21 @@ class CourseAssignmentController extends BaseController
             ]
         );
 
-        try {
-            $isInserted = $this->service->assignCourses($data);
+        $isInserted = $this->service->assignCourses($data);
 
-            if ($isInserted) {
-                return $this->respond([
-                    'success' => true,
-                    'message' => 'Course(s) assigned successfully.'
-                ], HttpStatus::CREATED);
-            }
-            return $this->respondError(
-                'Failed to assign course(s).',
-                HttpStatus::BAD_REQUEST
-            );
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
+        if ($isInserted) {
+            return $this->respond([
+                'success' => true,
+                'message' => 'Course(s) assigned successfully.'
+            ], HttpStatus::CREATED);
         }
+        return $this->respondError(
+            'Failed to assign course(s).',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
+    #[Route('/course-assignments', 'GET', ['auth', 'role:admin'])]
     public function getCourseAssignments(array $vars)
     {
         $data = $this->validate(
@@ -60,11 +59,7 @@ class CourseAssignmentController extends BaseController
             ]
         );
 
-        try {
-            $result = $this->service->getAssignedCourses($data);
-            $this->respond(['success' => true, 'response' => $result]);
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
+        $result = $this->service->getAssignedCourses($data);
+        $this->respond(['success' => true, 'response' => $result]);
     }
 }

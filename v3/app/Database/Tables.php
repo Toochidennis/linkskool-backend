@@ -86,6 +86,20 @@ class Tables
         'ward',
         'question_table',
         'customer',
-        'responses'
+        'responses',
+        'exam',
+        'exam_type',
+        'videosTable',
+        'categoryTable',
+        'cbt_users',
+        'audit_logs',
+        'users',
+        'challenge',
+        'leaderboard',
+        'challenge_participants',
+        'cbt_leaderboard',
+        'topics',
+        'syllabi',
+        'level',
     ];
 }

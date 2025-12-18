@@ -21,6 +21,10 @@ class JoinBuilder
     public array $conditions = [];
     public array $bindings = [];
 
+    public function __construct()
+    {
+    }
+
     public function on(string|Closure $left, ?string $operator = null, $right = null): self
     {
         if ($left instanceof Closure) {
@@ -28,11 +32,13 @@ class JoinBuilder
             $left($group);
             $clause = '(' . $group->getClause() . ')';
             $this->conditions[] = ['AND', $clause];
-            $this->bindings = array_merge($this->bindings, $group->bindings);
+            $this->bindings = \array_merge($this->bindings, $group->bindings);
         } else {
+            //$this->syncTablesFromIdentifiers($left, $right);
+
             $left = $this->wrapIdentifier($left);
 
-            if (is_string($right) && str_contains($right, '.')) {
+            if (\is_string($right) && str_contains($right, '.')) {
                 $right = $this->wrapIdentifier($right);
                 $this->conditions[] = ['AND', "$left $operator $right"];
             } else {
@@ -57,9 +63,10 @@ class JoinBuilder
             $this->conditions[] = ['OR', $clause];
             $this->bindings = array_merge($this->bindings, $group->bindings);
         } else {
+            // $this->syncTablesFromIdentifiers($left, $right);
             $left = $this->wrapIdentifier($left);
 
-            if (is_string($right) && str_contains($right, '.')) {
+            if (\is_string($right) && str_contains($right, '.')) {
                 $right = $this->wrapIdentifier($right);
                 $this->conditions[] = ['OR', "$left $operator $right"];
             } else {
@@ -97,4 +104,27 @@ class JoinBuilder
         $parts = explode('.', $identifier);
         return implode('.', array_map(fn($part) => "`$part`", $parts));
     }
+
+    // private function syncTablesFromIdentifiers(...$args): void
+    // {
+    //     foreach ($args as $arg) {
+    //         if (\is_string($arg) && str_contains($arg, '.')) {
+    //             $parts = explode('.', $arg);
+    //             $this->validateColumn($parts[1]);
+    //         }
+    //     }
+    // }
+
+    // /**
+    //  * Summary of validateColumn
+    //  * @param string $column
+    //  * @throws \InvalidArgumentException
+    //  * @return void
+    //  */
+    // private function validateColumn(string $column): void
+    // {
+    //     if ($column !== '*' && !preg_match('/^[a-zA-Z0-9_]+$/', $column)) {
+    //         throw new \InvalidArgumentException("Invalid column name: $column");
+    //     }
+    // }
 }

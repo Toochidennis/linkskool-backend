@@ -4,8 +4,10 @@ namespace V3\App\Controllers\Portal\ELearning;
 
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\ELearning\AssignmentSubmissionService;
 
+#[Group('/portal')]
 class AssignmentSubmissionController extends BaseController
 {
     private AssignmentSubmissionService $assignmentSubmissionService;
@@ -16,6 +18,11 @@ class AssignmentSubmissionController extends BaseController
         $this->assignmentSubmissionService = new AssignmentSubmissionService($this->pdo);
     }
 
+    #[Route(
+        '/students/{student_id:\d+}/assignment-submissions',
+        'POST',
+        ['auth', 'role:student']
+    )]
     public function submit(array $vars)
     {
         $cleanedData = $this->validate(
@@ -41,30 +48,57 @@ class AssignmentSubmissionController extends BaseController
             ]
         );
 
-        try {
-            $newId = $this->assignmentSubmissionService->submitAssignment($cleanedData);
+        $newId = $this->assignmentSubmissionService->submitAssignment($cleanedData);
 
-            if ($newId) {
-                return $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Assignment submitted successfully',
-                    ],
-                    HttpStatus::CREATED
-                );
-            } else {
-                return $this->respondError(
-                    'Failed to submit assignment',
-                    HttpStatus::BAD_REQUEST
-                );
-            }
-        } catch (\Exception $e) {
-            return $this->respondError(
-                'Failed to submit assignment: ' . $e->getMessage()
+        if ($newId) {
+            return $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Assignment submitted successfully',
+                ],
+                HttpStatus::CREATED
             );
         }
+        return $this->respondError(
+            'Failed to submit assignment',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
+    #[Route('/elearning/assignment/mark', 'PUT', ['auth', 'role:admin', 'role:staff'])]
+    public function markAssignment(array $vars)
+    {
+        $filteredVars = $this->validate(
+            data: [...$this->post, ...$vars],
+            rules: [
+                'id' => 'required|integer',
+                'score' => 'required|numeric',
+            ]
+        );
+
+        $result = $this->assignmentSubmissionService
+            ->markAssignment($filteredVars);
+
+        if ($result) {
+            return $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Assignment marked successfully',
+                ]
+            );
+        }
+
+        return $this->respondError(
+            'Failed to mark assignment',
+            HttpStatus::BAD_REQUEST
+        );
+    }
+
+    #[Route(
+        '/elearning/assignment/{id:\d+}/submissions',
+        'GET',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function getSubmissions(array $vars)
     {
         $cleanedData = $this->validate(
@@ -76,23 +110,22 @@ class AssignmentSubmissionController extends BaseController
             ]
         );
 
-        try {
-            $submissions = $this->assignmentSubmissionService
-                ->getAssignmentSubmissions($cleanedData);
+        $submissions = $this->assignmentSubmissionService
+            ->getAssignmentSubmissions($cleanedData);
 
-            return $this->respond(
-                [
-                    'success' => true,
-                    'response' => $submissions
-                ],
-            );
-        } catch (\Exception $e) {
-            return $this->respondError(
-                'Failed to retrieve submissions: ' . $e->getMessage()
-            );
-        }
+        return $this->respond(
+            [
+                'success' => true,
+                'response' => $submissions
+            ],
+        );
     }
 
+    #[Route(
+        '/students/{student_id:\d+}/assignment-submissions',
+        'GET',
+        ['auth', 'role:student']
+    )]
     public function getMarkedAssignment(array $vars)
     {
         $filteredVars = $this->validate(
@@ -105,57 +138,22 @@ class AssignmentSubmissionController extends BaseController
             ]
         );
 
-        try {
-            $markedAssignment = $this->assignmentSubmissionService
-                ->getMarkedAssignment($filteredVars);
+        $markedAssignment = $this->assignmentSubmissionService
+            ->getMarkedAssignment($filteredVars);
 
-            return $this->respond(
-                [
-                    'success' => true,
-                    'response' => $markedAssignment,
-                ]
-            );
-        } catch (\Exception $e) {
-            return $this->respondError(
-                'Failed to retrieve quiz submissions: ' . $e->getMessage()
-            );
-        }
-    }
-
-    public function markAssignment(array $vars)
-    {
-        $filteredVars = $this->validate(
-            data: [...$this->post, ...$vars],
-            rules: [
-                'id' => 'required|integer',
-                'score' => 'required|numeric',
+        return $this->respond(
+            [
+                'success' => true,
+                'response' => $markedAssignment,
             ]
         );
-
-        try {
-            $result = $this->assignmentSubmissionService
-                ->markAssignment($filteredVars);
-
-            if ($result) {
-                return $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Assignment marked successfully',
-                    ]
-                );
-            }
-
-            return $this->respondError(
-                'Failed to mark assignment',
-                HttpStatus::BAD_REQUEST
-            );
-        } catch (\Exception $e) {
-            return $this->respondError(
-                'Failed to mark assignment: ' . $e->getMessage()
-            );
-        }
     }
 
+    #[Route(
+        '/elearning/assignment/{content_id:\d+}/publish',
+        'PUT',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function publishAssignment(array $vars)
     {
         $filteredVars = $this->validate(
@@ -168,27 +166,21 @@ class AssignmentSubmissionController extends BaseController
             ]
         );
 
-        try {
-            $result = $this->assignmentSubmissionService
-                ->publishAssignment($filteredVars);
+        $result = $this->assignmentSubmissionService
+            ->publishAssignment($filteredVars);
 
-            if ($result) {
-                return $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Assignment published successfully',
-                    ]
-                );
-            }
-
-            return $this->respondError(
-                'Failed to publish assignment',
-                HttpStatus::BAD_REQUEST
-            );
-        } catch (\Exception $e) {
-            return $this->respondError(
-                'Failed to publish assignment: ' . $e->getMessage()
+        if ($result) {
+            return $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Assignment published successfully',
+                ]
             );
         }
+
+        return $this->respondError(
+            'Failed to publish assignment',
+            HttpStatus::BAD_REQUEST
+        );
     }
 }

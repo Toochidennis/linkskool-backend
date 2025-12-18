@@ -6,41 +6,26 @@ use FastRoute\RouteCollector;
 
 class CustomRouteCollector extends RouteCollector
 {
-    public array $middlewares = [];
+    private array $middlewares = [];
 
-    public function addRoute($method, $route, $handler, $middleware = [])
+    public function addRoute($method, $route, $handler, $middleware = []): void
     {
         parent::addRoute($method, $route, $handler);
-        $this->middlewares[$route] = $middleware;
+
+        // Generate a consistent middleware key (Class@method)
+        $key = (is_array($handler)) ? "$handler[0]@$handler[1]" : (string) $handler;
+
+        $this->middlewares[$key] = $middleware;
     }
 
-    public function getMiddlewares(string $route): array
+    public function getMiddlewares(string $key): array
     {
-        return $this->middlewares[$route] ?? [];
+        return $this->middlewares[$key] ?? [];
     }
 
-    public function get($route, $handler)
+    // for debugging
+    public function allMiddlewares(): array
     {
-        $this->addRoute('GET', $route, $handler);
-    }
-
-    public function post($route, $handler)
-    {
-        $this->addRoute('POST', $route, $handler);
-    }
-
-    public function put($route, $handler)
-    {
-        $this->addRoute('PUT', $route, $handler);
-    }
-
-    public function delete($route, $handler)
-    {
-        $this->addRoute('DELETE', $route, $handler);
-    }
-
-    public function patch($route, $handler)
-    {
-        $this->addRoute('PATCH', $route, $handler);
+        return $this->middlewares;
     }
 }

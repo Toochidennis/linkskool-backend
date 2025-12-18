@@ -109,6 +109,7 @@ class PaymentDashboardService
                 'tid AS id',
                 'cid AS student_id',
                 'cref AS reg_no',
+                'ref AS reference',
                 'description as invoice_details',
                 'name',
                 'amount_due AS amount',
@@ -142,7 +143,7 @@ class PaymentDashboardService
                 'id' => $invoice['id'],
                 'reference' => $invoice['reference'],
                 'invoice_details' => json_decode($invoice['invoice_details'], true),
-                'amount_due' => $invoice['amount_due'],
+                'amount_due' => $invoice['amount'],
                 'year' => $invoice['year'],
                 'term' => $invoice['term'],
             ];

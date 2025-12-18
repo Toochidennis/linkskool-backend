@@ -3,8 +3,10 @@
 namespace V3\App\Controllers\Portal\Payments;
 
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Payments\IncomeService;
 
+#[Group('/portal/payments')]
 class IncomeController extends BaseController
 {
     private IncomeService $incomeService;
@@ -15,6 +17,11 @@ class IncomeController extends BaseController
         $this->incomeService = new IncomeService($this->pdo);
     }
 
+    #[Route(
+        '/income/report/generate',
+        'POST',
+        ['auth', 'role:admin']
+    )]
     public function generateReport()
     {
         $filteredVars = $this->validate(
@@ -36,15 +43,11 @@ class IncomeController extends BaseController
             ]
         );
 
-        try {
-            $reports = $this->incomeService->report($filteredVars);
+        $reports = $this->incomeService->report($filteredVars);
 
-            return $this->respond([
-                'success' => true,
-                'data' => $reports
-            ]);
-        } catch (\Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
+        return $this->respond([
+            'success' => true,
+            'data' => $reports
+        ]);
     }
 }

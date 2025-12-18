@@ -1,0 +1,1348 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "LinkSkool API",
+        "version": "1.0.0",
+        "description": "Auto-generated API documentation with parameter detection (path + query)."
+    },
+    "servers": [
+        {
+            "url": "https://linkskool.net/api/v3/",
+            "description": "Base server"
+        }
+    ],
+    "tags": [
+        {
+            "name": "public",
+            "description": "Public module"
+        }
+    ],
+    "paths": {
+        "/public/admissions": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAdmissions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\AdmissionController::getAdmissions",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/audit-logs/user/{userId:\\d+}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetLogsByUserId",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\AuditLogController::getLogsByUserId",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'userId'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/books": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Index",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\BookController::index",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/exams": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GET /public/cbt/exams\n     * Returns all exam types with their courses and available years.\n     */",
+                "description": "GET /public/cbt/exams\nReturns all exam types with their courses and available years.",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtController::getAllExams",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/exams/{examTypeId:\\d+}/courses": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GET /public/cbt/exams/{examTypeId}/courses\n     * Returns all courses for a given exam type.\n     */",
+                "description": "GET /public/cbt/exams/{examTypeId}/courses\nReturns all courses for a given exam type.",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtController::getCoursesByExamType",
+                "parameters": [
+                    {
+                        "name": "examTypeId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'examTypeId'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/exams/{exam_id:\\d+}/questions": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GET /public/cbt/exams/{examTypeId}/courses/{courseId}/questions\n     * Returns all questions for a given exam type and course.\n     */",
+                "description": "GET /public/cbt/exams/{examTypeId}/courses/{courseId}/questions\nReturns all questions for a given exam type and course.",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtController::getQuestions",
+                "parameters": [
+                    {
+                        "name": "exam_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'exam_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/users": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreUser",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtUserController::storeUser",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/users/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateUser",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtUserController::updateUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/users/{id:\\d+}/payment-status": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdatePaymentStatus",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtUserController::updatePaymentStatus",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/users/{email}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetUserByEmail",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtUserController::getUserByEmail",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'email'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/challenge": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreChallenge",
+                "description": "storeChallenge",
+                "operationId": "V3\\App\\Controllers\\Explore\\ChallengeController::storeChallenge",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetChallenges",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ChallengeController::getChallenges",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/challenge/{challenge_id:\\d+}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateChallenge",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ChallengeController::updateChallenge",
+                "parameters": [
+                    {
+                        "name": "challenge_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'challenge_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteChallenge",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ChallengeController::deleteChallenge",
+                "parameters": [
+                    {
+                        "name": "challenge_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'challenge_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/challenge/status/{challenge_id:\\d+}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateChallengeStatus",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ChallengeController::updateChallengeStatus",
+                "parameters": [
+                    {
+                        "name": "challenge_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'challenge_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/challenge/questions": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetChallengeQuestions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ChallengeController::getChallengeQuestions",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/dashboard": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetDashboardData",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ContentDashboardController::getDashboardData",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/activity-logs": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetActivityLogs",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ContentDashboardController::getActivityLogs",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/courses": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CourseController::storeCourse",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAllCourses",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CourseController::getAllCourses",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/courses/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CourseController::updateCourse",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CourseController::deleteCourse",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/questions": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreQuestions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamController::storeQuestions",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/exams": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetExams",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamController::getExams",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteExam",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamController::deleteExam",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/exams/questions": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetQuestions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamController::getQuestions",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/exam-types": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreExamType",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamTypeController::storeExamType",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAllExamTypes",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamTypeController::getAllExamTypes",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/exam-types/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateExamType",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamTypeController::updateExamType",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteExamType",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamTypeController::deleteExamType",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/exam-types/active": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetActiveExamTypes",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamTypeController::getActiveExamTypes",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/export-questions": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "ExportQuestions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExportQuestionsController::exportQuestions",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/for-you": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "ForYou",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ForYouController::forYou",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/games": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Index",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\GameController::index",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/leaderboard": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreLeaderboardData",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\LeaderboardController::storeLeaderboardData",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/movies/all": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAllMovies",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\MovieController::getAllMovies",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/movies/category/{cat}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetByCategory",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\MovieController::getByCategory",
+                "parameters": [
+                    {
+                        "name": "cat",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'cat'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/movies/genres/{id:\\d+}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetByGenre",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\MovieController::getByGenre",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/movies/genres": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAllGenres",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\MovieController::getAllGenres",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/movies/shorts": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAllShorts",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\MovieController::getAllShorts",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/news": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Index",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\NewsController::index",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/settings": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetSettings",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\SettingsController::getSettings",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/key-buddy/content": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetContent",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\TemporalController::getContent",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/topics/{course_id:\\d+}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GET /public/cbt/topics/{courseId}\n     * Returns all topics for a given course ID.\n     */",
+                "description": "GET /public/cbt/topics/{courseId}\nReturns all topics for a given course ID.",
+                "operationId": "V3\\App\\Controllers\\Explore\\TopicController::getTopicsByCourseId",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/users": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "StoreUser",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\UserController::storeUser",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetUsers",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\UserController::getUsers",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/users/login": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Login",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\UserController::login",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/users/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateUser",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\UserController::updateUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteUser",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\UserController::deleteUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/videos": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Index",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\VideoController::index",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    }
+}

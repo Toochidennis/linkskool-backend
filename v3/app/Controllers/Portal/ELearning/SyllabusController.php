@@ -2,11 +2,12 @@
 
 namespace V3\App\Controllers\Portal\ELearning;
 
-use Exception;
 use V3\App\Controllers\BaseController;
 use V3\App\Common\Utilities\HttpStatus;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\ELearning\SyllabusService;
 
+#[Group('/portal')]
 class SyllabusController extends BaseController
 {
     private SyllabusService $service;
@@ -17,6 +18,7 @@ class SyllabusController extends BaseController
         $this->service = new SyllabusService($this->pdo);
     }
 
+    #[Route('/elearning/syllabus', 'POST', ['auth', 'role:admin', 'role:staff'])]
     public function store()
     {
         $data = $this->validate(
@@ -36,25 +38,22 @@ class SyllabusController extends BaseController
             ]
         );
 
-        try {
-            $newId = $this->service->create($data);
+        $newId = $this->service->create($data);
 
-            if ($newId > 0) {
-                $this->respond(
-                    data: [
-                        'success' => true,
-                        'message' => 'Syllabus created successfully.'
-                    ],
-                    statusCode: HttpStatus::CREATED
-                );
-            }
-
-            $this->respondError('Failed to create syllabus', HttpStatus::BAD_REQUEST);
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
+        if ($newId > 0) {
+            $this->respond(
+                data: [
+                    'success' => true,
+                    'message' => 'Syllabus created successfully.'
+                ],
+                statusCode: HttpStatus::CREATED
+            );
         }
+
+        $this->respondError('Failed to create syllabus', HttpStatus::BAD_REQUEST);
     }
 
+    #[Route('/elearning/syllabus/{id:\d+}', 'PUT', ['auth', 'role:admin', 'role:staff'])]
     public function update(array $vars)
     {
         $data = $this->validate(
@@ -69,24 +68,21 @@ class SyllabusController extends BaseController
             ]
         );
 
-        try {
-            $id = $this->service->updateSyllabus($data);
+        $id = $this->service->updateSyllabus($data);
 
-            if ($id > 0) {
-                $this->respond(
-                    data: [
-                        'success' => true,
-                        'message' => 'Syllabus updated successfully.'
-                    ]
-                );
-            }
-
-            return $this->respondError('No changes', HttpStatus::INFO);
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
+        if ($id > 0) {
+            $this->respond(
+                data: [
+                    'success' => true,
+                    'message' => 'Syllabus updated successfully.'
+                ]
+            );
         }
+
+        return $this->respondError('No changes', HttpStatus::INFO);
     }
 
+    #[Route('/elearning/syllabus', 'GET', ['auth', 'role:admin'])]
     public function get(array $vars)
     {
         $data = $this->validate(
@@ -98,18 +94,15 @@ class SyllabusController extends BaseController
             ]
         );
 
-        try {
-            $this->respond(
-                data: [
-                    'success' => true,
-                    'response' => $this->service->getSyllabus(filters: $data)
-                ]
-            );
-        } catch (Exception $e) {
-            $this->respondError(message: $e->getMessage());
-        }
+        $this->respond(
+            data: [
+                'success' => true,
+                'response' => $this->service->getSyllabus(filters: $data)
+            ]
+        );
     }
 
+    #[Route('/elearning/syllabus/staff', 'GET', ['auth', 'role:staff'])]
     public function getByStaff(array $vars)
     {
         $data = $this->validate(
@@ -122,18 +115,15 @@ class SyllabusController extends BaseController
             ]
         );
 
-        try {
-            return $this->respond(
-                data: [
-                    'success' => true,
-                    'response' => $this->service->getSyllabusByStaff(filters: $data)
-                ]
-            );
-        } catch (Exception $e) {
-            return $this->respondError(message: $e->getMessage());
-        }
+        return $this->respond(
+            data: [
+                'success' => true,
+                'response' => $this->service->getSyllabusByStaff(filters: $data)
+            ]
+        );
     }
 
+    #[Route('/elearning/syllabus/{id:\d+}', 'DELETE', ['auth', 'role:admin', 'role:staff'])]
     public function delete(array $vars)
     {
         $data = $this->validate(
@@ -143,24 +133,20 @@ class SyllabusController extends BaseController
             ]
         );
 
-        try {
-            $deleted = $this->service->deleteSyllabus($data['id']);
+        $deleted = $this->service->deleteSyllabus($data['id']);
 
-            if ($deleted) {
-                return $this->respond(
-                    data: [
-                        'success' => true,
-                        'message' => 'Syllabus deleted successfully.'
-                    ]
-                );
-            }
-
-            return $this->respondError(
-                'Failed to delete syllabus',
-                HttpStatus::BAD_REQUEST
+        if ($deleted) {
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'message' => 'Syllabus deleted successfully.'
+                ]
             );
-        } catch (Exception $e) {
-            return $this->respondError(message: $e->getMessage());
         }
+
+        return $this->respondError(
+            'Failed to delete syllabus',
+            HttpStatus::BAD_REQUEST
+        );
     }
 }

@@ -5,7 +5,6 @@ namespace V3\App\Database\Query;
 use Closure;
 use PDO;
 use InvalidArgumentException;
-use V3\App\Database\Schema\SchemaSynchronizer;
 use V3\App\Database\Tables;
 
 /**
@@ -16,7 +15,6 @@ use V3\App\Database\Tables;
 class QueryBuilder
 {
     private PDO $pdo;
-    private SchemaSynchronizer $schemaSynchronizer;
     private string $table;
     private array $selectColumns = ['*'];
     private array $whereConditions = [];
@@ -37,7 +35,7 @@ class QueryBuilder
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
-        $this->schemaSynchronizer =  new SchemaSynchronizer($this->pdo);
+        //$this->schemaSynchronizer =  new SchemaSynchronizer($this->pdo);
     }
 
     /**
@@ -51,8 +49,6 @@ class QueryBuilder
         $this->validateTable($table);
         $this->table = $table;
 
-        $this->schemaSynchronizer->sync($table);
-
         return $this;
     }
 
@@ -64,6 +60,7 @@ class QueryBuilder
      */
     public function select(array $columns = ['*']): self
     {
+        //array_map([$this, 'validateColumn'], $columns);
         $this->selectColumns = $columns;
         return $this;
     }
@@ -82,13 +79,14 @@ class QueryBuilder
             $builder = new WhereBuilder();
             $column($builder);
             $this->whereConditions[] = $builder->getClause();
-            $this->whereBindings = array_merge($this->whereBindings, $builder->getBindings());
+            $this->whereBindings = [...$this->whereBindings, ...$builder->getBindings()];
         } else {
-            if (func_num_args() === 2) {
+            if (\func_num_args() === 2) {
                 $value = $operator;
                 $operator = '=';
             }
 
+            $this->validateColumn($column);
             $quoted = $this->wrapIdentifier($column);
             $this->whereConditions[] = "$quoted $operator ?";
             $this->whereBindings[] = $value;
@@ -102,11 +100,12 @@ class QueryBuilder
         $builder = new WhereBuilder();
 
         foreach ($conditions as [$column, $operator, $value]) {
+            $this->validateColumn($column);
             $builder->where($column, $operator, $value);
         }
 
         $this->whereConditions[] = $builder->getClause();
-        $this->whereBindings = array_merge($this->whereBindings, $builder->getBindings());
+        $this->whereBindings = [...$this->whereBindings, ...$builder->getBindings()];
 
         return $this;
     }
@@ -120,18 +119,19 @@ class QueryBuilder
             throw new InvalidArgumentException("Values for NOT IN composite cannot be empty.");
         }
 
+        array_map([$this, 'validateColumn'], $columns);
         // Wrap column names with backticks
-        $wrappedCols = array_map(fn($col) => $this->wrapIdentifier($col), $columns);
+        $wrappedCols = array_map([$this, 'wrapIdentifier'], $columns);
         $colList = '(' . implode(', ', $wrappedCols) . ')';
 
         // Generate placeholders for each pair
         $placeholders = [];
         foreach ($pairs as $pair) {
-            if (!is_array($pair) || count($pair) !== count($columns)) {
-                throw new InvalidArgumentException("Each pair must have exactly " . count($columns) . " values.");
+            if (!\is_array($pair) || \count($pair) !== \count($columns)) {
+                throw new InvalidArgumentException("Each pair must have exactly " . \count($columns) . " values.");
             }
-            $placeholders[] = '(' . implode(', ', array_fill(0, count($columns), '?')) . ')';
-            $this->whereBindings = array_merge($this->whereBindings, array_values($pair));
+            $placeholders[] = '(' . implode(', ', array_fill(0, \count($columns), '?')) . ')';
+            $this->whereBindings = [...$this->whereBindings, ...array_values($pair)];
         }
 
         $this->whereConditions[] = "$colList NOT IN (" . implode(', ', $placeholders) . ")";
@@ -149,14 +149,27 @@ class QueryBuilder
      */
     public function orderBy(string|array $columns, ?string $direction = 'ASC'): self
     {
-        if (is_array($columns)) {
+        if (\is_array($columns)) {
             foreach ($columns as $column => $dir) {
+                $this->validateColumn($column);
                 $this->orderBy[] = $this->wrapIdentifier($column) . ' ' . strtoupper($dir);
             }
         } else {
+            $this->validateColumn($columns);
             $this->orderBy[] = $this->wrapIdentifier($columns) . ' ' . strtoupper($direction);
         }
 
+        return $this;
+    }
+
+    /**
+     * Adds a RANDOM ORDER BY clause to the query.
+     *
+     * @return self
+     */
+    public function orderByRandom(): self
+    {
+        $this->orderBy[] = "RAND()";
         return $this;
     }
 
@@ -168,10 +181,12 @@ class QueryBuilder
      */
     public function groupBy(string|array $columns): self
     {
-        if (is_array($columns)) {
-            $wrapped = array_map(fn($col) => $this->wrapIdentifier($col), $columns);
+        if (\is_array($columns)) {
+            array_map($this->validateColumn(...), $columns);
+            $wrapped = \array_map($this->wrapIdentifier(...), $columns);
             $this->groupBy = "GROUP BY " . implode(', ', $wrapped);
         } else {
+            $this->validateColumn($columns);
             $this->groupBy = "GROUP BY " . $this->wrapIdentifier($columns);
         }
 
@@ -211,8 +226,17 @@ class QueryBuilder
             $condition($joinBuilder);
 
             $onClause = $joinBuilder->getClause();
-            $this->bindings = array_merge($this->bindings, $joinBuilder->bindings);
+            $this->bindings = [...$this->bindings, ...$joinBuilder->bindings];
         } else {
+            foreach (explode(' ', $condition) as $token) {
+                if (str_contains($token, '.')) {
+                    $parts = explode('.', $token);
+                    if (\count($parts) === 2) {
+                        $this->validateTable($parts[0]);
+                        // $this->validateColumn($parts[1]);
+                    }
+                }
+            }
             $onClause = $condition;
         }
 
@@ -237,20 +261,20 @@ class QueryBuilder
             $query .= " WHERE " . implode(" AND ", $this->whereConditions);
         }
         if ($this->groupBy) {
-            $query .= " " . $this->groupBy;
+            $query .= " {$this->groupBy}";
         }
         if (!empty($this->orderBy)) {
             $query .= " ORDER BY " . implode(', ', $this->orderBy);
         }
         if ($this->limit) {
-            $query .= " " . $this->limit;
+            $query .= " {$this->limit}";
         }
         if ($this->offset) {
-            $query .= " " . $this->offset;
+            $query .= " {$this->offset}";
         }
 
         $stmt = $this->pdo->prepare($query);
-        $stmt->execute(array_merge($this->bindings, $this->whereBindings));
+        $stmt->execute([...$this->bindings, ...$this->whereBindings]);
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $this->reset();
@@ -277,11 +301,12 @@ class QueryBuilder
      */
     public function insert(array $data)
     {
+        array_map($this->validateColumn(...), array_keys($data));
         $columns = implode(", ", array_map(
-            [$this, 'wrapIdentifier'],
+            $this->wrapIdentifier(...),
             array_keys($data)
         ));
-        $placeholders = implode(", ", array_fill(0, count($data), "?"));
+        $placeholders = implode(", ", array_fill(0, \count($data), "?"));
         $stmt = $this->pdo->prepare(
             "INSERT INTO " . $this->wrapIdentifier($this->table) . " ($columns) VALUES ($placeholders)"
         );
@@ -298,12 +323,13 @@ class QueryBuilder
      */
     public function update(array $data): bool
     {
-        if (empty($this->whereConditions)) {
-            throw new InvalidArgumentException("Update requires at least one WHERE condition.");
+        if (empty($this->whereConditions) || empty($data)) {
+            throw new InvalidArgumentException("Update requires at least one condition and data to update.");
         }
 
         $setClauses = [];
         foreach ($data as $column => $value) {
+            $this->validateColumn($column);
             $setClauses[] = "`$column` = ?";
             $this->updateBindings[] = $value;
         }
@@ -314,7 +340,7 @@ class QueryBuilder
             implode(" AND ", $this->whereConditions);
         $stmt = $this->pdo->prepare($query);
 
-        $allBindings = array_merge($this->updateBindings, $this->whereBindings);
+        $allBindings = [...$this->updateBindings, ...$this->whereBindings];
         $success = $stmt->execute($allBindings);
 
         $this->reset();
@@ -327,10 +353,11 @@ class QueryBuilder
         if (empty($values)) {
             throw new InvalidArgumentException("Values for NOT IN cannot be empty.");
         }
+        $this->validateColumn($column);
 
-        $placeholders = implode(", ", array_fill(0, count($values), "?"));
+        $placeholders = implode(", ", array_fill(0, \count($values), "?"));
         $this->whereConditions[] = "`$column` NOT IN ($placeholders)";
-        $this->whereBindings = array_merge($this->whereBindings, $values);
+        $this->whereBindings = [...$this->whereBindings, ...$values];
 
         return $this;
     }
@@ -339,16 +366,18 @@ class QueryBuilder
         if (empty($values)) {
             throw new InvalidArgumentException("Values for IN cannot be empty.");
         }
+        $this->validateColumn($column);
 
-        $placeholders = implode(", ", array_fill(0, count($values), "?"));
+        $placeholders = implode(", ", array_fill(0, \count($values), "?"));
         $this->whereConditions[] = "`$column` IN ($placeholders)";
-        $this->whereBindings = array_merge($this->whereBindings, $values);
+        $this->whereBindings = [...$this->whereBindings, ...$values];
 
         return $this;
     }
 
     public function whereBetween(string $column, $start, $end): self
     {
+        $this->validateColumn($column);
         $quoted = $this->wrapIdentifier($column);
         $this->whereConditions[] = "$quoted BETWEEN ? AND ?";
         $this->whereBindings[] = $start;
@@ -359,6 +388,7 @@ class QueryBuilder
 
     public function whereNotBetween(string $column, $start, $end): self
     {
+        $this->validateColumn($column);
         $quoted = $this->wrapIdentifier($column);
         $this->whereConditions[] = "$quoted NOT BETWEEN ? AND ?";
         $this->whereBindings[] = $start;
@@ -369,6 +399,7 @@ class QueryBuilder
 
     public function whereNull(string $column): self
     {
+        $this->validateColumn($column);
         $quoted = $this->wrapIdentifier($column);
         $this->whereConditions[] = "$quoted IS NULL";
         return $this;
@@ -376,6 +407,7 @@ class QueryBuilder
 
     public function whereNotNull(string $column): self
     {
+        $this->validateColumn($column);
         $quoted = $this->wrapIdentifier($column);
         $this->whereConditions[] = "$quoted IS NOT NULL";
         return $this;
@@ -384,7 +416,7 @@ class QueryBuilder
     public function whereRaw(string $expression, array $bindings = []): self
     {
         $this->whereConditions[] = $expression;
-        $this->whereBindings = array_merge($this->whereBindings, $bindings);
+        $this->whereBindings = [...$this->whereBindings, ...$bindings];
 
         return $this;
     }
@@ -498,15 +530,69 @@ class QueryBuilder
      */
     private function validateTable(string $table): void
     {
-        if (!in_array($table, Tables::ALLOWED_TABLES)) {
+        if (!\in_array($table, Tables::ALLOWED_TABLES)) {
             throw new InvalidArgumentException("Request not allowed for table $table");
         }
     }
 
+    /**
+     * Wraps an identifier (e.g., table or column name) with backticks.
+     *
+     * @param  string $identifier The identifier to wrap.
+     * @return string The wrapped identifier.
+     */
     private function wrapIdentifier(string $identifier): string
     {
         $parts = explode('.', $identifier);
         return implode('.', array_map(fn($part) => "`$part`", $parts));
+    }
+
+    /**
+     * Summary of validateColumn
+     * @param string $column
+     * @throws InvalidArgumentException
+     * @return void
+     */
+    private function validateColumn(string $column): void
+    {
+        if ($column === '*') {
+            return;
+        }
+
+        // Normalize spaces
+        $column = trim($column);
+
+        // Split alias: supports "AS alias" or just "alias"
+        $hasAlias = false;
+        $alias = null;
+
+        if (stripos($column, ' as ') !== false) {
+            list($column, $alias) = preg_split('/\s+as\s+/i', $column);
+            $hasAlias = true;
+        } else {
+            // Regex to catch trailing alias without AS
+            if (preg_match('/^(.+?)\s+([a-zA-Z_][a-zA-Z0-9_]*)$/', $column, $matches)) {
+                $column = $matches[1];
+                $alias = $matches[2];
+                $hasAlias = true;
+            }
+        }
+
+        // Validate alias if present
+        if ($hasAlias) {
+            if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $alias)) {
+                throw new InvalidArgumentException("Invalid column alias: $alias");
+            }
+        }
+
+        // Validate main column path: part1.part2.part3
+        $parts = explode('.', $column);
+
+        foreach ($parts as $part) {
+            if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $part)) {
+                throw new InvalidArgumentException("Invalid column name: $column");
+            }
+        }
     }
 
     /**

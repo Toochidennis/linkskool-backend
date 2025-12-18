@@ -14,10 +14,11 @@
 
 namespace V3\App\Controllers\Portal\Results;
 
-use Exception;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Results\ClassCourseResultService;
 
+#[Group('/portal')]
 class ClassCourseResultController extends BaseController
 {
     private ClassCourseResultService $service;
@@ -28,6 +29,11 @@ class ClassCourseResultController extends BaseController
         $this->service = new ClassCourseResultService($this->pdo);
     }
 
+    #[Route(
+        '/classes/{class_id:\d+}/courses/{course_id}/results',
+        'GET',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function getCourseResultsForClass(array $vars)
     {
         $data = $this->validate(
@@ -41,16 +47,17 @@ class ClassCourseResultController extends BaseController
             ]
         );
 
-        try {
-            return $this->respond([
-                'success' => true,
-                'response' => $this->service->fetchTermCourseResult($data)
-            ]);
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
+        return $this->respond([
+            'success' => true,
+            'response' => $this->service->fetchTermCourseResult($data)
+        ]);
     }
 
+    #[Route(
+        '/classes/{class_id:\d+}/students-result',
+        'GET',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function getStudentsResultForClass(array $vars)
     {
         $data = $this->validate(
@@ -63,16 +70,17 @@ class ClassCourseResultController extends BaseController
             ]
         );
 
-        try {
-            return $this->respond([
-                'success' => true,
-                'response' => $this->service->fetchStudentsTermResultWithComments($data)
-            ]);
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
+        return $this->respond([
+            'success' => true,
+            'response' => $this->service->fetchStudentsTermResultWithComments($data)
+        ]);
     }
 
+    #[Route(
+        '/classes/{class_id:\d+}/composite-result',
+        'GET',
+        ['auth', 'role:admin']
+    )]
     public function getClassCompositeResult(array $vars)
     {
         $data = $this->validate(
@@ -85,16 +93,17 @@ class ClassCourseResultController extends BaseController
             ]
         );
 
-        try {
-            return $this->respond([
-                'success' => true,
-                'response' => $this->service->fetchTermCompositeResult($data)
-            ]);
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
+        return $this->respond([
+            'success' => true,
+            'response' => $this->service->fetchTermCompositeResult($data)
+        ]);
     }
 
+    #[Route(
+        '/levels/result/performance',
+        'GET',
+        ['auth', 'role:admin']
+    )]
     public function getAllLevelsPerformance(array $vars)
     {
         $data = $this->validate(
@@ -105,13 +114,9 @@ class ClassCourseResultController extends BaseController
             ]
         );
 
-        try {
-            return $this->respond([
-                'success' => true,
-                'response' => $this->service->fetchLevelsPerformance($data)
-            ]);
-        } catch (Exception $e) {
-            return $this->respondError($e->getMessage());
-        }
+        return $this->respond([
+            'success' => true,
+            'response' => $this->service->fetchLevelsPerformance($data)
+        ]);
     }
 }

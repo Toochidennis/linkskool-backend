@@ -8,7 +8,13 @@
         "illuminate/contracts": "^12.19",
         "illuminate/collections": "^12.19",
         "illuminate/filesystem": "^12.19",
-        "illuminate/macroable": "^12.19"
+        "illuminate/macroable": "^12.19",
+        "zircote/swagger-php": "^5.5",
+        "swagger-api/swagger-ui": "^5.29",
+        "league/csv": "^9.27",
+        "phpoffice/phpspreadsheet": "^5.2",
+        "box/spout": "^3.3",
+        "ezyang/htmlpurifier": "^4.19"
     },
     "autoload": {
         "psr-4": {

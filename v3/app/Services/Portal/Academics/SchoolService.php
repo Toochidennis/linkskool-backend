@@ -16,7 +16,15 @@ class SchoolService
     public function getSchools(): array
     {
         $result = $this->school
-            ->select(['id', 'school_name', 'token AS school_code', 'address', 'email', 'website'])
+            ->select([
+                'id',
+                'logo',
+                'school_name',
+                'token AS school_code',
+                'address',
+                'email',
+                'website'
+            ])
             ->where('school_name', '<>', '')
             ->orderBy('school_name', 'ASC')
             ->get();

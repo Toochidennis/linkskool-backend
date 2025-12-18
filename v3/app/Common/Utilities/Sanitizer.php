@@ -18,7 +18,7 @@ class Sanitizer
                 return null; // Keep null as-is, but record it
             }
 
-            if (is_array($value)) {
+            if (\is_array($value)) {
                 $sanitized = [];
                 foreach ($value as $k => $v) {
                     $sanitized[$k] = $process($v, $keyPath . ($keyPath ? '.' : '') . $k);
@@ -26,8 +26,10 @@ class Sanitizer
                 return $sanitized;
             }
 
+            $purifier = new \HTMLPurifier(\HTMLPurifier_Config::createDefault());
+
             // Sanitize scalar value
-            return strip_tags(trim((string) $value));
+            return $purifier->purify(trim((string)$value));
         };
 
         $sanitizedData = $process($input, $parentKey);

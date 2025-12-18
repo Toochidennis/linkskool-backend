@@ -2,11 +2,12 @@
 
 namespace V3\App\Controllers\Portal\ELearning;
 
-use Exception;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\ELearning\QuizService;
 
+#[Group('/portal')]
 class QuizController extends BaseController
 {
     private QuizService $quizService;
@@ -17,6 +18,7 @@ class QuizController extends BaseController
         $this->quizService = new QuizService($this->pdo);
     }
 
+    #[Route('/elearning/quiz', 'POST', ['auth', 'role:admin', 'role:staff'])]
     public function store()
     {
         $data =  $this->validate(
@@ -47,20 +49,20 @@ class QuizController extends BaseController
                 'questions.*.question_type' => 'required|string|in:short_answer,multiple_choice',
 
                 'questions.*.question_files' => 'sometimes|array',
-                'questions.*.question_files.*.file_name' => 'required|string|filled',
-                'questions.*.question_files.*.old_file_name' => 'sometimes|string',
-                'questions.*.question_files.*.type' => 'required|string|filled',
-                'questions.*.question_files.*.file' => 'required|string|filled',
+                'questions.*.question_files.*.file_name' => 'required_with:questions.*.question_files|string|filled',
+                'questions.*.question_files.*.old_file_name' => 'nullable|string',
+                'questions.*.question_files.*.type' => 'required_with:questions.*.question_files|string|filled',
+                'questions.*.question_files.*.file' => 'required_with:questions.*.question_files|string|filled',
 
                 'questions.*.options' => 'sometimes|array',
                 'questions.*.options.*.order' => 'required|integer',
                 'questions.*.options.*.text' => 'sometimes|string',
 
                 'questions.*.options.*.option_files' => 'sometimes|array',
-                'questions.*.options.*.option_files.*.file_name' => 'required|string|filled',
-                'questions.*.options.*.option_files.*.old_file_name' => 'sometimes|string',
-                'questions.*.options.*.option_files.*.type' => 'required|string|filled',
-                'questions.*.options.*.option_files.*.file' => 'required|string|filled',
+                'questions.*.options.*.option_files.*.file_name' => 'required_with:questions.*.options.*.option_files|string|filled',
+                'questions.*.options.*.option_files.*.old_file_name' => 'nullable|string',
+                'questions.*.options.*.option_files.*.type' => 'required_with:questions.*.options.*.option_files|string|filled',
+                'questions.*.options.*.option_files.*.file' => 'required_with:questions.*.options.*.option_files|string|filled',
 
                 'questions.*.correct' => 'required|array',
                 'questions.*.correct.order' => 'required|integer',
@@ -68,26 +70,23 @@ class QuizController extends BaseController
             ]
         );
 
-        try {
-            $contentId = $this->quizService->addQuiz($data);
+        $contentId = $this->quizService->addQuiz($data);
 
-            if ($contentId > 0) {
-                $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Quiz added successfully',
-                        'id' => $contentId
-                    ],
-                    HttpStatus::CREATED
-                );
-            }
-
-            return $this->respondError('Failed to add quiz', HttpStatus::BAD_REQUEST);
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
+        if ($contentId > 0) {
+            $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Quiz added successfully',
+                    'id' => $contentId
+                ],
+                HttpStatus::CREATED
+            );
         }
+
+        return $this->respondError('Failed to add quiz', HttpStatus::BAD_REQUEST);
     }
 
+    #[Route('/elearning/quiz', 'PUT', ['auth', 'role:admin', 'role:staff'])]
     public function update()
     {
         $data = $this->validate(
@@ -113,20 +112,20 @@ class QuizController extends BaseController
                 'questions.*.question_type' => 'required|string|in:short_answer,multiple_choice',
 
                 'questions.*.question_files' => 'sometimes|array',
-                'questions.*.question_files.*.file_name' => 'sometimes|string',
-                'questions.*.question_files.*.old_file_name' => 'sometimes|string',
+                'questions.*.question_files.*.file_name' => 'required_with:questions.*.question_files.*.file|string|filled',
+                'questions.*.question_files.*.old_file_name' => 'required_with:questions.*.question_files.*.file|string|filled',
                 'questions.*.question_files.*.type' => 'required|string|filled',
-                'questions.*.question_files.*.file' => 'sometimes|string',
+                'questions.*.question_files.*.file' => 'nullable|string',
 
                 'questions.*.options' => 'sometimes|array',
                 'questions.*.options.*.order' => 'required|integer',
                 'questions.*.options.*.text' => 'sometimes|string',
 
                 'questions.*.options.*.option_files' => 'sometimes|array',
-                'questions.*.options.*.option_files.*.file_name' => 'sometimes|string',
-                'questions.*.options.*.option_files.*.old_file_name' => 'sometimes|string',
+                'questions.*.options.*.option_files.*.file_name' => 'required_with:questions.*.options.*.option_files.*.file|string|filled',
+                'questions.*.options.*.option_files.*.old_file_name' => 'required_with:questions.*.options.*.option_files.*.file|string|filled',
                 'questions.*.options.*.option_files.*.type' => 'required|string|filled',
-                'questions.*.options.*.option_files.*.file' => 'sometimes|string',
+                'questions.*.options.*.option_files.*.file' => 'nullable|string',
 
                 'questions.*.correct' => 'required|array',
                 'questions.*.correct.order' => 'required|integer',
@@ -134,24 +133,25 @@ class QuizController extends BaseController
             ]
         );
 
-        try {
-            $contentId = $this->quizService->updateQuiz($data);
+        $contentId = $this->quizService->updateQuiz($data);
 
-            if ($contentId > 0) {
-                $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Quiz updated successfully',
-                    ],
-                );
-            }
-
-            $this->respondError('Failed to update quiz', HttpStatus::BAD_REQUEST);
-        } catch (Exception $e) {
-            $this->respondError($e->getMessage());
+        if ($contentId > 0) {
+            $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Quiz updated successfully',
+                ],
+            );
         }
+
+        $this->respondError('Failed to update quiz', HttpStatus::BAD_REQUEST);
     }
 
+    #[Route(
+        '/elearning/quiz/{content_id:\d+}/{question_id:\d+}',
+        'DELETE',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function delete(array $vars)
     {
         $data = $this->validate(
@@ -162,21 +162,20 @@ class QuizController extends BaseController
             ]
         );
 
-        try {
-            $id = $this->quizService->deleteQuiz($data['question_id'], $data['content_id']);
+        $id = $this->quizService->deleteQuiz($data['question_id'], $data['content_id']);
 
-            if ($id > 0) {
-                $this->respond(
-                    data: [
-                        'success' => true,
-                        'message' => 'Question deleted successfully.',
-                    ]
-                );
-            }
-
-            $this->respondError('Question not found or already deleted.', HttpStatus::BAD_REQUEST);
-        } catch (Exception $e) {
-            $this->respondError('Something went wrong ' . $e->getMessage());
+        if ($id > 0) {
+            $this->respond(
+                data: [
+                    'success' => true,
+                    'message' => 'Question deleted successfully.',
+                ]
+            );
         }
+
+        $this->respondError(
+            'Question not found or already deleted.',
+            HttpStatus::BAD_REQUEST
+        );
     }
 }

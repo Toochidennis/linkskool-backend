@@ -20,23 +20,26 @@ class SkillBehaviorService
 
     public function insertSkill(array $data): bool|int
     {
-        $data['level'] = $data['level_id'];
-        unset($data['level_id']);
+        $payload = [
+            'skill_name' => $data['skill_name'],
+            'level' => $data['level_id'],
+            'type' => $data['type']
+        ];
 
-        return $this->skillBehavior->insert($data);
+        return $this->skillBehavior->insert($payload);
     }
 
     public function updateSkill(array $data): bool
     {
-        $data['level'] = $data['level_id'];
-        unset($data['level_id']);
-
-        $id = $data['id'];
-        unset($data['id']);
+        $payload = [
+            'skill_name' => $data['skill_name'],
+            'level' => $data['level_id'],
+            'type' => $data['type']
+        ];
 
         return $this->skillBehavior
-            ->where('id', '=', $id)
-            ->update($data);
+            ->where('id', '=', $data['id'])
+            ->update($payload);
     }
 
     /**
@@ -47,5 +50,12 @@ class SkillBehaviorService
     public function getSkills(): array
     {
         return $this->skillBehavior->get();
+    }
+
+    public function deleteSkill(int $id): bool
+    {
+        return $this->skillBehavior
+            ->where('id', $id)
+            ->delete();
     }
 }

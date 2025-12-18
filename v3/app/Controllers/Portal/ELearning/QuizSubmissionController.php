@@ -4,8 +4,10 @@ namespace V3\App\Controllers\Portal\ELearning;
 
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\ELearning\QuizSubmissionService;
 
+#[Group('/portal')]
 class QuizSubmissionController extends BaseController
 {
     private QuizSubmissionService $quizSubmissionService;
@@ -16,6 +18,11 @@ class QuizSubmissionController extends BaseController
         $this->quizSubmissionService = new QuizSubmissionService($this->pdo);
     }
 
+    #[Route(
+        '/students/{student_id:\d+}/quiz-submissions',
+        'POST',
+        ['auth', 'role:student']
+    )]
     public function submit(array $vars)
     {
         $cleanedData = $this->validate(
@@ -42,30 +49,25 @@ class QuizSubmissionController extends BaseController
             ]
         );
 
-        try {
-            $newId = $this->quizSubmissionService->submitQuiz($cleanedData);
+        $newId = $this->quizSubmissionService->submitQuiz($cleanedData);
 
-            if ($newId) {
-                return $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Quiz submitted successfully',
-                    ],
-                    HttpStatus::CREATED
-                );
-            } else {
-                return $this->respondError(
-                    'Failed to submit quiz',
-                    HttpStatus::BAD_REQUEST
-                );
-            }
-        } catch (\Exception $e) {
+        if ($newId) {
+            return $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Quiz submitted successfully',
+                ],
+                HttpStatus::CREATED
+            );
+        } else {
             return $this->respondError(
-                'Failed to submit quiz: ' . $e->getMessage()
+                'Failed to submit quiz',
+                HttpStatus::BAD_REQUEST
             );
         }
     }
 
+    #[Route('/elearning/quiz/mark', 'PUT', ['auth', 'role:admin', 'role:staff'])]
     public function markQuiz(array $vars)
     {
         $cleanedData = $this->validate(
@@ -76,30 +78,29 @@ class QuizSubmissionController extends BaseController
             ]
         );
 
-        try {
-            $result = $this->quizSubmissionService->markQuiz($cleanedData);
+        $result = $this->quizSubmissionService->markQuiz($cleanedData);
 
-            if ($result) {
-                return $this->respond(
-                    [
-                        'success' => true,
-                        'message' => 'Quiz marked successfully',
-                    ],
-                    HttpStatus::OK
-                );
-            }
-
-            return $this->respondError(
-                'Failed to mark quiz',
-                HttpStatus::BAD_REQUEST
-            );
-        } catch (\Exception $e) {
-            return $this->respondError(
-                'Failed to mark quiz: ' . $e->getMessage()
+        if ($result) {
+            return $this->respond(
+                [
+                    'success' => true,
+                    'message' => 'Quiz marked successfully',
+                ],
+                HttpStatus::OK
             );
         }
+
+        return $this->respondError(
+            'Failed to mark quiz',
+            HttpStatus::BAD_REQUEST
+        );
     }
 
+    #[Route(
+        '/elearning/quiz/{content_id:\d+}/publish',
+        'PUT',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function publishQuiz(array $vars)
     {
         $cleanedData = $this->validate(
@@ -112,29 +113,28 @@ class QuizSubmissionController extends BaseController
             ]
         );
 
-        try {
-            $result = $this->quizSubmissionService->publishQuiz($cleanedData);
+        $result = $this->quizSubmissionService->publishQuiz($cleanedData);
 
-            if (!$result) {
-                return $this->respondError(
-                    'Failed to publish quiz',
-                    HttpStatus::BAD_REQUEST
-                );
-            }
-
-            return $this->respond(
-                [
-                    'success' => true,
-                    'message' => 'Quiz published successfully',
-                ]
-            );
-        } catch (\Exception $e) {
+        if (!$result) {
             return $this->respondError(
-                'Failed to publish quiz: ' . $e->getMessage()
+                'Failed to publish quiz',
+                HttpStatus::BAD_REQUEST
             );
         }
+
+        return $this->respond(
+            [
+                'success' => true,
+                'message' => 'Quiz published successfully',
+            ]
+        );
     }
 
+    #[Route(
+        '/elearning/quiz/{id:\d+}/submissions',
+        'GET',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function getSubmissions(array $vars)
     {
         $cleanedData = $this->validate(
@@ -146,22 +146,21 @@ class QuizSubmissionController extends BaseController
             ]
         );
 
-        try {
-            $submissions = $this->quizSubmissionService->getQuizSubmissions($cleanedData);
+        $submissions = $this->quizSubmissionService->getQuizSubmissions($cleanedData);
 
-            return $this->respond(
-                [
-                    'success' => true,
-                    'data' => $submissions
-                ],
-            );
-        } catch (\Exception $e) {
-            return $this->respondError(
-                'Failed to retrieve quiz submissions: ' . $e->getMessage()
-            );
-        }
+        return $this->respond(
+            [
+                'success' => true,
+                'data' => $submissions
+            ],
+        );
     }
 
+    #[Route(
+        '/students/{student_id:\d+}/quiz-submissions',
+        'GET',
+        ['auth', 'role:student']
+    )]
     public function getMarkedQuiz(array $vars)
     {
         $filteredVars = $this->validate(
@@ -174,19 +173,13 @@ class QuizSubmissionController extends BaseController
             ]
         );
 
-        try {
-            $markedQuiz = $this->quizSubmissionService->getMarkedQuiz($filteredVars);
+        $markedQuiz = $this->quizSubmissionService->getMarkedQuiz($filteredVars);
 
-            return $this->respond(
-                [
-                    'success' => true,
-                    'response' => $markedQuiz,
-                ]
-            );
-        } catch (\Exception $e) {
-            return $this->respondError(
-                'Failed to retrieve quiz submissions: ' . $e->getMessage()
-            );
-        }
+        return $this->respond(
+            [
+                'success' => true,
+                'response' => $markedQuiz,
+            ]
+        );
     }
 }

@@ -3,7 +3,9 @@
 namespace V3\App\Controllers\Explore;
 
 use V3\App\Common\Utilities\ResponseHandler;
+use V3\App\Common\Routing\{Route, Group};
 
+#[Group('/public')]
 class TemporalController
 {
     private array $content = [
@@ -308,6 +310,7 @@ class TemporalController
         ],
     ];
 
+    #[Route('/key-buddy/content', 'GET', [])]
     public function getContent()
     {
         ResponseHandler::sendJsonResponse(

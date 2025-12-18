@@ -36,13 +36,9 @@ class AccountService
             'account_id' => $data['account_number'],
         ];
 
-        if ($this->isDuplicate($payload)) {
-            return false;
-        } else {
-            return $this->account
-                ->where('typeid', '=', $data['id'])
-                ->update($payload);
-        }
+        return $this->account
+            ->where('typeid', '=', $data['id'])
+            ->update($payload);
     }
 
     private function isDuplicate(array $payload): bool
@@ -58,13 +54,21 @@ class AccountService
     public function getPaginatedAccounts(int $page, int $limit)
     {
         return $this->account
-            ->select(['typeid AS id', 'account_name', 'account_type', 'account_id AS account_number', 'inactive'])
+            ->select([
+                'typeid AS id',
+                'account_name',
+                'account_type',
+                'account_id AS account_number',
+                'inactive'
+            ])
             ->where('inactive', '=', 'FALSE')
             ->paginate($page, $limit);
     }
 
     public function deleteAccount(int $id): bool|int
     {
-        return $this->account->where('typeid', '=', $id)->delete();
+        return $this->account
+            ->where('typeid', '=', $id)
+            ->delete();
     }
 }

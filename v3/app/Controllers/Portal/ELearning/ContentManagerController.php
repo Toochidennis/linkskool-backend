@@ -4,8 +4,10 @@ namespace V3\App\Controllers\Portal\ELearning;
 
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\ELearning\ContentManagerService;
 
+#[Group('/portal')]
 class ContentManagerController extends BaseController
 {
     private ContentManagerService $contentManagerService;
@@ -16,6 +18,11 @@ class ContentManagerController extends BaseController
         $this->contentManagerService = new ContentManagerService(pdo: $this->pdo);
     }
 
+    #[Route(
+        '/elearning/overview',
+        'GET',
+        ['auth', 'role:admin']
+    )]
     public function getDashboard(array $vars)
     {
         $filteredVars = $this->validate(
@@ -25,24 +32,25 @@ class ContentManagerController extends BaseController
             ]
         );
 
-        try {
-            $dashboardData = $this->contentManagerService
-                ->getDashboard([
-                    ...$filteredVars,
-                    'role' => 'admin'
-                ]);
+        $dashboardData = $this->contentManagerService
+            ->getDashboard([
+                ...$filteredVars,
+                'role' => 'admin'
+            ]);
 
-            return $this->respond(
-                data: [
-                    'success' => true,
-                    'response' => $dashboardData,
-                ]
-            );
-        } catch (\Exception $e) {
-            return $this->respondError(message: $e->getMessage());
-        }
+        return $this->respond(
+            data: [
+                'success' => true,
+                'response' => $dashboardData,
+            ]
+        );
     }
 
+    #[Route(
+        '/elearning/staff/{teacher_id:\d+}/overview',
+        'GET',
+        ['auth', 'role:staff']
+    )]
     public function staffDashboardSummary(array $vars)
     {
         $filteredVars = $this->validate(
@@ -54,21 +62,22 @@ class ContentManagerController extends BaseController
             ]
         );
 
-        try {
-            $summaryData = $this->contentManagerService
-                ->getDashboard([...$filteredVars, 'role' => 'staff']);
+        $summaryData = $this->contentManagerService
+            ->getDashboard([...$filteredVars, 'role' => 'staff']);
 
-            return $this->respond(
-                data: [
-                    'success' => true,
-                    'data' => $summaryData,
-                ]
-            );
-        } catch (\Exception $e) {
-            return $this->respondError(message: $e->getMessage());
-        }
+        return $this->respond(
+            data: [
+                'success' => true,
+                'data' => $summaryData,
+            ]
+        );
     }
 
+    #[Route(
+        '/elearning/syllabus/{syllabus_id:\d+}/contents',
+        'GET',
+        ['auth']
+    )]
     public function getAllContents(array $vars)
     {
         $filteredVars = $this->validate(
@@ -76,19 +85,20 @@ class ContentManagerController extends BaseController
             rules: ['syllabus_id' => 'required|integer|min:1',]
         );
 
-        try {
-            $this->respond(
-                data: [
-                    'success' => true,
-                    'response' => $this->contentManagerService
-                        ->getContents(syllabusId: $filteredVars['syllabus_id']),
-                ],
-            );
-        } catch (\Exception $e) {
-            $this->respondError(message: $e->getMessage());
-        }
+        $this->respond(
+            data: [
+                'success' => true,
+                'response' => $this->contentManagerService
+                    ->getContents(syllabusId: $filteredVars['syllabus_id']),
+            ],
+        );
     }
 
+    #[Route(
+        '/elearning/contents/{id:\d+}',
+        'GET',
+        ['auth']
+    )]
     public function getContentById(array $vars)
     {
         $filteredVars = $this->validate(
@@ -96,41 +106,38 @@ class ContentManagerController extends BaseController
             rules: ['id' => 'required|integer|min:1',]
         );
 
-        try {
-            $this->respond(
-                data: [
-                    'success' => true,
-                    'response' => $this->contentManagerService
-                        ->getContent($filteredVars['id']),
-                ],
-            );
-        } catch (\Exception $e) {
-            $this->respondError(message: $e->getMessage());
-        }
+        $this->respond(
+            data: [
+                'success' => true,
+                'response' => $this->contentManagerService
+                    ->getContent($filteredVars['id']),
+            ],
+        );
     }
 
+    #[Route(
+        '/elearning/contents/{content_id:\d+}',
+        'DELETE',
+        ['auth', 'role:admin', 'role:staff']
+    )]
     public function delete(array $vars)
     {
         $data = $this->validate(data: $vars, rules: ['content_id' => 'required|integer']);
 
-        try {
-            $id = $this->contentManagerService->deleteContent($data['content_id']);
+        $id = $this->contentManagerService->deleteContent($data['content_id']);
 
-            if ($id > 0) {
-                return $this->respond(
-                    data: [
-                        'success' => true,
-                        'message' => 'Content deleted successfully.',
-                    ]
-                );
-            }
-
-            return $this->respondError(
-                'Content not found or already deleted.',
-                HttpStatus::BAD_REQUEST
+        if ($id > 0) {
+            return $this->respond(
+                data: [
+                    'success' => true,
+                    'message' => 'Content deleted successfully.',
+                ]
             );
-        } catch (\Exception $e) {
-            return $this->respondError($e->getMessage());
         }
+
+        return $this->respondError(
+            'Content not found or already deleted.',
+            HttpStatus::BAD_REQUEST
+        );
     }
 }
