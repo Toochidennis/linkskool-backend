@@ -220,7 +220,9 @@ class TopicService
                 throw new \RuntimeException('Failed to update question with topic ID');
             }
         } catch (\Throwable $e) {
-            throw $e;
+            // Log error and skip this question - it will remain 'pending' for retry
+            error_log("Failed to process question {$question['question_id']}: {$e->getMessage()}");
+            // Don't re-throw - allows batch to continue
         }
     }
 
