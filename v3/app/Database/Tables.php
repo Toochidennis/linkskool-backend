@@ -101,5 +101,7 @@ class Tables
         'topics',
         'syllabi',
         'level',
+        'explore_news',
+        'explore_news_category',
     ];
 }
