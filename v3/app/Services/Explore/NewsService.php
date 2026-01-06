@@ -2,10 +2,51 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Common\Utilities\FileHandler;
+use V3\App\Models\Explore\News;
+
 class NewsService
 {
-    public function __construct() 
+    private News $newsModel;
+    private FileHandler $fileHandler;
+
+    public function __construct(\PDO $pdo)
     {
+        $this->newsModel = new News($pdo);
+        $this->fileHandler = new FileHandler();
+    }
+
+    public function addNews(array $data)
+    {
+        $imageMap = [];
+        foreach ($data['images'] as $img) {
+            $imageName = strtolower(trim(basename($img['name'])));
+            $base64 = $img['data'];
+            if (str_contains($base64, ',')) {
+                $base64 = explode(',', $base64, 2)[1];
+            }
+            $imageMap[] = [
+                'file_name' => $imageName,
+                'old_file_name' => '',
+                'type' => 'image',
+                'file' => $base64
+            ];
+        }
+
+        $processedImages = $this->fileHandler->handleFiles($imageMap);
+
+        $payload = [
+            'title' => $data['title'],
+            'content' => $data['content'],
+            'date_posted' => $data['date_posted'] ?? date('Y-m-d H:i:s'),
+            'category' => $data['category'],
+            'images' => json_encode($processedImages),
+            'author_id' => $data['author_id'],
+            'author_name' => $data['author_name'],
+            'status' => $data['status'],
+        ];
+
+        return $this->newsModel->insert($payload);
     }
 
     public function getNews()
