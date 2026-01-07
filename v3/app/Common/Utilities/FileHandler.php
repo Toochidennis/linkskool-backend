@@ -62,7 +62,7 @@ class FileHandler
         return $processed;
     }
 
-    private function deleteOldFile(string $oldFileName): void
+    public function deleteOldFile(string $oldFileName): void
     {
         $oldPath = $this->contentPath . basename($oldFileName);
         if (file_exists($oldPath)) {
