@@ -13,9 +13,14 @@ class NewsCategoryService
         $this->newsCategoryModel = new NewsCategory($pdo);
     }
 
-    public function addCategory(array $data): bool|int
+    public function addCategory(array $data): bool|array
     {
-        return $this->newsCategoryModel->insert($data);
+        $id = $this->newsCategoryModel->insert($data);
+
+        if (!$id) {
+            return false;
+        }
+        return $this->newsCategoryModel->where('id', $id)->first();
     }
 
     public function getCategories(): array

@@ -24,8 +24,8 @@ class NewsCategoryController extends ExploreBaseController
         $data = $this->validate(
             $this->getRequestData(),
             [
-                'name' => 'required|string|max:100|unique:explore_news_category,name',
-                'description' => 'nullable|string|max:255',
+                'name' => 'required|string',
+                'description' => 'nullable|string',
             ]
         );
 
@@ -40,9 +40,9 @@ class NewsCategoryController extends ExploreBaseController
 
         $this->respond(
             [
-                'status' => true,
+                'success' => true,
                 'message' => 'News category added successfully',
-                'id' => $res
+                'data' => $res
             ],
             HttpStatus::CREATED
         );
@@ -55,7 +55,8 @@ class NewsCategoryController extends ExploreBaseController
 
         $this->respond(
             [
-                'status' => true,
+                'success' => true,
+                'message' => 'News categories retrieved successfully',
                 'data' => $categories
             ]
         );

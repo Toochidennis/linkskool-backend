@@ -6,7 +6,7 @@ use V3\App\Models\BaseModel;
 
 class NewsCategory extends BaseModel
 {
-    protected $table = 'explore_news_category';
+    protected $table = 'explore_news_categories';
 
     public function __construct(\PDO $pdo)
     {
