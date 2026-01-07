@@ -102,6 +102,7 @@ class Tables
         'syllabi',
         'level',
         'explore_news',
-        'explore_news_category',
+        'explore_news_categories',
+        'explore_news_category_pivot',
     ];
 }
