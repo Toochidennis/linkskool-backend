@@ -8,7 +8,7 @@ use V3\App\Common\Utilities\ResponseHandler;
 use V3\App\Database\DatabaseConnector;
 use V3\App\Services\Explore\VideoService;
 
-#[Group("/public")]
+#[Group("/public/videos")]
 class VideoController
 {
     private VideoService $videoService;
@@ -19,7 +19,7 @@ class VideoController
         $this->videoService = new VideoService($pdo);
     }
 
-    #[Route('/videos', 'GET', ['api'])]
+    #[Route('', 'GET', ['api'])]
     public function index()
     {
         ResponseHandler::sendJsonResponse(
