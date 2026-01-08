@@ -45,11 +45,11 @@ class LevelController extends ExploreBaseController
         );
     }
 
-    #[Route('', 'PUT', ['api', 'auth'])]
+    #[Route('/{id}', 'PUT', ['api', 'auth'])]
     public function updateLevel(array $vars)
     {
         $validated =  $this->validate(
-            $this->getRequestData(),
+            [...$vars, ...$this->getRequestData()],
             [
                 'id' => 'required|integer|min:1',
                 'name' => 'sometimes|required|string|max:100',

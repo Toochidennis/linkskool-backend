@@ -61,6 +61,7 @@ class QueryBuilder
     public function select(array $columns = ['*']): self
     {
         //array_map([$this, 'validateColumn'], $columns);
+        //$columns = array_map([$this, 'wrapIdentifier'], $columns);
         $this->selectColumns = $columns;
         return $this;
     }
