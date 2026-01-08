@@ -69,10 +69,17 @@ class VideoLibraryController extends ExploreBaseController
         );
     }
 
-    #[Route('/videos', 'GET', ['api', 'auth'])]
-    public function getAllVideos()
+    #[Route('/videos/{course_id}', 'GET', ['api', 'auth'])]
+    public function getVideosByCourse(array $vars)
     {
-        $videos = $this->videoLibraryService->getAllVideos();
+        $validated = $this->validate(
+            $vars,
+            [
+                'course_id' => 'required|integer'
+            ]
+        );
+
+        $videos = $this->videoLibraryService->getVideosByCourse($validated['course_id']);
         $this->respond(
             [
                 'success' => true,
@@ -116,18 +123,18 @@ class VideoLibraryController extends ExploreBaseController
         );
     }
 
-    #[Route('/published/{level_id}', 'GET', ['api'])]
-    public function getPublishedVideosByLevel(array $vars)
+    #[Route('/videos/published/{level_id}/{course_id}', 'GET', ['api'])]
+    public function getPublishedVideos(array $vars)
     {
         $validated = $this->validate(
             $vars,
             [
-                'level_id' => 'required|integer'
+                'level_id' => 'required|integer',
+                'course_id' => 'required|integer'
             ]
         );
 
-        $videos = $this->videoLibraryService->getPublishedVideos($validated['level_id']);
-
+        $videos = $this->videoLibraryService->getPublishedVideos($validated['level_id'], $validated['course_id']);
         $this->respond(
             [
                 'success' => true,
@@ -137,7 +144,7 @@ class VideoLibraryController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id}/status', 'PUT', ['api', 'auth'])]
+    #[Route('/videos/{id}/status', 'PUT', ['api', 'auth'])]
     public function updateVideoStatus(array $vars)
     {
         $validated = $this->validate(
@@ -170,7 +177,7 @@ class VideoLibraryController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id}', 'DELETE', ['api', 'auth'])]
+    #[Route('/videos/{id}', 'DELETE', ['api', 'auth'])]
     public function deleteVideo(array $vars)
     {
         $validated = $this->validate(
