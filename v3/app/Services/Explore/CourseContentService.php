@@ -22,10 +22,32 @@ class CourseContentService
     public function getLessons(int $categoryId, int $courseId): array
     {
         if (!isset($this->lessonsByCategoryAndCourse[$categoryId][$courseId])) {
-            return [];
+            return [
+                'lessons' => [],
+                'resources' => []
+            ];
         }
 
-        return $this->lessonsByCategoryAndCourse[$categoryId][$courseId];
+        $lessons = $this->lessonsByCategoryAndCourse[$categoryId][$courseId];
+        $resources = [];
+        $resourceId = 1;
+
+        // Extract resources from lessons where material_url is not empty
+        foreach ($lessons as $lesson) {
+            if (!empty($lesson['material_url'])) {
+                $resources[] = [
+                    'id' => $resourceId++,
+                    'lesson_id' => $lesson['id'],
+                    'name' => $lesson['title'] ?? '',
+                    'url' => $lesson['material_url']
+                ];
+            }
+        }
+
+        return [
+            'lessons' => $lessons,
+            'resources' => $resources
+        ];
     }
 
     private function seedLessons(): void

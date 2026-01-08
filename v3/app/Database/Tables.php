@@ -105,5 +105,6 @@ class Tables
         'explore_news_categories',
         'explore_news_category_pivot',
         'advertisements',
+        'video_libraries',
     ];
 }
