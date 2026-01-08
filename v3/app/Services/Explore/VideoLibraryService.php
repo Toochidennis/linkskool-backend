@@ -20,6 +20,7 @@ class VideoLibraryService
         $this->videoLibrary = new VideoLibrary($pdo);
         $this->course = new Course($pdo);
         $this->syllabus = new Syllabus($pdo);
+        $this->fileHandler = new FileHandler();
     }
 
     public function addVideos(array $data): int
@@ -152,24 +153,15 @@ class VideoLibraryService
     /**
      * Fetch all videos with related metadata.
      */
-    public function getAllVideos(): array
+    public function getVideosByCourse(int $courseId): array
     {
-        $videos = $this->videoLibrary
+        return $this->videoLibrary
+            ->where('course_id', '=', $courseId)
             ->orderBy('created_at', 'DESC')
             ->get();
-
-        return array_map(function (array $video): array {
-            // Fallback: use video_url when thumbnail is missing
-            $video['thumbnail_url'] = $video['thumbnail_url'] ?? '';
-            if (empty($video['thumbnail_url']) && !empty($video['video_url'])) {
-                $video['thumbnail_url'] = $video['video_url'];
-            }
-
-            return $video;
-        }, $videos);
     }
 
-    public function getPublishedVideos(int $levelId): array
+    public function getPublishedVideos(int $levelId, int $courseId): array
     {
         $videos =  $this->videoLibrary
             ->select(columns: [
@@ -190,6 +182,7 @@ class VideoLibraryService
             ])
             ->where('status', '=', 'published')
             ->where('level_id', '=', $levelId)
+            ->where('course_id', '=', $courseId)
             ->orderBy('created_at', 'DESC')
             ->get();
 
@@ -212,11 +205,11 @@ class VideoLibraryService
                 $courses[$courseId]['syllabi'][$syllabusKey] = [
                     'syllabus_id' => $syllabusId,
                     'syllabus_name' => $video['syllabus_name'],
-                    'contents' => []
+                    'videos' => []
                 ];
             }
 
-            $courses[$courseId]['syllabi'][$syllabusKey]['contents'][] = [
+            $courses[$courseId]['syllabi'][$syllabusKey]['videos'][] = [
                 'title' => $video['title'],
                 'topic_id' => $video['topic_id'] ?? null,
                 'topic_name' => $video['topic_name'] ?? null,
