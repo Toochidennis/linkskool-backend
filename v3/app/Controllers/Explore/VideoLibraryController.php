@@ -9,7 +9,7 @@ use V3\App\Common\Utilities\ResponseHandler;
 use V3\App\Database\DatabaseConnector;
 use V3\App\Services\Explore\VideoLibraryService;
 
-#[Group("/public/videos")]
+#[Group("/public/video-library")]
 class VideoLibraryController extends ExploreBaseController
 {
     private VideoLibraryService $videoLibraryService;
@@ -20,7 +20,7 @@ class VideoLibraryController extends ExploreBaseController
         $this->videoLibraryService = new VideoLibraryService($this->pdo);
     }
 
-    #[Route('', 'POST', ['api', 'auth'])]
+    #[Route('/videos', 'POST', ['api', 'auth'])]
     public function addVideo()
     {
         $validated = $this->validate(
@@ -41,12 +41,12 @@ class VideoLibraryController extends ExploreBaseController
                 'author_id' => 'required|integer',
                 'author_name' => 'required|string|max:100',
 
-                'thumbnail_url' => 'required_without:thumbnail|url',
-                'thumbnail' => 'required_without:thumbnail_url|array',
-                'thumbnail.name' => 'required_with:thumbnail|string',
-                'thumbnail.tmp_name' => 'required_with:thumbnail|string',
-                'thumbnail.error' => 'required_with:thumbnail|integer',
-                'thumbnail.size' => 'required_with:thumbnail|integer'
+                'thumbnail_url' => 'nullable|url',
+                'thumbnail' => 'nullable|array',
+                'thumbnail.name' => 'nullable|string',
+                'thumbnail.tmp_name' => 'nullable|string',
+                'thumbnail.error' => 'nullable|integer',
+                'thumbnail.size' => 'nullable|integer'
             ]
         );
 
@@ -69,31 +69,10 @@ class VideoLibraryController extends ExploreBaseController
         );
     }
 
-    #[Route('', 'GET', ['api', 'auth'])]
+    #[Route('/videos', 'GET', ['api', 'auth'])]
     public function getAllVideos()
     {
         $videos = $this->videoLibraryService->getAllVideos();
-        $this->respond(
-            [
-                'success' => true,
-                'data' => $videos
-            ],
-            HttpStatus::OK
-        );
-    }
-
-    #[Route('/published', 'GET', ['api'])]
-    public function getPublishedVideos(array $vars)
-    {
-        $validated = $this->validate(
-            $vars,
-            [
-                'level_id' => 'required|integer'
-            ]
-        );
-
-        $videos = $this->videoLibraryService->getPublishedVideos($validated['level_id']);
-
         $this->respond(
             [
                 'success' => true,
@@ -111,6 +90,48 @@ class VideoLibraryController extends ExploreBaseController
             [
                 'success' => true,
                 'data' => $courses
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/syllabi/{course_id}', 'GET', ['api'])]
+    public function getSyllabiByCourse(array $vars)
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'course_id' => 'required|integer'
+            ]
+        );
+
+        $syllabi = $this->videoLibraryService->getSyllabusByCourse($validated['course_id']);
+
+        $this->respond(
+            [
+                'success' => true,
+                'data' => $syllabi
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/published/{level_id}', 'GET', ['api'])]
+    public function getPublishedVideosByLevel(array $vars)
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'level_id' => 'required|integer'
+            ]
+        );
+
+        $videos = $this->videoLibraryService->getPublishedVideos($validated['level_id']);
+
+        $this->respond(
+            [
+                'success' => true,
+                'data' => $videos
             ],
             HttpStatus::OK
         );

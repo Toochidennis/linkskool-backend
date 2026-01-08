@@ -3,17 +3,15 @@
 namespace V3\App\Services\Explore;
 
 use V3\App\Common\Utilities\FileHandler;
+use V3\App\Models\Explore\Syllabus;
 use V3\App\Models\Explore\VideoLibrary;
-use V3\App\Models\Explore\Category;
 use V3\App\Models\Portal\Academics\Course;
-use V3\App\Models\Portal\ELearning\SyllabusModel;
 
 class VideoLibraryService
 {
     private VideoLibrary $videoLibrary;
     private Course $course;
-    private Category $category;
-    private SyllabusModel $syllabus;
+    private Syllabus $syllabus;
     private FileHandler $fileHandler;
 
 
@@ -21,6 +19,7 @@ class VideoLibraryService
     {
         $this->videoLibrary = new VideoLibrary($pdo);
         $this->course = new Course($pdo);
+        $this->syllabus = new Syllabus($pdo);
     }
 
     public function addVideos(array $data): int
@@ -155,9 +154,19 @@ class VideoLibraryService
      */
     public function getAllVideos(): array
     {
-        return $this->videoLibrary
+        $videos = $this->videoLibrary
             ->orderBy('created_at', 'DESC')
             ->get();
+
+        return array_map(function (array $video): array {
+            // Fallback: use video_url when thumbnail is missing
+            $video['thumbnail_url'] = $video['thumbnail_url'] ?? '';
+            if (empty($video['thumbnail_url']) && !empty($video['video_url'])) {
+                $video['thumbnail_url'] = $video['video_url'];
+            }
+
+            return $video;
+        }, $videos);
     }
 
     public function getPublishedVideos(int $levelId): array
@@ -234,14 +243,14 @@ class VideoLibraryService
     {
         return $this->course
             ->select(columns: [
-                'courses.id',
-                'courses.course_name',
-                'courses.description',
+                'course_table.id',
+                'course_table.course_name',
+                'course_table.description',
                 'COUNT(video_libraries.id) AS video_count'
             ])
-            ->join('video_libraries', 'courses.id = video_libraries.course_id', 'LEFT')
-            ->groupBy(['courses.id', 'courses.course_name', 'courses.description'])
-            ->orderBy('courses.course_name')
+            ->join('video_libraries', 'course_table.id = video_libraries.course_id', 'LEFT')
+            ->groupBy(['course_table.id', 'course_table.course_name', 'course_table.description'])
+            ->orderBy('course_table.course_name')
             ->get();
     }
 }
