@@ -57,8 +57,33 @@ class AdvertisementService
         return $this->advertisementModel->insert($payload);
     }
 
-    public function updateAdvertisement(int $id, array $data): bool
+    public function updateAdvertisement(array $data): bool
     {
+        $image = $_FILES['image'] ?? null;
+        $imageData = null;
+
+        if ($image && $image['error'] === UPLOAD_ERR_OK && is_uploaded_file($image['tmp_name'])) {
+            $tmpName = $image['tmp_name'];
+            $fileName = strtolower(trim(basename($image['name'])));
+            $fileContent = file_get_contents($tmpName);
+            $base64 = base64_encode($fileContent);
+            $imageMap = [
+                [
+                    'file_name' => $fileName,
+                    'old_file_name' => '',
+                    'type' => 'image',
+                    'file' => $base64
+                ]
+            ];
+
+            $processedImages = $this->fileHandler->handleFiles($imageMap);
+            $imageData = $processedImages[0];
+        }
+
+        if ($imageData && !empty($data['old_file_name'])) {
+            $this->fileHandler->deleteOldFile($data['old_file_name']);
+        }
+
         $payload = [
             'title' => $data['title'],
             'content' => $data['content'],
@@ -71,6 +96,10 @@ class AdvertisementService
             'is_sponsored' => $data['is_sponsored'],
             'updated_at' => date('Y-m-d H:i:s'),
         ];
+
+        if ($imageData) {
+            $payload['image'] = json_encode($imageData);
+        }
 
         // Handle image upload if present
         if ($data['image']['error'] === 0 && is_uploaded_file($data['image']['tmp_name'])) {
@@ -92,7 +121,7 @@ class AdvertisementService
         }
 
         return $this->advertisementModel
-            ->where('id', '=', $id)
+            ->where('id', '=', $data['id'])
             ->update($payload);
     }
 
@@ -142,4 +171,13 @@ class AdvertisementService
             ->where('id', '=', $id)
             ->delete();
     }
+
+    // public function deleteImage(string $fileName, int $id): bool
+    // {
+    //     $this->fileHandler->deleteOldFile($fileName);
+
+    //     return $this->advertisementModel
+    //         ->where('id', '=', $id)
+    //         ->update(['image' => null]);
+    // }
 }

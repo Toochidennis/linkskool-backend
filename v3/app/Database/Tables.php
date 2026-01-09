@@ -106,5 +106,6 @@ class Tables
         'explore_news_category_pivot',
         'advertisements',
         'video_libraries',
+        'project_submissions',
     ];
 }

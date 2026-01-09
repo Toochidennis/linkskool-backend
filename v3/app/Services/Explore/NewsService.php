@@ -79,19 +79,19 @@ class NewsService
             ->update(['status' => $status]);
     }
 
-    // public function updateNews(int $newsId, array $data): bool
-    // {
-    //     $payload = [];
-    //     if(isset($data['images'])){
+    public function updateNews(int $newsId, array $data): bool
+    {
+        $payload = [];
+        if(isset($data['images'])){
 
-    //     }
+        }
 
 
 
-    //     return $this->newsModel
-    //         ->where('id', $newsId)
-    //         ->update($payload);
-    // }
+        return $this->newsModel
+            ->where('id', $newsId)
+            ->update($payload);
+    }
 
     public function getNewsById(int $newsId): bool|array
     {
@@ -117,6 +117,17 @@ class NewsService
 
     public function deleteNews(int $newsId): bool
     {
+        $oldNews = $this->newsModel
+            ->where('id', $newsId)
+            ->first();
+
+        if ($oldNews && !empty($oldNews['images'])) {
+            $images = json_decode($oldNews['images'], true);
+            foreach ($images as $image) {
+                $this->fileHandler->deleteOldFile($image['file_name']);
+            }
+        }
+
         return $this->newsModel
             ->where('id', $newsId)
             ->delete();

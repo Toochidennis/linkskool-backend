@@ -150,7 +150,7 @@ class LearningPathService
                 "id" => 9,
                 "course_name" => "Selection Exercise",
                 "description" => "This course serves as the official selection process for the TVET Creative Media Program. Participants will complete a series of creative tasks designed to assess originality, storytelling ability, visual thinking, and basic technical awareness. This is not about perfection. It is about potential, effort, and creative thinking \n Only participants who successfully complete the required tasks will qualify for the full program.",
-                "image_url" => "https://linkschoolonline.com/assets/img/tvet.png",
+                "image_url" => "https://linkschoolonline.com/assets/img/tvet.jpeg",
                 "category" => "Creative Media Foundation",
                 "slogan" => "Think. Create. Express.",
                 "icon" => "https://linkschoolonline.com/assets/img/tvet_icon.png",

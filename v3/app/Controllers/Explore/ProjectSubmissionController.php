@@ -27,11 +27,12 @@ class ProjectSubmissionController extends ExploreBaseController
                 'assignment' => 'required|array|min:1',
                 'assignment.*.file_name' => 'required|string',
                 'assignment.*.old_file_name' => 'nullable|string',
+                'assignment.*.file' => 'required|string',
+                'assignment.*.type' => 'required|string|in:pdf',
                 'name' => 'required|string|max:255',
                 'email' => 'nullable|email|max:255',
                 'phone' => 'nullable|string|max:20',
                 'quiz_score' => 'required|numeric|min:0|max:100',
-                'comments' => 'nullable|string',
             ]
         );
 

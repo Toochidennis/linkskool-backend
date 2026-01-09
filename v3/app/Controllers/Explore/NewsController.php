@@ -128,4 +128,32 @@ class NewsController extends ExploreBaseController
             ]
         );
     }
+
+    #[Route('/{id:\d+}', 'DELETE', ['api', 'auth'])]
+    public function deleteNews(array $vars): void
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'id' => 'required|integer',
+            ]
+        );
+
+        $newsId = (int)$validated['id'];
+        $res = $this->newsService->deleteNews($newsId);
+
+        if (!$res) {
+            $this->respondError(
+                "Failed to delete news item.",
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'News item deleted successfully',
+            ]
+        );
+    }
 }
