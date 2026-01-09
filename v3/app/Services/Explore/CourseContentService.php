@@ -10,10 +10,12 @@ class CourseContentService
      * @var array<int, array<int, array<int, array<string, mixed>>>>
      */
     private array $lessonsByCategoryAndCourse;
+    private array $lessonQuizzes;
 
     public function __construct()
     {
         $this->seedLessons();
+        $this->seedLessonQuizzes();
     }
 
     /**
@@ -50,6 +52,14 @@ class CourseContentService
         ];
     }
 
+    public function getLessonQuizzes(int $courseId, int $lessonId): array
+    {
+        if (isset($this->lessonQuizzes[$courseId][$lessonId])) {
+            return $this->lessonQuizzes[$courseId][$lessonId];
+        }
+        return [];
+    }
+
     private function seedLessons(): void
     {
         // Register lessons: category => course => lessons
@@ -59,6 +69,14 @@ class CourseContentService
             3 => \V3\App\Services\Explore\LessonData\Category3Lessons::getLessons(),
             4 => \V3\App\Services\Explore\LessonData\Category4Lessons::getLessons(),
             5 => \V3\App\Services\Explore\LessonData\Category5Lessons::getLessons(),
+            6 => \V3\App\Services\Explore\LessonData\Category6Lessons::getLessons(),
+        ];
+    }
+
+    private function seedLessonQuizzes(): void
+    {
+        $this->lessonQuizzes = [
+            9 => \V3\App\Services\Explore\LessonData\Category6LessonQuizzes::getQuizzes(),
         ];
     }
 }

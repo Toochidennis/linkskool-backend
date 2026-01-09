@@ -39,6 +39,141 @@
                 ]
             }
         },
+        "/public/advertisements": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "CreateAdvertisement",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\AdvertisementController::createAdvertisement",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetAllAdvertisements",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\AdvertisementController::getAllAdvertisements",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/advertisements/published": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetPublishedAdvertisements",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\AdvertisementController::getPublishedAdvertisements",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/advertisements/{id}/status": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateAdvertisementStatus",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\AdvertisementController::updateAdvertisementStatus",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/advertisements/{id}": {
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteAdvertisement",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\AdvertisementController::deleteAdvertisement",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/public/audit-logs/user/{userId:\\d+}": {
             "get": {
                 "tags": [
@@ -183,6 +318,27 @@
                 ]
             }
         },
+        "/public/cbt/exams/questions/by-topic": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetQuestionsByTopicId",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CbtController::getQuestionsByTopicId",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
         "/public/cbt/users": {
             "post": {
                 "tags": [
@@ -297,7 +453,7 @@
                 ]
             }
         },
-        "/public/cbt/challenge": {
+        "/public/cbt/challenges": {
             "post": {
                 "tags": [
                     "public"
@@ -337,7 +493,7 @@
                 ]
             }
         },
-        "/public/cbt/challenge/{challenge_id:\\d+}": {
+        "/public/cbt/challenges/{challenge_id:\\d+}": {
             "put": {
                 "tags": [
                     "public"
@@ -397,7 +553,7 @@
                 ]
             }
         },
-        "/public/cbt/challenge/status/{challenge_id:\\d+}": {
+        "/public/cbt/challenges/status/{challenge_id:\\d+}": {
             "put": {
                 "tags": [
                     "public"
@@ -428,7 +584,7 @@
                 ]
             }
         },
-        "/public/cbt/challenge/questions": {
+        "/public/cbt/challenges/questions": {
             "get": {
                 "tags": [
                     "public"
@@ -649,6 +805,28 @@
                         "bearerAuth": []
                     }
                 ]
+            },
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateQuestions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ExamController::updateQuestions",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/public/exams": {
@@ -697,7 +875,7 @@
                 ]
             }
         },
-        "/public/exams/questions": {
+        "/public/exams/{exam_id:\\d+}/questions": {
             "get": {
                 "tags": [
                     "public"
@@ -705,7 +883,17 @@
                 "summary": "GetQuestions",
                 "description": "",
                 "operationId": "V3\\App\\Controllers\\Explore\\ExamController::getQuestions",
-                "parameters": [],
+                "parameters": [
+                    {
+                        "name": "exam_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'exam_id'"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Successful response"
@@ -929,7 +1117,7 @@
                 ]
             }
         },
-        "/public/cbt/leaderboard": {
+        "/public/cbt/challenges/leaderboard": {
             "post": {
                 "tags": [
                     "public"
@@ -946,6 +1134,188 @@
                 "security": [
                     {
                         "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/challenges/leaderboard/{challenge_id:\\d+}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetLeaderboardByChallenge",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\LeaderboardController::getLeaderboardByChallenge",
+                "parameters": [
+                    {
+                        "name": "challenge_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'challenge_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/learning/categories-and-courses": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetCategoriesAndCourses",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\LearningPathController::getCategoriesAndCourses",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/learning/lessons": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "CourseLessons",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\LearningPathController::courseLessons",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/levels": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "AddLevel",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\LevelController::addLevel",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetLevels",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\LevelController::getLevels",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/levels/{id}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateLevel",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\LevelController::updateLevel",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteLevel",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\LevelController::deleteLevel",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
                     }
                 ]
             }
@@ -1075,14 +1445,14 @@
                 ]
             }
         },
-        "/public/news": {
-            "get": {
+        "/public/news/categories": {
+            "post": {
                 "tags": [
                     "public"
                 ],
-                "summary": "Index",
+                "summary": "AddCategory",
                 "description": "",
-                "operationId": "V3\\App\\Controllers\\Explore\\NewsController::index",
+                "operationId": "V3\\App\\Controllers\\Explore\\NewsCategoryController::addCategory",
                 "parameters": [],
                 "responses": {
                     "200": {
@@ -1092,6 +1462,132 @@
                 "security": [
                     {
                         "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetCategories",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\NewsCategoryController::getCategories",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/news": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "AddNews",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\NewsController::addNews",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetNews",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\NewsController::getNews",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/news/{id}/status": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateNewsStatus",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\NewsController::updateNewsStatus",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/news/admin": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetNewsAdmin",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\NewsController::getNewsAdmin",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
                     }
                 ]
             }
@@ -1138,25 +1634,46 @@
                 ]
             }
         },
-        "/public/cbt/topics/{course_id:\\d+}": {
+        "/public/cbt/topics/generate/{limit:\\d+}": {
             "get": {
                 "tags": [
                     "public"
                 ],
-                "summary": "GET /public/cbt/topics/{courseId}\n     * Returns all topics for a given course ID.\n     */",
-                "description": "GET /public/cbt/topics/{courseId}\nReturns all topics for a given course ID.",
-                "operationId": "V3\\App\\Controllers\\Explore\\TopicController::getTopicsByCourseId",
+                "summary": "GenerateTopics",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\TopicController::generateTopics",
                 "parameters": [
                     {
-                        "name": "course_id",
+                        "name": "limit",
                         "in": "path",
                         "required": true,
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Path parameter 'course_id'"
+                        "description": "Path parameter 'limit'"
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/cbt/topics": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "FetchSyllabusAndTopics",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\TopicController::fetchSyllabusAndTopics",
+                "parameters": [],
                 "responses": {
                     "200": {
                         "description": "Successful response"
@@ -1314,14 +1831,14 @@
                 ]
             }
         },
-        "/public/videos": {
-            "get": {
+        "/public/video-library/videos": {
+            "post": {
                 "tags": [
                     "public"
                 ],
-                "summary": "Index",
+                "summary": "AddVideo",
                 "description": "",
-                "operationId": "V3\\App\\Controllers\\Explore\\VideoController::index",
+                "operationId": "V3\\App\\Controllers\\Explore\\VideoLibraryController::addVideo",
                 "parameters": [],
                 "responses": {
                     "200": {
@@ -1331,6 +1848,259 @@
                 "security": [
                     {
                         "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/video-library/videos/{course_id}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetVideosByCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\VideoLibraryController::getVideosByCourse",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/video-library/courses": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetCourses",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\VideoLibraryController::getCourses",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/video-library/syllabi/{course_id}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetSyllabiByCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\VideoLibraryController::getSyllabiByCourse",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/video-library/videos/published/{level_id}/{course_id}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetPublishedVideos",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\VideoLibraryController::getPublishedVideos",
+                "parameters": [
+                    {
+                        "name": "level_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'level_id'"
+                    },
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/video-library/courses/public": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetPublicCourses",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\VideoLibraryController::getPublicCourses",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/video-library/videos/{id}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateVideo",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\VideoLibraryController::updateVideo",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "DeleteVideo",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\VideoLibraryController::deleteVideo",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/video-library/videos/{id}/status": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateVideoStatus",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\VideoLibraryController::updateVideoStatus",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    },
+                    {
+                        "bearerAuth": []
                     }
                 ]
             }

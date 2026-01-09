@@ -50,6 +50,11 @@ class LearningPathService
         return $this->getLessonsByCategoryAndCourse($categoryId, $courseId);
     }
 
+    public function getLessonQuizzes(int $courseId, int $lessonId): array
+    {
+        return $this->contentService->getLessonQuizzes($courseId, $lessonId);
+    }
+
     private function seedCourses(): void
     {
         $this->courses = [
@@ -135,12 +140,23 @@ class LearningPathService
                 "course_name" => "Artificial Intelligence (AI)",
                 "description" => "Learn how to design intelligent systems using data, algorithms, and machine learning to solve real-world problems.",
                 "image_url" => "https://linkschoolonline.com/assets/img/ai_explorer1.png",
-                "category" => "Artifical Intelligence",
+                "category" => "Artificial Intelligence",
                 "slogan" => "Turn ideas into scripts. Faster. Smarter",
                 "icon" => "https://linkschoolonline.com/assets/img/ai_explorer_icon.png",
                 "email" => "communication@digitaldreamsng.com",
                 "has_content" => true
             ],
+            9 => [
+                "id" => 9,
+                "course_name" => "Selection Exercise",
+                "description" => "This course serves as the official selection process for the TVET Creative Media Program. Participants will complete a series of creative tasks designed to assess originality, storytelling ability, visual thinking, and basic technical awareness. This is not about perfection. It is about potential, effort, and creative thinking \n Only participants who successfully complete the required tasks will qualify for the full program.",
+                "image_url" => "https://linkschoolonline.com/assets/img/tvet.png",
+                "category" => "Creative Media Foundation",
+                "slogan" => "Think. Create. Express.",
+                "icon" => "https://linkschoolonline.com/assets/img/tvet_icon.png",
+                "email" => "communication@digitaldreamsng.com",
+                "has_content" => true,
+            ]
         ];
     }
 
@@ -202,6 +218,18 @@ class LearningPathService
                 'start_date' => '2025-04-15',
                 'end_date' => '2025-04-20'
             ],
+            6 => [
+                "id" => 6,
+                "name" => "TVET Creative Media Program",
+                "short" => "tvet_program",
+                "available" => 1,
+                "is_free" => 1,
+                'purpose' => 'Skill-based creative training across media disciplines (photography, cinematography, design, storytelling, etc.)',
+                "limit" => 0,
+                "course_ids" => [9],
+                'start_date' => '2026-01-12',
+                'end_date' => '2026-06-30'
+            ]
         ];
     }
 }
