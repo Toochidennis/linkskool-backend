@@ -28,7 +28,7 @@ class VideoLibraryService
         $thumbnail = $_FILES['thumbnail'] ?? null;
         $thumbnailUrl = null;
 
-        if ($thumbnail['error'] === UPLOAD_ERR_OK && is_uploaded_file($thumbnail['tmp_name'])) {
+        if ($thumbnail && $thumbnail['error'] === UPLOAD_ERR_OK && is_uploaded_file($thumbnail['tmp_name'])) {
             $tmpName = $thumbnail['tmp_name'];
             $fileName = strtolower(trim(basename($thumbnail['name'])));
             $fileContent = file_get_contents($tmpName);
@@ -46,7 +46,7 @@ class VideoLibraryService
             $thumbnailUrl = $processedImages[0]['file_name'] ?? null;
         }
 
-        $data['thumbnail_url'] = $thumbnailUrl ?? $data['thumbnail_url'];
+        $data['thumbnail_url'] = $thumbnailUrl ?? $data['thumbnail_url'] ?? null;
 
         // If thumbnail_url is still null and video_url is a YouTube link, extract thumbnail
         if (empty($data['thumbnail_url']) && $this->isYouTubeUrl($data['video_url'])) {
@@ -99,9 +99,10 @@ class VideoLibraryService
             $thumbnailUrl = $processedImages[0]['file_name'] ?? null;
         }
 
-        if ($data['old_thumbnail_url'] ?? null) {
+        if ($thumbnailUrl && !empty($data['old_thumbnail_url'])) {
             $this->fileHandler->deleteOldFile($data['old_thumbnail_url']);
         }
+
 
         $data['thumbnail_url'] = $thumbnailUrl ?? $data['thumbnail_url'] ?? null;
 
@@ -347,20 +348,16 @@ class VideoLibraryService
      */
     private function isYouTubeUrl(string $url): bool
     {
-        $youtubePatterns = [
+        $host = parse_url($url, PHP_URL_HOST);
+
+        return in_array($host, [
+            'www.youtube.com',
             'youtube.com',
-            'youtu.be',
-            'm.youtube.com'
-        ];
-
-        foreach ($youtubePatterns as $pattern) {
-            if (strpos($url, $pattern) !== false) {
-                return true;
-            }
-        }
-
-        return false;
+            'm.youtube.com',
+            'youtu.be'
+        ], true);
     }
+
 
     /**
      * Extract video ID from YouTube URL
@@ -387,59 +384,13 @@ class VideoLibraryService
 
     /**
      * Get YouTube thumbnail URL for a given video
-     * Verifies and returns the highest quality thumbnail that actually exists
      */
     private function getYouTubeThumbnail(string $url): ?string
     {
         $videoId = $this->getYouTubeVideoId($url);
 
-        if (!$videoId) {
-            return null;
-        }
-
-        // YouTube thumbnail URL pattern (maxresdefault > sddefault > hqdefault > mqdefault > default)
-        $thumbnailQualities = [
-            "https://img.youtube.com/vi/{$videoId}/maxresdefault.jpg",
-            "https://img.youtube.com/vi/{$videoId}/sddefault.jpg",
-            "https://img.youtube.com/vi/{$videoId}/hqdefault.jpg",
-            "https://img.youtube.com/vi/{$videoId}/mqdefault.jpg",
-            "https://img.youtube.com/vi/{$videoId}/default.jpg"
-        ];
-
-        // Verify and return the first thumbnail URL that exists
-        foreach ($thumbnailQualities as $thumbnailUrl) {
-            if ($this->urlExists($thumbnailUrl)) {
-                return $thumbnailUrl;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Check if a URL exists and is accessible
-     */
-    private function urlExists(string $url): bool
-    {
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'HEAD',
-                'timeout' => 5
-            ]
-        ]);
-
-        $headers = @get_headers($url, 1, $context);
-
-        if ($headers === false) {
-            return false;
-        }
-
-        // Check if response code is 200 (OK)
-        if (is_array($headers)) {
-            $statusCode = isset($headers[0]) ? $headers[0] : '';
-            return strpos($statusCode, '200') !== false;
-        }
-
-        return false;
+        return $videoId
+            ? "https://img.youtube.com/vi/{$videoId}/hqdefault.jpg"
+            : null;
     }
 }

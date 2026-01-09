@@ -13,6 +13,7 @@ class ProjectSubmissionService
     public function __construct(\PDO $pdo)
     {
         $this->projectSubmissionModel = new ProjectSubmission($pdo);
+        $this->fileHandler = new FileHandler();
     }
 
 
@@ -26,7 +27,6 @@ class ProjectSubmissionService
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'] ?? null,
             'quiz_score' => $data['quiz_score'],
-            'comments' => $data['comments'] ?? null,
         ];
 
         return $this->projectSubmissionModel->insert($insertData);

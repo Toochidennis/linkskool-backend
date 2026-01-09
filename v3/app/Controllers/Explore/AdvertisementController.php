@@ -60,6 +60,51 @@ class AdvertisementController extends ExploreBaseController
         );
     }
 
+
+    #[Route('/{id:\d+}', 'POST', ['api', 'auth'])]
+    public function updateAdvertisement(array $vars): void
+    {
+        $validatedData = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'id' => 'required|integer',
+                'title' => 'required|string',
+                'content' => 'required|string',
+                'action_url' => 'required|url',
+                'action_text' => 'required|string',
+                'display_position' => 'nullable|in:top,bottom,sidebar,center',
+                'status' => 'required|in:published,draft,archived',
+                'author_id' => 'required|integer',
+                'author_name' => 'required|string|max:100',
+                'is_sponsored' => 'required|boolean',
+                'old_file_name' => 'nullable|string',
+                'image' => 'nullable|array',
+                'image.name' => 'nullable|string',
+                'image.tmp_name' => 'nullable|string',
+                'image.error' => 'nullable|integer',
+                'image.size' => 'nullable|integer'
+            ]
+        );
+
+        $updated = $this->advertisementService->updateAdvertisement($validatedData);
+
+        if (!$updated) {
+            $this->respondError(
+                'Failed to update advertisement.',
+                HttpStatus::BAD_REQUEST
+            );
+            return;
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Advertisement updated successfully.'
+            ],
+            HttpStatus::OK
+        );
+    }
+
     #[Route('', 'GET', ['api', 'auth'])]
     public function getAllAdvertisements(): void
     {
@@ -149,4 +194,37 @@ class AdvertisementController extends ExploreBaseController
             HttpStatus::OK
         );
     }
+
+    // #[Route('/{id}/images', 'DELETE', ['api', 'auth'])]
+    // public function deleteAdvertisementImage(array $vars): void
+    // {
+    //     $validatedData = $this->validate(
+    //         [...$this->getRequestData(), ...$vars],
+    //         [
+    //             'id' => 'required|integer',
+    //             'file_name' => 'required|string'
+    //         ]
+    //     );
+
+    //     $deleted = $this->advertisementService->deleteImage(
+    //         $validatedData['file_name'],
+    //         $validatedData['id']
+    //     );
+
+    //     if (!$deleted) {
+    //         $this->respondError(
+    //             'Failed to delete advertisement image.',
+    //             HttpStatus::BAD_REQUEST
+    //         );
+    //         return;
+    //     }
+
+    //     $this->respond(
+    //         [
+    //             'success' => true,
+    //             'message' => 'Advertisement image deleted successfully.'
+    //         ],
+    //         HttpStatus::OK
+    //     );
+    // }
 }
