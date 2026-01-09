@@ -5,8 +5,6 @@ namespace V3\App\Controllers\Explore;
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
-use V3\App\Common\Utilities\ResponseHandler;
-use V3\App\Database\DatabaseConnector;
 use V3\App\Services\Explore\VideoLibraryService;
 
 #[Group("/public/video-library")]
@@ -144,6 +142,77 @@ class VideoLibraryController extends ExploreBaseController
         );
     }
 
+    #[Route('/courses/by-level', 'GET', ['api'])]
+    public function index(array $vars)
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'level_id' => 'required|integer'
+            ]
+        );
+        $courses = $this->videoLibraryService->index($validated['level_id']);
+
+        $this->respond(
+            [
+                'success' => true,
+                'data' => $courses
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/videos/{id:\d+}', 'POST', ['api', 'auth'])]
+    public function updateVideo(array $vars)
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'id' => 'required|integer',
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'video_url' => 'required|url',
+                'course_id' => 'required|integer',
+                'course_name' => 'required|string|max:255',
+                'level_id' => 'required|integer',
+                'level_name' => 'required|string|max:255',
+                'syllabus_id' => 'required|integer',
+                'syllabus_name' => 'required|string|max:255',
+                'topic_id' => 'nullable|integer',
+                'topic_name' => 'nullable|string|max:255',
+                'status' => 'required|in:draft,published,archived',
+                'author_id' => 'required|integer',
+                'author_name' => 'required|string|max:100',
+
+                'thumbnail_url' => 'nullable|url',
+                'old_thumbnail_url' => 'nullable|url',
+                'thumbnail' => 'nullable|array',
+                'thumbnail.name' => 'nullable|string',
+                'thumbnail.tmp_name' => 'nullable|string',
+                'thumbnail.error' => 'nullable|integer',
+                'thumbnail.size' => 'nullable|integer'
+            ]
+        );
+
+        $updated = $this->videoLibraryService->updateVideo($validated);
+
+        if (!$updated) {
+            $this->respondError(
+                'Failed to update video.',
+                HttpStatus::BAD_REQUEST
+            );
+            return;
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Video updated successfully.'
+            ],
+            HttpStatus::OK
+        );
+    }
+
     #[Route('/videos/{id}/status', 'PUT', ['api', 'auth'])]
     public function updateVideoStatus(array $vars)
     {
@@ -177,7 +246,7 @@ class VideoLibraryController extends ExploreBaseController
         );
     }
 
-    #[Route('/videos/{id}', 'DELETE', ['api', 'auth'])]
+    #[Route('/videos/{id:\d+}', 'DELETE', ['api', 'auth'])]
     public function deleteVideo(array $vars)
     {
         $validated = $this->validate(

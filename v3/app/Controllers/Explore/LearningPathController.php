@@ -17,7 +17,6 @@ class LearningPathController extends ExploreBaseController
         $this->learningPathService = new LearningPathService($this->pdo);
     }
 
-
     #[Route('/categories-and-courses', 'GET', ['api'])]
     public function getCategoriesAndCourses(): void
     {
@@ -51,6 +50,29 @@ class LearningPathController extends ExploreBaseController
                 'success' => true,
                 'message' => 'Lessons retrieved successfully.',
                 'data' => $lessons,
+            ]
+        );
+    }
+
+    #[Route('/quizzes', 'GET', ['api'])]
+    public function courseLessonQuizzes(array $vars): void
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'course_id' => 'required|integer',
+                'lesson_id' => 'required|integer',
+            ]
+        );
+
+        $quizzes = $this->learningPathService
+            ->getLessonQuizzes($validated['course_id'], $validated['lesson_id']);
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Lesson quizzes retrieved successfully.',
+                'data' => $quizzes,
             ]
         );
     }

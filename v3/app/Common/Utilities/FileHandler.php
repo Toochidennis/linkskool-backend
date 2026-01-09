@@ -9,6 +9,11 @@ class FileHandler
     private string $relativePath;
     private string $contentPath;
     private array $allowedExtensions;
+    private int $thumbMaxWidth = 300;
+    private int $thumbMaxHeight = 300;
+    private int $jpegQuality = 80;
+    private int $maxFileSize = 5 * 1024 * 1024; // 5MB
+
 
     public function __construct(int $contentType = 0)
     {
@@ -83,10 +88,27 @@ class FileHandler
         $newFileName = "{$uniquePrefix}_$cleanName";
         $filePath = "{$this->contentPath}{$newFileName}";
 
-        $content = base64_decode($file['file']);
+        $binary = base64_decode($file['file'], true);
+        if ($binary === false) {
+            throw new \Exception("Invalid base64 file data");
+        }
 
-        if (file_put_contents($filePath, $content) === false) {
-            throw new \Exception("Failed to save file: $newFileName");
+        $size = \strlen($binary);
+        if ($size > $this->maxFileSize) {
+            throw new \Exception(
+                "File too large. Maximum allowed size is 5MB."
+            );
+        }
+
+
+        // IMAGE HANDLING
+        if (\in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+            $this->resizeAndSaveImage($binary, $filePath, $ext);
+        } else {
+            // NON-IMAGE FILES: save directly
+            if (file_put_contents($filePath, $binary) === false) {
+                throw new \Exception("Failed to save file: $newFileName");
+            }
         }
 
         $file['old_file_name'] = "{$this->relativePath}{$newFileName}";
@@ -95,6 +117,71 @@ class FileHandler
 
         return $file;
     }
+
+
+    private function resizeAndSaveImage(string $binary, string $outputPath, string $ext): void
+    {
+        $image = imagecreatefromstring($binary);
+        if (!$image) {
+            throw new \Exception("Invalid image data");
+        }
+
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        $scale = min(
+            $this->thumbMaxWidth / $width,
+            $this->thumbMaxHeight / $height,
+            1
+        );
+
+        $newWidth = (int)($width * $scale);
+        $newHeight = (int)($height * $scale);
+
+        $thumb = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Preserve transparency for PNG / WEBP
+        if (\in_array($ext, ['png', 'webp'], true)) {
+            imagealphablending($thumb, false);
+            imagesavealpha($thumb, true);
+            $transparent = imagecolorallocatealpha($thumb, 0, 0, 0, 127);
+            imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $transparent);
+        }
+
+        imagecopyresampled(
+            $thumb,
+            $image,
+            0,
+            0,
+            0,
+            0,
+            $newWidth,
+            $newHeight,
+            $width,
+            $height
+        );
+
+        switch ($ext) {
+            case 'jpg':
+            case 'jpeg':
+                imagejpeg($thumb, $outputPath, $this->jpegQuality);
+                break;
+            case 'png':
+                imagepng($thumb, $outputPath, 6);
+                break;
+            case 'webp':
+                imagewebp($thumb, $outputPath, 80);
+                break;
+            default:
+                imagedestroy($thumb);
+                imagedestroy($image);
+                throw new \Exception("Unsupported image format");
+        }
+
+        imagedestroy($thumb);
+        imagedestroy($image);
+    }
+
 
     /**
      * Deletes a list of files from the filesystem
