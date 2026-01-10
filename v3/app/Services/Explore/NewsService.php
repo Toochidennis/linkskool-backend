@@ -14,12 +14,12 @@ class NewsService
     private NewsCategory $newsCategoryModel;
     private NewsCategoryPivot $newsCategoryPivotModel;
 
-    public function __construct(\PDO $pdo)
+    public function __construct(private \PDO $pdo)
     {
-        $this->newsModel = new News($pdo);
+        $this->newsModel = new News($this->pdo);
         $this->fileHandler = new FileHandler();
-        $this->newsCategoryModel = new NewsCategory($pdo);
-        $this->newsCategoryPivotModel = new NewsCategoryPivot($pdo);
+        $this->newsCategoryModel = new NewsCategory($this->pdo);
+        $this->newsCategoryPivotModel = new NewsCategoryPivot($this->pdo);
     }
 
     public function addNews(array $data): bool|int
@@ -79,18 +79,55 @@ class NewsService
             ->update(['status' => $status]);
     }
 
-    public function updateNews(int $newsId, array $data): bool
+    public function updateNews(array $data): bool
     {
-        $payload = [];
-        if(isset($data['images'])){
+        $newImages = $this->uploadNewImages($data);
 
+        [$finalImages, $filesToDelete] = $this->resolveImages(
+            (int)$data['id'],
+            $data['old_images'] ?? null,
+            $newImages
+        );
+
+        try {
+            $this->pdo->beginTransaction();
+            $this->newsCategoryPivotModel
+                ->where('news_id', $data['id'])
+                ->delete();
+
+            foreach ($data['category_ids'] as $categoryId) {
+                $this->newsCategoryPivotModel->insert([
+                    'news_id' => $data['id'],
+                    'category_id' => $categoryId
+                ]);
+            }
+
+            $payload = [
+                'title' => $data['title'],
+                'content' => $data['content'],
+                'category_ids' => json_encode($data['category_ids']),
+                'images' => json_encode($finalImages),
+                'author_id' => $data['author_id'],
+                'author_name' => $data['author_name'],
+                'status' => $data['status'],
+                'updated_at' => date('Y-m-d H:i:s'),
+            ];
+
+            $this->newsModel
+                ->where('id', $data['id'])
+                ->update($payload);
+
+            $this->pdo->commit();
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            return false;
         }
 
+        foreach ($filesToDelete as $file) {
+            $this->fileHandler->deleteOldFile($file);
+        }
 
-
-        return $this->newsModel
-            ->where('id', $newsId)
-            ->update($payload);
+        return true;
     }
 
     public function getNewsById(int $newsId): bool|array
@@ -230,5 +267,72 @@ class NewsService
             ],
             'meta' => $news['meta']
         ];
+    }
+
+    public function resolveImages(
+        int $newsId,
+        ?array $oldImages,
+        array $newImages
+    ): array {
+        $existingImages = $this->newsModel
+            ->select(['images'])
+            ->where('id', $newsId)
+            ->first();
+
+        $existingImages = json_decode($existingImages['images'] ?? '[]', true);
+
+        $remaining = [];
+        $toDelete  = [];
+
+        foreach ($existingImages as $img) {
+            $deleted = false;
+
+            foreach ($oldImages ?? [] as $old) {
+                if (
+                    $old['file_name'] === $img['file_name'] &&
+                    ($old['is_deleted'] ?? false) === true
+                ) {
+                    $toDelete[] = $img['file_name'];
+                    $deleted = true;
+                    break;
+                }
+            }
+
+            if (!$deleted) {
+                $remaining[] = $img;
+            }
+        }
+
+        // merge with newly uploaded images
+        $final = array_merge($remaining, $newImages);
+
+        return [$final, $toDelete];
+    }
+
+    public function uploadNewImages(array $images): array
+    {
+        $newImages = [];
+
+        $fileCount = \count($images['images']['name'] ?? []);
+        for ($i = 0; $i < $fileCount; $i++) {
+            if (
+                (int)$images['images']['error'][$i] === 0 &&
+                is_uploaded_file($images['images']['tmp_name'][$i])
+            ) {
+                $newImages[] = [
+                    'file_name' => strtolower(trim(basename($images['images']['name'][$i]))),
+                    'type' => 'image',
+                    'file' => base64_encode(
+                        file_get_contents($images['images']['tmp_name'][$i])
+                    )
+                ];
+            }
+        }
+
+        $uploadedImages = $newImages
+            ? $this->fileHandler->handleFiles($newImages)
+            : [];
+
+        return $uploadedImages;
     }
 }
