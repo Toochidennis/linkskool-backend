@@ -61,6 +61,7 @@ class QueryBuilder
     public function select(array $columns = ['*']): self
     {
         //array_map([$this, 'validateColumn'], $columns);
+        //$columns = array_map([$this, 'wrapIdentifier'], $columns);
         $this->selectColumns = $columns;
         return $this;
     }
@@ -366,10 +367,11 @@ class QueryBuilder
         if (empty($values)) {
             throw new InvalidArgumentException("Values for IN cannot be empty.");
         }
-        $this->validateColumn($column);
+
+        $column = $this->wrapIdentifier($column);
 
         $placeholders = implode(", ", array_fill(0, \count($values), "?"));
-        $this->whereConditions[] = "`$column` IN ($placeholders)";
+        $this->whereConditions[] = "$column IN ($placeholders)";
         $this->whereBindings = [...$this->whereBindings, ...$values];
 
         return $this;

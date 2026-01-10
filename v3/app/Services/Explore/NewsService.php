@@ -2,187 +2,337 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Common\Utilities\FileHandler;
+use V3\App\Models\Explore\News;
+use V3\App\Models\Explore\NewsCategory;
+use V3\App\Models\Explore\NewsCategoryPivot;
+
 class NewsService
 {
-    public function __construct() 
+    private News $newsModel;
+    private FileHandler $fileHandler;
+    private NewsCategory $newsCategoryModel;
+    private NewsCategoryPivot $newsCategoryPivotModel;
+
+    public function __construct(private \PDO $pdo)
     {
+        $this->newsModel = new News($this->pdo);
+        $this->fileHandler = new FileHandler();
+        $this->newsCategoryModel = new NewsCategory($this->pdo);
+        $this->newsCategoryPivotModel = new NewsCategoryPivot($this->pdo);
     }
 
-    public function getNews()
+    public function addNews(array $data): bool|int
     {
-        $news = [
-            [
-                'id' => 0,
-                'title' => 'Waec registration has started',
-                'content' => 'The registration for WAEC has begun, please visit the school portal for more details.',
-                'date_posted' => '2025-02-16 08:00:00',
-                'image_url' => 'https://picsum.photos/seed/waec/800/600',
-                'category' => 'WAEC',
-                'group' => 'latest',
-                'user_like' => 1,
-                'likes' => 20,
-                'comments' => [
-                    [
-                        'user_id' => 2,
-                        'name' => 'John Doe',
-                        'comment' => "I'll apply",
-                        'date' => '2025-02-16 22:30:20',
-                        'profile_url' => 'https://example.com/profiles/2'
-                    ]
-                ]
-            ],
+        $imageMap = [];
 
-            [
-                'id' => 1,
-                'title' => 'School reopens after holidays',
-                'content' => 'Classes resume on Monday following the holiday break.',
-                'date_posted' => '2025-02-17 07:45:00',
-                'image_url' => 'https://picsum.photos/seed/schoolreopens/800/600',
-                'category' => 'General',
-                'group' => 'latest',
-                'user_like' => 0,
-                'likes' => 35,
-                'comments' => []
-            ],
+        // Handle $_FILES structure: images[name][], images[tmp_name][], etc.
+        $fileCount = \count($data['images']['name']);
+        for ($i = 0; $i < $fileCount; $i++) {
+            $tmpName = $data['images']['tmp_name'][$i];
+            $fileName = strtolower(trim(basename($data['images']['name'][$i])));
+            $error = (int)$data['images']['error'][$i];
 
-            [
-                'id' => 2,
-                'title' => 'Exam results announced',
-                'content' => 'The results for the recent exams have been published.',
-                'date_posted' => '2025-02-18 12:00:00',
-                'image_url' => 'https://picsum.photos/seed/examresults/800/600',
-                'category' => 'JAMB',
-                'group' => 'related',
-                'user_like' => 1,
-                'likes' => 50,
-                'comments' => []
-            ],
+            // Only process files with no upload errors
+            if ($error === 0 && is_uploaded_file($tmpName)) {
+                $fileContent = file_get_contents($tmpName);
+                $base64 = base64_encode($fileContent);
 
-            [
-                'id' => 3,
-                'title' => 'Parent-teacher meeting scheduled',
-                'content' => 'A parent-teacher meeting is scheduled for next week.',
-                'date_posted' => '2025-02-19 15:30:00',
-                'image_url' => 'https://picsum.photos/seed/parentmeeting/800/600',
-                'category' => 'General',
-                'group' => 'recommended',
-                'user_like' => 0,
-                'likes' => 15,
-                'comments' => []
-            ],
+                $imageMap[] = [
+                    'file_name' => $fileName,
+                    'old_file_name' => '',
+                    'type' => 'image',
+                    'file' => $base64
+                ];
+            }
+        }
 
-            [
-                'id' => 4,
-                'title' => 'New library books have arrived',
-                'content' => 'The school library has received new books across various genres.',
-                'date_posted' => '2025-02-20 10:00:00',
-                'image_url' => 'https://picsum.photos/seed/librarybooks2025/800/600',
-                'category' => 'General',
-                'group' => 'related',
-                'user_like' => 1,
-                'likes' => 25,
-                'comments' => []
-            ],
+        $processedImages = $this->fileHandler->handleFiles($imageMap);
 
-            [
-                'id' => 5,
-                'title' => 'Sports day announced',
-                'content' => 'The annual sports day is scheduled for later this month.',
-                'date_posted' => '2025-02-21 09:00:00',
-                'image_url' => 'https://picsum.photos/seed/sportsday2025/800/600',
-                'category' => 'General',
-                'group' => 'latest',
-                'user_like' => 1,
-                'likes' => 40,
-                'comments' => []
-            ],
-
-            [
-                'id' => 6,
-                'title' => 'Art exhibition opens',
-                'content' => 'The school art exhibition is now open for viewing.',
-                'date_posted' => '2025-02-22 14:00:00',
-                'image_url' => 'https://picsum.photos/seed/artexhibition2025/800/600',
-                'category' => 'General',
-                'group' => 'recommended',
-                'user_like' => 0,
-                'likes' => 18,
-                'comments' => []
-            ],
-
-            [
-                'id' => 7,
-                'title' => 'Science fair winners announced',
-                'content' => 'The winners of the annual science fair have been announced.',
-                'date_posted' => '2025-02-23 13:30:00',
-                'image_url' => 'https://picsum.photos/seed/sciencefair2025/800/600',
-                'category' => 'Admission',
-                'group' => 'related',
-                'user_like' => 1,
-                'likes' => 55,
-                'comments' => []
-            ],
-
-            [
-                'id' => 8,
-                'title' => 'Scholarship applications now open',
-                'content' => 'A new set of scholarships is now open for application. Eligible students should apply early.',
-                'date_posted' => '2025-02-24 10:00:00',
-                'image_url' => 'https://picsum.photos/seed/scholarship2025/800/600',
-                'category' => 'Scholarships',
-                'group' => 'latest',
-                'user_like' => 1,
-                'likes' => 72,
-                'comments' => []
-            ],
-
-            [
-                'id' => 9,
-                'title' => 'New cafeteria menu introduced',
-                'content' => 'The cafeteria has introduced a healthier menu.',
-                'date_posted' => '2025-02-25 12:30:00',
-                'image_url' => 'https://picsum.photos/seed/cafeteriamenu2025/800/600',
-                'category' => 'General',
-                'group' => 'related',
-                'user_like' => 1,
-                'likes' => 22,
-                'comments' => []
-            ],
-
-            [
-                'id' => 10,
-                'title' => 'UTME mock exam tips released',
-                'content' => 'Important tips for students preparing for the JAMB UTME mock exam.',
-                'date_posted' => '2025-02-26 11:00:00',
-                'image_url' => 'https://picsum.photos/seed/jambmock2025/800/600',
-                'category' => 'JAMB',
-                'group' => 'recommended',
-                'user_like' => 0,
-                'likes' => 33,
-                'comments' => []
-            ]
+        $payload = [
+            'title' => $data['title'],
+            'content' => $data['content'],
+            'date_posted' => $data['date_posted'] ?? date('Y-m-d H:i:s'),
+            'category_ids' => json_encode($data['category_ids']),
+            'images' => json_encode($processedImages),
+            'author_id' => $data['author_id'],
+            'author_name' => $data['author_name'],
+            'status' => $data['status'],
         ];
 
-        // GROUPING (UI DISPLAY)
-        $groups = [
-            'latest' => [0, 1, 5, 8],
-            'related' => [2, 4, 7, 9],
-            'recommended' => [3, 6, 10]
+        $newsId = $this->newsModel->insert($payload);
+
+        foreach ($data['category_ids'] as $categoryId) {
+            $this->newsCategoryPivotModel->insert([
+                'news_id' => $newsId,
+                'category_id' => $categoryId
+            ]);
+        }
+
+        return $newsId ?: false;
+    }
+
+    public function updateNewsStatus(int $newsId, string $status): bool
+    {
+        return $this->newsModel
+            ->where('id', $newsId)
+            ->update(['status' => $status]);
+    }
+
+    public function updateNews(array $data): bool
+    {
+        $newImages = $this->uploadNewImages($data);
+
+        [$finalImages, $filesToDelete] = $this->resolveImages(
+            (int)$data['id'],
+            $data['old_images'] ?? null,
+            $newImages
+        );
+
+        try {
+            $this->pdo->beginTransaction();
+            $this->newsCategoryPivotModel
+                ->where('news_id', $data['id'])
+                ->delete();
+
+            foreach ($data['category_ids'] as $categoryId) {
+                $this->newsCategoryPivotModel->insert([
+                    'news_id' => $data['id'],
+                    'category_id' => $categoryId
+                ]);
+            }
+
+            $payload = [
+                'title' => $data['title'],
+                'content' => $data['content'],
+                'category_ids' => json_encode($data['category_ids']),
+                'images' => json_encode($finalImages),
+                'author_id' => $data['author_id'],
+                'author_name' => $data['author_name'],
+                'status' => $data['status'],
+                'updated_at' => date('Y-m-d H:i:s'),
+            ];
+
+            $this->newsModel
+                ->where('id', $data['id'])
+                ->update($payload);
+
+            $this->pdo->commit();
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            return false;
+        }
+
+        foreach ($filesToDelete as $file) {
+            $this->fileHandler->deleteOldFile($file);
+        }
+
+        return true;
+    }
+
+    public function getNewsById(int $newsId): bool|array
+    {
+        return $this->newsModel
+            ->where('id', $newsId)
+            ->first();
+    }
+
+    public function getNewsAdmin(): array
+    {
+        $result =  $this->newsModel->get();
+
+        foreach ($result as &$news) {
+            $categories = json_decode($news['category_ids'], true);
+            $news['categories'] = $this->newsCategoryModel
+                ->in('id', $categories)
+                ->get();
+            $news['images'] = json_decode($news['images'], true);
+        }
+
+        return $result;
+    }
+
+    public function deleteNews(int $newsId): bool
+    {
+        $oldNews = $this->newsModel
+            ->where('id', $newsId)
+            ->first();
+
+        if ($oldNews && !empty($oldNews['images'])) {
+            $images = json_decode($oldNews['images'], true);
+            foreach ($images as $image) {
+                $this->fileHandler->deleteOldFile($image['file_name']);
+            }
+        }
+
+        return $this->newsModel
+            ->where('id', $newsId)
+            ->delete();
+    }
+
+    public function getNews(array $filters)
+    {
+        $news = $this->newsModel
+            ->where('status', 'published')
+            ->orderBy('date_posted', 'DESC')
+            ->paginate($filters['page'] ?? 1, $filters['limit'] ?? 25);
+
+        $formattedNews = array_map(function ($item) {
+            $item['images'] = json_decode($item['images'], true);
+            unset($item['category_ids']);
+            return $item;
+        }, $news['data']);
+
+        $newsIds = array_column($news['data'], 'id');
+
+        $rawCategories = $this->newsCategoryModel
+            ->select(['explore_news_categories.name', 'explore_news_category_pivot.news_id'])
+            ->join('explore_news_category_pivot', 'explore_news_category_pivot.category_id = explore_news_categories.id')
+            ->in('explore_news_category_pivot.news_id', $newsIds)
+            ->get();
+
+        $categoryMap = [];
+
+        foreach ($rawCategories as $row) {
+            $categoryMap[$row['news_id']][] = $row['name'];
+        }
+
+        $latestIds = array_slice(
+            array_column($news['data'], 'id'),
+            0,
+            5
+        );
+
+        $latestCategories = [];
+
+        foreach ($latestIds as $id) {
+            $latestCategories = array_merge(
+                $latestCategories,
+                $categoryMap[$id] ?? []
+            );
+        }
+
+        $latestCategories = array_unique($latestCategories);
+
+        $relatedIds = [];
+        $relatedSet = []; // prevent duplicates
+
+        foreach ($categoryMap as $newsId => $cats) {
+            if (\in_array($newsId, $latestIds, true)) {
+                continue;
+            }
+
+            if (!empty(array_intersect($cats, $latestCategories))) {
+                $relatedSet[$newsId] = true; // use map as a set
+            }
+        }
+
+        $relatedIds = array_slice(
+            array_keys($relatedSet),
+            0,
+            5
+        );
+
+
+        $used = \array_merge($latestIds, $relatedIds);
+
+        $remaining = array_values(
+            array_diff(array_column($news['data'], 'id'), $used)
+        );
+
+        $recommendedIds = [
+            ...\array_slice($latestIds, 0, 2),
+            ...\array_slice($remaining, 0, 3)
         ];
 
-        // CATEGORY FILTERING (REAL CATEGORIES)
-        $categories = [
-            'WAEC' => [0],
-            'JAMB' => [2, 10],
-            'Admission' => [7],
-            'Scholarships' => [8],
-            'General' => [1, 3, 4, 5, 6, 9]
-        ];
+        $recommendedIds = \array_values(\array_unique($recommendedIds));
+
+        $categories = [];
+
+        foreach ($categoryMap as $newsId => $cats) {
+            foreach ($cats as $cat) {
+                $categories[$cat][] = $newsId;
+            }
+        }
 
         return [
-            'groups' => $groups,
-            'categories' => $categories,
-            'news' => $news
+            'data' => [
+                'groups' => [
+                    'latest' => $latestIds,
+                    'related' => $relatedIds,
+                    'recommended' => $recommendedIds,
+                ],
+                'categories' => $categories,
+                'news' => $formattedNews,
+            ],
+            'meta' => $news['meta']
         ];
+    }
+
+    public function resolveImages(
+        int $newsId,
+        ?array $oldImages,
+        array $newImages
+    ): array {
+        $existingImages = $this->newsModel
+            ->select(['images'])
+            ->where('id', $newsId)
+            ->first();
+
+        $existingImages = json_decode($existingImages['images'] ?? '[]', true);
+
+        $remaining = [];
+        $toDelete  = [];
+
+        foreach ($existingImages as $img) {
+            $deleted = false;
+
+            foreach ($oldImages ?? [] as $old) {
+                if (
+                    $old['file_name'] === $img['file_name'] &&
+                    ($old['is_deleted'] ?? false) === true
+                ) {
+                    $toDelete[] = $img['file_name'];
+                    $deleted = true;
+                    break;
+                }
+            }
+
+            if (!$deleted) {
+                $remaining[] = $img;
+            }
+        }
+
+        // merge with newly uploaded images
+        $final = array_merge($remaining, $newImages);
+
+        return [$final, $toDelete];
+    }
+
+    public function uploadNewImages(array $images): array
+    {
+        $newImages = [];
+
+        $fileCount = \count($images['images']['name'] ?? []);
+        for ($i = 0; $i < $fileCount; $i++) {
+            if (
+                (int)$images['images']['error'][$i] === 0 &&
+                is_uploaded_file($images['images']['tmp_name'][$i])
+            ) {
+                $newImages[] = [
+                    'file_name' => strtolower(trim(basename($images['images']['name'][$i]))),
+                    'type' => 'image',
+                    'file' => base64_encode(
+                        file_get_contents($images['images']['tmp_name'][$i])
+                    )
+                ];
+            }
+        }
+
+        $uploadedImages = $newImages
+            ? $this->fileHandler->handleFiles($newImages)
+            : [];
+
+        return $uploadedImages;
     }
 }
