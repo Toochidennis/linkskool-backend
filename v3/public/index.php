@@ -1,97 +1,20 @@
 <?php
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-KEY");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use FastRoute\Dispatcher;
-use FastRoute\RouteCollector;
-use V3\App\Utilities\ResponseHandler;
-
-$response = ['success' => false ];
-
-$dispatcher = FastRoute\simpleDispatcher(function (RouteCollector $r) {
-    /**  Portal routes  */
-    // Login routes
-    $r->addRoute('POST', '/portal/auth/login', ['Portal\AuthController', 'handleAuthRequest']);
-    $r->addRoute('POST', '/portal/auth/logout', ['Portal\AuthController', 'logout']);
-    // Student routes
-    $r->addRoute('POST', '/portal/students', ['Portal\StudentController', 'addStudent']);
-    $r->addRoute('GET', '/portal/students', ['Portal\StudentController', 'getStudents']);
-    $r->addRoute('GET', '/portal/students/{id}', ['Portal\StudentController', 'getStudentById']);
-    // Staff routes
-    $r->addRoute('POST', '/portal/staff', ['Portal\StaffController', 'addStaff']);
-    $r->addRoute('GET', '/portal/staff', ['Portal\StaffController', 'getStaff']);
-    $r->addRoute('GET', '/portal/staff/{id}', ['Portal\StaffController', 'getStaffById']);
-
-    $r->addRoute('POST', '/portal/courses/registrations', ['Portal\CourseRegistrationController', 'registerCourses']);
-    $r->addRoute('GET', '/portal/courses/registrations', ['Portal\CourseRegistrationController', 'fetchRegisteredCourses']);
-    $r->addRoute('GET', '/portal/courses/registrations/terms', ['Portal\CourseRegistrationController', 'getRegistrationTerms']);
-    $r->addRoute('POST', '/portal/courses/registrations/duplicate', ['Portal\CourseRegistrationController', 'duplicateRegistration']);
-
-    $r->addRoute('POST', '/portal/assessments', ['Portal\AssessmentController', 'addAssessment']);
-    $r->addRoute('GET', '/portal/assessments', ['Portal\AssessmentController', 'fetchAssessments']);
-    $r->addRoute('GET', '/portal/assessments/{level}', ['Portal\AssessmentController', 'fetchAssessmentById']);
-
-    $r->addRoute('POST', '/portal/grades', ['Portal\GradeController', 'addGrade']);
-    $r->addRoute('GET', '/portal/grades', ['Portal\GradeController', 'fetchGrades']);
-
-    $r->addRoute('POST', '/portal/attendance', ['Portal\AttendanceController', 'addAttendance']);
-    $r->addRoute('PUT', '/portal/attendance', ['Portal\AttendanceController', 'updateAttendance']);
-    $r->addRoute('GET', '/portal/attendance', ['Portal\AttendanceController', 'getAttendance']);
-    $r->addRoute('GET', '/portal/attendance/summary', ['Portal\AttendanceController', 'getAttendanceSummary']);
-    $r->addRoute('GET', '/portal/attendance/{id}', ['Portal\AttendanceController', 'getAttendanceById']);
-
-    $r->addRoute('GET', '/portal/course-assignments', ['Portal\CourseAssignmentController', 'getAssignments']);
-});
-
-// Fetch method and URI
-$httpMethod = $_SERVER['REQUEST_METHOD'];
-$uri = $_SERVER['REQUEST_URI'];
-$queryString = '';
-
-// Strip query string (?foo=bar) from URI
-if (false !== $pos = strpos($uri, '?')) {
-    $queryString  = substr($uri,  $pos + 1);
-    $uri  = substr($uri, 0, $pos);
-}
-
-// parse the query string into an associative array.
-$queryParams = [];
-if (!empty($queryString)) {
-    parse_str($queryString, $queryParams);
-}
-
-$uri = rawurldecode($uri);
-$uri = str_replace('/api3/v3', '', $uri);
-
-// Dispatch the route
-$routeInfo = $dispatcher->dispatch($httpMethod, $uri);
-switch ($routeInfo[0]) {
-    case Dispatcher::NOT_FOUND:
-        $response['message'] = 'Route not found.';
-        ResponseHandler::sendJsonResponse($response, 404);
-        break;
-
-    case Dispatcher::METHOD_NOT_ALLOWED:
-        $response['message'] = 'Method not allowed.';
-        ResponseHandler::sendJsonResponse($response, 405);
-        break;
-
-    case Dispatcher::FOUND:
-        $handler = $routeInfo[1];
-        $vars = $routeInfo[2];
-
-        $vars = array_merge($vars, $queryParams);
-
-        // Split the handler (e.g [AuthController, handleAuthRequest])
-        [$class, $method] = $handler;
-
-        // Instantiate and call the method
-        $controller = "V3\App\Controllers\\$class";
-
-        if (class_exists($controller) && method_exists($controller, $method)) {
-            (new $controller())->$method($vars);
-        } else {
-            $response['message'] = 'Invalid handler';
-            ResponseHandler::sendJsonResponse($response, 500);
-        }
-        break;
-}
+V3\App\Common\Utilities\EnvLoader::load();
+V3\App\Common\Utilities\Logger::init();
+V3\App\Common\Routing\RouteDispatcher::handle();

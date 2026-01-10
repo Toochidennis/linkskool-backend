@@ -1,0 +1,65 @@
+<?php
+
+namespace V3\App\Controllers\Portal\Academics;
+
+use V3\App\Common\Utilities\HttpStatus;
+use V3\App\Controllers\BaseController;
+use V3\App\Common\Routing\{Route, Group};
+use V3\App\Services\Portal\Academics\CourseAssignmentService;
+
+#[Group('/portal')]
+class CourseAssignmentController extends BaseController
+{
+    private CourseAssignmentService $service;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->service = new CourseAssignmentService($this->pdo);
+    }
+
+    #[Route('/course-assignments', 'POST', ['auth', 'role:admin'])]
+    public function storeCourseAssignment()
+    {
+        $data = $this->validate(
+            data: $this->post,
+            rules: [
+                'year' => 'required|integer',
+                'term' => 'required|string|in:1,2,3',
+                'staff_id' => 'required|integer|min:1',
+                'courses' => 'required|array|filled',
+                'courses.*.course_id' => 'required|integer|filled',
+                'courses.*.class_id' => 'required|integer|filled'
+            ]
+        );
+
+        $isInserted = $this->service->assignCourses($data);
+
+        if ($isInserted) {
+            return $this->respond([
+                'success' => true,
+                'message' => 'Course(s) assigned successfully.'
+            ], HttpStatus::CREATED);
+        }
+        return $this->respondError(
+            'Failed to assign course(s).',
+            HttpStatus::BAD_REQUEST
+        );
+    }
+
+    #[Route('/course-assignments', 'GET', ['auth', 'role:admin'])]
+    public function getCourseAssignments(array $vars)
+    {
+        $data = $this->validate(
+            $vars,
+            [
+                'year' => 'required|integer',
+                'term' => 'required|string|in:1,2,3',
+                'staff_id' => 'required|integer|min:1'
+            ]
+        );
+
+        $result = $this->service->getAssignedCourses($data);
+        $this->respond(['success' => true, 'response' => $result]);
+    }
+}
