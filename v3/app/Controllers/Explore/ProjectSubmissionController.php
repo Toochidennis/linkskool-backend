@@ -18,7 +18,7 @@ class ProjectSubmissionController extends ExploreBaseController
         $this->projectSubmissionService = new ProjectSubmissionService($this->pdo);
     }
 
-    #[Route('/submissions', 'POST', ['api'])]
+    #[Route('/submissions', 'POST', middleware: ['api'])]
     public function submitProject(): void
     {
         $validated = $this->validate(
