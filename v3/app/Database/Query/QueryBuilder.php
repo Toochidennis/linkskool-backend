@@ -522,6 +522,13 @@ class QueryBuilder
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function rawExecute(string $query, array $bindings = []): int
+    {
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute($bindings);
+        return $stmt->rowCount();
+    }
+
     /**
      * Validates whether the provided table name is allowed.
      *

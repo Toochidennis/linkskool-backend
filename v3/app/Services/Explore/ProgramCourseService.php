@@ -2,24 +2,98 @@
 
 namespace V3\App\Services\Explore;
 
-use V3\App\Common\Utilities\FileHandler;
 use V3\App\Models\Explore\ProgramCourse;
 
 class ProgramCourseService
 {
     protected ProgramCourse $programCourseModel;
-    private FileHandler $fileHandler;
 
     public function __construct(\PDO $pdo)
     {
         $this->programCourseModel = new ProgramCourse($pdo);
-        $this->fileHandler = new FileHandler();
     }
 
     public function addCourseToProgram(array $data)
     {
+        if (!isset($_FILES['image'])) {
+            throw new \Exception("Invalid image upload.");
+        }
+
+        $data['image_url'] = ImageService::processImage($_FILES['image']);
+
+        $payload = [
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'image_url' => $data['image_url'],
+            'slogan' => $data['slogan'],
+            'author_id' => $data['author_id'],
+            'author_name' => $data['author_name'],
+            'status' => $data['status'],
+            'age_groups' => json_encode($data['age_groups']),
+            'program_id' => $data['program_id'],
+        ];
 
         return $this->programCourseModel->insert($payload);
     }
 
+    public function updateProgramCourse(array $data)
+    {
+        if (isset($_FILES['image'])) {
+            $data['image_url'] = ImageService::processImage($_FILES['image']);
+        }
+
+        $payload = [
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'image_url' => $data['image_url'] ?? null,
+            'slogan' => $data['slogan'],
+            'status' => $data['status'],
+            'age_groups' => json_encode($data['age_groups']),
+            'updated_by' => $data['updated_by'],
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $id = $this->programCourseModel
+            ->where('id', $data['id'])
+            ->update(
+                array_filter(
+                    $payload,
+                    fn($value) => $value !== null
+                )
+            );
+
+        if (!empty($data['old_image_url']) && isset($data['image_url'])) {
+            ImageService::deleteOldImage($data['old_image_url']);
+        }
+
+        return $id;
+    }
+
+    public function getCoursesByProgramId(int $programId)
+    {
+        $result =  $this->programCourseModel
+            ->where('program_id', $programId)
+            ->orderBy('created_at', 'DESC')
+            ->get();
+
+        return array_map(function ($course) {
+            $course['age_groups'] = json_decode($course['age_groups'], true);
+            return $course;
+        }, $result);
+    }
+
+    public function deleteProgramCourse(int $id)
+    {
+        $course = $this->programCourseModel
+            ->where('id', $id)
+            ->first();
+
+        if ($course && !empty($course['image_url'])) {
+            ImageService::deleteOldImage($course['image_url']);
+        }
+
+        return $this->programCourseModel
+            ->where('id', $id)
+            ->delete();
+    }
 }
