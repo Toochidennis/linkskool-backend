@@ -18,6 +18,7 @@ class ProgramController extends ExploreBaseController
         $this->programService = new ProgramService($this->pdo);
     }
 
+    #[Route('', 'POST', ['api', 'auth'])]
     public function create()
     {
         $validatedData = $this->validate(
@@ -25,24 +26,17 @@ class ProgramController extends ExploreBaseController
             [
                 'name' => 'required|string|max:255',
                 'description' => 'required|string',
-                'created_by' => 'required|integer',
+                'author_name' => 'required|string|max:255',
+                'author_id' => 'required|integer',
                 'shortname' => 'required|string|max:100',
                 'status' => 'required|string|in:draft,published,archived',
-                'is_free' => 'required|boolean',
-                'trial_type' => 'required|string|in:days,watches',
-                'trial_value' => 'required|integer|min:0',
-                'age_groups' => 'required|array',
-                'age_groups.*' => 'string',
-                'cost' => 'nullable|numeric|min:0',
-                'start_date' => 'required|date',
-                'end_date' => 'required|date|after_or_equal:start_date',
                 'sponsor' => 'nullable|string|max:255',
 
-                'banner_image' => 'required|array',
-                'banner_image.name' => 'required|string',
-                'banner_image.tmp_name' => 'required|string',
-                'banner_image.error' => 'required|integer',
-                'banner_image.size' => 'required|integer'
+                'image' => 'required|array',
+                'image.name' => 'required|string',
+                'image.tmp_name' => 'required|string',
+                'image.error' => 'required|integer',
+                'image.size' => 'required|integer'
             ]
         );
 
@@ -65,6 +59,7 @@ class ProgramController extends ExploreBaseController
         );
     }
 
+    #[Route('/{id}', 'POST', ['api', 'auth'])]
     public function update(array $vars)
     {
         $validatedData = $this->validate(
@@ -75,23 +70,14 @@ class ProgramController extends ExploreBaseController
                 'updated_by' => 'required|integer',
                 'shortname' => 'required|string|max:100',
                 'status' => 'required|string|in:draft,published,archived',
-                'is_free' => 'required|boolean',
-                'trial_type' => 'required|string|in:days,watches',
-                'trial_value' => 'required|integer|min:0',
-                'age_groups' => 'required|array',
-                'age_groups.*' => 'string',
-                'cost' => 'nullable|numeric|min:0',
-                'start_date' => 'required|date',
-                'end_date' => 'required|date|after_or_equal:start_date',
                 'sponsor' => 'nullable|string|max:255',
 
-                'banner_image' => 'nullable|array',
-                'banner_image.name' => 'required_with:banner_image|string',
-                'banner_image.tmp_name' => 'required_with:banner_image|string',
-                'banner_image.error' => 'required_with:banner_image|integer',
-                'banner_image.size' => 'required_with:banner_image|integer',
-
-                'old_banner_image' => 'nullable|string'
+                'image' => 'nullable|array',
+                'image.name' => 'required_with:image|string',
+                'image.tmp_name' => 'required_with:image|string',
+                'image.error' => 'required_with:image|integer',
+                'image.size' => 'required_with:image|integer',
+                'old_image_url' => 'nullable|string'
             ]
         );
 
@@ -113,6 +99,7 @@ class ProgramController extends ExploreBaseController
         );
     }
 
+    #[Route('/{id}/status', 'PUT', ['api', 'auth'])]
     public function updateStatus(array $vars)
     {
         $validatedData = $this->validate(
@@ -145,6 +132,7 @@ class ProgramController extends ExploreBaseController
         );
     }
 
+    #[Route('', 'GET', ['api', 'auth'])]
     public function getAllPrograms()
     {
         $programs = $this->programService->getAllPrograms();
@@ -165,6 +153,34 @@ class ProgramController extends ExploreBaseController
                 'message' => 'Programs fetched successfully',
                 'data' => $programs
             ]
+        );
+    }
+
+    #[Route('/{id}', 'DELETE', ['api', 'auth'])]
+    public function deleteProgram(array $vars)
+    {
+        $validatedData = $this->validate(
+            $vars,
+            [
+                'id' => 'required|integer',
+            ]
+        );
+
+        $deleted = $this->programService->deleteProgram((int)$validatedData['id']);
+
+        if (!$deleted) {
+            $this->respondError(
+                'Failed to delete program.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Program deleted successfully.',
+            ],
+            HttpStatus::OK
         );
     }
 }
