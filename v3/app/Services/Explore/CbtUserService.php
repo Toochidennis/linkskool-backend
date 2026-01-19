@@ -21,6 +21,42 @@ class CbtUserService
         return $this->user->insert($data);
     }
 
+    public function findOrCreateUserByEmail(array $data): array
+    {
+        $user = $this->user
+            ->where('email', '=', $data['email'])
+            ->first();
+
+        if ($user) {
+            $this->updateUser($user['id'], [
+                'name'   => $data['name'] ?? $user['name'],
+            ]);
+
+            return $this->user
+                ->where('id', '=', $user['id'])
+                ->first();
+        }
+
+        try {
+            $id = $this->createUser($data);
+
+            return $this->user
+                ->where('id', '=', $id)
+                ->first();
+        } catch (\PDOException $e) {
+            if ($this->isDuplicateEmailError($e)) {
+                return $this->getUserByEmail($data['email']);
+            }
+
+            throw $e;
+        }
+    }
+
+    private function isDuplicateEmailError(\PDOException $e): bool
+    {
+        return $e->getCode() === '23000';
+    }
+
     public function updateUser(int $id, array $data): bool
     {
         unset($data['id']);

@@ -4,14 +4,12 @@ namespace V3\App\Services\Explore;
 
 use V3\App\Models\Explore\CohortLessonQuiz;
 use V3\App\Models\Explore\Program;
-use V3\App\Models\Explore\ProgramCourse;
 use V3\App\Models\Explore\ProgramCourseCohort;
 use V3\App\Models\Explore\ProgramCourseCohortLesson;
 
 class LearningPathService
 {
     private Program $programModel;
-    private ProgramCourse $programCourseModel;
     private ProgramCourseCohort $programCourseCohortModel;
     private ProgramCourseCohortLesson $programCourseCohortLessonModel;
     private CohortLessonQuiz $cohortLessonQuizModel;
@@ -19,7 +17,6 @@ class LearningPathService
     public function __construct(\PDO $pdo)
     {
         $this->programModel = new Program($pdo);
-        $this->programCourseModel = new ProgramCourse($pdo);
         $this->programCourseCohortModel = new ProgramCourseCohort($pdo);
         $this->programCourseCohortLessonModel = new ProgramCourseCohortLesson($pdo);
         $this->cohortLessonQuizModel = new CohortLessonQuiz($pdo);
@@ -113,7 +110,6 @@ class LearningPathService
 
                 'has_active_cohort' => (bool) $row['active_cohort_id'],
 
-                // commercial access info (nullable)
                 'is_free' => $row['active_cohort_id']
                     ? (bool) $row['is_free']
                     : null,
@@ -191,26 +187,31 @@ class LearningPathService
 
     public function getLessonById(int $lessonId, int $userId): array
     {
-        $row =  $this->programCourseCohortLessonModel
-            ->select([
-                'program_course_cohort_lessons.*',
-                'cohort_tasks_submissions.assignment',
-                'cohort_tasks_submissions.quiz_score',
-                'cohort_tasks_submissions.created_at AS submitted_at'
-            ])
-            ->join('cohort_tasks_submissions', function ($join) use ($lessonId, $userId) {
-                $join->on('cohort_tasks_submissions.lesson_id', '=', 'program_course_cohort_lessons.id');
-                $join->on('cohort_tasks_submissions.lesson_id', '=', $lessonId);
-                $join->on('cohort_tasks_submissions.user_id', '=', $userId);
-            }, 'LEFT')
-            ->where('program_course_cohort_lessons.id', $lessonId)
-            ->first();
+        $sql = "
+            SELECT 
+                l.*,
+                s.assignment,
+                s.quiz_score,
+                s.created_at AS submitted_at
+            FROM program_course_cohort_lessons l
+            LEFT JOIN cohort_tasks_submissions s
+                ON s.lesson_id = l.id
+                AND s.user_id = :user_id
+            WHERE l.id = :lesson_id
+            LIMIT 1
+        ";
 
-        if (!$row) {
+        $row = $this->programCourseCohortLessonModel
+            ->rawQuery($sql, [
+                'lesson_id' => $lessonId,
+                'user_id'   => $userId
+            ]);
+
+        if (empty($row)) {
             return [];
         }
 
-        return $this->formatLessonWithSubmission($row);
+        return $this->formatLessonWithSubmission($row[0]);
     }
 
     private function formatLessonWithSubmission(array $row): array
