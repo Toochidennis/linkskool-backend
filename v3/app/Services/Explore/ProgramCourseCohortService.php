@@ -19,9 +19,12 @@ class ProgramCourseCohortService
             throw new \Exception("Invalid image upload.");
         }
 
-        $data['image_url'] = ImageService::processImage($_FILES['image']);
+        $data['image_url'] = StorageService::saveFile($_FILES['image']);
+
+        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title'])));
 
         $payload = [
+            'slug' => $slug,
             'course_id' => $data['course_id'],
             'course_name' => $data['course_name'],
             'program_id' => $data['program_id'],
@@ -39,6 +42,8 @@ class ProgramCourseCohortService
             'is_free' => $data['is_free'],
             'trial_type' => $data['trial_type'] ?? null,
             'trial_value' => $data['trial_value'] ?? null,
+            'cost' => $data['cost'] ?? null,
+            'instructor_name' => $data['instructor_name'] ?? null,
         ];
 
         $this->cohort->rawExecute(
@@ -54,7 +59,7 @@ class ProgramCourseCohortService
     public function updateProgramCourseCohort(array $data)
     {
         if (isset($_FILES['image'])) {
-            $data['image_url'] = ImageService::processImage($_FILES['image']);
+            $data['image_url'] = StorageService::saveFile($_FILES['image']);
         }
 
         $payload = [
@@ -72,6 +77,8 @@ class ProgramCourseCohortService
             'is_free' => $data['is_free'],
             'trial_type' => $data['trial_type'] ?? null,
             'trial_value' => $data['trial_value'] ?? null,
+            'instructor_name' => $data['instructor_name'] ?? null,
+            'cost' => $data['cost'] ?? null,
             'updated_at' => date('Y-m-d H:i:s'),
         ];
 
@@ -94,7 +101,7 @@ class ProgramCourseCohortService
             ->update(['status' => $status]);
     }
 
-    public function getCohortsByProgramCourseId(int $courseId)
+    public function getAllCohortsByCourseId(int $courseId)
     {
         return $this->cohort
             ->where('course_id', $courseId)
@@ -109,7 +116,7 @@ class ProgramCourseCohortService
             ->first();
 
         if ($cohort && !empty($cohort['image_url'])) {
-            ImageService::deleteOldImage($cohort['image_url']);
+            StorageService::deleteFile($cohort['image_url']);
         }
 
         return $this->cohort

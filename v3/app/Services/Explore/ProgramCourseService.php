@@ -19,10 +19,13 @@ class ProgramCourseService
             throw new \Exception("Invalid image upload.");
         }
 
-        $data['image_url'] = ImageService::processImage($_FILES['image']);
+        $data['image_url'] = StorageService::saveFile($_FILES['image']);
+
+        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title'])));
 
         $payload = [
             'title' => $data['title'],
+            'slug' => $slug,
             'description' => $data['description'],
             'image_url' => $data['image_url'],
             'slogan' => $data['slogan'],
@@ -39,7 +42,7 @@ class ProgramCourseService
     public function updateProgramCourse(array $data)
     {
         if (isset($_FILES['image'])) {
-            $data['image_url'] = ImageService::processImage($_FILES['image']);
+            $data['image_url'] = StorageService::saveFile($_FILES['image']);
         }
 
         $payload = [
@@ -63,7 +66,7 @@ class ProgramCourseService
             );
 
         if (!empty($data['old_image_url']) && isset($data['image_url'])) {
-            ImageService::deleteOldImage($data['old_image_url']);
+            StorageService::deleteFile($data['old_image_url']);
         }
 
         return $id;
@@ -89,7 +92,7 @@ class ProgramCourseService
             ->first();
 
         if ($course && !empty($course['image_url'])) {
-            ImageService::deleteOldImage($course['image_url']);
+            StorageService::deleteFile($course['image_url']);
         }
 
         return $this->programCourseModel
