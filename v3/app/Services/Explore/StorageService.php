@@ -4,19 +4,19 @@ namespace V3\App\Services\Explore;
 
 use V3\App\Common\Utilities\FileHandler;
 
-class ImageService
+class StorageService
 {
-    public static function processImage(array $image): string
+    public static function saveFile(array $file): string
     {
         $fileHandler = new FileHandler();
 
-        if ($image['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($image['tmp_name'])) {
+        if ($file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name'])) {
             throw new \Exception("Invalid image upload.");
         }
 
-        if ($image && $image['error'] === UPLOAD_ERR_OK && is_uploaded_file($image['tmp_name'])) {
-            $tmpName = $image['tmp_name'];
-            $fileName = strtolower(trim($image['name']));
+        if ($file && $file['error'] === UPLOAD_ERR_OK && is_uploaded_file($file['tmp_name'])) {
+            $tmpName = $file['tmp_name'];
+            $fileName = strtolower(trim($file['name']));
             $fileContent = file_get_contents($tmpName);
             $base64Content = base64_encode($fileContent);
 
@@ -36,7 +36,7 @@ class ImageService
         return $processedFiles[0]['file_name'];
     }
 
-    public static function deleteOldImage(string $oldImageUrl): void
+    public static function deleteFile(string $oldImageUrl): void
     {
         $fileHandler = new FileHandler();
         $fileHandler->deleteOldFile($oldImageUrl);

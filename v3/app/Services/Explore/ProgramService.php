@@ -15,15 +15,18 @@ class ProgramService
 
     public function createProgram(array $data): bool|int
     {
-        if (isset($_FILES['image'])) {
+        if (!isset($_FILES['image'])) {
             throw new \Exception("Invalid image upload.");
         }
-        $data['image_url'] = ImageService::processImage($_FILES['image']);
+        $data['image_url'] = StorageService::saveFile($_FILES['image']);
+
+        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['name'])));
 
         $payload = [
             'name' => $data['name'],
+            'slug' => $slug,
             'description' => $data['description'],
-            'banner_image' => $data['image_url'],
+            'image_url' => $data['image_url'],
             'author_name' => $data['author_name'],
             'author_id' => $data['author_id'],
             'shortname' => $data['shortname'],
@@ -37,13 +40,13 @@ class ProgramService
     public function updateProgram(array $data): bool
     {
         if (isset($_FILES['image'])) {
-            $data['image_url'] = ImageService::processImage($_FILES['image']);
+            $data['image_url'] = StorageService::saveFile($_FILES['image']);
         }
 
         $payload = [
             'name' => $data['name'],
             'description' => $data['description'],
-            'banner_image' => $data['image_url'] ?? null,
+            'image_url' => $data['image_url'] ?? null,
             'updated_by' => $data['updated_by'],
             'shortname' => $data['shortname'],
             'status' => $data['status'],
@@ -60,7 +63,7 @@ class ProgramService
             );
 
         if (!empty($data['old_image_url']) && isset($data['image_url'])) {
-            ImageService::deleteOldImage($data['old_image_url']);
+            StorageService::deleteFile($data['old_image_url']);
         }
 
         return $id;
@@ -99,7 +102,7 @@ class ProgramService
             ->first();
 
         if ($program && !empty($program['image_url'])) {
-            ImageService::deleteOldImage($program['image_url']);
+            StorageService::deleteFile($program['image_url']);
         }
 
         return $this->programModel

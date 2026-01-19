@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\ProgramCourseService;
 
-#[Group('/public/programs/courses',)]
+#[Group('/public/programs/{program_id}/courses')]
 class ProgramCourseController extends ExploreBaseController
 {
     private ProgramCourseService $programCourseService;
@@ -19,10 +19,10 @@ class ProgramCourseController extends ExploreBaseController
     }
 
     #[Route('', 'POST', ['api', 'auth'])]
-    public function create()
+    public function create(array $vars)
     {
         $validatedData = $this->validate(
-            $this->getRequestData(),
+            [...$this->getRequestData(), ...$vars],
             [
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
@@ -100,18 +100,18 @@ class ProgramCourseController extends ExploreBaseController
         );
     }
 
-    #[Route('/{programId}', 'GET', ['api', 'auth'])]
+    #[Route('', 'GET', ['api', 'auth'])]
     public function getCoursesByProgramId(array $vars)
     {
         $validatedData = $this->validate(
             $vars,
             [
-                'programId' => 'required|integer',
+                'program_id' => 'required|integer',
             ]
         );
 
         $courses = $this->programCourseService
-            ->getCoursesByProgramId((int)$validatedData['programId']);
+            ->getCoursesByProgramId((int)$validatedData['program_id']);
 
         $this->respond(
             [
