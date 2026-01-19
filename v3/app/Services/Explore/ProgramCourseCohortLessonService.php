@@ -90,6 +90,7 @@ class ProgramCourseCohortLessonService
         }
 
         $urls['material_url'] = StorageService::saveFile($_FILES['material']);
+
         if (isset($_FILES['assignment'])) {
             $urls['assignment_url'] = StorageService::saveFile($_FILES['assignment']);
         }
@@ -210,16 +211,33 @@ class ProgramCourseCohortLessonService
 
     public function getLessonsByCohortId(int $cohortId): array
     {
-        return $this->cohortLesson
-            ->orderBy('display_order', 'ASC')
-            ->where('cohort_id', $cohortId)
-            ->get();
+        $sql = "
+            SELECT 
+                l.*,
+                EXISTS (
+                    SELECT 1 
+                    FROM cohort_lesson_quizzes q
+                    WHERE q.cohort_lesson_id = l.id
+                ) AS has_quiz
+            FROM program_course_cohort_lessons l
+            WHERE l.cohort_id = :cohort_id
+            ORDER BY l.display_order ASC
+        ";
+
+        $rows = $this->cohortLesson
+            ->rawQuery($sql, ['cohort_id' => $cohortId]);
+
+        return array_map(function ($row) {
+            $row['has_quiz'] = (bool) $row['has_quiz'];
+            return $row;
+        }, $rows);
     }
 
-    public function getLessonQuizzes(int $cohortLessonId): array
+    public function getLessonQuiz(int $cohortLessonId): array
     {
         $quizzes = $this->cohortLessonQuiz
             ->select([
+                'question_id',
                 'title AS question_text',
                 'answer AS options',
                 'correct',
@@ -228,6 +246,7 @@ class ProgramCourseCohortLessonService
             ->get();
 
         return array_map(fn($q) => [
+            'question_id' => $q['question_id'],
             'question_text' => $q['question_text'],
             'options' => json_decode($q['options'], true),
             'correct' => json_decode($q['correct'], true),
@@ -241,7 +260,17 @@ class ProgramCourseCohortLessonService
             ->first();
 
         if (!$lesson) {
-            throw new \Exception("Lesson not found.");
+            return true;
+        }
+
+        $hasQuiz = $this->cohortLessonQuiz
+            ->where('cohort_lesson_id', $id)
+            ->exists();
+
+        if ($hasQuiz) {
+            $this->cohortLessonQuiz
+                ->where('cohort_lesson_id', $id)
+                ->delete();
         }
 
         if (!empty($lesson['material_url'])) {

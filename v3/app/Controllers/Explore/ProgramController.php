@@ -36,7 +36,7 @@ class ProgramController extends ExploreBaseController
                 'image.name' => 'required|string',
                 'image.tmp_name' => 'required|string',
                 'image.error' => 'required|integer',
-                'image.size' => 'required|integer'
+                'image.size' => 'required|integer|max:5242880', // 5 MB
             ]
         );
 
@@ -76,7 +76,7 @@ class ProgramController extends ExploreBaseController
                 'image.name' => 'required_with:image|string',
                 'image.tmp_name' => 'required_with:image|string',
                 'image.error' => 'required_with:image|integer',
-                'image.size' => 'required_with:image|integer',
+                'image.size' => 'required_with:image|integer|max:5242880', // 5 MB
                 'old_image_url' => 'nullable|string'
             ]
         );

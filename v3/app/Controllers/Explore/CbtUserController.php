@@ -8,7 +8,7 @@ use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\Explore\ExploreBaseController;
 use V3\App\Services\Explore\CbtUserService;
 
-#[Group('/public/cbt')]
+#[Group('/public/cbt/users')]
 class CbtUserController extends ExploreBaseController
 {
     private CbtUserService $userService;
@@ -19,32 +19,32 @@ class CbtUserController extends ExploreBaseController
         $this->userService = new CbtUserService($this->pdo);
     }
 
-    #[Route('/users', 'POST', ['api'])]
+    #[Route('', 'POST', ['api'])]
     public function storeUser()
     {
         $data = $this->validate($this->getRequestData(), [
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'profile_picture' => 'sometimes|string|max:255',
+            'profile_picture' => 'nullable|string|max:255',
             'attempt' => 'required|integer|min:0',
         ]);
 
-        $userId = $this->userService->createUser($data);
+        $user = $this->userService->findOrCreateUserByEmail($data);
 
-        if ($userId <= 0) {
+        if (empty($user)) {
             $this->respondError(
-                'Failed to create user, maybe email already exists.',
+                'Failed to create user.',
                 HttpStatus::BAD_REQUEST
             );
         }
         $this->respond([
             'success' => true,
             'message' => 'User created successfully',
-            'userId' => $userId
+            'data' => $user
         ]);
     }
 
-    #[Route('/users/{id:\d+}', 'PUT', ['api'])]
+    #[Route('/{id:\d+}', 'PUT', ['api'])]
     public function updateUser(array $vars)
     {
         $data = $this->validate(
@@ -74,7 +74,7 @@ class CbtUserController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/users/{id:\d+}/payment-status', 'PUT', ['api'])]
+    #[Route('/{id:\d+}/payment-status', 'PUT', ['api'])]
     public function updatePaymentStatus(array $vars)
     {
         $data = $this->validate(
@@ -101,7 +101,7 @@ class CbtUserController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/users/{email}', 'GET', ['api'])]
+    #[Route('/{email}', 'GET', ['api'])]
     public function getUserByEmail(array $vars)
     {
         $data = $this->validate($vars, [
