@@ -45,14 +45,18 @@ class ProgramCourseService
             $data['image_url'] = StorageService::saveFile($_FILES['image']);
         }
 
+        if ($data['title']) {
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title'])));
+        }
+
         $payload = [
+            'slug' => $slug ?? null,
             'title' => $data['title'],
             'description' => $data['description'],
             'image_url' => $data['image_url'] ?? null,
             'slogan' => $data['slogan'],
             'status' => $data['status'],
-            'age_groups' => json_encode($data['age_groups']),
-            'updated_by' => $data['updated_by'],
+            'age_groups' => json_encode($data['age_groups'] ?? []),
             'updated_at' => date('Y-m-d H:i:s'),
         ];
 

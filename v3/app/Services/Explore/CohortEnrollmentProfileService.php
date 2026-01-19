@@ -13,7 +13,7 @@ class CohortEnrollmentProfileService
         $this->enrollmentProfileModel = new CohortEnrollmentProfile($pdo);
     }
 
-    public function createProfile(array $data): bool|int
+    public function createProfile(array $data): array
     {
         $payload = [
             'user_id' => $data['user_id'],
@@ -24,7 +24,13 @@ class CohortEnrollmentProfileService
             'phone' => $data['phone'],
         ];
 
-        return $this->enrollmentProfileModel->insert($payload);
+        $id = $this->enrollmentProfileModel->insert($payload);
+
+        if ($id) {
+            return $this->getProfilesByUserId($id);
+        }
+
+        return [];
     }
 
     public function updateProfile(array $data): bool

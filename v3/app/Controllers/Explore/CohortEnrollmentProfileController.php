@@ -33,9 +33,9 @@ class CohortEnrollmentProfileController extends ExploreBaseController
             ],
         );
 
-        $profileId = $this->profileService->createProfile($validated);
+        $profile = $this->profileService->createProfile($validated);
 
-        if (!$profileId) {
+        if (empty($profile)) {
             $this->respondError(
                 'Profile creation failed.',
                 HttpStatus::BAD_REQUEST
@@ -46,7 +46,7 @@ class CohortEnrollmentProfileController extends ExploreBaseController
             [
                 'status' => true,
                 'message' => 'Cohort enrollment profile created successfully.',
-                'data' => $profileId
+                'data' => $profile
             ],
             HttpStatus::CREATED
         );

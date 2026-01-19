@@ -29,6 +29,8 @@ class ProgramCourseController extends ExploreBaseController
                 'slogan' => 'required|string|max:255',
                 'status' => 'required|string|in:draft,published,archived',
                 'age_groups' => 'required|array',
+                'age_groups.*.min' => 'integer',
+                'age_groups.*.max' => 'integer',
                 'program_id' => 'required|integer',
                 'author_name' => 'required|string|max:255',
                 'author_id' => 'required|integer',
@@ -72,6 +74,8 @@ class ProgramCourseController extends ExploreBaseController
                 'slogan' => 'required|string|max:255',
                 'status' => 'required|string|in:draft,published,archived',
                 'age_groups' => 'nullable|array',
+                'age_groups.*.min' => 'integer',
+                'age_groups.*.max' => 'integer',
                 'updated_by' => 'nullable|integer',
 
                 'image' => 'nullable|array',
