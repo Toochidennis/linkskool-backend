@@ -83,7 +83,7 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'end_date' => 'required|date|after:start_date',
                 'status' => 'required|string|in:upcoming,ongoing,completed',
                 'capacity' => 'integer',
-                'delivery_mode' => 'string',
+                'delivery_mode' => 'string|in:online,onsite,hybrid',
                 'zoom_link' => 'string',
                 'is_free' => 'required|boolean',
                 'trial_type' => 'required_if:is_free,true|in:views,days',
