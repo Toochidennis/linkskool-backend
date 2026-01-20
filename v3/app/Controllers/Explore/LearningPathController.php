@@ -29,8 +29,8 @@ class LearningPathController extends ExploreBaseController
         );
 
         $data = $this->learningPathService->getProgramsWithCourses(
-            $validated['birth_date'],
-            $validated['user_id']
+            $validated['birth_date'] ?? null,
+            $validated['user_id'] ?? null
         );
 
         $this->respond(

@@ -57,9 +57,11 @@ class CbtUserController extends ExploreBaseController
                 'id' => 'required|integer|min:1',
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string',
-                'email' => 'required|email|max:255',
-                'phone' => 'required|string|max:20',
+                'email' => 'required|email',
+                'phone' => 'required|string|max:11',
                 'birth_date' => 'required|date',
+                'gender' => 'required|string|in:male,female,other',
+                'profile_picture' => 'nullable|string|max:255',
             ]
         );
 

@@ -56,7 +56,7 @@ class LearningPathService
             ->join('program_courses', 'program_courses.program_id = programs.id', 'LEFT')
             ->join('program_course_cohorts', function ($join) {
                 $join->on('program_course_cohorts.course_id', '=', 'program_courses.id');
-                $join->on('program_course_cohorts.status', '=', 'active');
+                $join->on('program_course_cohorts.status', '=', 'ongoing');
             }, 'LEFT')
             ->where('programs.status', 'published')
             ->where('program_courses.status', 'published')
