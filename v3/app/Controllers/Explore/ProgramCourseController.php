@@ -28,7 +28,7 @@ class ProgramCourseController extends ExploreBaseController
                 'description' => 'required|string',
                 'slogan' => 'required|string|max:255',
                 'status' => 'required|string|in:draft,published,archived',
-                'age_groups' => 'required|array',
+                'age_groups' => 'required|array|min:1',
                 'age_groups.*.min' => 'integer',
                 'age_groups.*.max' => 'integer',
                 'program_id' => 'required|integer',

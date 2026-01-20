@@ -112,7 +112,7 @@ class Tables
         'program_course_cohort_enrollments',
         'program_course_cohort_lessons',
         'cohort_lesson_quizzes',
-        'cohort_enrollment_profiles',
+        'program_profiles',
         'cohort_tasks_submissions',
     ];
 }

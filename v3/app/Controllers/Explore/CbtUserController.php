@@ -6,30 +6,34 @@ use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\Explore\ExploreBaseController;
+use V3\App\Services\Explore\AuthBootstrapService;
 use V3\App\Services\Explore\CbtUserService;
 
 #[Group('/public/cbt/users')]
 class CbtUserController extends ExploreBaseController
 {
     private CbtUserService $userService;
+    private AuthBootstrapService $authBootstrapService;
 
     public function __construct()
     {
         parent::__construct();
         $this->userService = new CbtUserService($this->pdo);
+        $this->authBootstrapService = new AuthBootstrapService($this->pdo);
     }
 
     #[Route('', 'POST', ['api'])]
     public function storeUser()
     {
         $data = $this->validate($this->getRequestData(), [
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string',
             'email' => 'required|email|max:255',
             'profile_picture' => 'nullable|string|max:255',
             'attempt' => 'required|integer|min:0',
         ]);
 
-        $user = $this->userService->findOrCreateUserByEmail($data);
+        $user = $this->authBootstrapService->bootstrap($data);
 
         if (empty($user)) {
             $this->respondError(
@@ -43,6 +47,39 @@ class CbtUserController extends ExploreBaseController
             'data' => $user
         ]);
     }
+
+    #[Route('/{id:\d+}/phone', 'PUT', ['api'])]
+    public function updatePhone(array $vars)
+    {
+        $data = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'id' => 'required|integer|min:1',
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string',
+                'email' => 'required|email|max:255',
+                'phone' => 'required|string|max:20',
+                'birth_date' => 'required|date',
+            ]
+        );
+
+        $response = $this->authBootstrapService
+            ->bootstrap($data, $data['phone'], $data['birth_date']);
+
+        if (empty($response)) {
+            $this->respondError(
+                'Failed to update phone number',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Phone number updated successfully',
+            'data' => $response,
+        ]);
+    }
+
 
     #[Route('/{id:\d+}', 'PUT', ['api'])]
     public function updateUser(array $vars)
@@ -68,10 +105,12 @@ class CbtUserController extends ExploreBaseController
             );
         }
 
-        $this->respond([
-            'success' => true,
-            'message' => 'User updated successfully',
-        ]);
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'User updated successfully',
+            ]
+        );
     }
 
     #[Route('/{id:\d+}/payment-status', 'PUT', ['api'])]

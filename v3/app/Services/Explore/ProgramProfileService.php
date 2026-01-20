@@ -2,15 +2,15 @@
 
 namespace V3\App\Services\Explore;
 
-use V3\App\Models\Explore\CohortEnrollmentProfile;
+use V3\App\Models\Explore\ProgramProfile;
 
-class CohortEnrollmentProfileService
+class ProgramProfileService
 {
-    protected CohortEnrollmentProfile $enrollmentProfileModel;
+    protected ProgramProfile $programProfileModel;
 
     public function __construct(\PDO $pdo)
     {
-        $this->enrollmentProfileModel = new CohortEnrollmentProfile($pdo);
+        $this->programProfileModel = new ProgramProfile($pdo);
     }
 
     public function createProfile(array $data): array
@@ -19,15 +19,13 @@ class CohortEnrollmentProfileService
             'user_id' => $data['user_id'],
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
-            'email' => $data['email'],
-            'birth_year' => $data['birth_year'],
-            'phone' => $data['phone'],
+            'birth_date' => $data['birth_date'],
         ];
 
-        $id = $this->enrollmentProfileModel->insert($payload);
+        $id = $this->programProfileModel->insert($payload);
 
         if ($id) {
-            return $this->getProfilesByUserId($id);
+            return $this->getProfilesByUserId($data['user_id']);
         }
 
         return [];
@@ -38,13 +36,11 @@ class CohortEnrollmentProfileService
         $payload = [
             'first_name' => $data['first_name'] ?? null,
             'last_name' => $data['last_name'] ?? null,
-            'birth_year' => $data['birth_year'] ?? null,
-            'phone' => $data['phone'] ?? null,
-            'email' => $data['email'],
+            'birth_date' => $data['birth_date'] ?? null,
             'certificate_name' => $data['certificate_name'] ?? null,
         ];
 
-        return $this->enrollmentProfileModel
+        return $this->programProfileModel
             ->where('id', $data['id'])
             ->update(
                 array_filter(
@@ -56,14 +52,14 @@ class CohortEnrollmentProfileService
 
     public function getProfilesByUserId(int $userId): array
     {
-        return $this->enrollmentProfileModel
+        return $this->programProfileModel
             ->where('user_id', $userId)
             ->get();
     }
 
     public function deleteProfile(int $id): bool
     {
-        return $this->enrollmentProfileModel
+        return $this->programProfileModel
             ->where('id', $id)
             ->delete();
     }
