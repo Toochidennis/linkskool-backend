@@ -76,6 +76,16 @@ class ProgramCourseService
         return $id;
     }
 
+    public function updateCourseStatus(int $id, string $status)
+    {
+        return $this->programCourseModel
+            ->where('id', $id)
+            ->update([
+                'status' => $status,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+    }
+
     public function getCoursesByProgramId(int $programId)
     {
         $result =  $this->programCourseModel

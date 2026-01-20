@@ -104,6 +104,39 @@ class ProgramCourseController extends ExploreBaseController
         );
     }
 
+    #[Route('/{id}/status', 'PUT', ['api', 'auth'])]
+    public function updateStatus(array $vars)
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'id' => 'required|integer',
+                'status' => 'required|string|in:draft,published,archived',
+            ]
+        );
+
+        $updated = $this->programCourseService
+            ->updateCourseStatus(
+                (int)$validated['id'],
+                $validated['status']
+            );
+
+        if (!$updated) {
+            $this->respondError(
+                'Failed to update program course status.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Program course status updated successfully.',
+            ],
+            HttpStatus::OK
+        );
+    }
+
     #[Route('', 'GET', ['api', 'auth'])]
     public function getCoursesByProgramId(array $vars)
     {

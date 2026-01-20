@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\ProgramCourseCohortLessonService;
 
-#[Group('/public/programs/{program_id}/courses/{course_id}/cohorts/{cohort_id}/lessons')]
+#[Group('/public/programs/cohorts/lessons')]
 class ProgramCourseCohortLessonController extends ExploreBaseController
 {
     private ProgramCourseCohortLessonService $service;
@@ -24,9 +24,9 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
         $validated = $this->validate(
             data: [...$this->getRequestData(), ...$vars],
             rules: [
-                'program_id' => 'required|integer|',
-                'course_id' => 'required|integer|',
-                'cohort_id' => 'required|integer|',
+                'program_id' => 'required|integer',
+                'course_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'goals' => 'nullable|string',
@@ -57,6 +57,11 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
                 'assignment.name' => 'required_with:assignment|string',
                 'assignment.tmp_name' => 'required_with:assignment|string',
                 'assignment.error' => 'required_with:assignment|integer',
+
+                'quiz' => 'nullable|array',
+                'quiz.name' => 'required_with:quiz|string',
+                'quiz.tmp_name' => 'required_with:quiz|array',
+                'quiz.error' => 'required_with:quiz|array',
             ]
         );
 
@@ -71,11 +76,13 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
         $this->respond(
             data: [
                 'success' => true,
-                'message' => 'Lesson added to cohort successfully.'
+                'message' => 'Lesson added to cohort successfully.',
+                'data' => ['lesson_id' => $success]
             ],
             statusCode: HttpStatus::CREATED
         );
     }
+
 
     #[Route('', 'GET', ['api', 'auth'])]
     public function getLessons(array $vars)

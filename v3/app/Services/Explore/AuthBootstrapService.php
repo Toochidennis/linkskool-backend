@@ -55,7 +55,7 @@ class AuthBootstrapService
             if (empty($profiles)) {
                 $this->profileService->createProfile([
                     'user_id' => $user['id'],
-                    'first_name' => $payload['first_name'],
+                    'first_name' => $googleData['first_name'],
                     'last_name' => $googleData['last_name'],
                     'birth_date' => $birthDate,
                 ]);
@@ -68,6 +68,7 @@ class AuthBootstrapService
                 $this->profileService->updateProfile([
                     'id' => $profiles[0]['id'],
                     'birth_date' => $birthDate,
+                    'gender' => $googleData['gender'],
                 ]);
             }
 

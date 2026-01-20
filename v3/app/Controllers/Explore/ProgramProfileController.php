@@ -28,6 +28,8 @@ class ProgramProfileController extends ExploreBaseController
                 'first_name' => 'required|string',
                 'last_name' => 'required|string',
                 'birth_date' => 'required|date',
+                'gender' => 'required|string|in:male,female,other',
+                'certificate_name' => 'nullable|string',
             ],
         );
 
@@ -60,6 +62,7 @@ class ProgramProfileController extends ExploreBaseController
                 'first_name' => 'nullable|string',
                 'last_name' => 'nullable|string',
                 'birth_date' => 'nullable|date',
+                'gender' => 'nullable|string|in:male,female,other',
                 'certificate_name' => 'nullable|string',
             ],
         );

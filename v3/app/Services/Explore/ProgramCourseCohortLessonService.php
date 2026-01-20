@@ -77,6 +77,69 @@ class ProgramCourseCohortLessonService
             throw $e;
         }
     }
+
+    public function updateLesson(array $data)
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title'])));
+
+            $payload = [
+                'id' => $data['id'],
+                'slug' => $slug,
+                'cohort_id' => $data['cohort_id'],
+                'course_id' => $data['course_id'],
+                'program_id' => $data['program_id'],
+                'title' => $data['title'],
+                'description' => $data['description'],
+                'goals' => $data['goals'] ?? null,
+                'objectives' => $data['objectives'] ?? null,
+                'recorded_video_url' => $data['recorded_video_url'] ?? null,
+                'video_url' => $data['video_url'],
+                'display_order' => $data['display_order'],
+                'write_up_content' => $data['write_up_content'] ?? null,
+                'assignment_instructions' => $data['assignment_instructions'] ?? null,
+                'assignment_due_date' => $data['assignment_due_date'] ?? null,
+                'is_final_lesson' => $data['is_final_lesson'] ?? false,
+                'lesson_date' => $data['lesson_date'],
+            ];
+
+            if ($data['is_final_lesson'] && !isset($_FILES['certificate'])) {
+                throw new \Exception('Certificate file is required for final lessons.');
+            }
+
+            if ($this->isYouTubeUrl($data['video_url'])) {
+                $payload['thumbnail'] = $this->getYouTubeThumbnail($data['video_url']);
+            }
+
+            $fileUrls = $this->processNewFiles();
+
+            if (isset($data['old_assignment_url']) && isset($fileUrls['assignment_url'])) {
+                StorageService::deleteFile($data['old_assignment_url']);
+            }
+            if (isset($data['old_material_url']) && isset($fileUrls['material_url'])) {
+                StorageService::deleteFile($data['old_material_url']);
+            }
+            if (isset($data['old_certificate_url']) && isset($fileUrls['certificate_url'])) {
+                StorageService::deleteFile($data['old_certificate_url']);
+            }
+
+            $payload = [...$payload, ...$fileUrls];
+
+            $lessonId = $this->cohortLesson->insert($payload);
+            if (!$lessonId) {
+                throw new \Exception("Failed to insert lesson record");
+            }
+
+            $this->pdo->commit();
+            return true;
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
     private function processNewFiles()
     {
         $urls = [
@@ -125,7 +188,7 @@ class ProgramCourseCohortLessonService
             'cohort_id' => $params['cohort_id'],
             'course_id' => $params['course_id'],
             'program_id' => $params['program_id'],
-            'title' => $question['question'],
+            'title' => $question['question_text'],
             'type' => 'qo',
         ];
 
