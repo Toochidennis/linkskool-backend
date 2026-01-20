@@ -23,15 +23,15 @@ class LearningPathService
     }
 
     public function getProgramsWithCourses(
-        ?int $birthYear = null,
+        ?string $birthDate = null,
         ?int $userId = null
     ): array {
         $enrolledCourseIds = $userId
             ? $this->getUserEnrolledCourseIds($userId)
             : [];
 
-        $age = $birthYear !== null
-            ? (int) date('Y') - (int) $birthYear
+        $age = $birthDate !== null
+            ? (int) date('Y') - (int) substr($birthDate, 0, 4)
             : null;
 
         $rows = $this->programModel

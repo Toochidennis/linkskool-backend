@@ -65,9 +65,9 @@ class ProgramController extends ExploreBaseController
         $validatedData = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
+                'id' => 'required|integer',
                 'name' => 'required|string|max:255',
                 'description' => 'required|string',
-                'updated_by' => 'required|integer',
                 'shortname' => 'required|string|max:100',
                 'status' => 'required|string|in:draft,published,archived',
                 'sponsor' => 'nullable|string|max:255',

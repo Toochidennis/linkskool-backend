@@ -47,7 +47,6 @@ class ProgramService
             'name' => $data['name'],
             'description' => $data['description'],
             'image_url' => $data['image_url'] ?? null,
-            'updated_by' => $data['updated_by'],
             'shortname' => $data['shortname'],
             'status' => $data['status'],
             'sponsor' => $data['sponsor'] ?? null,
@@ -80,13 +79,14 @@ class ProgramService
     {
         return $this->programModel
             ->select([
-                'id',
-                'name',
-                'description',
-                'image_url',
-                'shortname',
-                'status',
-                'sponsor',
+                'programs.id',
+                'programs.slug',
+                'programs.name',
+                'programs.description',
+                'programs.image_url',
+                'programs.shortname',
+                'programs.status',
+                'programs.sponsor',
                 'COUNT(program_courses.id) AS course_count'
             ])
             ->join('program_courses', 'programs.id = program_courses.program_id', 'LEFT')

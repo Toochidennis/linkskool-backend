@@ -4,9 +4,9 @@ namespace V3\App\Models\Explore;
 
 use V3\App\Models\BaseModel;
 
-class CohortEnrollmentProfile extends BaseModel
+class ProgramProfile extends BaseModel
 {
-    protected string $table = 'cohort_enrollment_profiles';
+    protected string $table = 'program_profiles';
 
     public function __construct(\PDO $pdo)
     {

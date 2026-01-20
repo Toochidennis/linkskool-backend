@@ -23,13 +23,20 @@ class CbtUserService
 
     public function findOrCreateUserByEmail(array $data): array
     {
+        $payload = [
+            'name' => $data['first_name'] . ' ' . $data['last_name'],
+            'email' => $data['email'],
+            'profile_picture' => $data['profile_picture'] ?? null,
+            'attempt' => $data['attempt'],
+        ];
+
         $user = $this->user
-            ->where('email', '=', $data['email'])
+            ->where('email', '=', [$payload['email']])
             ->first();
 
         if ($user) {
             $this->updateUser($user['id'], [
-                'name'   => $data['name'] ?? $user['name'],
+                'name' => $payload['name'] ?? $user['name'],
             ]);
 
             return $this->user
@@ -38,14 +45,14 @@ class CbtUserService
         }
 
         try {
-            $id = $this->createUser($data);
+            $id = $this->createUser($payload);
 
             return $this->user
                 ->where('id', '=', $id)
                 ->first();
         } catch (\PDOException $e) {
             if ($this->isDuplicateEmailError($e)) {
-                return $this->getUserByEmail($data['email']);
+                return $this->getUserByEmail($payload['email']);
             }
 
             throw $e;

@@ -23,13 +23,13 @@ class LearningPathController extends ExploreBaseController
         $validated = $this->validate(
             $vars,
             [
-                'birth_year' => 'nullable|integer',
+                'birth_date' => 'nullable|date',
                 'user_id' => 'nullable|integer',
             ]
         );
 
         $data = $this->learningPathService->getProgramsWithCourses(
-            $validated['birth_year'],
+            $validated['birth_date'],
             $validated['user_id']
         );
 

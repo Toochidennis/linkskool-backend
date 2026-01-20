@@ -5,17 +5,17 @@ namespace V3\App\Controllers\Explore;
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
-use V3\App\Services\Explore\CohortEnrollmentProfileService;
+use V3\App\Services\Explore\ProgramProfileService;
 
-#[Group('/public/cohorts/{cohortId}/profiles')]
-class CohortEnrollmentProfileController extends ExploreBaseController
+#[Group('/public/learning/profiles')]
+class ProgramProfileController extends ExploreBaseController
 {
-    private CohortEnrollmentProfileService $profileService;
+    private ProgramProfileService $profileService;
 
     public function __construct()
     {
         parent::__construct();
-        $this->profileService = new CohortEnrollmentProfileService($this->pdo);
+        $this->profileService = new ProgramProfileService($this->pdo);
     }
 
     #[Route('', 'POST', ['api'])]
@@ -27,9 +27,7 @@ class CohortEnrollmentProfileController extends ExploreBaseController
                 'user_id' => 'required|integer',
                 'first_name' => 'required|string',
                 'last_name' => 'required|string',
-                'email' => 'required|email',
-                'birth_year' => 'required|integer',
-                'phone' => 'required|string',
+                'birth_date' => 'required|date',
             ],
         );
 
@@ -59,12 +57,10 @@ class CohortEnrollmentProfileController extends ExploreBaseController
             [...$this->getRequestData(), ...$vars],
             [
                 'id' => 'required|integer',
-                'first_name' => 'string',
-                'last_name' => 'string',
-                'email' => 'email',
-                'birth_year' => 'integer',
-                'phone' => 'string',
-                'certificate_name' => 'string',
+                'first_name' => 'nullable|string',
+                'last_name' => 'nullable|string',
+                'birth_date' => 'nullable|date',
+                'certificate_name' => 'nullable|string',
             ],
         );
 
