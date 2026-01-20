@@ -56,7 +56,7 @@ class AuthBootstrapService
                 $this->profileService->createProfile([
                     'user_id' => $user['id'],
                     'first_name' => $payload['first_name'],
-                    'last_name' => $payload['last_name'],
+                    'last_name' => $googleData['last_name'],
                     'birth_date' => $birthDate,
                 ]);
 
