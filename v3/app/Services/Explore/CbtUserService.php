@@ -24,14 +24,14 @@ class CbtUserService
     public function findOrCreateUserByEmail(array $data): array
     {
         $payload = [
-            'name' => $data['first_name'] . ' ' . $data['last_name'],
+            'name' => $data['first_name'],
             'email' => $data['email'],
             'profile_picture' => $data['profile_picture'] ?? null,
             'attempt' => $data['attempt'],
         ];
 
         $user = $this->user
-            ->where('email', '=', [$payload['email']])
+            ->where('email', '=', $payload['email'])
             ->first();
 
         if ($user) {

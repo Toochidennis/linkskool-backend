@@ -80,7 +80,6 @@ class CbtUserController extends ExploreBaseController
         ]);
     }
 
-
     #[Route('/{id:\d+}', 'PUT', ['api'])]
     public function updateUser(array $vars)
     {
