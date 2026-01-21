@@ -52,7 +52,7 @@ class ProgramProfileController extends ExploreBaseController
         );
     }
 
-    #[Route('', 'PUT', ['api'])]
+    #[Route('/{id}', 'PUT', ['api'])]
     public function updateProfile(array $vars): void
     {
         $validated = $this->validate(
@@ -67,9 +67,9 @@ class ProgramProfileController extends ExploreBaseController
             ],
         );
 
-        $success = $this->profileService->updateProfile($validated);
+        $profiles = $this->profileService->updateProfile($validated);
 
-        if (!$success) {
+        if (empty($profiles)) {
             $this->respondError(
                 'Profile update failed.',
                 HttpStatus::BAD_REQUEST
@@ -80,15 +80,17 @@ class ProgramProfileController extends ExploreBaseController
             [
                 'status' => true,
                 'message' => 'Cohort enrollment profile updated successfully.',
+                'data' => $profiles
             ],
             HttpStatus::OK
         );
     }
 
+    #[Route('', 'GET', ['api'])]
     public function getProfilesByUserId(array $vars): void
     {
         $validated = $this->validate(
-            [...$this->getRequestData(), ...$vars],
+            $vars,
             [
                 'user_id' => 'required|integer',
             ],

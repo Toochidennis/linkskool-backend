@@ -63,7 +63,7 @@ class ProgramCourseCohortLessonService
             }
 
             $this->saveQuiz([
-                'cohort_lesson_id' => $lessonId,
+                'lesson_id' => $lessonId,
                 'course_name' => $data['course_name'] ?? null,
                 'cohort_id' => $data['cohort_id'],
                 'course_id' => $data['course_id'],
@@ -80,6 +80,8 @@ class ProgramCourseCohortLessonService
 
     public function updateLesson(array $data)
     {
+        $fileUrls = [];
+
         try {
             $this->pdo->beginTransaction();
 
@@ -92,7 +94,7 @@ class ProgramCourseCohortLessonService
                 'course_id' => $data['course_id'],
                 'program_id' => $data['program_id'],
                 'title' => $data['title'],
-                'description' => $data['description'],
+                'description' => $data['description'] ?? null,
                 'goals' => $data['goals'] ?? null,
                 'objectives' => $data['objectives'] ?? null,
                 'recorded_video_url' => $data['recorded_video_url'] ?? null,
@@ -115,22 +117,19 @@ class ProgramCourseCohortLessonService
 
             $fileUrls = $this->processNewFiles();
 
-            if (isset($data['old_assignment_url']) && isset($fileUrls['assignment_url'])) {
-                StorageService::deleteFile($data['old_assignment_url']);
-            }
-            if (isset($data['old_material_url']) && isset($fileUrls['material_url'])) {
-                StorageService::deleteFile($data['old_material_url']);
-            }
-            if (isset($data['old_certificate_url']) && isset($fileUrls['certificate_url'])) {
-                StorageService::deleteFile($data['old_certificate_url']);
-            }
-
             $payload = [...$payload, ...$fileUrls];
 
-            $lessonId = $this->cohortLesson->insert($payload);
+            $lessonId = $this->cohortLesson
+                ->where('id', $data['id'])
+                ->update(array_filter($payload, fn($value) => $value !== null));
+
             if (!$lessonId) {
                 throw new \Exception("Failed to insert lesson record");
             }
+
+            $this->deleteAndInsertQuiz($data['id'], $data);
+
+            $this->cleanupOldFiles($data, $fileUrls);
 
             $this->pdo->commit();
             return true;
@@ -138,6 +137,23 @@ class ProgramCourseCohortLessonService
             $this->pdo->rollBack();
             throw $e;
         }
+    }
+
+    public function deleteAndInsertQuiz($lessonId, array $data)
+    {
+        if (isset($_FILES['quiz'])) {
+            $this->cohortLessonQuiz
+                ->where('lesson_id', $lessonId)
+                ->delete();
+        }
+
+        $this->saveQuiz([
+            'lesson_id' => $lessonId,
+            'course_name' => $data['course_name'] ?? null,
+            'cohort_id' => $data['cohort_id'],
+            'course_id' => $data['course_id'],
+            'program_id' => $data['program_id'],
+        ]);
     }
 
     private function processNewFiles()
@@ -164,6 +180,19 @@ class ProgramCourseCohortLessonService
         return $urls;
     }
 
+    private function cleanupOldFiles(array $data, array $fileUrls): void
+    {
+        if (isset($data['old_assignment_url'], $fileUrls['assignment_url'])) {
+            StorageService::deleteFile($data['old_assignment_url']);
+        }
+        if (isset($data['old_material_url'], $fileUrls['material_url'])) {
+            StorageService::deleteFile($data['old_material_url']);
+        }
+        if (isset($data['old_certificate_url'], $fileUrls['certificate_url'])) {
+            StorageService::deleteFile($data['old_certificate_url']);
+        }
+    }
+
     private function saveQuiz(array $params): void
     {
         if (!isset($_FILES['quiz'])) {
@@ -183,7 +212,7 @@ class ProgramCourseCohortLessonService
     private function insertQuizQuestion(array $question, array $params): void
     {
         $payload = [
-            'cohort_lesson_id' => $params['cohort_lesson_id'],
+            'lesson_id' => $params['lesson_id'],
             'course_name' => $params['course_name'] ?? null,
             'cohort_id' => $params['cohort_id'],
             'course_id' => $params['course_id'],
@@ -200,35 +229,31 @@ class ProgramCourseCohortLessonService
             ];
         }
 
-        $correctAnswer = trim($question['answer'] ?? '');
-        $correctIndex = $this->findOptionIndex($options, $correctAnswer);
+        if (!isset($question['answer']) || !is_numeric($question['answer'])) {
+            throw new \Exception('Answer must be a numeric 1-based index ' . $question['question_text']);
+        }
 
-        if ($correctIndex === -1) {
+        $oneBasedIndex = (int) $question['answer'];
+        $zeroBasedIndex = $oneBasedIndex - 1;
+
+        if ($zeroBasedIndex < 0 || $zeroBasedIndex >= \count($options)) {
             throw new \Exception(
-                "Correct answer '{$correctAnswer}' not found in options for question: {$question['question']}"
+                "Invalid correct option index: {$oneBasedIndex}"
             );
         }
 
+        $correctText = $options[$zeroBasedIndex]['text'];
+
         $payload['answer'] = json_encode($options);
         $payload['correct'] = json_encode([
-            'text' => $correctAnswer,
-            'order' => $correctIndex
+            'text' => $correctText,
+            'order' => $zeroBasedIndex,
         ]);
 
         $questionId = $this->cohortLessonQuiz->insert($payload);
         if (!$questionId) {
-            throw new \Exception("Failed to save quiz question: " . $question['question']);
+            throw new \Exception("Failed to save quiz question: " . $question['question_text']);
         }
-    }
-
-    private function findOptionIndex(array $options, string $answerText): int
-    {
-        foreach ($options as $index => $option) {
-            if (strtolower($option['text']) === strtolower($answerText)) {
-                return $index;
-            }
-        }
-        return -1;
     }
 
     private function isYouTubeUrl(string $url): bool
@@ -280,7 +305,7 @@ class ProgramCourseCohortLessonService
                 EXISTS (
                     SELECT 1 
                     FROM cohort_lesson_quizzes q
-                    WHERE q.cohort_lesson_id = l.id
+                    WHERE q.lesson_id = l.id
                 ) AS has_quiz
             FROM program_course_cohort_lessons l
             WHERE l.cohort_id = :cohort_id
@@ -296,7 +321,7 @@ class ProgramCourseCohortLessonService
         }, $rows);
     }
 
-    public function getLessonQuiz(int $cohortLessonId): array
+    public function getLessonQuiz(int $lessonId): array
     {
         $quizzes = $this->cohortLessonQuiz
             ->select([
@@ -305,7 +330,7 @@ class ProgramCourseCohortLessonService
                 'answer AS options',
                 'correct',
             ])
-            ->where('cohort_lesson_id', $cohortLessonId)
+            ->where('lesson_id', $lessonId)
             ->get();
 
         return array_map(fn($q) => [
@@ -327,12 +352,12 @@ class ProgramCourseCohortLessonService
         }
 
         $hasQuiz = $this->cohortLessonQuiz
-            ->where('cohort_lesson_id', $id)
+            ->where('lesson_id', $id)
             ->exists();
 
         if ($hasQuiz) {
             $this->cohortLessonQuiz
-                ->where('cohort_lesson_id', $id)
+                ->where('lesson_id', $id)
                 ->delete();
         }
 
