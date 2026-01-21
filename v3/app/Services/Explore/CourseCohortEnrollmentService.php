@@ -16,7 +16,7 @@ class CourseCohortEnrollmentService
     public function enrollUser(array $data): bool|int
     {
         $payload = [
-            'user_id' => $data['user_id'],
+            'profile_id' => $data['profile_id'],
             'course_id' => $data['course_id'],
             'course_name' => $data['course_name'],
             'cohort_name' => $data['cohort_name'],
@@ -31,7 +31,7 @@ class CourseCohortEnrollmentService
     public function unEnrollUser(array $data): bool
     {
         return $this->enrollmentModel
-            ->where('user_id', $data['user_id'])
+            ->where('profile_id', $data['profile_id'])
             ->where('cohort_id', $data['cohort_id'])
             ->delete();
     }
@@ -39,7 +39,7 @@ class CourseCohortEnrollmentService
     public function isUserEnrolled(array $data): bool
     {
         $enrollment = $this->enrollmentModel
-            ->where('user_id', $data['user_id'])
+            ->where('profile_id', $data['profile_id'])
             ->where('cohort_id', $data['cohort_id'])
             ->first();
 
@@ -53,7 +53,7 @@ class CourseCohortEnrollmentService
         ];
 
         return $this->enrollmentModel
-            ->where('user_id', $filters['user_id'])
+            ->where('profile_id', $filters['profile_id'])
             ->where('cohort_id', $filters['cohort_id'])
             ->update($payload);
     }

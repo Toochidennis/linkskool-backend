@@ -24,13 +24,13 @@ class LearningPathController extends ExploreBaseController
             $vars,
             [
                 'birth_date' => 'nullable|date',
-                'user_id' => 'nullable|integer',
+                'profile_id' => 'nullable|integer',
             ]
         );
 
         $data = $this->learningPathService->getProgramsWithCourses(
             $validated['birth_date'] ?? null,
-            $validated['user_id'] ?? null
+            $validated['profile_id'] ?? null
         );
 
         $this->respond(
@@ -88,10 +88,18 @@ class LearningPathController extends ExploreBaseController
         $validated = $this->validate(
             $vars,
             [
-                'cohort_id' => 'required|integer',
-                'user_id' => 'required|integer',
+                'profile_id' => 'required|integer',
+                'lesson_id' => 'required|integer',
             ]
         );
+
+        $result = $this->learningPathService
+            ->getLessonById($validated['lesson_id'], $validated['profile_id']);
+
+        return $this->respond([
+            'success' => true,
+            'data' => $result
+        ]);
     }
 
     #[Route('/lessons/{id}/quizzes', 'GET', ['api'])]
@@ -101,6 +109,7 @@ class LearningPathController extends ExploreBaseController
             $vars,
             [
                 'lesson_id' => 'required|integer',
+                'profile_id' => 'required|integer',
             ]
         );
 

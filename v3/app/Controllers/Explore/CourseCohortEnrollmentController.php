@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\CourseCohortEnrollmentService;
 
-#[Group('/public/cohorts/{cohortId}/enrollments')]
+#[Group('/public/learning/cohorts/{cohort_id}/enrollments')]
 class CourseCohortEnrollmentController extends ExploreBaseController
 {
     private CourseCohortEnrollmentService $enrollmentService;
@@ -24,7 +24,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'user_id' => 'required|integer',
+                'profile_id' => 'required|integer',
                 'course_id' => 'required|integer',
                 'course_name' => 'required|string',
                 'cohort_name' => 'required|string',
@@ -59,7 +59,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'user_id' => 'required|integer',
+                'profile_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
             ],
         );
@@ -85,7 +85,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'user_id' => 'required|integer',
+                'profile_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
             ],
         );
@@ -101,12 +101,13 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         );
     }
 
+    #[Route('/status', 'PUT', ['api'])]
     public function updateStatus(array $vars): void
     {
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'user_id' => 'required|integer',
+                'profile_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
                 'status' => 'required|string|in:active,completed,dropped',
             ],
