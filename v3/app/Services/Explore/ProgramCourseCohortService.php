@@ -3,14 +3,16 @@
 namespace V3\App\Services\Explore;
 
 use V3\App\Models\Explore\ProgramCourseCohort;
+use V3\App\Models\Explore\ProgramCourseCohortLesson;
 
 class ProgramCourseCohortService
 {
     protected ProgramCourseCohort $cohort;
-
+    private ProgramCourseCohortLesson $cohortLesson;
     public function __construct(\PDO $pdo)
     {
         $this->cohort = new ProgramCourseCohort($pdo);
+        $this->cohortLesson = new ProgramCourseCohortLesson($pdo);
     }
 
     public function addCohortToProgramCourse(array $data)
@@ -111,6 +113,14 @@ class ProgramCourseCohortService
 
     public function deleteCohort(int $id)
     {
+        $lesson = $this->cohortLesson
+            ->where('cohort_id', $id)
+            ->first();
+
+        if (!empty($lesson)) {
+            throw new \InvalidArgumentException("Cannot delete cohort with existing lessons.");
+        }
+
         $cohort = $this->cohort
             ->where('id', $id)
             ->first();
