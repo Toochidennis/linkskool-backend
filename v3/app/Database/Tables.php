@@ -106,6 +106,13 @@ class Tables
         'explore_news_category_pivot',
         'advertisements',
         'video_libraries',
-        'project_submissions',
+        'programs',
+        'program_courses',
+        'program_course_cohorts',
+        'program_course_cohort_enrollments',
+        'program_course_cohort_lessons',
+        'cohort_lesson_quizzes',
+        'program_profiles',
+        'cohort_tasks_submissions',
     ];
 }

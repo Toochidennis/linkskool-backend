@@ -6,45 +6,83 @@ use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\Explore\ExploreBaseController;
+use V3\App\Services\Explore\AuthBootstrapService;
 use V3\App\Services\Explore\CbtUserService;
 
-#[Group('/public/cbt')]
+#[Group('/public/cbt/users')]
 class CbtUserController extends ExploreBaseController
 {
     private CbtUserService $userService;
+    private AuthBootstrapService $authBootstrapService;
 
     public function __construct()
     {
         parent::__construct();
         $this->userService = new CbtUserService($this->pdo);
+        $this->authBootstrapService = new AuthBootstrapService($this->pdo);
     }
 
-    #[Route('/users', 'POST', ['api'])]
+    #[Route('', 'POST', ['api'])]
     public function storeUser()
     {
         $data = $this->validate($this->getRequestData(), [
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string',
             'email' => 'required|email|max:255',
-            'profile_picture' => 'sometimes|string|max:255',
+            'profile_picture' => 'nullable|string|max:255',
             'attempt' => 'required|integer|min:0',
         ]);
 
-        $userId = $this->userService->createUser($data);
+        $user = $this->authBootstrapService->bootstrap($data);
 
-        if ($userId <= 0) {
+        if (empty($user)) {
             $this->respondError(
-                'Failed to create user, maybe email already exists.',
+                'Failed to create user.',
                 HttpStatus::BAD_REQUEST
             );
         }
         $this->respond([
             'success' => true,
             'message' => 'User created successfully',
-            'userId' => $userId
+            'data' => $user
         ]);
     }
 
-    #[Route('/users/{id:\d+}', 'PUT', ['api'])]
+    #[Route('/{id:\d+}/phone', 'PUT', ['api'])]
+    public function updatePhone(array $vars)
+    {
+        $data = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'id' => 'required|integer|min:1',
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string',
+                'email' => 'required|email',
+                'phone' => 'required|string|max:11',
+                'birth_date' => 'required|date',
+                'gender' => 'required|string|in:male,female,other',
+                'profile_picture' => 'nullable|string|max:255',
+            ]
+        );
+
+        $response = $this->authBootstrapService
+            ->bootstrap($data, $data['phone'], $data['birth_date']);
+
+        if (empty($response)) {
+            $this->respondError(
+                'Failed to update phone number',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Phone number updated successfully',
+            'data' => $response,
+        ]);
+    }
+
+    #[Route('/{id:\d+}', 'PUT', ['api'])]
     public function updateUser(array $vars)
     {
         $data = $this->validate(
@@ -68,13 +106,15 @@ class CbtUserController extends ExploreBaseController
             );
         }
 
-        $this->respond([
-            'success' => true,
-            'message' => 'User updated successfully',
-        ]);
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'User updated successfully',
+            ]
+        );
     }
 
-    #[Route('/users/{id:\d+}/payment-status', 'PUT', ['api'])]
+    #[Route('/{id:\d+}/payment-status', 'PUT', ['api'])]
     public function updatePaymentStatus(array $vars)
     {
         $data = $this->validate(
@@ -101,7 +141,7 @@ class CbtUserController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/users/{email}', 'GET', ['api'])]
+    #[Route('/{email}', 'GET', ['api'])]
     public function getUserByEmail(array $vars)
     {
         $data = $this->validate($vars, [
