@@ -3,14 +3,17 @@
 namespace V3\App\Services\Explore;
 
 use V3\App\Models\Explore\Program;
+use V3\App\Models\Explore\ProgramCourse;
 
 class ProgramService
 {
     protected Program $programModel;
+    private ProgramCourse $programCourseModel;
 
     public function __construct(\PDO $pdo)
     {
         $this->programModel = new Program($pdo);
+        $this->programCourseModel = new ProgramCourse($pdo);
     }
 
     public function createProgram(array $data): bool|int
@@ -97,6 +100,14 @@ class ProgramService
 
     public function deleteProgram(int $id)
     {
+        $course = $this->programCourseModel
+            ->where('program_id', $id)
+            ->first();
+
+        if (!empty($course)) {
+            throw new \Exception("Cannot delete program with associated courses.");
+        }
+
         $program = $this->programModel
             ->where('id', $id)
             ->first();

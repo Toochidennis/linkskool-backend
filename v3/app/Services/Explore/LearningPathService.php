@@ -107,11 +107,12 @@ class LearningPathService
 
             $programs[$pid]['courses'][] = [
                 'course_id' => $row['course_id'],
-                'title' => $row['course_title'],
+                'course_name' => $row['course_title'],
                 'description' => $row['course_description'],
                 'image_url' => $row['course_image_url'],
 
                 'has_active_cohort' => (bool) $row['active_cohort_id'],
+                'cohort_id' => $row['active_cohort_id'],
 
                 'is_free' => $row['active_cohort_id']
                     ? (bool) $row['is_free']
