@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\ProgramCourseCohortLessonService;
 
-#[Group('/public/programs/cohorts/lessons')]
+#[Group('/public/programs/cohorts/{cohort_id}/lessons')]
 class ProgramCourseCohortLessonController extends ExploreBaseController
 {
     private ProgramCourseCohortLessonService $service;
@@ -60,8 +60,8 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
 
                 'quiz' => 'nullable|array',
                 'quiz.name' => 'required_with:quiz|string',
-                'quiz.tmp_name' => 'required_with:quiz|array',
-                'quiz.error' => 'required_with:quiz|array',
+                'quiz.tmp_name' => 'required_with:quiz|string',
+                'quiz.error' => 'required_with:quiz|string',
             ]
         );
 
@@ -83,8 +83,77 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
         );
     }
 
+    public function updateLesson(array $vars)
+    {
+        $validated = $this->validate(
+            data: [...$this->getRequestData(), ...$vars],
+            rules: [
+                'lesson_id' => 'required|integer',
+                'program_id' => 'required|integer',
+                'course_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'goals' => 'nullable|string',
+                'objectives' => 'nullable|string',
+                'video_url' => 'required|string',
+                'recorded_video_url' => 'nullable|string',
+                'display_order' => 'required|integer',
+                'write_up_content' => 'nullable|string',
+                'assignment_instructions' => 'nullable|string',
+                'assignment_due_date' => 'nullable|date',
+                'is_final_lesson' => 'required|boolean',
+                'author_name' => 'required|string|max:255',
+                'author_id' => 'required|integer',
+                'lesson_date' => 'required|date',
 
-    #[Route('', 'GET', ['api', 'auth'])]
+                //Files
+                'certificate' => 'nullable|array',
+                'certificate.name' => 'required_with:certificate|string',
+                'certificate.tmp_name' => 'required_with:certificate|string',
+                'certificate.error' => 'required_with:certificate|integer',
+
+                'material' => 'required|array',
+                'material.name' => 'required|string',
+                'material.tmp_name' => 'required|string',
+                'material.error' => 'required|integer',
+
+                'assignment' => 'nullable|array',
+                'assignment.name' => 'required_with:assignment|string',
+                'assignment.tmp_name' => 'required_with:assignment|string',
+                'assignment.error' => 'required_with:assignment|integer',
+
+                'quiz' => 'nullable|array',
+                'quiz.name' => 'required_with:quiz|string',
+                'quiz.tmp_name' => 'required_with:quiz|string',
+                'quiz.error' => 'required_with:quiz|string',
+
+                'old_material_url' => 'nullable|string',
+                'old_certificate_url' => 'nullable|string',
+                'old_assignment_url' => 'nullable|string',
+            ]
+        );
+
+        $success = $this->service->updateLesson($validated);
+
+        if (!$success) {
+            $this->respondError(
+                message: 'Failed to update lesson.',
+                statusCode: HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            data: [
+                'success' => true,
+                'message' => 'Lesson updated successfully.',
+            ],
+            statusCode: HttpStatus::OK
+        );
+    }
+
+
+    #[Route('', 'GET', ['api', ])]
     public function getLessons(array $vars)
     {
         $validated = $this->validate(
@@ -105,7 +174,7 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
         );
     }
 
-    #[Route('quiz', 'GET', ['api', 'auth'])]
+    #[Route('/{lesson_id}/quiz', 'GET', ['api', ])]
     public function getLessonQuiz(array $vars)
     {
         $validated = $this->validate(
