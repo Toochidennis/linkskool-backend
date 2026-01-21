@@ -83,6 +83,7 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
         );
     }
 
+    #[Route('/{lesson_id}', 'POST', ['api', 'auth'])]
     public function updateLesson(array $vars)
     {
         $validated = $this->validate(
@@ -113,10 +114,10 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
                 'certificate.tmp_name' => 'required_with:certificate|string',
                 'certificate.error' => 'required_with:certificate|integer',
 
-                'material' => 'required|array',
-                'material.name' => 'required|string',
-                'material.tmp_name' => 'required|string',
-                'material.error' => 'required|integer',
+                'material' => 'nullable|array',
+                'material.name' => 'required_with:material|string',
+                'material.tmp_name' => 'required_with:material|string',
+                'material.error' => 'required_with:material|integer',
 
                 'assignment' => 'nullable|array',
                 'assignment.name' => 'required_with:assignment|string',
@@ -153,7 +154,7 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
     }
 
 
-    #[Route('', 'GET', ['api', ])]
+    #[Route('', 'GET', ['api', 'auth'])]
     public function getLessons(array $vars)
     {
         $validated = $this->validate(
@@ -174,7 +175,7 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
         );
     }
 
-    #[Route('/{lesson_id}/quiz', 'GET', ['api', ])]
+    #[Route('/{lesson_id}/quiz', 'GET', ['api', 'auth'])]
     public function getLessonQuiz(array $vars)
     {
         $validated = $this->validate(
@@ -190,6 +191,34 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
             data: [
                 'success' => true,
                 'data' => $quiz
+            ],
+            statusCode: HttpStatus::OK
+        );
+    }
+
+    #[Route('/{lesson_id}', 'DELETE', ['api', 'auth'])]
+    public function deleteLesson(array $vars)
+    {
+        $validated = $this->validate(
+            data: [...$this->getRequestData(), ...$vars],
+            rules: [
+                'lesson_id' => 'required|integer',
+            ]
+        );
+
+        $success = $this->service->deleteLesson((int) $validated['lesson_id']);
+
+        if (!$success) {
+            $this->respondError(
+                message: 'Failed to delete lesson.',
+                statusCode: HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            data: [
+                'success' => true,
+                'message' => 'Lesson deleted successfully.',
             ],
             statusCode: HttpStatus::OK
         );

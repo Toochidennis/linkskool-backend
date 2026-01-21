@@ -19,7 +19,7 @@ class FileHandler
     {
         $this->allowedExtensions = match ($contentType) {
             ContentType::QUIZ->value => ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-            default => ['jpg', 'jpeg', 'png', 'pdf', 'docx', 'mp4', 'mov', 'avi', 'pptx'],
+            default => ['jpg', 'jpeg', 'png', 'pdf', 'docx', 'mp4', 'mov', 'avi', 'pptx', 'svg'],
         };
 
         $paths = PathResolver::getContentPaths();

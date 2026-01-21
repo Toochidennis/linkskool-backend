@@ -24,10 +24,10 @@ class LearningPathService
 
     public function getProgramsWithCourses(
         ?string $birthDate = null,
-        ?int $userId = null
+        ?int $profileId = null
     ): array {
-        $enrolledCourseIds = $userId
-            ? $this->getUserEnrolledCourseIds($userId)
+        $courseEnrollmentStatus = $profileId
+            ? $this->getUserEnrolledCourseIds($profileId)
             : [];
 
         $age = $birthDate !== null
@@ -65,14 +65,14 @@ class LearningPathService
         return $this->groupProgramsWithCoursesWithAgeFilter(
             $rows,
             $age,
-            $enrolledCourseIds
+            $courseEnrollmentStatus
         );
     }
 
     private function groupProgramsWithCoursesWithAgeFilter(
         array $rows,
         ?int $age,
-        array $enrolledCourseIds
+        array $courseEnrollmentStatus
     ): array {
         $programs = [];
 
@@ -82,7 +82,10 @@ class LearningPathService
             }
 
             $ageGroups = json_decode($row['age_groups'], true) ?? [];
-            $isEnrolled = \in_array($row['course_id'], $enrolledCourseIds, true);
+            $enrollmentStatus = $courseEnrollmentStatus[$row['course_id']] ?? null;
+            $isEnrolled = $enrollmentStatus !== null;
+            $isCompleted = $enrollmentStatus === 'completed';
+
 
             if ($age !== null && !$isEnrolled) {
                 if (!$this->matchesAgeGroup($ageGroups, $age)) {
@@ -126,7 +129,9 @@ class LearningPathService
                     ? (float) $row['cost']
                     : null,
 
-                'is_enrolled' => $isEnrolled
+                'is_enrolled' => $isEnrolled,
+                'is_completed' => $isCompleted,
+                'enrollment_status' => $enrollmentStatus
             ];
         }
 
@@ -147,17 +152,17 @@ class LearningPathService
         return false;
     }
 
-    private function getUserEnrolledCourseIds(int $userId): array
+    private function getUserEnrolledCourseIds(int $profileId): array
     {
         $rows = $this->programCourseCohortModel
             ->rawQuery(
-                "SELECT DISTINCT course_id
+                "SELECT DISTINCT course_id, status
                         FROM program_course_cohort_enrollments
-                        WHERE user_id = :user_id",
-                ['user_id' => $userId]
+                        WHERE profile_id = :profile_id",
+                ['profile_id' => $profileId]
             );
 
-        return array_column($rows, 'course_id');
+        return array_column($rows, 'status', 'course_id');
     }
 
     public function getActiveCohortByCourse(int $cohortId): array
@@ -185,7 +190,7 @@ class LearningPathService
             ->get();
     }
 
-    public function getLessonById(int $lessonId, int $userId): array
+    public function getLessonById(int $lessonId, int $profileId): array
     {
         $sql = "
             SELECT 
@@ -196,7 +201,7 @@ class LearningPathService
             FROM program_course_cohort_lessons l
             LEFT JOIN cohort_tasks_submissions s
                 ON s.lesson_id = l.id
-                AND s.user_id = :user_id
+                AND s.profile_id = :profile_id
             WHERE l.id = :lesson_id
             LIMIT 1
         ";
@@ -204,7 +209,7 @@ class LearningPathService
         $row = $this->programCourseCohortLessonModel
             ->rawQuery($sql, [
                 'lesson_id' => $lessonId,
-                'user_id'   => $userId
+                'profile_id'   => $profileId
             ]);
 
         if (empty($row)) {

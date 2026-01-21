@@ -80,15 +80,12 @@ class ProgramCourseCohortLessonService
 
     public function updateLesson(array $data)
     {
-        $fileUrls = [];
-
         try {
             $this->pdo->beginTransaction();
 
             $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title'])));
 
             $payload = [
-                'id' => $data['id'],
                 'slug' => $slug,
                 'cohort_id' => $data['cohort_id'],
                 'course_id' => $data['course_id'],
@@ -115,19 +112,19 @@ class ProgramCourseCohortLessonService
                 $payload['thumbnail'] = $this->getYouTubeThumbnail($data['video_url']);
             }
 
-            $fileUrls = $this->processNewFiles();
+            $fileUrls = $this->processNewFiles(isUpdate: true);
 
             $payload = [...$payload, ...$fileUrls];
 
             $lessonId = $this->cohortLesson
-                ->where('id', $data['id'])
+                ->where('id', $data['lesson_id'])
                 ->update(array_filter($payload, fn($value) => $value !== null));
 
             if (!$lessonId) {
                 throw new \Exception("Failed to insert lesson record");
             }
 
-            $this->deleteAndInsertQuiz($data['id'], $data);
+            $this->deleteAndInsertQuiz($data['lesson_id'], $data);
 
             $this->cleanupOldFiles($data, $fileUrls);
 
@@ -145,18 +142,18 @@ class ProgramCourseCohortLessonService
             $this->cohortLessonQuiz
                 ->where('lesson_id', $lessonId)
                 ->delete();
-        }
 
-        $this->saveQuiz([
-            'lesson_id' => $lessonId,
-            'course_name' => $data['course_name'] ?? null,
-            'cohort_id' => $data['cohort_id'],
-            'course_id' => $data['course_id'],
-            'program_id' => $data['program_id'],
-        ]);
+            $this->saveQuiz([
+                'lesson_id' => $lessonId,
+                'course_name' => $data['course_name'] ?? null,
+                'cohort_id' => $data['cohort_id'],
+                'course_id' => $data['course_id'],
+                'program_id' => $data['program_id'],
+            ]);
+        }
     }
 
-    private function processNewFiles()
+    private function processNewFiles($isUpdate = false): array
     {
         $urls = [
             'assignment_url' => null,
@@ -164,11 +161,15 @@ class ProgramCourseCohortLessonService
             'certificate_url' => null,
         ];
 
-        if (!isset($_FILES['material'])) {
+        $material = $_FILES['material'] ?? null;
+
+        if (!$material && !$isUpdate) {
             throw new \Exception("Material file is required.");
         }
 
-        $urls['material_url'] = StorageService::saveFile($_FILES['material']);
+        if ($material) {
+            $urls['material_url'] = StorageService::saveFile($material);
+        }
 
         if (isset($_FILES['assignment'])) {
             $urls['assignment_url'] = StorageService::saveFile($_FILES['assignment']);
