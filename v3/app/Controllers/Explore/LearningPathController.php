@@ -82,7 +82,7 @@ class LearningPathController extends ExploreBaseController
         );
     }
 
-    #[Route('/lessons/{id}', 'GET', ['api'])]
+    #[Route('/lessons/{lesson_id}', 'GET', ['api'])]
     public function getCohortLessonById(array $vars)
     {
         $validated = $this->validate(

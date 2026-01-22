@@ -6,7 +6,7 @@ use V3\App\Models\BaseModel;
 
 class ProgramCohortCourseEnrollment extends BaseModel
 {
-    protected string $table = 'program_cohort_course_enrollments';
+    protected string $table = 'program_course_cohort_enrollments';
 
     public function __construct(\PDO $pdo)
     {

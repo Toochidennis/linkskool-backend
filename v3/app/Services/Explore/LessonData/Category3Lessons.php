@@ -1276,7 +1276,6 @@ class Category3Lessons
                 ]
             ],
 
-
             6 => [
                 [
                     "id" => 1,
