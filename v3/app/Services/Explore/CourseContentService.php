@@ -275,4 +275,35 @@ class CourseContentService
             'cost' => null,
         ]);
     }
+
+    public function seedCohortLessons(array $lessons, array $params)
+    {
+        $lessons = $this->getLessons($params['category_id'], $params['course_id']);
+
+        foreach ($lessons as $index => $lesson) {
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $lesson['title'])));
+
+            $this->programCourseCohortLesson->insert([
+                'cohort_id' => $params['cohort_id'],
+                'program_id' => $params['program_id'],
+                'course_id' => $params['course_id'],
+                'title' => $lesson['title'],
+                'description' => $lesson['content'],
+                'video_url' => $lesson['video_url'] ?? null,
+                'display_order' => $index + 1,
+                'goals' => $lesson['goal'] ?? null,
+                'objectives' => $lesson['objectives'] ?? null,
+                'slug' => $slug,
+                'author_id' => 1,
+                'author_name' => 'admin',
+                'lesson_date' => '2024-09-01',
+                'assignment_instructions' => $lesson['assignment_description'] ?? null,
+                'recorded_video_url' => $lesson['recorded_url'] ?? null,
+                'material_url' => $lesson['material_url'] ?? null,
+                'assignment_url' => $lesson['assignment_url'] ?? null,
+                'assignment_due_date' => null,
+                'is_final_lesson' => $lesson['is_final'] ?? false,
+            ]);
+        }
+    }
 }

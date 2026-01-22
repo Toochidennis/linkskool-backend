@@ -42,10 +42,10 @@ class LearningPathService
                 'programs.image_url AS program_image_url',
                 'programs.age_groups AS program_age_groups',
 
-                'program_courses.id AS course_id',
-                'program_courses.title AS course_title',
-                'program_courses.description AS course_description',
-                'program_courses.image_url AS course_image_url',
+                'learning_courses.id AS course_id',
+                'learning_courses.title AS course_title',
+                'learning_courses.description AS course_description',
+                'learning_courses.image_url AS course_image_url',
 
                 'program_course_cohorts.id AS active_cohort_id',
                 'program_course_cohorts.is_free',
@@ -53,7 +53,16 @@ class LearningPathService
                 'program_course_cohorts.trial_value',
                 'program_course_cohorts.cost'
             ])
-            ->join('program_courses', 'program_courses.program_id = programs.id', 'LEFT')
+            ->join(
+                'program_courses',
+                'program_courses.program_id = programs.id',
+                'LEFT'
+            )
+            ->join(
+                'learning_courses',
+                'learning_courses.id = program_courses.course_id',
+                'LEFT'
+            )
             ->join('program_course_cohorts', function ($join) {
                 $join->on('program_course_cohorts.course_id', '=', 'program_courses.id');
                 $join->on('program_course_cohorts.status', '=', 'ongoing');
@@ -87,14 +96,9 @@ class LearningPathService
             if (!isset($programs[$pid])) {
                 $ageGroups = json_decode($row['program_age_groups'], true) ?? [];
 
-                // Check if user is enrolled in any course of this program
-                $hasEnrollmentInProgram = false;
-                foreach ($courseEnrollmentStatus as $courseId => $_) {
-                    if ($courseId == $row['course_id']) {
-                        $hasEnrollmentInProgram = true;
-                        break;
-                    }
-                }
+                $hasEnrollmentInProgram = isset(
+                    $enrolledCourseIds[(int) $row['course_id']]
+                );
 
                 if ($age !== null && !$hasEnrollmentInProgram) {
                     if (!$this->matchesAgeGroup($ageGroups, $age)) {
