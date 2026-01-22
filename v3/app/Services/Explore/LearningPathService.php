@@ -26,62 +26,66 @@ class LearningPathService
         ?string $birthDate = null,
         ?int $profileId = null
     ): array {
-        $courseEnrollmentStatus = $profileId
-            ? $this->getUserEnrolledCourseIds($profileId)
-            : [];
-
         $age = $birthDate !== null
             ? (int) date('Y') - (int) substr($birthDate, 0, 4)
             : null;
 
-        $rows = $this->programModel
-            ->select([
-                'programs.id AS program_id',
-                'programs.name AS program_name',
-                'programs.description AS program_description',
-                'programs.image_url AS program_image_url',
-                'programs.age_groups AS program_age_groups',
 
-                'learning_courses.id AS course_id',
-                'learning_courses.title AS course_title',
-                'learning_courses.description AS course_description',
-                'learning_courses.image_url AS course_image_url',
+        $sql = "
+            SELECT
+                p.id            AS program_id,
+                p.name          AS program_name,
+                p.description   AS program_description,
+                p.image_url     AS program_image_url,
+                p.age_groups    AS program_age_groups,
 
-                'program_course_cohorts.id AS active_cohort_id',
-                'program_course_cohorts.is_free',
-                'program_course_cohorts.trial_type',
-                'program_course_cohorts.trial_value',
-                'program_course_cohorts.cost'
-            ])
-            ->join(
-                'program_courses',
-                'program_courses.program_id = programs.id',
-                'LEFT'
-            )
-            ->join(
-                'learning_courses',
-                'learning_courses.id = program_courses.course_id',
-                'LEFT'
-            )
-            ->join('program_course_cohorts', function ($join) {
-                $join->on('program_course_cohorts.course_id', '=', 'program_courses.id');
-                $join->on('program_course_cohorts.status', '=', 'ongoing');
-            }, 'LEFT')
-            ->where('programs.status', 'published')
-            ->where('program_courses.is_active', 1)
-            ->get();
+                lc.id           AS course_id,
+                lc.title        AS course_title,
+                lc.description  AS course_description,
+                lc.image_url    AS course_image_url,
 
-        return $this->groupProgramsWithCoursesWithAgeFilter(
-            $rows,
-            $age,
-            $courseEnrollmentStatus
-        );
+                c.id            AS active_cohort_id,
+                c.is_free       AS is_free,
+                c.trial_type    AS trial_type,
+                c.trial_value   AS trial_value,
+                c.cost          AS cost,
+
+                e.status        AS enrollment_status
+
+            FROM programs p
+
+            INNER JOIN program_courses pc
+                ON pc.program_id = p.id
+            AND pc.is_active = 1
+
+            INNER JOIN learning_courses lc
+                ON lc.id = pc.course_id
+
+            LEFT JOIN program_course_cohorts c
+                ON c.program_id = p.id
+            AND c.course_id = lc.id
+            AND c.status = 'ongoing'
+
+            LEFT JOIN program_course_cohort_enrollments e
+                ON e.program_id = p.id
+            AND e.course_id = lc.id
+            AND e.profile_id = :profile_id
+
+            WHERE p.status = 'published'
+
+            ORDER BY p.id, lc.id;
+        ";
+
+        $rows = $this->programModel->rawQuery($sql, [
+            'profile_id' => $profileId
+        ]);
+
+        return $this->groupProgramsWithCoursesWithAgeFilter($rows, $age);
     }
 
     private function groupProgramsWithCoursesWithAgeFilter(
         array $rows,
-        ?int $age,
-        array $courseEnrollmentStatus
+        ?int $age
     ): array {
         $programs = [];
 
@@ -90,20 +94,13 @@ class LearningPathService
                 continue;
             }
 
-            $pid = $row['program_id'];
+            $pid = (int) $row['program_id'];
 
-            // Initialize program once
             if (!isset($programs[$pid])) {
-                $ageGroups = json_decode($row['program_age_groups'], true) ?? [];
+                $ageGroups = json_decode($row['program_age_groups'] ?? '[]', true) ?? [];
 
-                $hasEnrollmentInProgram = isset(
-                    $enrolledCourseIds[(int) $row['course_id']]
-                );
-
-                if ($age !== null && !$hasEnrollmentInProgram) {
-                    if (!$this->matchesAgeGroup($ageGroups, $age)) {
-                        continue;
-                    }
+                if ($age !== null && !$this->matchesAgeGroup($ageGroups, $age)) {
+                    continue;
                 }
 
                 $programs[$pid] = [
@@ -111,46 +108,52 @@ class LearningPathService
                     'name' => $row['program_name'],
                     'description' => $row['program_description'],
                     'image_url' => $row['program_image_url'],
-                    'courses' => []
+                    'courses' => [],
+                    '_course_map' => []
                 ];
             }
 
-            // Program might have been skipped
-            if (!isset($programs[$pid])) {
+            // Deduplicate courses per program
+            if (isset($programs[$pid]['_course_map'][$row['course_id']])) {
                 continue;
             }
 
-            $enrollmentStatus = $courseEnrollmentStatus[$row['course_id']] ?? null;
+            $programs[$pid]['_course_map'][$row['course_id']] = true;
 
             $programs[$pid]['courses'][] = [
-                'course_id' => $row['course_id'],
+                'course_id' => (int) $row['course_id'],
                 'course_name' => $row['course_title'],
                 'description' => $row['course_description'],
                 'image_url' => $row['course_image_url'],
 
-                'has_active_cohort' => (bool) $row['active_cohort_id'],
+                'has_active_cohort' => $row['active_cohort_id'] !== null,
                 'cohort_id' => $row['active_cohort_id'],
 
-                'is_free' => $row['active_cohort_id']
+                'is_free' => $row['active_cohort_id'] !== null
                     ? (bool) $row['is_free']
                     : null,
 
-                'trial_type' => $row['active_cohort_id']
+                'trial_type' => $row['active_cohort_id'] !== null
                     ? $row['trial_type']
                     : null,
 
-                'trial_value' => $row['active_cohort_id']
+                'trial_value' => $row['active_cohort_id'] !== null
                     ? (int) $row['trial_value']
                     : null,
 
-                'cost' => $row['active_cohort_id']
+                'cost' => $row['active_cohort_id'] !== null
                     ? (float) $row['cost']
                     : null,
 
-                'is_enrolled' => $enrollmentStatus !== null,
-                'is_completed' => $enrollmentStatus === 'completed',
-                'enrollment_status' => $enrollmentStatus
+                'is_enrolled' => $row['enrollment_status'] !== null,
+                'is_completed' => $row['enrollment_status'] === 'completed',
+                'enrollment_status' => $row['enrollment_status']
             ];
+        }
+
+        // cleanup internal maps
+        foreach ($programs as &$program) {
+            unset($program['_course_map']);
         }
 
         return array_values($programs);
@@ -168,19 +171,6 @@ class LearningPathService
         }
 
         return false;
-    }
-
-    private function getUserEnrolledCourseIds(int $profileId): array
-    {
-        $rows = $this->programCourseCohortModel
-            ->rawQuery(
-                "SELECT DISTINCT course_id, status
-                        FROM program_course_cohort_enrollments
-                        WHERE profile_id = :profile_id",
-                ['profile_id' => $profileId]
-            );
-
-        return array_column($rows, 'status', 'course_id');
     }
 
     public function getActiveCohortByCourse(int $cohortId): array

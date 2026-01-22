@@ -7,7 +7,7 @@ use V3\App\Services\Explore\ProgramCourseCohortService;
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 
-#[Group('/public/programs/{program_id}/courses/{course_id}/cohorts')]
+#[Group('/public')]
 class ProgramCourseCohortController extends ExploreBaseController
 {
     protected ProgramCourseCohortService $cohortService;
@@ -18,7 +18,7 @@ class ProgramCourseCohortController extends ExploreBaseController
         $this->cohortService = new ProgramCourseCohortService($this->pdo);
     }
 
-    #[Route('', 'POST', ['api', 'auth'])]
+    #[Route('/learn/programs/courses/cohorts', 'POST', ['api', 'auth'])]
     public function create(array $vars)
     {
         $validatedData = $this->validate(
@@ -69,7 +69,7 @@ class ProgramCourseCohortController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id}', 'POST', ['api', 'auth'])]
+    #[Route('/learn/programs/courses/cohorts/{id}', 'POST', ['api', 'auth'])]
     public function update(array $vars)
     {
         $validatedData = $this->validate(
@@ -117,7 +117,7 @@ class ProgramCourseCohortController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id}/status', 'POST', ['api', 'auth'])]
+    #[Route('/learn/programs/courses/cohorts/{id}/status', 'POST', ['api', 'auth'])]
     public function updateStatus(array $vars)
     {
         $validatedData = $this->validate(
@@ -150,18 +150,22 @@ class ProgramCourseCohortController extends ExploreBaseController
         );
     }
 
-    #[Route('', 'GET', ['api', 'auth'])]
+    #[Route('/learn/programs/{program_id}/courses/{course_id}/cohorts', 'GET', ['api', 'auth'])]
     public function getAllCohortsByCourseId(array $vars)
     {
         $validatedData = $this->validate(
             $vars,
             [
                 'course_id' => 'required|integer',
+                'program_id' => 'required|integer',
             ]
         );
 
         $cohorts = $this->cohortService
-            ->getAllCohortsByCourseId((int)$validatedData['course_id']);
+            ->getAllCohortsByCourseId(
+                (int)$validatedData['program_id'],
+                (int)$validatedData['course_id']
+            );
 
         $this->respond(
             [
@@ -172,7 +176,7 @@ class ProgramCourseCohortController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id}', 'DELETE', ['api', 'auth'])]
+    #[Route('/learn/programs/courses/cohorts/{id}', 'DELETE', ['api', 'auth'])]
     public function delete(array $vars)
     {
         $validatedData = $this->validate(

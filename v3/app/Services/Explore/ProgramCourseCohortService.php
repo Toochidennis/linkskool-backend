@@ -103,9 +103,10 @@ class ProgramCourseCohortService
             ->update(['status' => $status]);
     }
 
-    public function getAllCohortsByCourseId(int $courseId)
+    public function getAllCohortsByCourseId(int $programId, int $courseId)
     {
         return $this->cohort
+            ->where('program_id', $programId)
             ->where('course_id', $courseId)
             ->orderBy('start_date', 'ASC')
             ->get();

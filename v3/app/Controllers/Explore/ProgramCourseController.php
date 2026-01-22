@@ -56,15 +56,15 @@ class ProgramCourseController extends ExploreBaseController
         );
     }
 
-    #[Route('/seed/cohort', 'POST')]
-    public function createCohort(array $vars)
+    #[Route('/seed/cohorts', 'POST')]
+    public function createCohort()
     {
         $validatedData = $this->validate(
-            $vars,
+            $this->getRequestData(),
             [
-                'course_id' => 'required|integer',
+                'courses.*.course_id' => 'required|integer',
+                'courses.*.course_name' => 'required|string|max:255',
                 'program_id' => 'required|integer',
-                'course_name' => 'required|string|max:255',
             ]
         );
 
@@ -87,11 +87,11 @@ class ProgramCourseController extends ExploreBaseController
         );
     }
 
-        #[Route('/seed/cohort/lessons', 'POST')]
-    public function createCohortLessons(array $vars)
+    #[Route('/seed/cohort/lessons', 'POST')]
+    public function createCohortLessons()
     {
         $validatedData = $this->validate(
-            $vars,
+            $this->getRequestData(),
             [
                 'course_id' => 'required|integer',
                 'program_id' => 'required|integer',
@@ -101,11 +101,11 @@ class ProgramCourseController extends ExploreBaseController
             ]
         );
 
-        $id =  $this->service->seedCohorts($validatedData);
+        $id =  $this->service->seedCohortLessons($validatedData);
 
         if (!$id) {
             $this->respondError(
-                'Failed to create cohort.',
+                'Failed to create cohort lesson.',
                 HttpStatus::BAD_REQUEST
             );
         }
@@ -113,7 +113,7 @@ class ProgramCourseController extends ExploreBaseController
         $this->respond(
             [
                 'success' => true,
-                'message' => 'Cohort created successfully.',
+                'message' => 'Cohort lesson created successfully.',
                 'id' => $id
             ],
             HttpStatus::CREATED

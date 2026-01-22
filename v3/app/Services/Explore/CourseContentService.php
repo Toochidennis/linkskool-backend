@@ -54,12 +54,12 @@ class CourseContentService
     {
         // Register lessons: category => course => lessons
         $this->lessonsByCategoryAndCourse = [
-            \V3\App\Services\Explore\LessonData\Category1Lessons::getLessons(),
-            \V3\App\Services\Explore\LessonData\Category2Lessons::getLessons(),
-            \V3\App\Services\Explore\LessonData\Category3Lessons::getLessons(),
-            \V3\App\Services\Explore\LessonData\Category4Lessons::getLessons(),
-            \V3\App\Services\Explore\LessonData\Category5Lessons::getLessons(),
-            \V3\App\Services\Explore\LessonData\Category6Lessons::getLessons(),
+            0 => \V3\App\Services\Explore\LessonData\Category1Lessons::getLessons(),
+            1 => \V3\App\Services\Explore\LessonData\Category2Lessons::getLessons(),
+            2 => \V3\App\Services\Explore\LessonData\Category3Lessons::getLessons(),
+            3 => \V3\App\Services\Explore\LessonData\Category4Lessons::getLessons(),
+            4 => \V3\App\Services\Explore\LessonData\Category5Lessons::getLessons(),
+            5 => \V3\App\Services\Explore\LessonData\Category6Lessons::getLessons(),
         ];
     }
 
@@ -75,82 +75,12 @@ class CourseContentService
         $courses = [
             [
                 "id" => 1,
-                "course_name" => "Scratch Programming",
-                "description" => "An engaging way to explore coding concepts through colorful blocks, where creativity meets logic in building games, stories, and animations—perfect for young minds taking their first steps into programming.",
-                "image_url" => "https://linkschoolonline.com/assets/img/scratch.png",
-                "category" => "Animation and Storytelling",
-                "slogan" => "Code. Create. Imagine.",
+                "course_name" => "Cinematography",
+                "description" => "Learn the art of capturing stunning visuals and telling compelling stories through the lens of a camera.",
+                "image_url" => "https://linkschoolonline.com/assets/img/tvet.jpeg",
+                "category" => "TVET",
+                "slogan" => "Bring your stories to life with creative media!",
                 "icon" => "https://linkschoolonline.com/assets/img/scratch-icon.png",
-                "has_content" => true
-            ],
-            [
-                "id" => 2,
-                "course_name" => "Graphics Design",
-                "description" => "A creative blend of visuals and ideas that communicate messages through color, shape, and layout—turning imagination into impactful designs.",
-                "image_url" => "https://linkschoolonline.com/assets/img/graphics-design.png",
-                "category" => "Graphic Design and Visual Arts",
-                "slogan" => "Creativity in Every Pixel!",
-                "icon" => "https://linkschoolonline.com/assets/img/graphics-icon.svg",
-                "has_content" => true
-            ],
-            [
-                "id" => 3,
-                "course_name" => "Web Development",
-                "description" => "The craft of shaping digital experiences - bringing ideas to life on the web through structure, style, and interactivity.",
-                "image_url" => "https://linkschoolonline.com/assets/img/web-dev.png",
-                "category" => "Web Development",
-                "slogan" => "Code Smart. Build Fast. Go Live.",
-                "icon" => "https://linkschoolonline.com/assets/img/web-dev-icon.png",
-                "has_content" => true
-            ],
-            [
-                "id" => 4,
-                "course_name" => "Python Programming",
-                "description" => "A powerful and versatile language that's perfect for beginners and professionals alike-unlock the potential to build apps, automate tasks, and explore data science with ease.",
-                "image_url" => "https://linkschoolonline.com/assets/img/python.png",
-                "category" => "Programming and Software Development",
-                "slogan" => "Code Simple. Build Big.",
-                "icon" => "https://linkschoolonline.com/assets/img/python.png",
-                "has_content" => true
-            ],
-            [
-                "id" => 5,
-                "course_name" => "Animation",
-                "description" => "Bring characters, ideas, and stories to life through motion—combining art and technology to create stunning visuals and immersive storytelling.",
-                "image_url" => "https://linkschoolonline.com/assets/img/anim_course.png",
-                "category" => "Animation and Creative Media",
-                "slogan" => "Your Ideas in Motion.",
-                "icon" => "https://linkschoolonline.com/assets/img/anim_course.png",
-                "has_content" => true
-            ],
-            [
-                "id" => 6,
-                "course_name" => "Robotics",
-                "description" => "Dive into the exciting world of robotics - design, build, and program intelligent machines that can sense, think, and act.",
-                "image_url" => "https://linkschoolonline.com/assets/img/robotics.png",
-                "category" => "Engineering and Technology",
-                "slogan" => "Build the Future, One Robot at a Time.",
-                "icon" => "https://linkschoolonline.com/assets/img/robotics-icon.png",
-                "has_content" => true
-            ],
-            [
-                "id" => 7,
-                "course_name" => "Android Development",
-                "description" => "Learn to build powerful and user-friendly mobile apps for the world's most popular mobile operating system.",
-                "image_url" => "https://linkschoolonline.com/assets/img/android.png",
-                "category" => "Mobile App Development",
-                "slogan" => "From Idea to App Store.",
-                "icon" => "https://linkschoolonline.com/assets/img/android.png",
-                "has_content" => true
-            ],
-            [
-                "id" => 8,
-                "course_name" => "Artificial Intelligence (AI)",
-                "description" => "Learn how to design intelligent systems using data, algorithms, and machine learning to solve real-world problems.",
-                "image_url" => "https://linkschoolonline.com/assets/img/ai_explorer1.png",
-                "category" => "Artificial Intelligence",
-                "slogan" => "Build Machines That Think.",
-                "icon" => "https://linkschoolonline.com/assets/img/ai_explorer_icon.png",
                 "has_content" => true
             ]
         ];
@@ -178,46 +108,15 @@ class CourseContentService
         $programs = [
             [
                 "id" => 2,
-                "name" => "Easter Kids Coding Fest",
-                'description' => 'An exciting coding festival designed for kids to explore the world of programming through fun and interactive activities during the Easter break.',
-                'short' => "code_fest",
+                "name" => "TVET Creative Media",
+                'description' => 'A comprehensive program designed to equip students with practical skills in various aspects of creative media production, including video production, graphic design, and digital storytelling.',
+                'short' => "TVET",
                 "available" => 1,
                 'free' => 1,
-                'courses' => [["id" => 1], ["id" => 2], ["id" => 3]],
+                'courses' => [9],
                 'limit' => 0
             ],
-            [
-                "id" => 1,
-                "name" => "Kids Weekend CodeLab",
-                'short' => "code_lab",
-                'description' => 'A fun and interactive weekend coding program designed for kids to explore the world of programming through hands-on projects and collaborative learning in a supportive environment.',
-                "available" => 1,
-                'free' => 0,
-                'courses' => [["id" => 1], ["id" => 2], ["id" => 3]],
-                'limit' => 2
-            ],
-            [
-                "id" => 3,
-                "name" => "Kids Coding BootCamp",
-                'short' => "boot_camp",
-                'description' => 'An intensive coding bootcamp designed for kids to learn programming fundamentals and build exciting projects in a supportive and fun environment.',
-                "available" => 1,
-                'free' => 0,
-                'courses' => [["id" => 1], ["id" => 2], ["id" => 3], ["id" => 4], ["id" => 5], ["id" => 6], ["id" => 7]],
-                'limit' => 2
-            ],
-            [
-                "id" => 4,
-                "name" => "AI Explorers Bootcamp",
-                'short' => "ai_explorer",
-                'description' => 'An immersive bootcamp designed to introduce kids to the exciting world of Artificial Intelligence (AI) through hands-on projects and interactive learning experiences.',
-                "available" => 1,
-                'free' => 1,
-                'courses' => [["id" => 8]],
-                'limit' => 2
-            ],
         ];
-
 
         foreach ($programs as $program) {
             $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $program['name'])));
@@ -243,7 +142,7 @@ class CourseContentService
         foreach ($courses as $index => $course) {
             $this->programCourse->insert([
                 'program_id' => $programId,
-                'course_id' => $course['id'],
+                'course_id' => $course,
                 'is_active' => 1,
                 'display_order' => $index + 1,
             ]);
@@ -252,33 +151,46 @@ class CourseContentService
 
     public function seedCohorts(array $data)
     {
-        $slug = 'testing-cohort-1';
-        return $this->programCourseCohort->insert([
-            'slug' => $slug,
-            'course_id' => $data['course_id'],
-            'course_name' => $data['course_name'],
-            'program_id' => $data['program_id'],
-            'title' => 'Cohort 1',
-            'description' => 'First cohort for testing',
-            'benefits' => 'Access to all course materials and quizzes',
-            'code' => null,
-            'start_date' => '2024-09-01',
-            'end_date' => '2024-12-15',
-            'status' => 'ongoing',
-            'image_url' => null,
-            'capacity' => null,
-            'delivery_mode' => null,
-            'zoom_link' => null,
-            'is_free' => 1,
-            'trial_type' => null,
-            'trial_value' => null,
-            'cost' => null,
-        ]);
+        foreach ($data['courses'] as $course) {
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $course['course_name'])));
+            $this->programCourseCohort->insert([
+                'slug' => $slug,
+                'course_id' => $course['course_id'],
+                'course_name' => $course['course_name'],
+                'program_id' => $data['program_id'],
+                'title' => 'Cohort 1',
+                'description' => 'First cohort for testing',
+                'benefits' => 'Access to all course materials and quizzes',
+                'code' => null,
+                'start_date' => '2024-09-01',
+                'end_date' => '2024-12-15',
+                'status' => 'ongoing',
+                'image_url' => null,
+                'capacity' => null,
+                'delivery_mode' => null,
+                'zoom_link' => null,
+                'is_free' => 1,
+                'trial_type' => null,
+                'trial_value' => null,
+                'cost' => null,
+            ]);
+        }
+
+        return true;
     }
 
-    public function seedCohortLessons(array $lessons, array $params)
+    public function seedCohortLessons(array $params)
     {
-        $lessons = $this->getLessons($params['category_id'], $params['course_id']);
+        $lessonsByCategoryAndCourse = [
+            0 => \V3\App\Services\Explore\LessonData\Category1Lessons::getLessons(),
+            1 => \V3\App\Services\Explore\LessonData\Category2Lessons::getLessons(),
+            2 => \V3\App\Services\Explore\LessonData\Category3Lessons::getLessons(),
+            3 => \V3\App\Services\Explore\LessonData\Category4Lessons::getLessons(),
+            4 => \V3\App\Services\Explore\LessonData\Category5Lessons::getLessons(),
+            5 => \V3\App\Services\Explore\LessonData\Category6Lessons::getLessons(),
+        ];
+
+        $lessons = $lessonsByCategoryAndCourse[$params['category_id']][$params['course_id']];
 
         foreach ($lessons as $index => $lesson) {
             $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $lesson['title'])));
@@ -288,7 +200,7 @@ class CourseContentService
                 'program_id' => $params['program_id'],
                 'course_id' => $params['course_id'],
                 'title' => $lesson['title'],
-                'description' => $lesson['content'],
+                'description' => $lesson['description'],
                 'video_url' => $lesson['video_url'] ?? null,
                 'display_order' => $index + 1,
                 'goals' => $lesson['goal'] ?? null,
@@ -305,5 +217,6 @@ class CourseContentService
                 'is_final_lesson' => $lesson['is_final'] ?? false,
             ]);
         }
+        return true;
     }
 }
