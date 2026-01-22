@@ -4,186 +4,54 @@ namespace V3\App\Controllers\Explore;
 
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
-use V3\App\Common\Utilities\HttpStatus;
-use V3\App\Services\Explore\ProgramCourseService;
+use V3\App\Services\Explore\CourseContentService;
 
-#[Group('/public/programs/{program_id}/courses')]
+#[Group('/public')]
 class ProgramCourseController extends ExploreBaseController
 {
-    private ProgramCourseService $programCourseService;
+    private CourseContentService $service;
 
     public function __construct()
     {
         parent::__construct();
-        $this->programCourseService = new ProgramCourseService($this->pdo);
+        $this->service = new CourseContentService($this->pdo);
     }
 
-    #[Route('', 'POST', ['api', 'auth'])]
-    public function create(array $vars)
+    #[Route('/seed/courses', 'POST')]
+    public function create()
     {
-        $validatedData = $this->validate(
-            [...$this->getRequestData(), ...$vars],
-            [
-                'title' => 'required|string|max:255',
-                'description' => 'required|string',
-                'slogan' => 'required|string|max:255',
-                'status' => 'required|string|in:draft,published,archived',
-                'age_groups' => 'required|array|min:1',
-                'age_groups.*.min' => 'integer',
-                'age_groups.*.max' => 'integer',
-                'program_id' => 'required|integer',
-                'author_name' => 'required|string|max:255',
-                'author_id' => 'required|integer',
-                'image' => 'required|array',
-                'image.name' => 'required|string',
-                'image.tmp_name' => 'required|string',
-                'image.error' => 'required|integer',
-                'image.size' => 'required|integer'
-            ]
-        );
+        $success = $this->service->seedCourses();
 
-        $id =  $this->programCourseService->addCourseToProgram($validatedData);
-
-        if (!$id) {
+        if (!$success) {
             $this->respondError(
-                'Failed to create program course.',
-                HttpStatus::BAD_REQUEST
+                'Failed to seed courses.'
             );
         }
 
         $this->respond(
             [
                 'success' => true,
-                'message' => 'Program course created successfully.',
-                'id' => $id
-            ],
-            HttpStatus::CREATED
+                'message' => 'Courses seeded successfully.'
+            ]
         );
     }
 
-    #[Route('/{id}', 'POST', ['api', 'auth'])]
-    public function update(array $vars)
+    #[Route('/seed/programs', 'POST')]
+    public function createPrograms()
     {
-        $validatedData = $this->validate(
-            [...$this->getRequestData(), ...$vars],
-            [
-                'id' => 'required|integer',
-                'title' => 'required|string|max:255',
-                'description' => 'required|string',
-                'slogan' => 'required|string|max:255',
-                'status' => 'required|string|in:draft,published,archived',
-                'age_groups' => 'nullable|array',
-                'age_groups.*.min' => 'integer',
-                'age_groups.*.max' => 'integer',
-                'updated_by' => 'nullable|integer',
+        $success = $this->service->seedPrograms();
 
-                'image' => 'nullable|array',
-                'image.name' => 'required_with:image|string',
-                'image.tmp_name' => 'required_with:image|string',
-                'image.error' => 'required_with:image|integer',
-                'image.size' => 'required_with:image|integer'
-            ]
-        );
-
-        $updated =  $this->programCourseService->updateProgramCourse($validatedData);
-
-        if (!$updated) {
+        if (!$success) {
             $this->respondError(
-                'Failed to update program course.',
-                HttpStatus::BAD_REQUEST
+                'Failed to seed programs.'
             );
         }
 
         $this->respond(
             [
                 'success' => true,
-                'message' => 'Program course updated successfully.',
-            ],
-            HttpStatus::OK
-        );
-    }
-
-    #[Route('/{id}/status', 'PUT', ['api', 'auth'])]
-    public function updateStatus(array $vars)
-    {
-        $validated = $this->validate(
-            [...$this->getRequestData(), ...$vars],
-            [
-                'id' => 'required|integer',
-                'status' => 'required|string|in:draft,published,archived',
+                'message' => 'Programs seeded successfully.'
             ]
-        );
-
-        $updated = $this->programCourseService
-            ->updateCourseStatus(
-                (int)$validated['id'],
-                $validated['status']
-            );
-
-        if (!$updated) {
-            $this->respondError(
-                'Failed to update program course status.',
-                HttpStatus::BAD_REQUEST
-            );
-        }
-
-        $this->respond(
-            [
-                'success' => true,
-                'message' => 'Program course status updated successfully.',
-            ],
-            HttpStatus::OK
-        );
-    }
-
-    #[Route('', 'GET', ['api', 'auth'])]
-    public function getCoursesByProgramId(array $vars)
-    {
-        $validatedData = $this->validate(
-            $vars,
-            [
-                'program_id' => 'required|integer',
-            ]
-        );
-
-        $courses = $this->programCourseService
-            ->getCoursesByProgramId((int)$validatedData['program_id']);
-
-        $this->respond(
-            [
-                'success' => true,
-                'data' => $courses
-            ],
-            HttpStatus::OK
-        );
-    }
-
-    #[Route('/{id}', 'DELETE', ['api', 'auth'])]
-    public function deleteCourse(array $vars)
-    {
-        $validatedData = $this->validate(
-            $vars,
-            [
-                'id' => 'required|integer',
-            ]
-        );
-
-        $deleted = $this->programCourseService
-            ->deleteProgramCourse((int)$validatedData['id']);
-
-        if (!$deleted) {
-            $this->respondError(
-                'Failed to delete program course.',
-                HttpStatus::BAD_REQUEST
-            );
-        }
-
-        $this->respond(
-            [
-                'success' => true,
-                'message' => 'Program course deleted successfully.'
-            ],
-            HttpStatus::OK
         );
     }
 }

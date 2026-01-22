@@ -81,6 +81,28 @@ class LearningCourseService
             ->get();
     }
 
+    public function getCoursesByProgramId(int $programId): array
+    {
+        return $this->learningCourseModel
+            ->select([
+                'learning_courses.id',
+                'learning_courses.title',
+                'learning_courses.slug',
+                'learning_courses.description',
+                'learning_courses.image_url',
+                'learning_courses.created_at',
+                'learning_courses.slogan',
+            ])
+            ->join(
+                'program_courses',
+                'learning_courses.id = program_courses.course_id'
+            )
+            ->where('program_courses.program_id', $programId)
+            ->where('program_courses.is_active', 1)
+            ->orderBy('program_courses.display_order', 'ASC')
+            ->get();
+    }
+
     public function deleteCourse(int $id)
     {
         $result = $this->programModel
