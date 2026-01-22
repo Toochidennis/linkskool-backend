@@ -16,7 +16,7 @@ class ProgramService
         $this->programCourseModel = new ProgramCourse($pdo);
     }
 
-    public function createProgram(array $data): bool|int
+    public function createProgram(array $data): bool
     {
         if (!isset($_FILES['image'])) {
             throw new \Exception("Invalid image upload.");
@@ -33,11 +33,16 @@ class ProgramService
             'author_name' => $data['author_name'],
             'author_id' => $data['author_id'],
             'shortname' => $data['shortname'],
+            'age_groups' => json_encode($data['age_groups']),
             'status' => $data['status'],
             'sponsor' => $data['sponsor'] ?? null,
         ];
 
-        return $this->programModel->insert($payload);
+        $id = $this->programModel->insert($payload);
+
+        $this->upsertProgramCourses($data['courses'], $id);
+
+        return $id;
     }
 
     public function updateProgram(array $data): bool
@@ -50,10 +55,14 @@ class ProgramService
             'name' => $data['name'],
             'description' => $data['description'],
             'image_url' => $data['image_url'] ?? null,
-            'shortname' => $data['shortname'],
-            'status' => $data['status'],
+            'shortname' => $data['shortname'] ?? null,
+            'status' => $data['status'] ?? null,
             'sponsor' => $data['sponsor'] ?? null,
         ];
+
+        if (isset($data['age_groups'])) {
+            $payload['age_groups'] = json_encode($data['age_groups']);
+        }
 
         $id = $this->programModel
             ->where('id', $data['id'])
@@ -64,11 +73,60 @@ class ProgramService
                 )
             );
 
+        $this->upsertProgramCourses($data['courses'], $data['id']);
+
         if (!empty($data['old_image_url']) && isset($data['image_url'])) {
             StorageService::deleteFile($data['old_image_url']);
         }
 
         return $id;
+    }
+
+    private function upsertProgramCourses(array $courses, int $programId): void
+    {
+        $existing = $this->programCourseModel
+            ->where('program_id', $programId)
+            ->get();
+
+        $existingMap = [];
+        foreach ($existing as $row) {
+            $existingMap[$row['course_id']] = $row;
+        }
+
+        $incomingIds = array_column($courses, 'id');
+
+        foreach ($courses as $index => $course) {
+            if (isset($existingMap[$course['id']])) {
+                // Reactivate + update order
+                $this->programCourseModel
+                    ->where('program_id', $programId)
+                    ->where('course_id', $course['id'])
+                    ->update([
+                        'is_active' => 1,
+                        'display_order' => $index + 1,
+                    ]);
+            } else {
+                // New relation
+                $this->programCourseModel->insert([
+                    'program_id' => $programId,
+                    'course_id' => $course['id'],
+                    'display_order' => $index + 1,
+                    'is_active' => 1,
+                ]);
+            }
+        }
+
+        foreach ($existingMap as $courseId => $row) {
+            if (!\in_array($courseId, $incomingIds, true)) {
+                $this->programCourseModel
+                    ->where('program_id', $programId)
+                    ->where('course_id', $courseId)
+                    ->update([
+                        'is_active'       => 0,
+                        'deactivated_at'  => date('Y-m-d H:i:s'),
+                    ]);
+            }
+        }
     }
 
     public function updateStatus(int $id, string $status)
@@ -80,23 +138,62 @@ class ProgramService
 
     public function getAllPrograms(): array
     {
-        return $this->programModel
-            ->select([
-                'programs.id',
-                'programs.slug',
-                'programs.name',
-                'programs.description',
-                'programs.image_url',
-                'programs.shortname',
-                'programs.status',
-                'programs.sponsor',
-                'COUNT(program_courses.id) AS course_count'
-            ])
-            ->join('program_courses', 'programs.id = program_courses.program_id', 'LEFT')
-            ->groupBy('programs.id')
-            ->orderBy('programs.created_at', 'DESC')
-            ->get();
+        $sql = "
+        SELECT 
+            p.id AS program_id,
+            p.slug,
+            p.name,
+            p.description,
+            p.image_url,
+            p.shortname,
+            p.status,
+            p.sponsor,
+            p.age_groups,
+            pc.course_id,
+            c.title AS course_title
+        FROM programs p
+        LEFT JOIN program_courses pc 
+            ON pc.program_id = p.id 
+            AND pc.is_active = 1
+        LEFT JOIN catalog_courses c 
+            ON c.id = pc.course_id
+        ORDER BY p.created_at DESC, pc.display_order ASC
+    ";
+
+        $rows = $this->programModel
+            ->rawQuery($sql);
+
+        $programs = [];
+
+        foreach ($rows as $row) {
+            $pid = $row['program_id'];
+
+            if (!isset($programs[$pid])) {
+                $programs[$pid] = [
+                    'id' => $pid,
+                    'slug' => $row['slug'],
+                    'name' => $row['name'],
+                    'description' => $row['description'],
+                    'image_url' => $row['image_url'],
+                    'shortname' => $row['shortname'],
+                    'status' => $row['status'],
+                    'sponsor' => $row['sponsor'],
+                    'age_groups' => json_decode($row['age_groups'], true),
+                    'courses' => [],
+                ];
+            }
+
+            if ($row['course_id']) {
+                $programs[$pid]['courses'][] = [
+                    'id' => $row['course_id'],
+                    'title' => $row['course_title'],
+                ];
+            }
+        }
+
+        return array_values($programs);
     }
+
 
     public function deleteProgram(int $id)
     {

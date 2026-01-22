@@ -34,7 +34,6 @@ class ProgramCourseController extends ExploreBaseController
                 'program_id' => 'required|integer',
                 'author_name' => 'required|string|max:255',
                 'author_id' => 'required|integer',
-
                 'image' => 'required|array',
                 'image.name' => 'required|string',
                 'image.tmp_name' => 'required|string',

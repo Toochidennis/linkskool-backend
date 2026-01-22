@@ -40,12 +40,12 @@ class LearningPathService
                 'programs.name AS program_name',
                 'programs.description AS program_description',
                 'programs.image_url AS program_image_url',
+                'programs.age_groups AS program_age_groups',
 
                 'program_courses.id AS course_id',
                 'program_courses.title AS course_title',
                 'program_courses.description AS course_description',
                 'program_courses.image_url AS course_image_url',
-                'program_courses.age_groups',
 
                 'program_course_cohorts.id AS active_cohort_id',
                 'program_course_cohorts.is_free',
@@ -59,7 +59,7 @@ class LearningPathService
                 $join->on('program_course_cohorts.status', '=', 'ongoing');
             }, 'LEFT')
             ->where('programs.status', 'published')
-            ->where('program_courses.status', 'published')
+            ->where('program_courses.is_active', 1)
             ->get();
 
         return $this->groupProgramsWithCoursesWithAgeFilter(
@@ -81,21 +81,27 @@ class LearningPathService
                 continue;
             }
 
-            $ageGroups = json_decode($row['age_groups'], true) ?? [];
-            $enrollmentStatus = $courseEnrollmentStatus[$row['course_id']] ?? null;
-            $isEnrolled = $enrollmentStatus !== null;
-            $isCompleted = $enrollmentStatus === 'completed';
-
-
-            if ($age !== null && !$isEnrolled) {
-                if (!$this->matchesAgeGroup($ageGroups, $age)) {
-                    continue;
-                }
-            }
-
             $pid = $row['program_id'];
 
+            // Initialize program once
             if (!isset($programs[$pid])) {
+                $ageGroups = json_decode($row['program_age_groups'], true) ?? [];
+
+                // Check if user is enrolled in any course of this program
+                $hasEnrollmentInProgram = false;
+                foreach ($courseEnrollmentStatus as $courseId => $_) {
+                    if ($courseId == $row['course_id']) {
+                        $hasEnrollmentInProgram = true;
+                        break;
+                    }
+                }
+
+                if ($age !== null && !$hasEnrollmentInProgram) {
+                    if (!$this->matchesAgeGroup($ageGroups, $age)) {
+                        continue;
+                    }
+                }
+
                 $programs[$pid] = [
                     'program_id' => $pid,
                     'name' => $row['program_name'],
@@ -104,6 +110,13 @@ class LearningPathService
                     'courses' => []
                 ];
             }
+
+            // Program might have been skipped
+            if (!isset($programs[$pid])) {
+                continue;
+            }
+
+            $enrollmentStatus = $courseEnrollmentStatus[$row['course_id']] ?? null;
 
             $programs[$pid]['courses'][] = [
                 'course_id' => $row['course_id'],
@@ -130,8 +143,8 @@ class LearningPathService
                     ? (float) $row['cost']
                     : null,
 
-                'is_enrolled' => $isEnrolled,
-                'is_completed' => $isCompleted,
+                'is_enrolled' => $enrollmentStatus !== null,
+                'is_completed' => $enrollmentStatus === 'completed',
                 'enrollment_status' => $enrollmentStatus
             ];
         }
@@ -170,7 +183,7 @@ class LearningPathService
     {
         return $this->programCourseCohortModel
             ->where('id', $cohortId)
-            ->where('status', 'active')
+            ->where('status', 'ongoing')
             ->orderBy('start_date', 'ASC')
             ->first();
     }

@@ -8,7 +8,7 @@ use V3\App\Models\Explore\ProgramCourseCohortLesson;
 class ProgramCourseCohortLessonService
 {
     private ProgramCourseCohortLesson $cohortLesson;
-    private CohortLessonQuiz $cohortLessonQuiz;
+            private CohortLessonQuiz $cohortLessonQuiz;
     private \PDO $pdo;
 
     public function __construct(\PDO $pdo)
@@ -61,14 +61,6 @@ class ProgramCourseCohortLessonService
             if (!$lessonId) {
                 throw new \Exception("Failed to insert lesson record");
             }
-
-            $this->saveQuiz([
-                'lesson_id' => $lessonId,
-                'course_name' => $data['course_name'] ?? null,
-                'cohort_id' => $data['cohort_id'],
-                'course_id' => $data['course_id'],
-                'program_id' => $data['program_id'],
-            ]);
 
             $this->pdo->commit();
             return true;
@@ -124,8 +116,6 @@ class ProgramCourseCohortLessonService
                 throw new \Exception("Failed to insert lesson record");
             }
 
-            $this->deleteAndInsertQuiz($data['lesson_id'], $data);
-
             $this->cleanupOldFiles($data, $fileUrls);
 
             $this->pdo->commit();
@@ -133,23 +123,6 @@ class ProgramCourseCohortLessonService
         } catch (\Exception $e) {
             $this->pdo->rollBack();
             throw $e;
-        }
-    }
-
-    public function deleteAndInsertQuiz($lessonId, array $data)
-    {
-        if (isset($_FILES['quiz'])) {
-            $this->cohortLessonQuiz
-                ->where('lesson_id', $lessonId)
-                ->delete();
-
-            $this->saveQuiz([
-                'lesson_id' => $lessonId,
-                'course_name' => $data['course_name'] ?? null,
-                'cohort_id' => $data['cohort_id'],
-                'course_id' => $data['course_id'],
-                'program_id' => $data['program_id'],
-            ]);
         }
     }
 
@@ -191,69 +164,6 @@ class ProgramCourseCohortLessonService
         }
         if (isset($data['old_certificate_url'], $fileUrls['certificate_url'])) {
             StorageService::deleteFile($data['old_certificate_url']);
-        }
-    }
-
-    private function saveQuiz(array $params): void
-    {
-        if (!isset($_FILES['quiz'])) {
-            throw new \Exception("Quiz file is required.");
-        }
-
-        $questions = json_decode(file_get_contents($_FILES['quiz']['tmp_name']), true);
-        if (empty($questions)) {
-            throw new \Exception("No questions found in quiz file.");
-        }
-
-        foreach ($questions as $question) {
-            $this->insertQuizQuestion($question, $params);
-        }
-    }
-
-    private function insertQuizQuestion(array $question, array $params): void
-    {
-        $payload = [
-            'lesson_id' => $params['lesson_id'],
-            'course_name' => $params['course_name'] ?? null,
-            'cohort_id' => $params['cohort_id'],
-            'course_id' => $params['course_id'],
-            'program_id' => $params['program_id'],
-            'title' => $question['question_text'],
-            'type' => 'qo',
-        ];
-
-        $options = [];
-        for ($i = 1; $i <= 4; $i++) {
-            $options[] = [
-                'text' => trim($question["option_{$i}_text"] ?? ''),
-                'option_files' => [],
-            ];
-        }
-
-        if (!isset($question['answer']) || !is_numeric($question['answer'])) {
-            throw new \Exception('Answer must be a numeric 1-based index ' . $question['question_text']);
-        }
-
-        $oneBasedIndex = (int) $question['answer'];
-        $zeroBasedIndex = $oneBasedIndex - 1;
-
-        if ($zeroBasedIndex < 0 || $zeroBasedIndex >= \count($options)) {
-            throw new \Exception(
-                "Invalid correct option index: {$oneBasedIndex}"
-            );
-        }
-
-        $correctText = $options[$zeroBasedIndex]['text'];
-
-        $payload['answer'] = json_encode($options);
-        $payload['correct'] = json_encode([
-            'text' => $correctText,
-            'order' => $zeroBasedIndex,
-        ]);
-
-        $questionId = $this->cohortLessonQuiz->insert($payload);
-        if (!$questionId) {
-            throw new \Exception("Failed to save quiz question: " . $question['question_text']);
         }
     }
 

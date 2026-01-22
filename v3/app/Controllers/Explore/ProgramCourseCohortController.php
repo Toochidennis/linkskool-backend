@@ -46,7 +46,7 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'image.name' => 'required|string',
                 'image.tmp_name' => 'required|string',
                 'image.error' => 'required|integer',
-                'image.size' => 'required|integer'
+                'image.size' => 'required|integer|max:2097152' // 2 MB
             ]
         );
 
@@ -95,7 +95,7 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'image.name' => 'string',
                 'image.tmp_name' => 'string',
                 'image.error' => 'integer',
-                'image.size' => 'integer'
+                'image.size' => 'integer|max:2097152' // 2 MB
             ]
         );
 

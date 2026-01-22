@@ -2,21 +2,21 @@
 
 namespace V3\App\Services\Explore;
 
-use V3\App\Models\Explore\ProgramCourse;
-use V3\App\Models\Explore\ProgramCourseCohort;
+use V3\App\Models\Explore\LearningCourse;
+use V3\App\Models\Explore\Program;
 
-class ProgramCourseService
+class LearningCourseService
 {
-    protected ProgramCourse $programCourseModel;
-    private ProgramCourseCohort $programCourseCohortModel;
+    private LearningCourse $learningCourseModel;
+    private Program $programModel;
 
     public function __construct(\PDO $pdo)
     {
-        $this->programCourseModel = new ProgramCourse($pdo);
-        $this->programCourseCohortModel = new ProgramCourseCohort($pdo);
+        $this->learningCourseModel = new LearningCourse($pdo);
+        $this->programModel = new Program($pdo);
     }
 
-    public function addCourseToProgram(array $data)
+    public function create(array $data)
     {
         if (!isset($_FILES['image'])) {
             throw new \Exception("Invalid image upload.");
@@ -34,14 +34,12 @@ class ProgramCourseService
             'slogan' => $data['slogan'],
             'author_id' => $data['author_id'],
             'author_name' => $data['author_name'],
-            'status' => $data['status'],
-            'age_groups' => json_encode($data['age_groups']),
         ];
 
-        return $this->programCourseModel->insert($payload);
+        return $this->learningCourseModel->insert($payload);
     }
 
-    public function updateProgramCourse(array $data)
+    public function update(array $data)
     {
         if (isset($_FILES['image'])) {
             $data['image_url'] = StorageService::saveFile($_FILES['image']);
@@ -57,12 +55,10 @@ class ProgramCourseService
             'description' => $data['description'],
             'image_url' => $data['image_url'] ?? null,
             'slogan' => $data['slogan'],
-            'status' => $data['status'],
-            'age_groups' => json_encode($data['age_groups'] ?? []),
             'updated_at' => date('Y-m-d H:i:s'),
         ];
 
-        $id = $this->programCourseModel
+        $id = $this->learningCourseModel
             ->where('id', $data['id'])
             ->update(
                 array_filter(
@@ -78,39 +74,24 @@ class ProgramCourseService
         return $id;
     }
 
-    public function updateCourseStatus(int $id, string $status)
+    public function get()
     {
-        return $this->programCourseModel
-            ->where('id', $id)
-            ->update([
-                'status' => $status,
-                'updated_at' => date('Y-m-d H:i:s'),
-            ]);
-    }
-
-    public function getCoursesByProgramId(int $programId)
-    {
-        $result =  $this->programCourseModel
+        return $this->learningCourseModel
             ->orderBy('created_at', 'DESC')
             ->get();
-
-        return array_map(function ($course) {
-            $course['age_groups'] = json_decode($course['age_groups'], true);
-            return $course;
-        }, $result);
     }
 
-    public function deleteProgramCourse(int $id)
+    public function deleteCourse(int $id)
     {
-        $cohort = $this->programCourseCohortModel
-            ->where('program_course_id', $id)
+        $result = $this->programModel
+            ->where('course_id', $id)
             ->first();
 
-        if (!empty($cohort)) {
-            throw new \Exception("Cannot delete program course with existing cohorts.");
+        if (!empty($result)) {
+            throw new \Exception("Cannot delete learning course associated with existing programs.");
         }
 
-        $course = $this->programCourseModel
+        $course = $this->learningCourseModel
             ->where('id', $id)
             ->first();
 
@@ -118,7 +99,7 @@ class ProgramCourseService
             StorageService::deleteFile($course['image_url']);
         }
 
-        return $this->programCourseModel
+        return $this->learningCourseModel
             ->where('id', $id)
             ->delete();
     }

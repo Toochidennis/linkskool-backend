@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\AdvertisementService;
 
-#[Group('/public/advertisements')]
+#[Group('/public')]
 class AdvertisementController extends ExploreBaseController
 {
     private AdvertisementService $advertisementService;
@@ -18,7 +18,7 @@ class AdvertisementController extends ExploreBaseController
         $this->advertisementService = new AdvertisementService($this->pdo);
     }
 
-    #[Route('', 'POST', ['api', 'auth'])]
+    #[Route('/advertisements', 'POST', ['api', 'auth'])]
     public function createAdvertisement(): void
     {
         $validatedData = $this->validate(
@@ -61,7 +61,7 @@ class AdvertisementController extends ExploreBaseController
     }
 
 
-    #[Route('/{id:\d+}', 'POST', ['api', 'auth'])]
+    #[Route('/advertisements/{id:\d+}', 'POST', ['api', 'auth'])]
     public function updateAdvertisement(array $vars): void
     {
         $validatedData = $this->validate(
@@ -105,7 +105,7 @@ class AdvertisementController extends ExploreBaseController
         );
     }
 
-    #[Route('', 'GET', ['api', 'auth'])]
+    #[Route('/advertisements', 'GET', ['api', 'auth'])]
     public function getAllAdvertisements(): void
     {
         $advertisements = $this->advertisementService->getAllAdvertisements();
@@ -118,7 +118,7 @@ class AdvertisementController extends ExploreBaseController
         );
     }
 
-    #[Route('/published', 'GET', ['api'])]
+    #[Route('/advertisements/published', 'GET', ['api'])]
     public function getPublishedAdvertisements(): void
     {
         $advertisements = $this->advertisementService->getPublishedAdvertisements();
@@ -131,7 +131,7 @@ class AdvertisementController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id}/status', 'PUT', ['api', 'auth'])]
+    #[Route('/advertisements/{id}/status', 'PUT', ['api', 'auth'])]
     public function updateAdvertisementStatus(array $vars): void
     {
         $validatedData = $this->validate(
@@ -164,7 +164,7 @@ class AdvertisementController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id}', 'DELETE', ['api', 'auth'])]
+    #[Route('/advertisements/{id}', 'DELETE', ['api', 'auth'])]
     public function deleteAdvertisement(array $vars): void
     {
         $validatedData = $this->validate(

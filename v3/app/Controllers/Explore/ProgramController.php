@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\ProgramService;
 
-#[Group('/public/programs',)]
+#[Group('/public',)]
 class ProgramController extends ExploreBaseController
 {
     private ProgramService $programService;
@@ -18,7 +18,7 @@ class ProgramController extends ExploreBaseController
         $this->programService = new ProgramService($this->pdo);
     }
 
-    #[Route('', 'POST', ['api', 'auth'])]
+    #[Route('/learn/programs', 'POST', ['api', 'auth'])]
     public function create()
     {
         $validatedData = $this->validate(
@@ -31,12 +31,19 @@ class ProgramController extends ExploreBaseController
                 'shortname' => 'required|string|max:100',
                 'status' => 'required|string|in:draft,published,archived',
                 'sponsor' => 'nullable|string|max:255',
+                'courses' => 'required|array',
+                'courses.*.title' => 'required|string|max:255',
+                'courses.*.id' => 'required|string',
+
+                'age_groups' => 'nullable|array',
+                'age_groups.*.min' => 'integer',
+                'age_groups.*.max' => 'integer',
 
                 'image' => 'required|array',
                 'image.name' => 'required|string',
                 'image.tmp_name' => 'required|string',
                 'image.error' => 'required|integer',
-                'image.size' => 'required|integer|max:5242880', // 5 MB
+                'image.size' => 'required|integer|max:2097152', // 2 MB
             ]
         );
 
@@ -59,7 +66,7 @@ class ProgramController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id}', 'POST', ['api', 'auth'])]
+    #[Route('/learn/programs/{id}', 'POST', ['api', 'auth'])]
     public function update(array $vars)
     {
         $validatedData = $this->validate(
@@ -71,12 +78,19 @@ class ProgramController extends ExploreBaseController
                 'shortname' => 'required|string|max:100',
                 'status' => 'required|string|in:draft,published,archived',
                 'sponsor' => 'nullable|string|max:255',
+                'courses' => 'required|array',
+                'courses.*.title' => 'required|string|max:255',
+                'courses.*.id' => 'required|string',
+
+                'age_groups' => 'required|array|min:1',
+                'age_groups.*.min' => 'integer',
+                'age_groups.*.max' => 'integer',
 
                 'image' => 'nullable|array',
                 'image.name' => 'required_with:image|string',
                 'image.tmp_name' => 'required_with:image|string',
                 'image.error' => 'required_with:image|integer',
-                'image.size' => 'required_with:image|integer|max:5242880', // 5 MB
+                'image.size' => 'required_with:image|integer|max:2097152', // 2 MB
                 'old_image_url' => 'nullable|string'
             ]
         );
@@ -99,7 +113,7 @@ class ProgramController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id}/status', 'PUT', ['api', 'auth'])]
+    #[Route('/learn/programs/{id}/status', 'PUT', ['api', 'auth'])]
     public function updateStatus(array $vars)
     {
         $validatedData = $this->validate(
@@ -132,7 +146,7 @@ class ProgramController extends ExploreBaseController
         );
     }
 
-    #[Route('', 'GET', ['api', 'auth'])]
+    #[Route('/learn/programs', 'GET', ['api', 'auth'])]
     public function getAllPrograms()
     {
         $programs = $this->programService->getAllPrograms();
@@ -140,7 +154,7 @@ class ProgramController extends ExploreBaseController
         if (empty($programs)) {
             $this->respond(
                 [
-                    'status' => true,
+                    'success' => true,
                     'message' => 'No programs yet',
                     'data' => []
                 ]
@@ -149,14 +163,14 @@ class ProgramController extends ExploreBaseController
 
         $this->respond(
             [
-                'status' => true,
+                'success' => true,
                 'message' => 'Programs fetched successfully',
                 'data' => $programs
             ]
         );
     }
 
-    #[Route('/{id}', 'DELETE', ['api', 'auth'])]
+    #[Route('/learn/programs/{id}', 'DELETE', ['api', 'auth'])]
     public function deleteProgram(array $vars)
     {
         $validatedData = $this->validate(
