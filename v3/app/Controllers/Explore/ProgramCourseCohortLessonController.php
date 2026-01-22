@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\ProgramCourseCohortLessonService;
 
-#[Group('/public/programs/cohorts/{cohort_id}/lessons')]
+#[Group('/public')]
 class ProgramCourseCohortLessonController extends ExploreBaseController
 {
     private ProgramCourseCohortLessonService $service;
@@ -18,7 +18,11 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
         $this->service = new ProgramCourseCohortLessonService($this->pdo);
     }
 
-    #[Route('', 'POST', ['api', 'auth'])]
+    #[Route(
+        '/learn/cohorts/{cohort_id}/lessons',
+        'POST',
+        ['api', 'auth']
+    )]
     public function addLesson(array $vars)
     {
         $validated = $this->validate(
@@ -57,11 +61,6 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
                 'assignment.name' => 'required_with:assignment|string',
                 'assignment.tmp_name' => 'required_with:assignment|string',
                 'assignment.error' => 'required_with:assignment|integer',
-
-                'quiz' => 'nullable|array',
-                'quiz.name' => 'required_with:quiz|string',
-                'quiz.tmp_name' => 'required_with:quiz|string',
-                'quiz.error' => 'required_with:quiz|string',
             ]
         );
 
@@ -83,7 +82,11 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
         );
     }
 
-    #[Route('/{lesson_id}', 'POST', ['api', 'auth'])]
+    #[Route(
+        '/learn/cohorts/{cohort_id}/lessons/{lesson_id}',
+        'POST',
+        ['api', 'auth']
+    )]
     public function updateLesson(array $vars)
     {
         $validated = $this->validate(
@@ -124,11 +127,6 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
                 'assignment.tmp_name' => 'required_with:assignment|string',
                 'assignment.error' => 'required_with:assignment|integer',
 
-                'quiz' => 'nullable|array',
-                'quiz.name' => 'required_with:quiz|string',
-                'quiz.tmp_name' => 'required_with:quiz|string',
-                'quiz.error' => 'required_with:quiz|string',
-
                 'old_material_url' => 'nullable|string',
                 'old_certificate_url' => 'nullable|string',
                 'old_assignment_url' => 'nullable|string',
@@ -154,7 +152,11 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
     }
 
 
-    #[Route('', 'GET', ['api', 'auth'])]
+    #[Route(
+        '/learn/cohorts/{cohort_id}/lessons',
+        'GET',
+        ['api', 'auth']
+    )]
     public function getLessons(array $vars)
     {
         $validated = $this->validate(
@@ -175,7 +177,11 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
         );
     }
 
-    #[Route('/{lesson_id}/quiz', 'GET', ['api', 'auth'])]
+    #[Route(
+        '/learn/cohorts/lessons/{lesson_id}/quiz',
+        'GET',
+        ['api', 'auth']
+    )]
     public function getLessonQuiz(array $vars)
     {
         $validated = $this->validate(
@@ -196,7 +202,11 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
         );
     }
 
-    #[Route('/{lesson_id}', 'DELETE', ['api', 'auth'])]
+    #[Route(
+        '/learn/cohorts/lessons/{lesson_id}',
+        'DELETE',
+        ['api', 'auth']
+    )]
     public function deleteLesson(array $vars)
     {
         $validated = $this->validate(

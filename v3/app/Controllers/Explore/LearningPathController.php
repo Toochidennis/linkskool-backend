@@ -102,14 +102,13 @@ class LearningPathController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/lessons/{id}/quizzes', 'GET', ['api'])]
+    #[Route('/lessons/{lesson_id}/quizzes', 'GET', ['api'])]
     public function courseLessonQuizzes(array $vars): void
     {
         $validated = $this->validate(
             $vars,
             [
                 'lesson_id' => 'required|integer',
-                'profile_id' => 'required|integer',
             ]
         );
 

@@ -6,9 +6,8 @@ use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\NewsService;
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
-use V3\App\Common\Utilities\ResponseHandler;
 
-#[Group('/public/news')]
+#[Group('/public')]
 class NewsController extends ExploreBaseController
 {
     private NewsService $newsService;
@@ -19,7 +18,7 @@ class NewsController extends ExploreBaseController
         $this->newsService = new NewsService($this->pdo);
     }
 
-    #[Route('', 'POST', ['api', 'auth'])]
+    #[Route('/news', 'POST', ['api', 'auth'])]
     public function addNews(): void
     {
         $data = $this->validate(
@@ -64,7 +63,7 @@ class NewsController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id:\d+}', 'POST', ['api', 'auth'])]
+    #[Route('/news/{id:\d+}', 'POST', ['api', 'auth'])]
     public function updateNews(array $vars): void
     {
         $data = $this->validate(
@@ -96,7 +95,7 @@ class NewsController extends ExploreBaseController
             ]
         );
 
-        $res = $this->newsService->updateNews( $data);
+        $res = $this->newsService->updateNews($data);
 
         if (!$res) {
             $this->respondError(
@@ -113,7 +112,7 @@ class NewsController extends ExploreBaseController
         );
     }
 
-    #[Route("/{id}/status", 'PUT', ['api', 'auth'])]
+    #[Route("/news/{id}/status", 'PUT', ['api', 'auth'])]
     public function updateNewsStatus(array $vars): void
     {
         $data = $this->validate(
@@ -142,7 +141,7 @@ class NewsController extends ExploreBaseController
         );
     }
 
-    #[Route('/admin', 'GET', ['api', 'auth'])]
+    #[Route('/news/admin', 'GET', ['api', 'auth'])]
     public function getNewsAdmin(): void
     {
         $newsItems = $this->newsService->getNewsAdmin();
@@ -156,7 +155,7 @@ class NewsController extends ExploreBaseController
         );
     }
 
-    #[Route('', 'GET', ['api'])]
+    #[Route('/news', 'GET', ['api'])]
     public function getNews(array $vars): void
     {
         $validated = $this->validate(
@@ -178,7 +177,7 @@ class NewsController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id:\d+}', 'DELETE', ['api', 'auth'])]
+    #[Route('/news/{id:\d+}', 'DELETE', ['api', 'auth'])]
     public function deleteNews(array $vars): void
     {
         $validated = $this->validate(

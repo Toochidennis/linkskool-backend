@@ -114,5 +114,6 @@ class Tables
         'cohort_lesson_quizzes',
         'program_profiles',
         'cohort_tasks_submissions',
+        'learning_courses',
     ];
 }
