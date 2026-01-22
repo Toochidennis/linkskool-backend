@@ -8,7 +8,7 @@ use V3\App\Models\Explore\ProgramCourseCohortLesson;
 class ProgramCourseCohortLessonService
 {
     private ProgramCourseCohortLesson $cohortLesson;
-            private CohortLessonQuiz $cohortLessonQuiz;
+    private CohortLessonQuiz $cohortLessonQuiz;
     private \PDO $pdo;
 
     public function __construct(\PDO $pdo)
