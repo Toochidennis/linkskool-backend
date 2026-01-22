@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\CohortTasksSubmissionService;
 
-#[Group('/public/cohorts/{cohort_id}/lessons/{lesson_id}/projects')]
+#[Group('/public/learning')]
 class CohortTasksSubmissionController extends ExploreBaseController
 {
     private CohortTasksSubmissionService $submissionService;
@@ -18,7 +18,7 @@ class CohortTasksSubmissionController extends ExploreBaseController
         $this->submissionService = new CohortTasksSubmissionService($this->pdo);
     }
 
-    #[Route('', 'POST', middleware: ['api'])]
+    #[Route('lessons/{lesson_id}/assignments', 'POST', middleware: ['api'])]
     public function submitProject(array $vars): void
     {
         $validated = $this->validate(

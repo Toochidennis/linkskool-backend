@@ -108,6 +108,28 @@ class LearningCourseController extends ExploreBaseController
         );
     }
 
+    #[Route('/learn/courses/program/{id}', 'GET', ['api', 'auth'])]
+    public function getCoursesByProgramId(array $vars)
+    {
+        $validatedData = $this->validate(
+            $vars,
+            [
+                'id' => 'required|integer',
+            ]
+        );
+
+        $courses = $this->service
+            ->getCoursesByProgramId((int)$validatedData['id']);
+
+        $this->respond(
+            [
+                'success' => true,
+                'data' => $courses
+            ],
+            HttpStatus::OK
+        );
+    }
+
     #[Route('/learn/courses/{id}', 'DELETE', ['api', 'auth'])]
     public function deleteCourse(array $vars)
     {

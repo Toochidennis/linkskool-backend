@@ -90,10 +90,15 @@ class ProgramService
 
         $existingMap = [];
         foreach ($existing as $row) {
-            $existingMap[$row['course_id']] = $row;
+            $existingMap[(int) $row['course_id']] = $row;
         }
 
-        $incomingIds = array_column($courses, 'id');
+
+        $incomingIds = $incomingIds = array_map(
+            static fn($id) => (int) $id,
+            array_column($courses, 'id')
+        );
+
 
         foreach ($courses as $index => $course) {
             if (isset($existingMap[$course['id']])) {
@@ -150,13 +155,13 @@ class ProgramService
             p.sponsor,
             p.age_groups,
             pc.course_id,
-            c.title AS course_title
+            l.title AS course_title
         FROM programs p
         LEFT JOIN program_courses pc 
             ON pc.program_id = p.id 
             AND pc.is_active = 1
-        LEFT JOIN catalog_courses c 
-            ON c.id = pc.course_id
+        LEFT JOIN learning_courses l 
+            ON l.id = pc.course_id
         ORDER BY p.created_at DESC, pc.display_order ASC
     ";
 
@@ -178,7 +183,7 @@ class ProgramService
                     'shortname' => $row['shortname'],
                     'status' => $row['status'],
                     'sponsor' => $row['sponsor'],
-                    'age_groups' => json_decode($row['age_groups'], true),
+                    'age_groups' => json_decode($row['age_groups'] ?? '{}', true),
                     'courses' => [],
                 ];
             }
@@ -193,7 +198,6 @@ class ProgramService
 
         return array_values($programs);
     }
-
 
     public function deleteProgram(int $id)
     {
