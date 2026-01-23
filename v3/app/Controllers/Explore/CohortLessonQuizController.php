@@ -115,7 +115,7 @@ class CohortLessonQuizController extends ExploreBaseController
         );
     }
 
-    #[Route('/learn/programs/lessons/{lesson_id}/quizzes/{question_id}', 'DELETE', ['api', 'auth'])]
+    #[Route('/learn/programs/lessons/quizzes/{question_id}', 'DELETE', ['api', 'auth'])]
     public function delete(array $vars)
     {
         $validatedData = $this->validate(
