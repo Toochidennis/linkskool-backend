@@ -2,234 +2,291 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Models\Explore\CohortLessonQuiz;
+use V3\App\Models\Explore\Program;
+use V3\App\Models\Explore\ProgramCourseCohort;
+use V3\App\Models\Explore\ProgramCourseCohortLesson;
+
 class LearningPathService
 {
-    /** @var array<int, array<string, mixed>> */
-    private array $courses;
-
-    /** @var array<int, array<string, mixed>> */
-    private array $categories;
-
-    private CourseContentService $contentService;
+    private Program $programModel;
+    private ProgramCourseCohort $programCourseCohortModel;
+    private ProgramCourseCohortLesson $programCourseCohortLessonModel;
+    private CohortLessonQuiz $cohortLessonQuizModel;
 
     public function __construct(\PDO $pdo)
     {
-        // Initialize any models or dependencies here if needed
-        $this->seedCourses();
-        $this->seedCategories();
-        $this->contentService = new CourseContentService();
+        $this->programModel = new Program($pdo);
+        $this->programCourseCohortModel = new ProgramCourseCohort($pdo);
+        $this->programCourseCohortLessonModel = new ProgramCourseCohortLesson($pdo);
+        $this->cohortLessonQuizModel = new CohortLessonQuiz($pdo);
     }
 
-    /**
-     * Return categories with their associated course data.
-     */
-    public function getCategoriesAndCourses(): array
-    {
-        return array_values(array_map(function (array $category): array {
-            $courseIds = $category['course_ids'] ?? [];
-            $category['courses'] = array_values(array_intersect_key($this->courses, array_flip($courseIds)));
-            unset($category['course_ids']);
+    public function getProgramsWithCourses(
+        ?string $birthDate = null,
+        ?int $profileId = null
+    ): array {
+        $age = $birthDate !== null
+            ? (int) date('Y') - (int) substr($birthDate, 0, 4)
+            : null;
 
-            return $category;
-        }, $this->categories));
+
+        $sql = "
+            SELECT
+                p.id            AS program_id,
+                p.name          AS program_name,
+                p.description   AS program_description,
+                p.image_url     AS program_image_url,
+                p.age_groups    AS program_age_groups,
+
+                lc.id           AS course_id,
+                lc.title        AS course_title,
+                lc.description  AS course_description,
+                lc.image_url    AS course_image_url,
+
+                c.id            AS active_cohort_id,
+                c.is_free       AS is_free,
+                c.trial_type    AS trial_type,
+                c.trial_value   AS trial_value,
+                c.cost          AS cost,
+
+                e.status        AS enrollment_status,
+                e.payment_status AS payment_status,
+                e.lessons_taken  AS lessons_taken,
+                e.trial_expiry_date AS trial_expiry_date
+
+            FROM programs p
+
+            INNER JOIN program_courses pc
+                ON pc.program_id = p.id
+            AND pc.is_active = 1
+
+            INNER JOIN learning_courses lc
+                ON lc.id = pc.course_id
+
+            LEFT JOIN program_course_cohorts c
+                ON c.program_id = p.id
+            AND c.course_id = lc.id
+            AND c.status = 'ongoing'
+
+            LEFT JOIN program_course_cohort_enrollments e
+                ON e.program_id = p.id
+            AND e.course_id = lc.id
+            AND e.profile_id = :profile_id
+
+            WHERE p.status = 'published'
+
+            ORDER BY p.id, lc.id;
+        ";
+
+        $rows = $this->programModel->rawQuery($sql, [
+            'profile_id' => $profileId
+        ]);
+
+        return $this->groupProgramsWithCoursesWithAgeFilter($rows, $age);
     }
 
-    /**
-     * Fetch lessons scoped by category and course.
-     */
-    private function getLessonsByCategoryAndCourse(int $categoryId, int $courseId): array
-    {
-        return $this->contentService->getLessons($categoryId, $courseId);
+    private function groupProgramsWithCoursesWithAgeFilter(
+        array $rows,
+        ?int $age
+    ): array {
+        $programs = [];
+
+        foreach ($rows as $row) {
+            if (!$row['course_id']) {
+                continue;
+            }
+
+            $pid = (int) $row['program_id'];
+
+            if (!isset($programs[$pid])) {
+                $ageGroups = json_decode($row['program_age_groups'] ?? '[]', true) ?? [];
+
+                if ($age !== null && !$this->matchesAgeGroup($ageGroups, $age)) {
+                    continue;
+                }
+
+                $programs[$pid] = [
+                    'program_id' => $pid,
+                    'name' => $row['program_name'],
+                    'description' => $row['program_description'],
+                    'image_url' => $row['program_image_url'],
+                    'courses' => [],
+                    '_course_map' => []
+                ];
+            }
+
+            // Deduplicate courses per program
+            if (isset($programs[$pid]['_course_map'][$row['course_id']])) {
+                continue;
+            }
+
+            $programs[$pid]['_course_map'][$row['course_id']] = true;
+
+            $programs[$pid]['courses'][] = [
+                'course_id' => (int) $row['course_id'],
+                'course_name' => $row['course_title'],
+                'description' => $row['course_description'],
+                'image_url' => $row['course_image_url'],
+
+                'has_active_cohort' => $row['active_cohort_id'] !== null,
+                'cohort_id' => $row['active_cohort_id'],
+
+                'is_free' => $row['active_cohort_id'] !== null
+                    ? (bool) $row['is_free']
+                    : null,
+
+                'trial_type' => $row['active_cohort_id'] !== null
+                    ? $row['trial_type']
+                    : null,
+
+                'trial_value' => $row['active_cohort_id'] !== null
+                    ? (int) $row['trial_value']
+                    : null,
+
+                'cost' => $row['active_cohort_id'] !== null
+                    ? (float) $row['cost']
+                    : null,
+
+                'is_enrolled' => $row['enrollment_status'] !== null,
+                'is_completed' => $row['enrollment_status'] === 'completed',
+                'enrollment_status' => $row['enrollment_status'],
+                'payment_status' => $row['payment_status'],
+                'lessons_taken' => $row['lessons_taken'] !== null
+                    ? (int) $row['lessons_taken']
+                    : null,
+                'trial_expiry_date' => $row['trial_expiry_date'] !== null
+                    ? $row['trial_expiry_date']
+                    : null
+            ];
+        }
+
+        // cleanup internal maps
+        foreach ($programs as &$program) {
+            unset($program['_course_map']);
+        }
+
+        return array_values($programs);
     }
 
-    /**
-     * Backwards-compatible alias for lessons lookup.
-     */
-    public function courseLessons(int $categoryId, int $courseId): array
+    private function matchesAgeGroup(array $ageGroups, int $age): bool
     {
-        return $this->getLessonsByCategoryAndCourse($categoryId, $courseId);
+        foreach ($ageGroups as $group) {
+            $min = $group['min'];
+            $max = $group['max'];
+
+            if ($age >= $min && ($max === null || $age <= $max)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    public function getLessonQuizzes(int $courseId, int $lessonId): array
+    public function getActiveCohortByCourse(int $cohortId): array
     {
-        return $this->contentService->getLessonQuizzes($courseId, $lessonId);
+        return $this->programCourseCohortModel
+            ->where('id', $cohortId)
+            ->where('status', 'ongoing')
+            ->orderBy('start_date', 'ASC')
+            ->first();
     }
 
-    private function seedCourses(): void
+    public function getLessonsByCohort(int $cohortId): array
     {
-        $this->courses = [
-            1 => [
-                "id" => 1,
-                "course_name" => "Scratch Programming",
-                "description" => "An engaging way to explore coding concepts through colorful blocks, where creativity meets logic in building games, stories, and animations—perfect for young minds taking their first steps into programming.",
-                "image_url" => "https://linkschoolonline.com/assets/img/scratch.png",
-                "category" => "Animation and Storytelling",
-                "slogan" => "Code. Create. Imagine.",
-                "icon" => "https://linkschoolonline.com/assets/img/scratch-icon.png",
-                "email" => "communication@digitaldreamsng.com",
-                "has_content" => true
+        return $this->programCourseCohortLessonModel
+            ->select([
+                'id',
+                'title',
+                'description',
+                'video_url',
+                'display_order',
+                'is_final_lesson',
+            ])
+            ->where('cohort_id', $cohortId)
+            ->orderBy('display_order', 'ASC')
+            ->get();
+    }
+
+    public function getLessonById(int $lessonId, int $profileId): array
+    {
+        $sql = "
+            SELECT 
+                l.*,
+                s.assignment,
+                s.quiz_score,
+                s.created_at AS submitted_at
+            FROM program_course_cohort_lessons l
+            LEFT JOIN cohort_tasks_submissions s
+                ON s.lesson_id = l.id
+                AND s.profile_id = :profile_id
+            WHERE l.id = :lesson_id
+            LIMIT 1
+        ";
+
+        $row = $this->programCourseCohortLessonModel
+            ->rawQuery($sql, [
+                'lesson_id' => $lessonId,
+                'profile_id'   => $profileId
+            ]);
+
+        if (empty($row)) {
+            return [];
+        }
+
+        return $this->formatLessonWithSubmission($row[0]);
+    }
+
+    private function formatLessonWithSubmission(array $row): array
+    {
+        return [
+            'lesson' => [
+                'id' => $row['id'],
+                'title' => $row['title'],
+                'description' => $row['description'],
+                'goals' => $row['goals'],
+                'objectives' => $row['objectives'],
+                'video_url' => $row['video_url'],
+                'recorded_video_url' => $row['recorded_video_url'],
+                'material_url' => $row['material_url'],
+                'assignment_url' => $row['assignment_url'],
+                'certificate_url' => $row['certificate_url'],
+                'assignment_instructions' => $row['assignment_instructions'],
+                'is_final_lesson' => (bool) $row['is_final_lesson'],
+                'display_order' => (int) $row['display_order'],
+                'lesson_date' => $row['lesson_date'],
+                'assignment_due_date' => $row['assignment_due_date']
             ],
-            2 => [
-                "id" => 2,
-                "course_name" => "Graphics Design",
-                "description" => "A creative blend of visuals and ideas that communicate messages through color, shape, and layout—turning imagination into impactful designs.",
-                "image_url" => "https://linkschoolonline.com/assets/img/graphics-design.png",
-                "category" => "Graphic Design and Visual Arts",
-                "slogan" => "Creativity in Every Pixel!",
-                "icon" => "https://linkschoolonline.com/assets/img/graphics-icon.svg",
-                "email" => "communication@digitaldreamsng.com",
-                "has_content" => true
-            ],
-            3 => [
-                "id" => 3,
-                "course_name" => "Web Development",
-                "description" => "The craft of shaping digital experiences - bringing ideas to life on the web through structure, style, and interactivity.",
-                "image_url" => "https://linkschoolonline.com/assets/img/web-dev.png",
-                "category" => "Web Development",
-                "slogan" => "Code Smart. Build Fast. Go Live.",
-                "icon" => "https://linkschoolonline.com/assets/img/web-dev-icon.png",
-                "email" => "communication@digitaldreamsng.com",
-                "has_content" => true
-            ],
-            4 => [
-                "id" => 4,
-                "course_name" => "Python Programming",
-                "description" => "A powerful and versatile language that's perfect for beginners and professionals alike-unlock the potential to build apps, automate tasks, and explore data science with ease.",
-                "image_url" => "https://linkschoolonline.com/assets/img/python.png",
-                "category" => "Programming and Software Development",
-                "slogan" => "Code Simple. Build Big.",
-                "icon" => "https://linkschoolonline.com/assets/img/python.png",
-                "email" => "communication@digitaldreamsng.com",
-                "has_content" => true
-            ],
-            5 => [
-                "id" => 5,
-                "course_name" => "Animation",
-                "description" => "Bring characters, ideas, and stories to life through motion—combining art and technology to create stunning visuals and immersive storytelling.",
-                "image_url" => "https://linkschoolonline.com/assets/img/anim_course.png",
-                "category" => "Animation and Creative Media",
-                "slogan" => "Your Ideas in Motion.",
-                "icon" => "https://linkschoolonline.com/assets/img/anim_course.png",
-                "email" => "communication@digitaldreamsng.com",
-                "has_content" => true
-            ],
-            6 => [
-                "id" => 6,
-                "course_name" => "Robotics",
-                "description" => "Dive into the exciting world of robotics - design, build, and program intelligent machines that can sense, think, and act.",
-                "image_url" => "https://linkschoolonline.com/assets/img/robotics.png",
-                "category" => "Engineering and Technology",
-                "slogan" => "Build the Future, One Robot at a Time.",
-                "icon" => "https://linkschoolonline.com/assets/img/robotics-icon.png",
-                "email" => "communication@digitaldreamsng.com",
-                "has_content" => true
-            ],
-            7 => [
-                "id" => 7,
-                "course_name" => "Android Development",
-                "description" => "Learn to build powerful and user-friendly mobile apps for the world's most popular mobile operating system.",
-                "image_url" => "https://linkschoolonline.com/assets/img/android.png",
-                "category" => "Mobile App Development",
-                "slogan" => "From Idea to App Store.",
-                "icon" => "https://linkschoolonline.com/assets/img/android.png",
-                "email" => "communication@digitaldreamsng.com",
-                "has_content" => true
-            ],
-            8 => [
-                "id" => 8,
-                "course_name" => "Artificial Intelligence (AI)",
-                "description" => "Learn how to design intelligent systems using data, algorithms, and machine learning to solve real-world problems.",
-                "image_url" => "https://linkschoolonline.com/assets/img/ai_explorer1.png",
-                "category" => "Artificial Intelligence",
-                "slogan" => "Turn ideas into scripts. Faster. Smarter",
-                "icon" => "https://linkschoolonline.com/assets/img/ai_explorer_icon.png",
-                "email" => "communication@digitaldreamsng.com",
-                "has_content" => true
-            ],
-            9 => [
-                "id" => 9,
-                "course_name" => "Selection Exercise",
-                "description" => "This course serves as the official selection process for the TVET Creative Media Program. Participants will complete a series of creative tasks designed to assess originality, storytelling ability, visual thinking, and basic technical awareness. This is not about perfection. It is about potential, effort, and creative thinking \n Only participants who successfully complete the required tasks will qualify for the full program.",
-                "image_url" => "https://linkschoolonline.com/assets/img/tvet.jpeg",
-                "category" => "Creative Media Foundation",
-                "slogan" => "Think. Create. Express.",
-                "icon" => "https://linkschoolonline.com/assets/img/tvet_icon.png",
-                "email" => "communication@digitaldreamsng.com",
-                "has_content" => true,
-            ]
+
+            'submission' => $row['assignment'] !== null ? [
+                'assignment' => json_decode($row['assignment'], true),
+                'quiz_score' => $row['quiz_score'] !== null
+                    ? (int) $row['quiz_score']
+                    : null,
+                'submitted_at' => $row['submitted_at']
+            ] : null
         ];
     }
 
-    private function seedCategories(): void
+    public function getLessonQuiz(int $lessonId): array
     {
-        $this->categories = [
-            1 => [
-                "id" => 1,
-                "name" => "AI Storytelling Bootcamp",
-                "short" => "ai_storytelling",
-                "available" => 1,
-                "is_free" => 1,
-                "limit" => 2,
-                "course_ids" => [8],
-                'start_date' => '2026-01-06',
-                'end_date' => '2026-01-10'
-            ],
-            2 => [
-                "id" => 2,
-                "name" => "AI Explorers Bootcamp",
-                "short" => "ai_explorer",
-                "available" => 1,
-                "is_free" => 1,
-                "limit" => 2,
-                "course_ids" => [8],
-                'start_date' => '2025-12-15',
-                'end_date' => '2025-12-20'
-            ],
-            3 => [
-                "id" => 3,
-                "name" => "Kids Coding Bootcamp",
-                "short" => "boot_camp",
-                "available" => 1,
-                "is_free" => 0,
-                "limit" => 2,
-                "course_ids" => [1, 2, 3, 4, 5, 6, 7],
-                'start_date' => '2025-08-01',
-                'end_date' => '2025-09-02'
-            ],
-            4 => [
-                "id" => 4,
-                "name" => "Kids Weekend CodeLab",
-                "short" => "code_lab",
-                "available" => 1,
-                "is_free" => 0,
-                "limit" => 2,
-                "course_ids" => [1, 2, 3],
-                'start_date' => '2025-09-06',
-                'end_date' => '2025-10-26'
-            ],
-            5 => [
-                "id" => 5,
-                "name" => "Easter Kids Coding Fest",
-                "short" => "code_fest",
-                "available" => 1,
-                "is_free" => 1,
-                "limit" => 0,
-                "course_ids" => [1, 2, 3],
-                'start_date' => '2025-04-15',
-                'end_date' => '2025-04-20'
-            ],
-            6 => [
-                "id" => 6,
-                "name" => "TVET Creative Media Program",
-                "short" => "tvet_program",
-                "available" => 1,
-                "is_free" => 1,
-                'purpose' => 'Skill-based creative training across media disciplines (photography, cinematography, design, storytelling, etc.)',
-                "limit" => 0,
-                "course_ids" => [9],
-                'start_date' => '2026-01-12',
-                'end_date' => '2026-06-30'
-            ]
-        ];
+        $rows = $this->cohortLessonQuizModel
+            ->select([
+                'question_id',
+                'title AS question',
+                'type AS question_type',
+                'answer',
+                'correct'
+            ])
+            ->where('lesson_id', $lessonId)
+            ->get();
+
+        return array_map(fn($q) => [
+            'id' => $q['question_id'],
+            'question' => $q['question'],
+            'type' => $q['question_type'],
+            'options' => json_decode($q['answer'], true),
+            'correct' => json_decode($q['correct'], true)
+        ], $rows);
     }
 }

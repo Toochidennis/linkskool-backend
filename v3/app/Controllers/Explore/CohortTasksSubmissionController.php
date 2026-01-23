@@ -5,38 +5,38 @@ namespace V3\App\Controllers\Explore;
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
-use V3\App\Services\Explore\ProjectSubmissionService;
+use V3\App\Services\Explore\CohortTasksSubmissionService;
 
-#[Group('/public/project')]
-class ProjectSubmissionController extends ExploreBaseController
+#[Group('/public/learning')]
+class CohortTasksSubmissionController extends ExploreBaseController
 {
-    private ProjectSubmissionService $projectSubmissionService;
+    private CohortTasksSubmissionService $submissionService;
 
     public function __construct()
     {
         parent::__construct();
-        $this->projectSubmissionService = new ProjectSubmissionService($this->pdo);
+        $this->submissionService = new CohortTasksSubmissionService($this->pdo);
     }
 
-    #[Route('/submissions', 'POST', middleware: ['api'])]
-    public function submitProject(): void
+    #[Route('lessons/{lesson_id}/assignments', 'POST', middleware: ['api'])]
+    public function submitProject(array $vars): void
     {
         $validated = $this->validate(
-            $this->getRequestData(),
+            [...$this->getRequestData(), ...$vars],
             [
                 'assignment' => 'required|array|min:1',
                 'assignment.*.file_name' => 'required|string',
                 'assignment.*.old_file_name' => 'nullable|string',
                 'assignment.*.file' => 'required|string',
                 'assignment.*.type' => 'required|string|in:pdf',
-                'name' => 'required|string|max:255',
-                'email' => 'nullable|email|max:255',
-                'phone' => 'nullable|string|max:20',
+                'profile_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+                'lesson_id' => 'required|integer',
                 'quiz_score' => 'required|numeric|min:0|max:100',
             ]
         );
 
-        $submissionId = $this->projectSubmissionService->submitProject($validated);
+        $submissionId = $this->submissionService->submitProject($validated);
 
         if (!$submissionId) {
             $this->respondError(

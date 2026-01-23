@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\ProgramService;
 
-#[Group('/public/programs',)]
+#[Group('/public',)]
 class ProgramController extends ExploreBaseController
 {
     private ProgramService $programService;
@@ -18,6 +18,7 @@ class ProgramController extends ExploreBaseController
         $this->programService = new ProgramService($this->pdo);
     }
 
+    #[Route('/learn/programs', 'POST', ['api', 'auth'])]
     public function create()
     {
         $validatedData = $this->validate(
@@ -25,24 +26,24 @@ class ProgramController extends ExploreBaseController
             [
                 'name' => 'required|string|max:255',
                 'description' => 'required|string',
-                'created_by' => 'required|integer',
+                'author_name' => 'required|string|max:255',
+                'author_id' => 'required|integer',
                 'shortname' => 'required|string|max:100',
                 'status' => 'required|string|in:draft,published,archived',
-                'is_free' => 'required|boolean',
-                'trial_type' => 'required|string|in:days,watches',
-                'trial_value' => 'required|integer|min:0',
-                'age_groups' => 'required|array',
-                'age_groups.*' => 'string',
-                'cost' => 'nullable|numeric|min:0',
-                'start_date' => 'required|date',
-                'end_date' => 'required|date|after_or_equal:start_date',
                 'sponsor' => 'nullable|string|max:255',
+                'courses' => 'required|array',
+                'courses.*.title' => 'required|string|max:255',
+                'courses.*.id' => 'required|string',
 
-                'banner_image' => 'required|array',
-                'banner_image.name' => 'required|string',
-                'banner_image.tmp_name' => 'required|string',
-                'banner_image.error' => 'required|integer',
-                'banner_image.size' => 'required|integer'
+                'age_groups' => 'nullable|array',
+                'age_groups.*.min' => 'integer',
+                'age_groups.*.max' => 'integer',
+
+                'image' => 'required|array',
+                'image.name' => 'required|string',
+                'image.tmp_name' => 'required|string',
+                'image.error' => 'required|integer',
+                'image.size' => 'required|integer|max:2097152', // 2 MB
             ]
         );
 
@@ -65,33 +66,32 @@ class ProgramController extends ExploreBaseController
         );
     }
 
+    #[Route('/learn/programs/{id}', 'POST', ['api', 'auth'])]
     public function update(array $vars)
     {
         $validatedData = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
+                'id' => 'required|integer',
                 'name' => 'required|string|max:255',
                 'description' => 'required|string',
-                'updated_by' => 'required|integer',
                 'shortname' => 'required|string|max:100',
                 'status' => 'required|string|in:draft,published,archived',
-                'is_free' => 'required|boolean',
-                'trial_type' => 'required|string|in:days,watches',
-                'trial_value' => 'required|integer|min:0',
-                'age_groups' => 'required|array',
-                'age_groups.*' => 'string',
-                'cost' => 'nullable|numeric|min:0',
-                'start_date' => 'required|date',
-                'end_date' => 'required|date|after_or_equal:start_date',
                 'sponsor' => 'nullable|string|max:255',
+                'courses' => 'required|array',
+                'courses.*.title' => 'required|string|max:255',
+                'courses.*.id' => 'required|string',
 
-                'banner_image' => 'nullable|array',
-                'banner_image.name' => 'required_with:banner_image|string',
-                'banner_image.tmp_name' => 'required_with:banner_image|string',
-                'banner_image.error' => 'required_with:banner_image|integer',
-                'banner_image.size' => 'required_with:banner_image|integer',
+                'age_groups' => 'required|array|min:1',
+                'age_groups.*.min' => 'integer',
+                'age_groups.*.max' => 'integer',
 
-                'old_banner_image' => 'nullable|string'
+                'image' => 'nullable|array',
+                'image.name' => 'required_with:image|string',
+                'image.tmp_name' => 'required_with:image|string',
+                'image.error' => 'required_with:image|integer',
+                'image.size' => 'required_with:image|integer|max:2097152', // 2 MB
+                'old_image_url' => 'nullable|string'
             ]
         );
 
@@ -113,6 +113,7 @@ class ProgramController extends ExploreBaseController
         );
     }
 
+    #[Route('/learn/programs/{id}/status', 'PUT', ['api', 'auth'])]
     public function updateStatus(array $vars)
     {
         $validatedData = $this->validate(
@@ -145,6 +146,7 @@ class ProgramController extends ExploreBaseController
         );
     }
 
+    #[Route('/learn/programs', 'GET', ['api', 'auth'])]
     public function getAllPrograms()
     {
         $programs = $this->programService->getAllPrograms();
@@ -152,7 +154,7 @@ class ProgramController extends ExploreBaseController
         if (empty($programs)) {
             $this->respond(
                 [
-                    'status' => true,
+                    'success' => true,
                     'message' => 'No programs yet',
                     'data' => []
                 ]
@@ -161,10 +163,38 @@ class ProgramController extends ExploreBaseController
 
         $this->respond(
             [
-                'status' => true,
+                'success' => true,
                 'message' => 'Programs fetched successfully',
                 'data' => $programs
             ]
+        );
+    }
+
+    #[Route('/learn/programs/{id}', 'DELETE', ['api', 'auth'])]
+    public function deleteProgram(array $vars)
+    {
+        $validatedData = $this->validate(
+            $vars,
+            [
+                'id' => 'required|integer',
+            ]
+        );
+
+        $deleted = $this->programService->deleteProgram((int)$validatedData['id']);
+
+        if (!$deleted) {
+            $this->respondError(
+                'Failed to delete program.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Program deleted successfully.',
+            ],
+            HttpStatus::OK
         );
     }
 }

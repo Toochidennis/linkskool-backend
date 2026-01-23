@@ -4,9 +4,9 @@ namespace V3\App\Models\Explore;
 
 use V3\App\Models\BaseModel;
 
-class ProjectSubmission extends BaseModel
+class CohortLessonQuiz extends BaseModel
 {
-    protected string $table = 'project_submissions';
+    protected string $table = 'cohort_lesson_quizzes';
 
     public function __construct(\PDO $pdo)
     {

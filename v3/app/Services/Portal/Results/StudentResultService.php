@@ -37,28 +37,28 @@ class StudentResultService
     public function getYearlyTermAverages(array $filters): array
     {
         $terms = $this->result
-            ->select([
-                'reg_no',
-                'class AS class_id',
-                'year',
-                'term',
-                'AVG(result_table.total) AS average_score'
-            ])
-            ->where('reg_no', $filters['id'])
-            ->where('total', 'IS NOT', null)
-            ->groupBy(['class', 'year', 'term'])
-            ->orderBy(['year' => 'DESC', 'term' => 'ASC'])
-            ->get();
+            ->rawQuery(
+                "
+                SELECT
+                    class AS class_id,
+                    year,
+                    term,
+                    AVG(total) AS average_score
+                FROM result_table
+                WHERE reg_no = :reg_no
+                AND total IS NOT NULL
+                AND year <> '0000'
+                GROUP BY class, year, term
+                ORDER BY year DESC, term ASC;
+                ",
+                ['reg_no' => $filters['id']]
+            );
 
         $structured = [];
 
         foreach ($terms as $row) {
             $year = $row['year'];
             $termValue = $row['term'];
-
-            if ($year === '0000') {
-                continue;
-            }
 
             $termName = match ((int)$termValue) {
                 1 => 'First Term',
