@@ -7,27 +7,31 @@ use V3\App\Services\Explore\CohortLessonQuizService;
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 
-#[Group(prefix: 'public/cohorts/{cohort_id}/lessons/{lesson_id}/quizzes')]
+#[Group(prefix: '/public')]
 class CohortLessonQuizController extends ExploreBaseController
 {
     private CohortLessonQuizService $service;
 
-    public function __construct(\PDO $pdo)
+    public function __construct()
     {
         parent::__construct();
-        $this->service = new CohortLessonQuizService($pdo);
+        $this->service = new CohortLessonQuizService($this->pdo);
     }
 
-    #[Route('', 'POST', ['api', 'auth'])]
+    #[Route(
+        '/learn/programs/lessons/{lesson_id}/quizzes',
+        'POST',
+        ['api', 'auth']
+    )]
     public function create(array $vars)
     {
         $validatedData = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
+                'question_id' => 'nullable|integer',
                 'lesson_id' => 'required|integer',
                 'program_id' => 'required|integer',
                 'course_id' => 'required|integer',
-                'course_name' => 'required|string',
                 'cohort_id' => 'required|integer',
                 'question_text' => 'required|string',
                 'options' => 'required|array',
@@ -51,13 +55,13 @@ class CohortLessonQuizController extends ExploreBaseController
             [
                 'success' => true,
                 'message' => 'Quiz question created successfully.',
-                'data' => ['id' => $result],
+                'data' => ['question_id' => $result],
             ],
             HttpStatus::CREATED
         );
     }
 
-    #[Route('/{question_id}', 'PUT', ['api', 'auth'])]
+    #[Route('/learn/programs/lessons/{lesson_id}/quizzes/{question_id}', 'PUT', ['api', 'auth'])]
     public function update(array $vars)
     {
         $validatedData = $this->validate(
@@ -67,7 +71,6 @@ class CohortLessonQuizController extends ExploreBaseController
                 'lesson_id' => 'required|integer',
                 'program_id' => 'required|integer',
                 'course_id' => 'required|integer',
-                'course_name' => 'required|string',
                 'cohort_id' => 'required|integer',
                 'question_text' => 'required|string',
                 'options' => 'required|array',
@@ -91,13 +94,13 @@ class CohortLessonQuizController extends ExploreBaseController
             [
                 'success' => true,
                 'message' => 'Quiz question updated successfully.',
-                'data' => ['id' => $result],
+                'data' => ['question_id' => $result],
             ],
             HttpStatus::OK
         );
     }
 
-    #[Route('', 'GET', ['api'])]
+    #[Route('/learn/programs/lessons/{lesson_id}/quizzes', 'GET', ['api'])]
     public function getByQuizLessonId(array $vars)
     {
         $lessonId = (int) $vars['lesson_id'];
@@ -112,7 +115,7 @@ class CohortLessonQuizController extends ExploreBaseController
         );
     }
 
-    #[Route('/{question_id}', 'DELETE', ['api', 'auth'])]
+    #[Route('/learn/programs/lessons/{lesson_id}/quizzes/{question_id}', 'DELETE', ['api', 'auth'])]
     public function delete(array $vars)
     {
         $validatedData = $this->validate(

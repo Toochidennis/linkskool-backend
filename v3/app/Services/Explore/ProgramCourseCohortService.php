@@ -39,7 +39,7 @@ class ProgramCourseCohortService
             'status' => $data['status'],
             'image_url' => $data['image_url'],
             'capacity' => $data['capacity'] ?? null,
-            'delivery_mode' => $data['delivery_mode'] ?? null,
+            'delivery_mode' => $data['delivery_mode'] ?? 'virtual',
             'zoom_link' => $data['zoom_link'] ?? null,
             'is_free' => $data['is_free'],
             'trial_type' => $data['trial_type'] ?? null,
@@ -74,7 +74,7 @@ class ProgramCourseCohortService
             'status' => $data['status'],
             'image_url' => $data['image_url'] ?? null,
             'capacity' => $data['capacity'] ?? null,
-            'delivery_mode' => $data['delivery_mode'] ?? null,
+            'delivery_mode' => $data['delivery_mode'] ?? 'virtual',
             'zoom_link' => $data['zoom_link'] ?? null,
             'is_free' => $data['is_free'],
             'trial_type' => $data['trial_type'] ?? null,
@@ -92,6 +92,10 @@ class ProgramCourseCohortService
                     fn($value) => $value !== null
                 )
             );
+
+        if (isset($data['old_image_url'])) {
+            StorageService::deleteFile($data['old_image_url']);
+        }
 
         return $id;
     }

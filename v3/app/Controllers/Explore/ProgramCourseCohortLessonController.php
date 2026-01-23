@@ -19,7 +19,7 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
     }
 
     #[Route(
-        '/learn/cohorts/{cohort_id}/lessons',
+        '/learn/programs/cohorts/{cohort_id}/lessons',
         'POST',
         ['api', 'auth']
     )]
@@ -83,7 +83,7 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
     }
 
     #[Route(
-        '/learn/cohorts/{cohort_id}/lessons/{lesson_id}',
+        '/learn/programs/cohorts/{cohort_id}/lessons/{lesson_id}',
         'POST',
         ['api', 'auth']
     )]
@@ -153,7 +153,7 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
 
 
     #[Route(
-        '/learn/cohorts/{cohort_id}/lessons',
+        '/learn/programs/cohorts/{cohort_id}/lessons',
         'GET',
         ['api', 'auth']
     )]
@@ -178,7 +178,7 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
     }
 
     #[Route(
-        '/learn/cohorts/lessons/{lesson_id}/quiz',
+        '/learn/programs/cohorts/lessons/{lesson_id}/quiz',
         'GET',
         ['api', 'auth']
     )]
@@ -203,7 +203,7 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
     }
 
     #[Route(
-        '/learn/cohorts/lessons/{lesson_id}',
+        '/learn/programs/cohorts/lessons/{lesson_id}',
         'DELETE',
         ['api', 'auth']
     )]

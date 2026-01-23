@@ -19,12 +19,17 @@ class CohortLessonQuizService
             'lesson_id' => $data['lesson_id'],
             'program_id' => $data['program_id'],
             'course_id' => $data['course_id'],
-            'course_name' => $data['course_name'],
             'cohort_id' => $data['cohort_id'],
             'title' => $data['question_text'],
             'answer' => json_encode($data['options']),
             'correct' => json_encode($data['correct']),
         ];
+
+        if (isset($data['question_id']) && !empty($data['question_id']) && $data['question_id'] > 0) {
+            return $this->cohortLessonQuizModel
+                ->where('question_id', '=', $data['question_id'])
+                ->update($payload);
+        }
 
         return $this->cohortLessonQuizModel->insert($payload);
     }
@@ -35,7 +40,6 @@ class CohortLessonQuizService
             'lesson_id' => $data['lesson_id'],
             'program_id' => $data['program_id'],
             'course_id' => $data['course_id'],
-            'course_name' => $data['course_name'],
             'cohort_id' => $data['cohort_id'],
             'title' => $data['question_text'],
             'answer' => json_encode($data['options']),
