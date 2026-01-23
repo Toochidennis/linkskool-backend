@@ -119,4 +119,38 @@ class ProgramCourseController extends ExploreBaseController
             HttpStatus::CREATED
         );
     }
+
+    #[Route('/seed/cohort/lesson/quizzes', 'POST')]
+    public function seedQuiz()
+    {
+        $validated = $this->validate(
+            $this->getRequestData(),
+            [
+                'course_id' => 'required|integer',
+                'program_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+                'lesson_id' => 'required|integer',
+                'lesson_index' => 'required|integer',
+                'quiz_index' => 'required|integer',
+            ]
+        );
+
+        $id =  $this->service->seedQuizzes($validated);
+
+        if (!$id) {
+            $this->respondError(
+                'Failed to create quiz question.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Quiz question created successfully.',
+                'id' => $id
+            ],
+            HttpStatus::CREATED
+        );
+    }
 }

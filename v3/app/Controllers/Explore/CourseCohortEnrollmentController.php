@@ -31,6 +31,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
                 'program_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
                 'enrollment_type' => 'required|string|in:free,paid,trial',
+                'trial_expiry_date' => 'nullable|date',
             ],
         );
 
@@ -123,6 +124,98 @@ class CourseCohortEnrollmentController extends ExploreBaseController
             [
                 'status' => true,
                 'message' => 'Enrollment status updated successfully.',
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/payment', 'POST', ['api'])]
+    public function verifyPayment(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'profile_id' => 'required|integer',
+                'program_id' => 'required|integer',
+                'course_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+                'course_name' => 'nullable|string',
+                'cohort_name' => 'nullable|string',
+                'amount' => 'required|numeric|min:0.01',
+                'reference' => 'required|string',
+                'lessons_taken' => 'nullable|integer|min:0',
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+                'enrollment_type' => 'required|string|in:free,paid,trial',
+                'trial_expiry_date' => 'nullable|date',
+            ],
+        );
+
+        $result = $this->enrollmentService->verifyAndRecordPayment($validated);
+
+        if (!$result['success'] && $result['status'] === 0) {
+            $this->respondError(
+                $result['message'],
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'status' => $result['status'] === 1,
+                'message' => $result['message'],
+                'data' => [
+                    'payment_status' => $result['status'],
+                ],
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/payment-status', 'GET', ['api'])]
+    public function getPaymentStatus(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'profile_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+            ],
+        );
+
+        $status = $this->enrollmentService->getPaymentStatus($validated);
+
+        $this->respond(
+            [
+                'status' => true,
+                'data' => $status,
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/lessons-taken', 'PUT', ['api'])]
+    public function updateLessonsTaken(array $vars)
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'profile_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+                'lessons_taken' => 'required|integer|min:0',
+            ],
+        );
+
+        $success = $this->enrollmentService->updateLessonCount($validated);
+
+        if (!$success) {
+            $this->respondError('Updating lessons taken failed.', HttpStatus::BAD_REQUEST);
+        }
+
+        $this->respond(
+            [
+                'status' => true,
+                'message' => 'Lessons taken updated successfully.',
             ],
             HttpStatus::OK
         );

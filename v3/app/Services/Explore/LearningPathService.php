@@ -50,7 +50,10 @@ class LearningPathService
                 c.trial_value   AS trial_value,
                 c.cost          AS cost,
 
-                e.status        AS enrollment_status
+                e.status        AS enrollment_status,
+                e.payment_status AS payment_status,
+                e.lessons_taken  AS lessons_taken,
+                e.trial_expiry_date AS trial_expiry_date
 
             FROM programs p
 
@@ -147,7 +150,14 @@ class LearningPathService
 
                 'is_enrolled' => $row['enrollment_status'] !== null,
                 'is_completed' => $row['enrollment_status'] === 'completed',
-                'enrollment_status' => $row['enrollment_status']
+                'enrollment_status' => $row['enrollment_status'],
+                'payment_status' => $row['payment_status'],
+                'lessons_taken' => $row['lessons_taken'] !== null
+                    ? (int) $row['lessons_taken']
+                    : null,
+                'trial_expiry_date' => $row['trial_expiry_date'] !== null
+                    ? $row['trial_expiry_date']
+                    : null
             ];
         }
 
@@ -268,7 +278,7 @@ class LearningPathService
                 'answer',
                 'correct'
             ])
-            ->where('cohort_lesson_id', $lessonId)
+            ->where('lesson_id', $lessonId)
             ->get();
 
         return array_map(fn($q) => [

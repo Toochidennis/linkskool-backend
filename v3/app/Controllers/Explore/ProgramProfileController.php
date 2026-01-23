@@ -64,6 +64,7 @@ class ProgramProfileController extends ExploreBaseController
                 'birth_date' => 'nullable|date',
                 'gender' => 'nullable|string|in:male,female,other',
                 'certificate_name' => 'nullable|string',
+                'user_id' => 'required|integer',
             ],
         );
 

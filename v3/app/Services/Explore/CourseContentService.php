@@ -31,7 +31,6 @@ class CourseContentService
         $this->cohortLessonQuiz = new CohortLessonQuiz($pdo);
 
         $this->seedLessons();
-        $this->seedLessonQuizzes();
     }
 
     /**
@@ -60,13 +59,6 @@ class CourseContentService
             3 => \V3\App\Services\Explore\LessonData\Category4Lessons::getLessons(),
             4 => \V3\App\Services\Explore\LessonData\Category5Lessons::getLessons(),
             5 => \V3\App\Services\Explore\LessonData\Category6Lessons::getLessons(),
-        ];
-    }
-
-    private function seedLessonQuizzes(): void
-    {
-        $this->lessonQuizzes = [
-            9 => \V3\App\Services\Explore\LessonData\Category6LessonQuizzes::getQuizzes(),
         ];
     }
 
@@ -218,5 +210,66 @@ class CourseContentService
             ]);
         }
         return true;
+    }
+
+    public function seedQuizzes(array $params)
+    {
+        $quizzesByCourseAndLesson = [
+            0 => \V3\App\Services\Explore\LessonData\WebQuizzes::getQuizzes(),
+            1 => \V3\App\Services\Explore\LessonData\ScratchQuizzes::getQuizzes(),
+            2 => \V3\App\Services\Explore\LessonData\GraphicQuizzes::getQuizzes(),
+        ];
+
+        $quizzes = $quizzesByCourseAndLesson[$params['quiz_index']][$params['lesson_index']];
+
+        foreach ($quizzes as $quiz) {
+            $payload = $this->formatQuestionData($quiz, $params);
+            $this->cohortLessonQuiz->insert($payload);
+        }
+
+        return true;
+    }
+
+    private function formatQuestionData(array $question, array $params): array
+    {
+        $payload = [
+            'lesson_id' => $params['lesson_id'],
+            'cohort_id' => $params['cohort_id'],
+            'course_id' => $params['course_id'],
+            'program_id' => $params['program_id'],
+            'title' => $question['question_text'],
+            'type' => 'qo',
+        ];
+
+        $options = [];
+        for ($i = 1; $i <= 4; $i++) {
+            $options[] = [
+                'text' => trim($question["option_{$i}_text"] ?? ''),
+                'option_files' => [],
+            ];
+        }
+
+        if (!isset($question['answer']) || !is_numeric($question['answer'])) {
+            throw new \Exception('Answer must be a numeric 1-based index');
+        }
+
+        $oneBasedIndex  = (int) $question['answer'];
+        $zeroBasedIndex = $oneBasedIndex - 1;
+
+        if ($zeroBasedIndex < 0 || $zeroBasedIndex >= count($options)) {
+            throw new \Exception(
+                "Invalid correct option index: {$oneBasedIndex}"
+            );
+        }
+
+        $correctText = $options[$zeroBasedIndex]['text'];
+
+        $payload['answer'] = json_encode($options);
+        $payload['correct'] = json_encode([
+            'text'  => $correctText,
+            'order' => $zeroBasedIndex,
+        ]);
+
+        return $payload;
     }
 }

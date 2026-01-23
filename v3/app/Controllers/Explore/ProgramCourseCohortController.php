@@ -28,15 +28,15 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'course_name' => 'required|string',
                 'program_id' => 'required|integer',
                 'title' => 'required|string',
-                'description' => 'string',
+                'description' => 'nullable|string',
                 'benefits' => 'required|string',
-                'code' => 'string',
+                'code' => 'nullable|string',
                 'start_date' => 'required|date',
                 'end_date' => 'required|date|after_or_equal:start_date',
                 'status' => 'required|string|in:upcoming,ongoing,completed',
-                'capacity' => 'integer',
-                'delivery_mode' => 'string|in:virtual,onsite,hybrid',
-                'zoom_link' => 'string',
+                'capacity' => 'nullable|integer',
+                'delivery_mode' => 'nullable|string|in:virtual,onsite,hybrid',
+                'zoom_link' => 'nullable|string',
                 'is_free' => 'required|boolean',
                 'trial_type' => 'required_if:is_free,false|in:views,days',
                 'trial_value' => 'required_if:is_free,false|integer',
@@ -77,15 +77,15 @@ class ProgramCourseCohortController extends ExploreBaseController
             [
                 'id' => 'required|integer',
                 'title' => 'required|string',
-                'description' => 'string',
+                'description' => 'nullable|string',
                 'benefits' => 'required|string',
-                'code' => 'string',
+                'code' => 'nullable|string',
                 'start_date' => 'required|date',
                 'end_date' => 'required|date|after_or_equal:start_date',
                 'status' => 'required|string|in:upcoming,ongoing,completed',
-                'capacity' => 'integer',
-                'delivery_mode' => 'string|in:virtual,onsite,hybrid',
-                'zoom_link' => 'string',
+                'capacity' => 'nullable|integer',
+                'delivery_mode' => 'nullable|string|in:virtual,onsite,hybrid',
+                'zoom_link' => 'nullable|string',
                 'is_free' => 'required|boolean',
                 'trial_type' => 'required_if:is_free,false|in:views,days',
                 'trial_value' => 'required_if:is_free,false|integer',
@@ -117,7 +117,7 @@ class ProgramCourseCohortController extends ExploreBaseController
         );
     }
 
-    #[Route('/learn/programs/courses/cohorts/{id}/status', 'POST', ['api', 'auth'])]
+    #[Route('/learn/programs/courses/cohorts/{id}/status', 'PUT', ['api', 'auth'])]
     public function updateStatus(array $vars)
     {
         $validatedData = $this->validate(
