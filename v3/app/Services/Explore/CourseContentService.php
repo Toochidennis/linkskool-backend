@@ -215,9 +215,9 @@ class CourseContentService
     public function seedQuizzes(array $params)
     {
         $quizzesByCourseAndLesson = [
-            0 => \V3\App\Services\Explore\LessonData\WebQuizzes::getQuizzes(),
-            1 => \V3\App\Services\Explore\LessonData\ScratchQuizzes::getQuizzes(),
-            2 => \V3\App\Services\Explore\LessonData\GraphicQuizzes::getQuizzes(),
+            0 => \V3\App\Services\Explore\LessonData\AIQuizzes::getQuizzes(),
+            1 => \V3\App\Services\Explore\LessonData\SQuizzes::getQuizzes(),
+            2 => \V3\App\Services\Explore\LessonData\GQuizzes::getQuizzes(),
         ];
 
         $quizzes = $quizzesByCourseAndLesson[$params['quiz_index']][$params['lesson_index']];

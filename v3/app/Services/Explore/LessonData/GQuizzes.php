@@ -2,7 +2,7 @@
 
 namespace V3\App\Services\Explore\LessonData;
 
-class AIQuizzes
+class GQuizzes
 {
     public static function getQuizzes(): array
     {

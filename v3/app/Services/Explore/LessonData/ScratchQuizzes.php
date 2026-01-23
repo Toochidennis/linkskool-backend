@@ -831,7 +831,7 @@ class ScratchQuizzes
                     "option_2_text" => "To make the animation fun and relatable",
                     "option_3_text" => "To slow down the project",
                     "option_4_text" => "To replace sprites",
-                    "correct_option" => 2
+                    "answer" => 2
                 ],
                 [
                     "id" => 2,
@@ -841,7 +841,7 @@ class ScratchQuizzes
                     "option_2_text" => "Sounds tab",
                     "option_3_text" => "Code tab",
                     "option_4_text" => "Stage editor",
-                    "correct_option" => 2
+                    "answer" => 2
                 ],
                 [
                     "id" => 3,
@@ -851,7 +851,7 @@ class ScratchQuizzes
                     "option_2_text" => "Match the voice with the sprite's actions",
                     "option_3_text" => "Mute the sprite",
                     "option_4_text" => "Animate without sound",
-                    "correct_option" => 2
+                    "answer" => 2
                 ],
                 [
                     "id" => 4,
@@ -861,7 +861,7 @@ class ScratchQuizzes
                     "option_2_text" => "To confuse the audience",
                     "option_3_text" => "To delete Scratch sprites",
                     "option_4_text" => "To avoid coding",
-                    "correct_option" => 1
+                    "answer" => 1
                 ],
                 [
                     "id" => 5,
@@ -871,7 +871,7 @@ class ScratchQuizzes
                     "option_2_text" => "Draw it in the editor",
                     "option_3_text" => "Use the 'Upload' button",
                     "option_4_text" => "Press spacebar",
-                    "correct_option" => 3
+                    "answer" => 3
                 ],
                 [
                     "id" => 6,
@@ -881,7 +881,7 @@ class ScratchQuizzes
                     "option_2_text" => "It replaces the stage",
                     "option_3_text" => "It creates character dialogue automatically",
                     "option_4_text" => "It makes coding harder",
-                    "correct_option" => 3
+                    "answer" => 3
                 ],
                 [
                     "id" => 7,
@@ -891,7 +891,7 @@ class ScratchQuizzes
                     "option_2_text" => "Drawing with sound",
                     "option_3_text" => "Writing subtitles only",
                     "option_4_text" => "Converting written text into spoken words",
-                    "correct_option" => 4
+                    "answer" => 4
                 ],
                 [
                     "id" => 8,
@@ -901,7 +901,7 @@ class ScratchQuizzes
                     "option_2_text" => "Hide and show blocks",
                     "option_3_text" => "Play sound and stop blocks",
                     "option_4_text" => "Glide and go to blocks",
-                    "correct_option" => 1
+                    "answer" => 1
                 ],
                 [
                     "id" => 9,
@@ -911,7 +911,7 @@ class ScratchQuizzes
                     "option_2_text" => "It confuses the audience",
                     "option_3_text" => "It adds emotion and personality",
                     "option_4_text" => "It replaces the background",
-                    "correct_option" => 3
+                    "answer" => 3
                 ],
                 [
                     "id" => 10,
@@ -921,7 +921,7 @@ class ScratchQuizzes
                     "option_2_text" => "Uploading custom backdrops and voices",
                     "option_3_text" => "Not using any sound",
                     "option_4_text" => "Skipping the animation part",
-                    "correct_option" => 2
+                    "answer" => 2
                 ]
             ],
 
