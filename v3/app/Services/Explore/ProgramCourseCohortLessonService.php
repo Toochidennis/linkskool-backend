@@ -44,6 +44,7 @@ class ProgramCourseCohortLessonService
                 'author_name' => $data['author_name'],
                 'author_id' => $data['author_id'],
                 'lesson_date' => $data['lesson_date'],
+                'status' => $data['status'] ?? 'draft',
             ];
 
             if ($data['is_final_lesson'] && !isset($_FILES['certificate'])) {
@@ -94,6 +95,7 @@ class ProgramCourseCohortLessonService
                 'assignment_due_date' => $data['assignment_due_date'] ?? null,
                 'is_final_lesson' => $data['is_final_lesson'] ?? false,
                 'lesson_date' => $data['lesson_date'],
+                'status' => $data['status'] ?? 'draft',
             ];
 
             if ($data['is_final_lesson'] && !isset($_FILES['certificate'])) {
@@ -124,6 +126,13 @@ class ProgramCourseCohortLessonService
             $this->pdo->rollBack();
             throw $e;
         }
+    }
+
+    public function updateStatus(int $lessonId, string $status)
+    {
+        return $this->cohortLesson
+            ->where('id', $lessonId)
+            ->update(['status' => $status]);
     }
 
     private function processNewFiles($isUpdate = false): array

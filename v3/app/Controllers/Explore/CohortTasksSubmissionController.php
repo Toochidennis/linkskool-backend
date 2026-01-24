@@ -18,7 +18,7 @@ class CohortTasksSubmissionController extends ExploreBaseController
         $this->submissionService = new CohortTasksSubmissionService($this->pdo);
     }
 
-    #[Route('lessons/{lesson_id}/assignments', 'POST', middleware: ['api'])]
+    #[Route('/lessons/{lesson_id}/assignments', 'POST', middleware: ['api'])]
     public function submitProject(array $vars): void
     {
         $validated = $this->validate(
