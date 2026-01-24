@@ -155,7 +155,7 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
 
     #[Route(
         '/learn/programs/cohorts/lessons/{lesson_id}/status',
-        'POST',
+        'PUT',
         ['api', 'auth']
     )]
     public function updateStatus(array $vars)
