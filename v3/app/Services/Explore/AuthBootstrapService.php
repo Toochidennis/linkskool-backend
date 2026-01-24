@@ -69,6 +69,7 @@ class AuthBootstrapService
                     'id' => $profiles[0]['id'],
                     'birth_date' => $birthDate,
                     'gender' => $googleData['gender'],
+                    'user_id' => $user['id'],
                 ]);
             }
 

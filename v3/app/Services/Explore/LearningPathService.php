@@ -204,6 +204,7 @@ class LearningPathService
                 'is_final_lesson',
             ])
             ->where('cohort_id', $cohortId)
+            ->where('status', 'published')
             ->orderBy('display_order', 'ASC')
             ->get();
     }
