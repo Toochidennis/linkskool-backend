@@ -32,6 +32,10 @@ class CbtUserService
             'phone' => $data['phone'] ?? null,
         ];
 
+        if (isset($data['password'])) {
+            $payload['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
+        }
+
         $user = $this->user
             ->where('email', '=', $payload['email'])
             ->first();
