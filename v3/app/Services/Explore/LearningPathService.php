@@ -30,54 +30,52 @@ class LearningPathService
             ? (int) date('Y') - (int) substr($birthDate, 0, 4)
             : null;
 
-
         $sql = "
-            SELECT
-                p.id            AS program_id,
-                p.name          AS program_name,
-                p.description   AS program_description,
-                p.image_url     AS program_image_url,
-                p.age_groups    AS program_age_groups,
+        SELECT
+            p.id            AS program_id,
+            p.name          AS program_name,
+            p.description   AS program_description,
+            p.image_url    AS program_image_url,
+            p.age_groups    AS program_age_groups,
 
-                lc.id           AS course_id,
-                lc.title        AS course_title,
-                lc.description  AS course_description,
-                lc.image_url    AS course_image_url,
+            lc.id           AS course_id,
+            lc.title        AS course_title,
+            lc.description  AS course_description,
+            lc.image_url    AS course_image_url,
 
-                c.id            AS active_cohort_id,
-                c.is_free       AS is_free,
-                c.trial_type    AS trial_type,
-                c.trial_value   AS trial_value,
-                c.cost          AS cost,
+            c.id            AS active_cohort_id,
+            c.is_free       AS is_free,
+            c.trial_type    AS trial_type,
+            c.trial_value   AS trial_value,
+            c.cost          AS cost,
 
-                e.status        AS enrollment_status,
-                e.payment_status AS payment_status,
-                e.lessons_taken  AS lessons_taken,
-                e.trial_expiry_date AS trial_expiry_date
+            e.status        AS enrollment_status,
+            e.payment_status AS payment_status,
+            e.lessons_taken  AS lessons_taken,
+            e.trial_expiry_date AS trial_expiry_date
 
-            FROM programs p
+        FROM programs p
 
-            INNER JOIN program_courses pc
-                ON pc.program_id = p.id
+        INNER JOIN program_courses pc
+            ON pc.program_id = p.id
             AND pc.is_active = 1
 
-            INNER JOIN learning_courses lc
-                ON lc.id = pc.course_id
+        INNER JOIN learning_courses lc
+            ON lc.id = pc.course_id
 
-            LEFT JOIN program_course_cohorts c
-                ON c.program_id = p.id
+        LEFT JOIN program_course_cohorts c
+            ON c.program_id = p.id
             AND c.course_id = lc.id
             AND c.status = 'ongoing'
 
-            LEFT JOIN program_course_cohort_enrollments e
-                ON e.program_id = p.id
+        LEFT JOIN program_course_cohort_enrollments e
+            ON e.program_id = p.id
             AND e.course_id = lc.id
             AND e.profile_id = :profile_id
 
-            WHERE p.status = 'published'
-
-            ORDER BY p.id, lc.id;
-        ";
+        WHERE p.status = 'published'
+        ORDER BY p.id, lc.id
+    ";
 
         $rows = $this->programModel->rawQuery($sql, [
             'profile_id' => $profileId
@@ -100,23 +98,24 @@ class LearningPathService
             $pid = (int) $row['program_id'];
 
             if (!isset($programs[$pid])) {
-                $ageGroups = json_decode($row['program_age_groups'] ?? '[]', true) ?? [];
-
-                if ($age !== null && !$this->matchesAgeGroup($ageGroups, $age)) {
-                    continue;
-                }
-
                 $programs[$pid] = [
                     'program_id' => $pid,
                     'name' => $row['program_name'],
                     'description' => $row['program_description'],
                     'image_url' => $row['program_image_url'],
                     'courses' => [],
-                    '_course_map' => []
+                    '_course_map' => [],
+                    '_has_enrollment' => false,
+                    '_age_groups' => json_decode($row['program_age_groups'] ?? '[]', true) ?? []
                 ];
             }
 
-            // Deduplicate courses per program
+            // Track enrollment per program
+            if ($row['enrollment_status'] !== null) {
+                $programs[$pid]['_has_enrollment'] = true;
+            }
+
+            // Deduplicate courses
             if (isset($programs[$pid]['_course_map'][$row['course_id']])) {
                 continue;
             }
@@ -155,15 +154,30 @@ class LearningPathService
                 'lessons_taken' => $row['lessons_taken'] !== null
                     ? (int) $row['lessons_taken']
                     : null,
-                'trial_expiry_date' => $row['trial_expiry_date'] !== null
-                    ? $row['trial_expiry_date']
-                    : null
+                'trial_expiry_date' => $row['trial_expiry_date']
             ];
         }
 
-        // cleanup internal maps
+        // Apply age filter AFTER aggregation
+        $programs = array_filter($programs, function ($program) use ($age) {
+            if ($age === null) {
+                return true;
+            }
+
+            if ($program['_has_enrollment']) {
+                return true;
+            }
+
+            return $this->matchesAgeGroup($program['_age_groups'], $age);
+        });
+
+        // Cleanup internal fields
         foreach ($programs as &$program) {
-            unset($program['_course_map']);
+            unset(
+                $program['_course_map'],
+                $program['_has_enrollment'],
+                $program['_age_groups']
+            );
         }
 
         return array_values($programs);

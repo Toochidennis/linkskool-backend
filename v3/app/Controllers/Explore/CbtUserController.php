@@ -71,6 +71,7 @@ class CbtUserController extends ExploreBaseController
         ]);
     }
 
+    #[Route('/signup', 'POST', ['api'])]
     public function signupWithEmail()
     {
         $data = $this->validate($this->getRequestData(), [
@@ -98,6 +99,33 @@ class CbtUserController extends ExploreBaseController
             'message' => 'User created successfully',
             'data' => $user
         ]);
+    }
+
+    #[Route('/login', 'POST', ['api'])]
+    public function login()
+    {
+        $data = $this->validate($this->getRequestData(), [
+            'email' => 'required|email|max:255',
+            'password' => 'required|string|min:8',
+        ]);
+
+        $user = $this->authBootstrapService->loginWithEmailAndPassword($data['email'], $data['password']);
+
+        if (empty($user)) {
+            $this->respondError(
+                'Invalid credentials.',
+                HttpStatus::UNAUTHORIZED
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Login successful',
+            'data' => $user
+        ]);
+
+
+        return $user;
     }
 
     #[Route('/{id:\d+}/phone', 'PUT', ['api'])]

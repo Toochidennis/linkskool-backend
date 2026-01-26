@@ -68,8 +68,11 @@ class AuthBootstrapService
 
             $this->pdo->commit();
 
+            $user = $this->cbtUserService->getUserByEmail($user['email']);
+            unset($user['password']);
+
             return [
-                'user' => $this->cbtUserService->getUserByEmail($user['email']),
+                'user' => $user,
                 'profiles' => $profiles
             ];
         } catch (Throwable $e) {
@@ -205,6 +208,8 @@ class AuthBootstrapService
         try {
             $user = $this->cbtUserService->findOrCreateUserByEmail($data);
 
+            unset($data['email']);
+
             $this->profileService->createProfile([
                 'user_id' => $user['id'],
                 'first_name' => $data['first_name'],
@@ -223,5 +228,22 @@ class AuthBootstrapService
             $this->pdo->rollBack();
             throw $e;
         }
+    }
+
+    public function loginWithEmailAndPassword(string $email, string $password): array
+    {
+        $user = $this->cbtUserService->getUserByEmail($email);
+
+        if (empty($user) || !password_verify($password, $user['password'])) {
+            throw new \RuntimeException('Invalid credentials.');
+        }
+
+        $profiles = $this->profileService->getProfilesByUserId($user['id']);
+        unset($user['password']);
+
+        return [
+            'user' => $user,
+            'profiles' => $profiles
+        ];
     }
 }
