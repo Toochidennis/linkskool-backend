@@ -24,10 +24,12 @@ class CbtUserService
     public function findOrCreateUserByEmail(array $data): array
     {
         $payload = [
-            'name' => $data['first_name'],
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'],
             'email' => $data['email'],
             'profile_picture' => $data['profile_picture'] ?? null,
-            'attempt' => $data['attempt'],
+            'attempt' => $data['attempt'] ?? 0,
+            'phone' => $data['phone'] ?? null,
         ];
 
         $user = $this->user
@@ -36,7 +38,8 @@ class CbtUserService
 
         if ($user) {
             $this->updateUser($user['id'], [
-                'name' => $payload['name'] ?? $user['name'],
+                'first_name' => $payload['first_name'] ?? $user['first_name'],
+                'last_name' => $payload['last_name'] ?? $user['last_name'],
             ]);
 
             return $this->user
