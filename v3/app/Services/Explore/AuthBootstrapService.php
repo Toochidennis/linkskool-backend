@@ -31,15 +31,8 @@ class AuthBootstrapService
         $this->pdo->beginTransaction();
 
         try {
-            $payload = [
-                'first_name' => $googleData['first_name'] . ' ' . $googleData['last_name'],
-                'email' => $googleData['email'],
-                'profile_picture' => $googleData['profile_picture'] ?? null,
-                'attempt' => $googleData['attempt'] ?? 1,
-            ];
-
             // 1. Identity
-            $user = $this->cbtUserService->findOrCreateUserByEmail($payload);
+            $user = $this->cbtUserService->findOrCreateUserByEmail($googleData);
 
             // 2. Update phone on identity if missing
             if ($phone && empty($user['phone'])) {
@@ -78,6 +71,153 @@ class AuthBootstrapService
             return [
                 'user' => $this->cbtUserService->getUserByEmail($user['email']),
                 'profiles' => $profiles
+            ];
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    public function bootstrapWithGoogleToken(string $token): array
+    {
+        $tokens = $this->exchangeCodeForTokens($token);
+        $accessToken = $tokens['access_token'] ?? null;
+
+        if (empty($accessToken)) {
+            throw new \RuntimeException('Google access token is missing.');
+        }
+
+        $googleProfile = $this->fetchGoogleUserProfile($accessToken);
+        [$firstName, $lastName] = $this->resolveNames($googleProfile);
+
+        return $this->bootstrap([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $googleProfile['email'],
+            'profile_picture' => $googleProfile['picture'] ?? null,
+            'gender' => $googleProfile['gender'] ?? null,
+        ]);
+    }
+
+    private function resolveNames(array $googleProfile): array
+    {
+        $firstName = $googleProfile['given_name'] ?? null;
+        $lastName = $googleProfile['family_name'] ?? null;
+
+        if ((!$firstName || !$lastName) && !empty($googleProfile['name'])) {
+            $nameParts = preg_split('/\\s+/', trim($googleProfile['name']), -1, PREG_SPLIT_NO_EMPTY);
+
+            if (!$firstName && !empty($nameParts)) {
+                $firstName = array_shift($nameParts);
+            }
+
+            if (!$lastName && !empty($nameParts)) {
+                $lastName = array_pop($nameParts);
+            }
+        }
+
+        $firstName = $firstName ?: 'User';
+        $lastName = $lastName ?: 'User';
+
+        return [$firstName, $lastName];
+    }
+
+    private function fetchGoogleUserProfile(string $token): array
+    {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, [
+            CURLOPT_URL => getEnv('GOOGLE_USER_INFO_URL'),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_HTTPHEADER => [
+                "Authorization: Bearer {$token}",
+                'Accept: application/json',
+            ],
+        ]);
+
+        $response = curl_exec($curl);
+        $httpStatus = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $error = curl_error($curl);
+        curl_close($curl);
+
+        if ($error) {
+            throw new \RuntimeException("Failed to fetch Google profile: {$error}");
+        }
+
+        $result = json_decode($response, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \RuntimeException('Failed to parse Google profile response.');
+        }
+
+        if ($httpStatus >= 400 || isset($result['error'])) {
+            $message = $result['error_description'] ?? $result['error'] ?? 'unknown error';
+            throw new \RuntimeException("Google profile request failed: {$message}");
+        }
+
+        if (empty($result['email'])) {
+            throw new \RuntimeException('Google profile is missing an email address.');
+        }
+
+        return $result;
+    }
+
+    private function exchangeCodeForTokens(string $code): array
+    {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, [
+            CURLOPT_URL => getEnv('GOOGLE_TOKEN_URL'),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => http_build_query([
+                'code' => $code,
+                'client_id' => getEnv('GOOGLE_CLIENT_ID'),
+                'client_secret' => getEnv('GOOGLE_CLIENT_SECRET'),
+                'redirect_uri' => getEnv('GOOGLE_REDIRECT_URI'),
+                'grant_type' => 'authorization_code',
+            ]),
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/x-www-form-urlencoded',
+            ],
+        ]);
+
+        $response = curl_exec($curl);
+        $httpStatus = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        $result = json_decode($response, true);
+
+        if ($httpStatus >= 400 || isset($result['error'])) {
+            throw new \RuntimeException(
+                'Token exchange failed: ' . ($result['error_description'] ?? 'unknown error')
+            );
+        }
+
+        return $result;
+    }
+
+    public function signupWithEmail(array $data): array
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $user = $this->cbtUserService->findOrCreateUserByEmail($data);
+
+            $this->profileService->createProfile([
+                'user_id' => $user['id'],
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
+                'birth_date' => $data['birth_date'],
+                'gender' => $data['gender'],
+            ]);
+
+            $this->pdo->commit();
+
+            return [
+                'user' => $user,
+                'profiles' => $this->profileService->getProfilesByUserId($user['id'])
             ];
         } catch (Throwable $e) {
             $this->pdo->rollBack();

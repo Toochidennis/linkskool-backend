@@ -48,6 +48,58 @@ class CbtUserController extends ExploreBaseController
         ]);
     }
 
+    #[Route('/google', 'POST', ['api'])]
+    public function bootstrapWithGoogleToken()
+    {
+        $data = $this->validate($this->getRequestData(), [
+            'google_token' => 'required|string',
+        ]);
+
+        $response = $this->authBootstrapService->bootstrapWithGoogleToken($data['google_token']);
+
+        if (empty($response)) {
+            $this->respondError(
+                'Failed to authenticate with Google.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Authenticated with Google',
+            'data' => $response
+        ]);
+    }
+
+    public function signupWithEmail()
+    {
+        $data = $this->validate($this->getRequestData(), [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string',
+            'email' => 'required|email|max:255',
+            'password' => 'required|string|min:8',
+            'profile_picture' => 'nullable|string|max:255',
+            'gender' => 'required|string|in:male,female,other',
+            'birth_date' => 'required|date',
+            'phone' => 'required|integer',
+        ]);
+
+        $user = $this->authBootstrapService->signupWithEmail($data);
+
+        if (empty($user)) {
+            $this->respondError(
+                'Failed to create user.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'User created successfully',
+            'data' => $user
+        ]);
+    }
+
     #[Route('/{id:\d+}/phone', 'PUT', ['api'])]
     public function updatePhone(array $vars)
     {
