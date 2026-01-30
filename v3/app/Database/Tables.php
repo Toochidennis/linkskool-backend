@@ -115,5 +115,6 @@ class Tables
         'program_profiles',
         'cohort_tasks_submissions',
         'learning_courses',
+        'cohort_lesson_progress'
     ];
 }

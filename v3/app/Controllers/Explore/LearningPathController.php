@@ -82,6 +82,31 @@ class LearningPathController extends ExploreBaseController
         );
     }
 
+    #[Route('/cohorts/{cohort_id}/profiles/{profile_id}/lessons', 'GET', ['api'])]
+    public function getCohortLessonsWithSubmission(array $vars)
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'cohort_id' => 'required|integer',
+                'profile_id' => 'required|integer',
+            ]
+        );
+
+        $rows = $this->learningPathService->getCohortLessonsWithSubmission(
+            $validated['cohort_id'],
+            $validated['profile_id']
+        );
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Cohort lessons with submissions retrieved successfully.',
+                'data' => $rows
+            ]
+        );
+    }
+
     #[Route('/lessons/{lesson_id}', 'GET', ['api'])]
     public function getCohortLessonById(array $vars)
     {
@@ -120,6 +145,29 @@ class LearningPathController extends ExploreBaseController
                 'success' => true,
                 'message' => 'Lesson quizzes retrieved successfully.',
                 'data' => $quizzes,
+            ]
+        );
+    }
+
+    #[Route('/profiles/{profile_id}/stats', 'GET', ['api'])]
+    public function getUserLearningStats(array $vars)
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'profile_id' => 'required|integer',
+            ]
+        );
+
+        $profileId = $validated['profile_id'];
+
+        $row = $this->learningPathService->getUserLearningStats($profileId);
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Learning stats retrieved successfully.',
+                'data' => $row
             ]
         );
     }

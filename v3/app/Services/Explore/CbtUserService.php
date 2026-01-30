@@ -32,10 +32,6 @@ class CbtUserService
             'phone' => $data['phone'] ?? null,
         ];
 
-        if (isset($data['password'])) {
-            $payload['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
-        }
-
         $user = $this->user
             ->where('email', '=', $payload['email'])
             ->first();
@@ -59,11 +55,34 @@ class CbtUserService
                 ->first();
         } catch (\PDOException $e) {
             if ($this->isDuplicateEmailError($e)) {
-                return $this->getUserByEmail($payload['email']);
+                return $this->getUserByEmail($data['email']);
             }
 
             throw $e;
         }
+    }
+
+    public function createUserWithEmailAndPassword(array $data): array
+    {
+        $existing = $this->user
+            ->where('email', '=', $data['email'])
+            ->exists();
+
+        if ($existing) {
+            throw new \RuntimeException('Email already in use.');
+        }
+
+        $id = $this->user->insert([
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'],
+            'email' => $data['email'],
+            'password' => password_hash($data['password'], PASSWORD_BCRYPT),
+            'phone' => $data['phone'],
+        ]);
+
+        return $this->user
+            ->where('id', '=', $id)
+            ->first();
     }
 
     private function isDuplicateEmailError(\PDOException $e): bool
