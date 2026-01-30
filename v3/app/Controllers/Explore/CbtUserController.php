@@ -82,7 +82,7 @@ class CbtUserController extends ExploreBaseController
             'profile_picture' => 'nullable|string|max:255',
             'gender' => 'required|string|in:male,female,other',
             'birth_date' => 'required|date',
-            'phone' => 'required|integer',
+            'phone' => 'required|string',
         ]);
 
         $user = $this->authBootstrapService->signupWithEmail($data);
@@ -135,14 +135,13 @@ class CbtUserController extends ExploreBaseController
             [...$this->getRequestData(), ...$vars],
             [
                 'id' => 'required|integer|min:1',
-                'first_name' => 'required|string|max:255',
-                'last_name' => 'required|string',
+                'first_name' => 'nullable|string|max:255',
+                'last_name' => 'nullable|string',
                 'email' => 'required|email',
-                'phone' => 'required|string|max:11',
+                'phone' => 'required|string|max:15',
                 'birth_date' => 'required|date',
                 'gender' => 'required|string|in:male,female,other',
                 'profile_picture' => 'nullable|string|max:255',
-                'user_id' => 'required|integer|min:1',
             ]
         );
 
@@ -242,5 +241,60 @@ class CbtUserController extends ExploreBaseController
             'success' => true,
             'data' => $user
         ]);
+    }
+
+    #[Route('/{user_id}/profiles', 'GET', ['api'])]
+    public function getProfilesByUserId(array $vars): void
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'user_id' => 'required|integer',
+            ],
+        );
+
+        $profiles = $this->authBootstrapService->getProfilesByUserId($validated['user_id']);
+
+        $this->respond(
+            [
+                'status' => true,
+                'data' => $profiles,
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/{user_id}/profiles', 'POST', ['api'])]
+    public function createProfile(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'user_id' => 'required|integer',
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+                'birth_date' => 'required|date',
+                'gender' => 'required|string|in:male,female,other',
+                'certificate_name' => 'nullable|string',
+            ],
+        );
+
+        $profiles = $this->authBootstrapService->createProfile($validated);
+
+        if (empty($profiles)) {
+            $this->respondError(
+                'Profile creation failed.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'status' => true,
+                'message' => 'Cohort enrollment profile created successfully.',
+                'data' => $profiles
+            ],
+            HttpStatus::CREATED
+        );
     }
 }

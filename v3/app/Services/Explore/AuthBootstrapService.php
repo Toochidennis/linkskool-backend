@@ -203,14 +203,10 @@ class AuthBootstrapService
 
     public function signupWithEmail(array $data): array
     {
-        $this->pdo->beginTransaction();
+        $user = $this->cbtUserService->createUserWithEmailAndPassword($data);
 
-        try {
-            $user = $this->cbtUserService->findOrCreateUserByEmail($data);
-
-            unset($data['email']);
-
-            $this->profileService->createProfile([
+        if (!empty($user)) {
+            $profiles = $this->profileService->createProfile([
                 'user_id' => $user['id'],
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
@@ -218,16 +214,15 @@ class AuthBootstrapService
                 'gender' => $data['gender'],
             ]);
 
-            $this->pdo->commit();
+            unset($user['password']);
 
             return [
                 'user' => $user,
-                'profiles' => $this->profileService->getProfilesByUserId($user['id'])
+                'profiles' => $profiles
             ];
-        } catch (Throwable $e) {
-            $this->pdo->rollBack();
-            throw $e;
         }
+
+        throw new \RuntimeException('Failed to create user.');
     }
 
     public function loginWithEmailAndPassword(string $email, string $password): array
@@ -245,5 +240,15 @@ class AuthBootstrapService
             'user' => $user,
             'profiles' => $profiles
         ];
+    }
+
+    public function getProfilesByUserId(int $userId): array
+    {
+        return $this->profileService->getProfilesByUserId($userId);
+    }
+
+    public function createProfile(array $data): array
+    {
+        return $this->profileService->createProfile($data);
     }
 }

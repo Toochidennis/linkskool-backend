@@ -199,11 +199,26 @@ class LearningPathService
 
     public function getActiveCohortByCourse(int $cohortId): array
     {
-        return $this->programCourseCohortModel
-            ->where('id', $cohortId)
-            ->where('status', 'ongoing')
-            ->orderBy('start_date', 'ASC')
-            ->first();
+        $query = "
+            SELECT
+                p.*,
+                lc.title AS course_title
+            FROM program_course_cohorts p
+            INNER JOIN learning_courses lc
+                ON lc.id = p.course_id
+            WHERE p.id = :cohort_id
+            AND p.status = 'ongoing'
+            ORDER BY p.start_date ASC
+            LIMIT 1
+        ";
+
+        $rows = $this->programCourseCohortModel->rawQuery($query, [
+            'cohort_id' => $cohortId
+        ]);
+
+        $rows[0]['course_name'] = $rows[0]['course_title'];
+
+        return $rows[0] ?? [];
     }
 
     public function getLessonsByCohort(int $cohortId): array
@@ -230,7 +245,12 @@ class LearningPathService
                 l.*,
                 s.assignment,
                 s.quiz_score,
-                s.created_at AS submitted_at
+                s.created_at AS submitted_at,
+                EXISTS (
+                    SELECT 1 
+                    FROM cohort_lesson_quizzes q
+                    WHERE q.lesson_id = l.id
+                ) AS has_quiz
             FROM program_course_cohort_lessons l
             LEFT JOIN cohort_tasks_submissions s
                 ON s.lesson_id = l.id
@@ -270,17 +290,50 @@ class LearningPathService
                 'is_final_lesson' => (bool) $row['is_final_lesson'],
                 'display_order' => (int) $row['display_order'],
                 'lesson_date' => $row['lesson_date'],
-                'assignment_due_date' => $row['assignment_due_date']
+                'assignment_due_date' => $row['assignment_due_date'],
+                'has_quiz' => (bool) $row['has_quiz'],
             ],
 
             'submission' => $row['assignment'] !== null ? [
-                'assignment' => json_decode($row['assignment'], true),
+                'assignment' => json_decode($row['assignment'], true)['file_name'],
                 'quiz_score' => $row['quiz_score'] !== null
                     ? (int) $row['quiz_score']
                     : null,
                 'submitted_at' => $row['submitted_at']
             ] : null
         ];
+    }
+
+    public function getCohortLessonsWithSubmission(
+        int $cohortId,
+        int $profileId
+    ): array {
+        $sql = "
+            SELECT 
+                l.*,
+                s.assignment,
+                s.quiz_score,
+                s.created_at AS submitted_at,
+                EXISTS (
+                    SELECT 1 
+                    FROM cohort_lesson_quizzes q
+                    WHERE q.lesson_id = l.id
+                ) AS has_quiz
+            FROM program_course_cohort_lessons l
+            LEFT JOIN cohort_tasks_submissions s
+                ON s.lesson_id = l.id
+                AND s.profile_id = :profile_id
+            WHERE l.cohort_id = :cohort_id
+            AND l.status = 'published'
+            ORDER BY l.display_order ASC
+        ";
+
+        $rows = $this->programCourseCohortLessonModel->rawQuery($sql, [
+            'cohort_id'  => $cohortId,
+            'profile_id' => $profileId
+        ]);
+
+        return array_map([$this, 'formatLessonWithSubmission'], $rows);
     }
 
     public function getLessonQuiz(int $lessonId): array
@@ -303,5 +356,65 @@ class LearningPathService
             'options' => json_decode($q['answer'], true),
             'correct' => json_decode($q['correct'], true)
         ], $rows);
+    }
+
+    public function getUserLearningStats(int $profileId): array
+    {
+        $sql = "
+            SELECT
+                COUNT(DISTINCT e.cohort_id) AS total_courses_enrolled,
+                COUNT(DISTINCT CASE 
+                    WHEN e.status = 'completed' THEN e.cohort_id 
+                END) AS total_courses_completed,
+
+                COUNT(DISTINCT l.id) AS total_lessons,
+                COUNT(DISTINCT CASE 
+                    WHEN p.is_completed = 1 THEN l.id 
+                END) AS lessons_completed,
+
+                AVG(s.quiz_score) AS avg_quiz_score,
+                COUNT(DISTINCT s.id) AS assignments_submitted
+
+            FROM program_course_cohort_enrollments e
+
+            INNER JOIN program_course_cohorts c
+                ON c.id = e.cohort_id
+                AND c.status = 'ongoing'
+
+            INNER JOIN program_course_cohort_lessons l
+                ON l.cohort_id = c.id
+                AND l.status = 'published'
+
+            LEFT JOIN cohort_lesson_progress p
+                ON p.lesson_id = l.id
+                AND p.profile_id = e.profile_id
+
+            LEFT JOIN cohort_tasks_submissions s
+                ON s.lesson_id = l.id
+                AND s.profile_id = e.profile_id
+
+            WHERE e.profile_id = :profile_id
+        ";
+
+        $row = $this->programModel->rawQuery($sql, [
+            'profile_id' => $profileId
+        ])[0] ?? [];
+
+        return [
+            // user-facing wording
+            'total_courses_enrolled'  => (int) ($row['total_courses_enrolled'] ?? 0),
+            'total_courses_completed' => (int) ($row['total_courses_completed'] ?? 0),
+
+            'total_lessons'     => (int) ($row['total_lessons'] ?? 0),
+            'lessons_completed' => (int) ($row['lessons_completed'] ?? 0),
+
+            'overall_quiz_score' => $row['avg_quiz_score'] !== null
+                ? round((float) $row['avg_quiz_score'], 2)
+                : 0.0,
+
+            'assignments_submitted' => (int) ($row['assignments_submitted'] ?? 0),
+
+            'programs' => $this->getProgramsWithCourses(null, $profileId)
+        ];
     }
 }
