@@ -18,7 +18,6 @@ class CbtService
     {
         $this->exam = new Exam($pdo);
         $this->examType = new ExamType($pdo);
-        $this->questionService = new QuestionService($pdo);
         $this->quiz = new Quiz($pdo);
     }
 

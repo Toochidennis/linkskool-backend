@@ -25,10 +25,10 @@ class CohortTasksSubmissionController extends ExploreBaseController
             [...$this->getRequestData(), ...$vars],
             [
                 'assignment' => 'nullable|array|min:1',
-                'assignment.*.file_name' => 'required_if:assignment|string',
+                'assignment.*.file_name' => 'required_with:assignment|string',
                 'assignment.*.old_file_name' => 'nullable|string',
-                'assignment.*.file' => 'required_if:assignment|string',
-                'assignment.*.type' => 'required_if:assignment|string|in:pdf',
+                'assignment.*.file' => 'required_with:assignment|string',
+                'assignment.*.type' => 'required_with:assignmnt|string|in:pdf',
                 'profile_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
                 'lesson_id' => 'required|integer',
