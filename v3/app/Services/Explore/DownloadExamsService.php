@@ -27,7 +27,7 @@ class DownloadExamsService
         $tmpDir = sys_get_temp_dir() . '/exam_' . uniqid();
         mkdir("$tmpDir/images", 0777, true);
 
-        file_put_contents("$tmpDir/exam_papers.json", json_encode($data['exam_papers'], JSON_PRETTY_PRINT));
+        file_put_contents("$tmpDir/exams.json", json_encode($data['exams'], JSON_PRETTY_PRINT));
         file_put_contents("$tmpDir/questions.json", json_encode($questions, JSON_PRETTY_PRINT));
 
         // Copy images
@@ -42,7 +42,7 @@ class DownloadExamsService
         $zip = new \ZipArchive();
         $zip->open($zipPath, \ZipArchive::CREATE);
 
-        $zip->addFile("$tmpDir/exam_papers.json", 'exam_papers.json');
+        $zip->addFile("$tmpDir/exams.json", 'exams.json');
         $zip->addFile("$tmpDir/questions.json", 'questions.json');
 
         foreach (glob("$tmpDir/images/*") as $img) {
@@ -71,27 +71,28 @@ class DownloadExamsService
 
     private function formatExamsAndQuestions(int $examType): array
     {
-        $examPapers = $this->fetchExamPapers($examType);
+        $exams = $this->fetchExams($examType);
         $allQuestionIds = [];
 
-        foreach ($examPapers as $paper) {
-            $questionIds = json_decode($paper['url'], true) ?? [];
+        foreach ($exams as $exam) {
+            $questionIds = json_decode($exam['url'], true) ?? [];
             $allQuestionIds = array_merge($allQuestionIds, $questionIds);
-            $paper['question_ids'] = $questionIds;
+            $exam['question_ids'] = $questionIds;
+            unset($exam['url']);
         }
 
         $allQuestionIds = array_unique($allQuestionIds);
         $questions = $this->fetchQuestionsByIds($allQuestionIds);
 
         return [
-            'exam_papers' => $examPapers,
+            'exams' => $exams,
             'questions' => $questions
         ];
     }
 
-    private function fetchExamPapers(int $examType): array
+    private function fetchExams(int $examType): array
     {
-        $examPapers = $this->exam
+        $exams = $this->exam
             ->select([
                 'id',
                 'description',
@@ -105,7 +106,7 @@ class DownloadExamsService
             ->where('exam_type', '=', $examType)
             ->get();
 
-        return $examPapers;
+        return $exams;
     }
 
     private function fetchQuestionsByIds(array $questionIds): array

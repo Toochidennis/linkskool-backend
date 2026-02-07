@@ -28,6 +28,7 @@ class SettingsController extends ExploreBaseController
                 'amount' => 10000, //in naira
                 'discount_rate' => 0.50,
                 'free_trial_days' => 7,
+                'max_free_exams' => 3,
                 'coupon_codes' => ['WELCOME50', 'EXAM20']
             ],
         ]);
