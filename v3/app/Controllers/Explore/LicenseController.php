@@ -130,4 +130,28 @@ class LicenseController extends ExploreBaseController
             ]
         );
     }
+
+    #[Route('/license/plans/desktop', 'GET', ['api'])]
+    public function desktopPlans()
+    {
+        $plans = $this->license->getDesktopPlans();
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Plans retrieved successfully',
+            'data' => $plans,
+        ]);
+    }
+
+    #[Route('/license/plans/mobile', 'GET', ['api'])]
+    public function mobilePlans()
+    {
+        $plans = $this->license->getMobilePlans();
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Plans retrieved successfully',
+            'data' => $plans,
+        ]);
+    }
 }

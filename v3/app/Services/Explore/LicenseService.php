@@ -282,4 +282,18 @@ class LicenseService
             'expires_at' => $license['expires_at'],
         ];
     }
+
+    public function getDesktopPlans()
+    {
+        return $this->plan
+            ->where('platform', 'desktop')
+            ->get();
+    }
+
+    public function getMobilePlans()
+    {
+        return $this->plan
+            ->where('platform', 'mobile')
+            ->get();
+    }
 }
