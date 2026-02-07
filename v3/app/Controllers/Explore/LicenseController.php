@@ -87,13 +87,6 @@ class LicenseController extends ExploreBaseController
             $validated['fingerprint']
         );
 
-        if (!$response['active']) {
-            $this->respondError(
-                'Status checked failed',
-                HttpStatus::BAD_REQUEST
-            );
-        }
-
         $this->respond(
             [
                 'success' => true,
@@ -114,13 +107,6 @@ class LicenseController extends ExploreBaseController
         );
 
         $response = $this->license->checkMobileStatus((int) $validated['user_id']);
-
-        if (!$response['active']) {
-            $this->respondError(
-                'Status checked failed',
-                HttpStatus::BAD_REQUEST
-            );
-        }
 
         $this->respond(
             [

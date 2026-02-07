@@ -33,11 +33,26 @@ class LicenseService
             ];
         }
 
-        $deviceId = $this->device->insert([
-            'user_id' => $userId,
-            'fingerprint' => $fingerprint,
-            'platform' => $data['platform']
-        ]);
+        $deviceId = 0;
+
+        $existingDevice = $this->device
+            ->where('user_id', $userId)
+            ->where('fingerprint', $fingerprint)
+            ->first();
+
+        if (empty($existingDevice)) {
+            $deviceId = $this->device->insert([
+                'user_id' => $userId,
+                'fingerprint' => $fingerprint,
+                'platform' => 'desktop'
+            ]);
+        } else {
+            $deviceId = $existingDevice['id'];
+        }
+
+        if ($deviceId <= 0) {
+            throw new \RuntimeException('Error creating device');
+        }
 
         $existing = $this->license
             ->where('user_id', $userId)
@@ -311,50 +326,55 @@ class LicenseService
 
     public function getDesktopPlans()
     {
-        $row = $this->plan
+        $rows = $this->plan
             ->where('platform', 'desktop')
             ->orderBy('created_at', 'desc')
-            ->first();
+            ->get();
 
-        if (empty($row)) {
+        if (empty($rows)) {
             return [];
         }
 
-        return $this->computePrice($row);
+        return $this->computePrice($rows);
     }
 
     public function getMobilePlans()
     {
-        $row = $this->plan
+        $rows = $this->plan
             ->where('platform', 'mobile')
             ->orderBy('created_at', 'desc')
-            ->first();
+            ->get();
 
-        if (empty($row)) {
+        if (empty($rows)) {
             return [];
         }
 
-        return $this->computePrice($row);
+        return $this->computePrice($rows);
     }
 
-    private function computePrice(array $plan): array
+    private function computePrice(array $plans): array
     {
-        $price = (int) $plan['price'];
-        $discountPercent = $plan['discount_percent'] ?? null;
+        $formatted = [];
+        foreach ($plans as $p) {
+            $price = (int) $p['price'];
+            $discountPercent = $p['discount_percent'] ?? null;
 
-        if ($discountPercent !== null) {
-            $discount = ($price * $discountPercent) / 100;
-            $price -= (int) $discount;
+            if ($discountPercent !== null) {
+                $discount = ($price * $discountPercent) / 100;
+                $price -= (int) $discount;
+            }
+
+            $formatted[] = [
+                'id' => $p['id'],
+                'name' => $p['name'],
+                'discount_percent' => $p['discount_percent'],
+                'price' => $p['price'],
+                'final_price' => $price,
+                'free_trial_days' => $p['free_trial_days'],
+                'currency' => 'NGN',
+                'features' => $p['features'] ? json_decode($p['features'], true) : [],
+            ];
         }
-
-        return [
-            'id' => $plan['id'],
-            'name' => $plan['name'],
-            'discount_percent' => $plan['discount_percent'],
-            'price' => $plan['price'],
-            'final_price' => $price,
-            'currency' => 'NGN',
-            'features' => $plan['features'] ? json_decode($plan['features'], true) : [],
-        ];
+        return $formatted;
     }
 }
