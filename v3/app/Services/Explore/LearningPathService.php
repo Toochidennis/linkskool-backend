@@ -295,7 +295,7 @@ class LearningPathService
             ],
 
             'submission' => $row['assignment'] !== null ? [
-                'assignment' => json_decode($row['assignment'], true)['file_name'],
+                'assignment' => json_decode($row['assignment'], true)[0]['file_name'],
                 'quiz_score' => $row['quiz_score'] !== null
                     ? (int) $row['quiz_score']
                     : null,

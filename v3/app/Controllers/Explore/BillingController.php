@@ -4,7 +4,6 @@ namespace V3\App\Controllers\Explore;
 
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
-use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\BillingService;
 
 #[Group('/public/cbt')]
@@ -25,22 +24,17 @@ class BillingController extends ExploreBaseController
             $this->getRequestData(),
             [
                 'user_id' => 'required|integer',
+                'plan_id' => 'required|integer',
                 'method' => 'required|string|in:online,voucher',
                 'platform' => 'required|string|in:mobile,desktop',
                 'first_name' => 'required|string',
                 'last_name' => 'required|string',
                 'voucher_code' => 'required_if:method,voucher|string',
+                'reference' => 'required_if:method,online|string',
             ]
         );
 
-        $res =  $this->service->verifyPaymentOnline($validated);
-
-        if (!$res['status'] !== 'failed') {
-            $this->respondError(
-                $res['message'],
-                HttpStatus::BAD_REQUEST
-            );
-        }
+        $res =  $this->service->verify($validated);
 
         $this->respond([
             'success' => true,

@@ -2,7 +2,6 @@
 
 namespace V3\App\Services\Explore;
 
-use RuntimeException;
 use V3\App\Models\Explore\Payment;
 use V3\App\Models\Explore\Voucher;
 use V3\App\Services\Paystack\PaystackService;
@@ -21,7 +20,21 @@ class BillingService
         $this->plan = new Plan($pdo);
     }
 
-    public function verifyPaymentOnline(array $data)
+    public function verify(array $data)
+    {
+        if ($data['method'] === 'online') {
+            return $this->verifyPaymentOnline($data);
+        } elseif ($data['method'] === 'voucher') {
+            return $this->redeemVoucher($data);
+        } else {
+            return [
+                'status' => 'failed',
+                'message' => 'Invalid payment method',
+            ];
+        }
+    }
+
+    private function verifyPaymentOnline(array $data)
     {
         $paystack = new PaystackService();
         $verification = $paystack->verify($data['reference']);
@@ -33,7 +46,7 @@ class BillingService
             ];
         }
 
-        $expected = $this->computePrice($data['platform']);
+        $expected = $this->computePrice($data['plan_id']);
         $amountPaid =  $verification['amount'] * 100; // convert to kobo
 
         if ($amountPaid !== $expected) {
@@ -53,6 +66,7 @@ class BillingService
         $paymentId = $this->payment->insert([
             'user_id' => $data['user_id'],
             'amount' => $amountPaid,
+            'plan_id' => $data['plan_id'],
             'reference' => $data['reference'],
             'status' => 'paid',
             'message' => 'Payment verified successfully',
@@ -66,6 +80,7 @@ class BillingService
             return [
                 'status' => 'paid',
                 'message' => 'Payment verified successfully',
+                'salt' => bin2hex(random_bytes(16)) // generate a random salt for license generation
             ];
         }
 
@@ -75,23 +90,30 @@ class BillingService
         ];
     }
 
-    public function redeemVoucher(array $data)
+    private function redeemVoucher(array $data)
     {
         $existing = $this->voucher
             ->where('code', $data['voucher_code'])
             ->first();
 
         if (empty($existing)) {
-            throw new RuntimeException('Invalid voucher code');
+            return [
+                'status' => 'failed',
+                'message' => 'Invalid voucher code',
+            ];
         }
 
         if ($existing['redeemed']) {
-            throw new RuntimeException('Voucher already used');
+            return [
+                'status' => 'failed',
+                'message' => 'Voucher code already redeemed',
+            ];
         }
 
         $paymentId = $this->payment->insert([
             'user_id' => $data['user_id'],
             'amount' => 0,
+            'plan_id' => $data['plan_id'],
             'reference' => 'voucher-' . $data['voucher_code'],
             'status' => 'paid',
             'message' => 'Voucher redeemed',
@@ -113,6 +135,7 @@ class BillingService
             return [
                 'status' => 'paid',
                 'message' => 'Voucher redeemed',
+                'salt' => bin2hex(random_bytes(16))
             ];
         }
 
@@ -141,10 +164,10 @@ class BillingService
             ->first();
     }
 
-    private function computePrice(string $platform): int
+    private function computePrice(int $planId): int
     {
         $row = $this->plan
-            ->where('platform', $platform)
+            ->where('id', $planId)
             ->orderBy('created_at', 'desc')
             ->first();
 
