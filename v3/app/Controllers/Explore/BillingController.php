@@ -29,7 +29,6 @@ class BillingController extends ExploreBaseController
                 'platform' => 'required|string|in:mobile,desktop',
                 'first_name' => 'required|string',
                 'last_name' => 'required|string',
-                'amount'     => 'required_if:method,online|numeric|min:1',
                 'voucher_code' => 'required_if:method,voucher|string',
             ]
         );

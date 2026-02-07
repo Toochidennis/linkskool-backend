@@ -6,16 +6,19 @@ use RuntimeException;
 use V3\App\Models\Explore\Payment;
 use V3\App\Models\Explore\Voucher;
 use V3\App\Services\Paystack\PaystackService;
+use V3\App\Models\Explore\Plan;
 
 class BillingService
 {
     private Payment $payment;
     private Voucher $voucher;
+    private Plan $plan;
 
     public function __construct(\PDO $pdo)
     {
         $this->payment = new Payment($pdo);
         $this->voucher = new Voucher($pdo);
+        $this->plan = new Plan($pdo);
     }
 
     public function verifyPaymentOnline(array $data)
@@ -30,8 +33,8 @@ class BillingService
             ];
         }
 
-        $expected = (int) $data['amount'];
-        $amountPaid =  $verification['amount'];
+        $expected = $this->computePrice($data['platform']) * 100; // convert to kobo
+        $amountPaid =  $verification['amount'] * 100; // convert to kobo
 
         if ($amountPaid !== $expected) {
             return [
@@ -49,7 +52,7 @@ class BillingService
 
         $paymentId = $this->payment->insert([
             'user_id' => $data['user_id'],
-            'amount' => $data['amount'],
+            'amount' => $amountPaid,
             'reference' => $data['reference'],
             'status' => 'paid',
             'message' => 'Payment verified successfully',
@@ -136,5 +139,23 @@ class BillingService
             ->where('platform', $platform)
             ->orderBy('created_at', 'desc')
             ->first();
+    }
+
+    private function computePrice(string $platform): int
+    {
+        $row = $this->plan
+            ->where('platform', $platform)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        $amount = (int) $row['amount'];
+        $discountPercent = $row['discount_percent'] ?? null;
+
+        if ($discountPercent !== null) {
+            $discount = ($amount * $discountPercent) / 100;
+            $amount -= (int) $discount;
+        }
+
+        return $amount;
     }
 }
