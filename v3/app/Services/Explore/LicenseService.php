@@ -285,15 +285,49 @@ class LicenseService
 
     public function getDesktopPlans()
     {
-        return $this->plan
+        $row = $this->plan
             ->where('platform', 'desktop')
-            ->get();
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (empty($row)) {
+            return [];
+        }
+
+        return $this->computePrice($row);
     }
 
     public function getMobilePlans()
     {
-        return $this->plan
+        $row = $this->plan
             ->where('platform', 'mobile')
-            ->get();
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (empty($row)) {
+            return [];
+        }
+
+        return $this->computePrice($row);
+    }
+
+    private function computePrice(array $plan): array
+    {
+        $amount = (int) $plan['amount'];
+        $discountPercent = $plan['discount_percent'] ?? null;
+
+        if ($discountPercent !== null) {
+            $discount = ($amount * $discountPercent) / 100;
+            $amount -= (int) $discount;
+        }
+
+        return [
+            'id' => $plan['id'],
+            'name' => $plan['name'],
+            'discount_percent' => $plan['discount_percent'],
+            'price' => $plan['price'],
+            'final_price' => $amount,
+            'currency' => 'NGN',
+        ];
     }
 }
