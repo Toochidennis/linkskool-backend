@@ -5,7 +5,6 @@ namespace V3\App\Controllers\Explore;
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
-use V3\App\Common\Utilities\ResponseHandler;
 use V3\App\Services\Explore\CbtService;
 
 #[Group("/public/cbt")]
@@ -39,11 +38,22 @@ class CbtController extends ExploreBaseController
     #[Route('/exams/{examTypeId:\d+}/courses', 'GET', ['api'])]
     public function getCoursesByExamType(array $vars)
     {
-        // You’ll later add logic to fetch specific courses for a given examTypeId
-        ResponseHandler::sendJsonResponse([
+        $validated = $this->validate($vars, [
+            'examTypeId' => 'required|integer|min:1'
+        ]);
+
+        $courses = $this->cbtService->getCourseWithYears((int)$validated['examTypeId']);
+
+        if (empty($courses)) {
+            $this->respondError(
+                'No courses found for the specified exam type.',
+                HttpStatus::NOT_FOUND
+            );
+        }
+
+        $this->respond([
             'success' => true,
-            'message' => 'Coming soon: fetch courses by exam type',
-            'params'  => $vars
+            'data' => $courses
         ]);
     }
 
