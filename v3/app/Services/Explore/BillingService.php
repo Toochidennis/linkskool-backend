@@ -33,7 +33,7 @@ class BillingService
             ];
         }
 
-        $expected = $this->computePrice($data['platform']) * 100; // convert to kobo
+        $expected = $this->computePrice($data['platform']);
         $amountPaid =  $verification['amount'] * 100; // convert to kobo
 
         if ($amountPaid !== $expected) {
@@ -148,14 +148,14 @@ class BillingService
             ->orderBy('created_at', 'desc')
             ->first();
 
-        $amount = (int) $row['amount'];
+        $price = (int) $row['price'];
         $discountPercent = $row['discount_percent'] ?? null;
 
         if ($discountPercent !== null) {
-            $discount = ($amount * $discountPercent) / 100;
-            $amount -= (int) $discount;
+            $discount = ($price * $discountPercent) / 100;
+            $price -= (int) $discount;
         }
 
-        return $amount;
+        return $price * 100; // convert to kobo
     }
 }

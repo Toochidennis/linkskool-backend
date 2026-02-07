@@ -54,6 +54,19 @@ class LicenseService
             ];
         }
 
+        if ($existing && $this->isExpired($existing['expires_at'])) {
+            $this->license
+                ->where('id', $existing['id'])
+                ->update([
+                    'status' => 'expired',
+                ]);
+
+            return [
+                'status' => 'expired',
+                'message' => 'Previous license expired, please reactivate',
+            ];
+        }
+
         $plan = $this->plan->where('platform', 'desktop')->first();
         $activeCount = $this->license
             ->where('user_id', $userId)
@@ -93,7 +106,7 @@ class LicenseService
                 'device_bound' => true,
             ],
             'policy' => [
-                'revalidate_after' => 86400,
+                'revalidate_after_days' => 2,
                 'offline_allowed'  => true,
             ],
             'message' => 'Device activated successfully',
@@ -133,6 +146,19 @@ class LicenseService
             ];
         }
 
+        if ($existing && $this->isExpired($existing['expires_at'])) {
+            $this->license
+                ->where('id', $existing['id'])
+                ->update([
+                    'status' => 'expired',
+                ]);
+
+            return [
+                'status' => 'expired',
+                'message' => 'Previous license expired, please reactivate',
+            ];
+        }
+
         $plan = $this->plan->where('platform', 'mobile')->first();
         $activeCount = $this->license
             ->where('user_id', $userId)
@@ -161,18 +187,18 @@ class LicenseService
         ]);
 
         return [
-            'active' => 'activated',
+            'status' => 'activated',
             'license' => [
                 'license_id' => $licenseId,
-                'type' => 'desktop',
+                'type' => 'mobile',
                 'expires_at' => $expiresAt,
                 'issued_at' => date('Y-m-d H:i:s'),
                 'status' => 'active',
                 'device_bound' => false,
             ],
             'policy' => [
-                'revalidate_after' => 86400,
-                'offline_allowed'  => true,
+                'revalidate_after_days' => 2,
+                'offline_allowed'  => false,
             ],
             'message' => 'Device activated successfully',
         ];
@@ -313,12 +339,12 @@ class LicenseService
 
     private function computePrice(array $plan): array
     {
-        $amount = (int) $plan['amount'];
+        $price = (int) $plan['price'];
         $discountPercent = $plan['discount_percent'] ?? null;
 
         if ($discountPercent !== null) {
-            $discount = ($amount * $discountPercent) / 100;
-            $amount -= (int) $discount;
+            $discount = ($price * $discountPercent) / 100;
+            $price -= (int) $discount;
         }
 
         return [
@@ -326,8 +352,9 @@ class LicenseService
             'name' => $plan['name'],
             'discount_percent' => $plan['discount_percent'],
             'price' => $plan['price'],
-            'final_price' => $amount,
+            'final_price' => $price,
             'currency' => 'NGN',
+            'features' => $plan['features'] ? json_decode($plan['features'], true) : [],
         ];
     }
 }
