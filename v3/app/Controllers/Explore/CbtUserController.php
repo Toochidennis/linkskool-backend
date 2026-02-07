@@ -194,33 +194,6 @@ class CbtUserController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id:\d+}/payment-status', 'PUT', ['api'])]
-    public function updatePaymentStatus(array $vars)
-    {
-        $data = $this->validate(
-            [...$this->getRequestData(), ...$vars],
-            [
-                'id' => 'required|integer|min:1',
-                'name' => 'required|string|max:255',
-                'reference' => 'required|string|max:100',
-            ]
-        );
-
-        $isUpdated = $this->userService->updatePaymentStatus($data);
-
-        if (!$isUpdated) {
-            $this->respondError(
-                'Failed to update payment status',
-                HttpStatus::BAD_REQUEST
-            );
-        }
-
-        $this->respond([
-            'success' => true,
-            'message' => 'Payment status updated successfully',
-        ]);
-    }
-
     #[Route('/{email}', 'GET', ['api'])]
     public function getUserByEmail(array $vars)
     {
