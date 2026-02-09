@@ -46,6 +46,12 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
                 'author_id' => 'required|integer',
                 'lesson_date' => 'required|date',
                 'status' => 'required|string|in:draft,published,archived',
+                'zoom_info' => 'nullable|array',
+                'zoom_info.url' => 'required_with:zoom_info|string',
+                'zoom_info.meeting_id' => 'required_with:zoom_info|string',
+                'zoom_info.passcode' => 'required_with:zoom_info|string',
+                'zoom_info.start_time' => 'required_with:zoom_info|date',
+                'zoom_info.end_time' => 'required_with:zoom_info|date',
 
                 //Files
                 'certificate' => 'nullable|array',
@@ -112,6 +118,12 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
                 'author_id' => 'required|integer',
                 'lesson_date' => 'required|date',
                 'status' => 'required|string|in:draft,published,archived',
+                'zoom_info' => 'nullable|array',
+                'zoom_info.url' => 'required_with:zoom_info|string',
+                'zoom_info.meeting_id' => 'required_with:zoom_info|string',
+                'zoom_info.passcode' => 'required_with:zoom_info|string',
+                'zoom_info.start_time' => 'required_with:zoom_info|date',
+                'zoom_info.end_time' => 'required_with:zoom_info|date',
 
                 //Files
                 'certificate' => 'nullable|array',

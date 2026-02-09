@@ -31,10 +31,10 @@ class AuthBootstrapService
         $this->pdo->beginTransaction();
 
         try {
-            // 1. Identity
+            // Identity
             $user = $this->cbtUserService->findOrCreateUserByEmail($googleData);
 
-            // 2. Update phone on identity if missing
+            // Update phone on identity if missing
             if ($phone && empty($user['phone'])) {
                 $this->cbtUserService->updateUser($user['id'], [
                     'phone' => $phone
@@ -229,7 +229,7 @@ class AuthBootstrapService
     {
         $user = $this->cbtUserService->getUserByEmail($email);
 
-        if (empty($user) || !password_verify($password, $user['password'])) {
+        if (empty($user) || !password_verify($password ?? '', $user['password'])) {
             throw new \RuntimeException('Invalid credentials.');
         }
 
