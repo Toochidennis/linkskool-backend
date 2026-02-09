@@ -114,7 +114,8 @@ class LicenseService
             'status' => 'activated',
             'license' => [
                 'license_id' => $licenseId,
-                'type' => 'desktop',
+                'platform' => 'desktop',
+                'type' => 'payment',
                 'expires_at' => $expiresAt,
                 'issued_at' => date('Y-m-d H:i:s'),
                 'status' => 'active',
@@ -178,7 +179,7 @@ class LicenseService
         $activeCount = $this->license
             ->where('user_id', $userId)
             ->where('status', 'active')
-            ->where('type', 'mobile')
+            ->where('platform', 'mobile')
             ->where('revoked_at', null)
             ->count();
 
@@ -195,7 +196,7 @@ class LicenseService
 
         $licenseId = $this->license->insert([
             'user_id' => $userId,
-            'type' => 'mobile',
+            'platform' => 'mobile',
             'payment_id' => $payment['id'],
             'expires_at' => $expiresAt,
             'status' => 'active',
@@ -205,7 +206,8 @@ class LicenseService
             'status' => 'activated',
             'license' => [
                 'license_id' => $licenseId,
-                'type' => 'mobile',
+                'platform' => 'mobile',
+                'type' => 'payment',
                 'expires_at' => $expiresAt,
                 'issued_at' => date('Y-m-d H:i:s'),
                 'status' => 'active',
@@ -216,6 +218,68 @@ class LicenseService
                 'offline_allowed'  => false,
             ],
             'message' => 'Device activated successfully',
+        ];
+    }
+
+    public function startTrial(int $userId, string $platform): array
+    {
+        $existingTrial = $this->license
+            ->where('user_id', $userId)
+            ->where('type', 'trial')
+            ->where('platform', $platform)
+            ->first();
+
+        if ($existingTrial) {
+            if ($this->isExpired($existingTrial['expires_at'])) {
+                return [
+                    'status' => 'expired',
+                    'message' => 'Trial has expired',
+                    'expires_at' => $existingTrial['expires_at'],
+                ];
+            }
+
+            return [
+                'status' => 'active',
+                'message' => 'Trial already active',
+                'expires_at' => $existingTrial['expires_at'],
+            ];
+        }
+
+        $plan = $this->plan
+            ->where('platform', $platform)
+            ->first();
+
+        if (!$plan || empty($plan['free_trial_days'])) {
+            return [
+                'status' => 'not_available',
+                'message' => 'No trial available for this platform',
+            ];
+        }
+
+        $expiresAt = date(
+            'Y-m-d H:i:s',
+            strtotime('+' . (int) $plan['free_trial_days'] . ' days')
+        );
+
+        $this->license->insert([
+            'user_id' => $userId,
+            'type' => 'trial',
+            'platform' => $platform,
+            'payment_id' => null,
+            'expires_at' => $expiresAt,
+            'status' => 'active',
+        ]);
+
+        return [
+            'status' => 'started_trial',
+            'message' => 'Trial started',
+            'license' => [
+                'type' => 'trial',
+                'platform' => $platform,
+                'expires_at' => $expiresAt,
+                'issued_at' => date('Y-m-d H:i:s'),
+                'status' => 'active',
+            ],
         ];
     }
 
@@ -264,41 +328,59 @@ class LicenseService
             ->where('fingerprint', $fingerprint)
             ->first();
 
-        if (!$device) {
+        if ($device) {
+            $license = $this->license
+                ->where('user_id', $userId)
+                ->where('device_id', $device['id'])
+                ->where('platform', 'desktop')
+                ->where('status', 'active')
+                ->where('revoked_at', null)
+                ->first();
+
+            if (!$license) {
+                return [
+                    'active' => false,
+                    'reason' => 'no_license_for_device',
+                ];
+            }
+
+            if ($this->isExpired($license['expires_at'])) {
+                return [
+                    'active' => false,
+                    'reason' => 'expired',
+                    'expires_at' => $license['expires_at'],
+                ];
+            }
+
             return [
-                'active' => false,
-                'reason' => 'device_not_registered',
+                'active' => true,
+                'license_id' => (int) $license['id'],
+                'expires_at' => $license['expires_at'],
+                'device_bound' => true,
+                'source' => $license['type'],
             ];
         }
 
-        $license = $this->license
+        $trial = $this->license
             ->where('user_id', $userId)
-            ->where('device_id', $device['id'])
-            ->where('type', 'desktop')
+            ->where('type', 'trial')
+            ->where('platform', 'desktop')
             ->where('status', 'active')
-            ->where('revoked_at', null)
             ->first();
 
-        if (!$license) {
+        if ($trial && !$this->isExpired($trial['expires_at'])) {
             return [
-                'active' => false,
-                'reason' => 'no_license_for_device',
-            ];
-        }
-
-        if ($this->isExpired($license['expires_at'])) {
-            return [
-                'active' => false,
-                'reason' => 'expired',
-                'expires_at' => $license['expires_at'],
+                'active' => true,
+                'source' => $trial['type'],
+                'device_bound' => false,
+                'license_id' => (int) $trial['id'],
+                'expires_at' => $trial['expires_at'],
             ];
         }
 
         return [
-            'active' => true,
-            'license_id' => (int) $license['id'],
-            'expires_at' => $license['expires_at'],
-            'device_bound' => true,
+            'active' => false,
+            'reason' => 'no_valid_license',
         ];
     }
 
@@ -306,21 +388,39 @@ class LicenseService
     {
         $license = $this->license
             ->where('user_id', $userId)
-            ->where('type', 'mobile')
+            ->where('platform', 'mobile')
             ->where('status', 'active')
             ->where('revoked_at', null)
             ->first();
 
-        if (!$license || $this->isExpired($license['expires_at'])) {
+        if ($license || $this->isExpired($license['expires_at'])) {
             return [
-                'active' => false,
+                'active' => true,
+                'license_id' => (int) $license['id'],
+                'expires_at' => $license['expires_at'],
+                'source' => $license['type'],
+            ];
+        }
+
+        $trial = $this->license
+            ->where('user_id', $userId)
+            ->where('type', 'trial')
+            ->where('platform', 'mobile')
+            ->where('status', 'active')
+            ->first();
+
+        if ($trial && !$this->isExpired($trial['expires_at'])) {
+            return [
+                'active' => true,
+                'source' => $trial['type'],
+                'license_id' => (int) $trial['id'],
+                'expires_at' => $trial['expires_at'],
             ];
         }
 
         return [
-            'active' => true,
-            'license_id' => (int) $license['id'],
-            'expires_at' => $license['expires_at'],
+            'active' => false,
+            'reason' => 'no_valid_license',
         ];
     }
 

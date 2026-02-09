@@ -140,4 +140,34 @@ class LicenseController extends ExploreBaseController
             'data' => $plans,
         ]);
     }
+
+    #[Route('/license/trial/start', 'POST', ['api'])]
+    public function startTrial()
+    {
+        $validated =  $this->validate(
+            $this->getRequestData(),
+            [
+                'user_id' => 'required|integer',
+                'platform' => 'required|string|in:desktop,mobile',
+            ]
+        );
+
+        $response = $this->license->startTrial(
+            $validated['user_id'],
+            $validated['platform']
+        );
+
+        if (!$response) {
+            $this->respondError(
+                'Failed to start trial',
+                HttpStatus::BAD_REQUEST,
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Trial started successfully',
+            'data' => $response,
+        ]);
+    }
 }
