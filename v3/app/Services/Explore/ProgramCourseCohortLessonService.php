@@ -35,7 +35,7 @@ class ProgramCourseCohortLessonService
                 'goals' => $data['goals'] ?? null,
                 'objectives' => $data['objectives'] ?? null,
                 'recorded_video_url' => $data['recorded_video_url'] ?? null,
-                'video_url' => $data['video_url'],
+                'video_url' => $data['video_url'] ?? null,
                 'zoom_info' => json_encode($data['zoom_info'] ?? []),
                 'display_order' => $data['display_order'],
                 'write_up_content' => $data['write_up_content'] ?? null,
@@ -89,7 +89,7 @@ class ProgramCourseCohortLessonService
                 'goals' => $data['goals'] ?? null,
                 'objectives' => $data['objectives'] ?? null,
                 'recorded_video_url' => $data['recorded_video_url'] ?? null,
-                'video_url' => $data['video_url'],
+                'video_url' => $data['video_url'] ?? null,
                 'zoom_info' => json_encode($data['zoom_info'] ?? []),
                 'display_order' => $data['display_order'],
                 'write_up_content' => $data['write_up_content'] ?? null,
@@ -239,6 +239,7 @@ class ProgramCourseCohortLessonService
 
         return array_map(function ($row) {
             $row['has_quiz'] = (bool) $row['has_quiz'];
+            $row['zoom_info'] = !empty($row['zoom_info']) ? json_decode($row['zoom_info'], true) : null;
             return $row;
         }, $rows);
     }
