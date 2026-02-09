@@ -58,7 +58,7 @@ class LicenseService
             ->where('user_id', $userId)
             ->where('device_id', $deviceId)
             ->where('status', 'active')
-            ->where('type', 'desktop')
+            ->where('platform', 'desktop')
             ->where('revoked_at', null)
             ->first();
 
@@ -86,7 +86,7 @@ class LicenseService
         $activeCount = $this->license
             ->where('user_id', $userId)
             ->where('status', 'active')
-            ->where('type', 'desktop')
+            ->where('platform', 'desktop')
             ->where('revoked_at', null)
             ->count();
 
@@ -104,7 +104,8 @@ class LicenseService
         $licenseId = $this->license->insert([
             'user_id' => $userId,
             'device_id' => $deviceId,
-            'type' => 'desktop',
+            'platform' => 'desktop',
+            'type' => 'payment',
             'payment_id' => $payment['id'],
             'expires_at' => $expiresAt,
             'status' => 'active',
@@ -151,7 +152,7 @@ class LicenseService
             ->where('user_id', $userId)
             // ->where('device_id', $deviceId)
             ->where('status', 'active')
-            ->where('type', 'mobile')
+            ->where('platform', 'mobile')
             ->where('revoked_at', null)
             ->first();
 
@@ -197,6 +198,7 @@ class LicenseService
         $licenseId = $this->license->insert([
             'user_id' => $userId,
             'platform' => 'mobile',
+            'type' => 'payment',
             'payment_id' => $payment['id'],
             'expires_at' => $expiresAt,
             'status' => 'active',

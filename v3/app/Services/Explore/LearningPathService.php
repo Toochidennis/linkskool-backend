@@ -292,6 +292,9 @@ class LearningPathService
                 'lesson_date' => $row['lesson_date'],
                 'assignment_due_date' => $row['assignment_due_date'],
                 'has_quiz' => (bool) $row['has_quiz'],
+                'live_session_info' => !empty($row['zoom_info'])
+                    ? json_decode($row['zoom_info'], true)
+                    : null
             ],
 
             'submission' => $row['assignment'] !== null ? [
