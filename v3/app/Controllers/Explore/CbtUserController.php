@@ -48,6 +48,86 @@ class CbtUserController extends ExploreBaseController
         ]);
     }
 
+    #[Route('/google', 'POST', ['api'])]
+    public function bootstrapWithGoogleToken()
+    {
+        $data = $this->validate($this->getRequestData(), [
+            'google_token' => 'required|string',
+        ]);
+
+        $response = $this->authBootstrapService->bootstrapWithGoogleToken($data['google_token']);
+
+        if (empty($response)) {
+            $this->respondError(
+                'Failed to authenticate with Google.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Authenticated with Google',
+            'data' => $response
+        ]);
+    }
+
+    #[Route('/signup', 'POST', ['api'])]
+    public function signupWithEmail()
+    {
+        $data = $this->validate($this->getRequestData(), [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string',
+            'email' => 'required|email|max:255',
+            'password' => 'required|string|min:8',
+            'profile_picture' => 'nullable|string|max:255',
+            'gender' => 'required|string|in:male,female,other',
+            'birth_date' => 'required|date',
+            'phone' => 'required|string',
+        ]);
+
+        $user = $this->authBootstrapService->signupWithEmail($data);
+
+        if (empty($user)) {
+            $this->respondError(
+                'Failed to create user.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'User created successfully',
+            'data' => $user
+        ]);
+    }
+
+    #[Route('/login', 'POST', ['api'])]
+    public function login()
+    {
+        $data = $this->validate($this->getRequestData(), [
+            'email' => 'required|email|max:255',
+            'password' => 'required|string|min:8',
+        ]);
+
+        $user = $this->authBootstrapService->loginWithEmailAndPassword($data['email'], $data['password']);
+
+        if (empty($user)) {
+            $this->respondError(
+                'Invalid credentials.',
+                HttpStatus::UNAUTHORIZED
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Login successful',
+            'data' => $user
+        ]);
+
+
+        return $user;
+    }
+
     #[Route('/{id:\d+}/phone', 'PUT', ['api'])]
     public function updatePhone(array $vars)
     {
@@ -55,10 +135,10 @@ class CbtUserController extends ExploreBaseController
             [...$this->getRequestData(), ...$vars],
             [
                 'id' => 'required|integer|min:1',
-                'first_name' => 'required|string|max:255',
-                'last_name' => 'required|string',
+                'first_name' => 'nullable|string|max:255',
+                'last_name' => 'nullable|string',
                 'email' => 'required|email',
-                'phone' => 'required|string|max:11',
+                'phone' => 'required|string|max:15',
                 'birth_date' => 'required|date',
                 'gender' => 'required|string|in:male,female,other',
                 'profile_picture' => 'nullable|string|max:255',
@@ -114,33 +194,6 @@ class CbtUserController extends ExploreBaseController
         );
     }
 
-    #[Route('/{id:\d+}/payment-status', 'PUT', ['api'])]
-    public function updatePaymentStatus(array $vars)
-    {
-        $data = $this->validate(
-            [...$this->getRequestData(), ...$vars],
-            [
-                'id' => 'required|integer|min:1',
-                'name' => 'required|string|max:255',
-                'reference' => 'required|string|max:100',
-            ]
-        );
-
-        $isUpdated = $this->userService->updatePaymentStatus($data);
-
-        if (!$isUpdated) {
-            $this->respondError(
-                'Failed to update payment status',
-                HttpStatus::BAD_REQUEST
-            );
-        }
-
-        $this->respond([
-            'success' => true,
-            'message' => 'Payment status updated successfully',
-        ]);
-    }
-
     #[Route('/{email}', 'GET', ['api'])]
     public function getUserByEmail(array $vars)
     {
@@ -161,5 +214,60 @@ class CbtUserController extends ExploreBaseController
             'success' => true,
             'data' => $user
         ]);
+    }
+
+    #[Route('/{user_id}/profiles', 'GET', ['api'])]
+    public function getProfilesByUserId(array $vars): void
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'user_id' => 'required|integer',
+            ],
+        );
+
+        $profiles = $this->authBootstrapService->getProfilesByUserId($validated['user_id']);
+
+        $this->respond(
+            [
+                'status' => true,
+                'data' => $profiles,
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/{user_id}/profiles', 'POST', ['api'])]
+    public function createProfile(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'user_id' => 'required|integer',
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+                'birth_date' => 'required|date',
+                'gender' => 'required|string|in:male,female,other',
+                'certificate_name' => 'nullable|string',
+            ],
+        );
+
+        $profiles = $this->authBootstrapService->createProfile($validated);
+
+        if (empty($profiles)) {
+            $this->respondError(
+                'Profile creation failed.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'status' => true,
+                'message' => 'Cohort enrollment profile created successfully.',
+                'data' => $profiles
+            ],
+            HttpStatus::CREATED
+        );
     }
 }

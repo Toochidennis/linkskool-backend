@@ -35,7 +35,8 @@ class ProgramCourseCohortLessonService
                 'goals' => $data['goals'] ?? null,
                 'objectives' => $data['objectives'] ?? null,
                 'recorded_video_url' => $data['recorded_video_url'] ?? null,
-                'video_url' => $data['video_url'],
+                'video_url' => $data['video_url'] ?? null,
+                'zoom_info' => json_encode($data['zoom_info'] ?? []),
                 'display_order' => $data['display_order'],
                 'write_up_content' => $data['write_up_content'] ?? null,
                 'assignment_instructions' => $data['assignment_instructions'] ?? null,
@@ -44,6 +45,7 @@ class ProgramCourseCohortLessonService
                 'author_name' => $data['author_name'],
                 'author_id' => $data['author_id'],
                 'lesson_date' => $data['lesson_date'],
+                'status' => $data['status'] ?? 'draft',
             ];
 
             if ($data['is_final_lesson'] && !isset($_FILES['certificate'])) {
@@ -87,13 +89,15 @@ class ProgramCourseCohortLessonService
                 'goals' => $data['goals'] ?? null,
                 'objectives' => $data['objectives'] ?? null,
                 'recorded_video_url' => $data['recorded_video_url'] ?? null,
-                'video_url' => $data['video_url'],
+                'video_url' => $data['video_url'] ?? null,
+                'zoom_info' => json_encode($data['zoom_info'] ?? []),
                 'display_order' => $data['display_order'],
                 'write_up_content' => $data['write_up_content'] ?? null,
                 'assignment_instructions' => $data['assignment_instructions'] ?? null,
                 'assignment_due_date' => $data['assignment_due_date'] ?? null,
                 'is_final_lesson' => $data['is_final_lesson'] ?? false,
                 'lesson_date' => $data['lesson_date'],
+                'status' => $data['status'] ?? 'draft',
             ];
 
             if ($data['is_final_lesson'] && !isset($_FILES['certificate'])) {
@@ -124,6 +128,13 @@ class ProgramCourseCohortLessonService
             $this->pdo->rollBack();
             throw $e;
         }
+    }
+
+    public function updateStatus(int $lessonId, string $status)
+    {
+        return $this->cohortLesson
+            ->where('id', $lessonId)
+            ->update(['status' => $status]);
     }
 
     private function processNewFiles($isUpdate = false): array
@@ -228,6 +239,7 @@ class ProgramCourseCohortLessonService
 
         return array_map(function ($row) {
             $row['has_quiz'] = (bool) $row['has_quiz'];
+            $row['zoom_info'] = !empty($row['zoom_info']) ? json_decode($row['zoom_info'], true) : null;
             return $row;
         }, $rows);
     }

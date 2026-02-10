@@ -10,27 +10,24 @@ class Logger
 
     public static function init(): void
     {
-        // Exception handler – catches every uncaught throwable
-        set_exception_handler(function ($e) {
-            self::write($e); // log full details for you
+        set_exception_handler(function (\Throwable $e) {
+            self::write($e);
 
-            $isSQL = $e instanceof PDOException;
-            $isUserErr = self::isUserError($e);
+            $isSQL  = $e instanceof PDOException;
+            $isSafe = self::isSafeException($e);
 
-            $status = $isSQL || !$isUserErr ? 500 : 400;
-            $msg = $isSQL || !$isUserErr
-                ? 'Something went wrong. Please try again later.'
-                : $e->getMessage();
-
-            http_response_code($status);
+            http_response_code($isSQL ? 500 : ($isSafe ? 400 : 500));
             header('Content-Type: application/json');
+
             echo json_encode([
                 'success' => false,
-                'message' => $msg
+                'message' => ($isSafe && !$isSQL)
+                    ? $e->getMessage()
+                    : 'Something went wrong. Please try again later.'
             ]);
+
             exit;
         });
-
         // Non-fatal PHP errors (warnings, notices, etc.)
         set_error_handler(function ($errno, $errstr, $errfile, $errline) {
             $message = self::buildMessage(
@@ -102,5 +99,13 @@ class Logger
 
         return "[$timestamp] $type: $message in $file on line $line\n" .
             "Request: $method $uri?$query from $ip\n\n";
+    }
+
+    private static function isSafeException(\Throwable $e): bool
+    {
+        return $e instanceof \RuntimeException
+            || $e instanceof \InvalidArgumentException
+            || $e instanceof \DomainException
+            || $e instanceof \LogicException;
     }
 }

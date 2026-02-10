@@ -18,17 +18,17 @@ class CohortTasksSubmissionController extends ExploreBaseController
         $this->submissionService = new CohortTasksSubmissionService($this->pdo);
     }
 
-    #[Route('lessons/{lesson_id}/assignments', 'POST', middleware: ['api'])]
+    #[Route('/lessons/{lesson_id}/assignments', 'POST', middleware: ['api'])]
     public function submitProject(array $vars): void
     {
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'assignment' => 'required|array|min:1',
-                'assignment.*.file_name' => 'required|string',
+                'assignment' => 'nullable|array|min:1',
+                'assignment.*.file_name' => 'required_with:assignment|string',
                 'assignment.*.old_file_name' => 'nullable|string',
-                'assignment.*.file' => 'required|string',
-                'assignment.*.type' => 'required|string|in:pdf',
+                'assignment.*.file' => 'required_with:assignment|string',
+                'assignment.*.type' => 'required_with:assignment|string|in:pdf',
                 'profile_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
                 'lesson_id' => 'required|integer',

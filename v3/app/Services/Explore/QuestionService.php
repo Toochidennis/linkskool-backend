@@ -80,7 +80,7 @@ class QuestionService
             return [];
         }
 
-        return array_map($this->formatQuestion(...), $questions);
+        return array_map([$this, 'formatQuestion'], $questions);
     }
 
     /**

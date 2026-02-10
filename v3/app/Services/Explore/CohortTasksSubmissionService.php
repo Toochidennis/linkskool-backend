@@ -16,17 +16,28 @@ class CohortTasksSubmissionService
         $this->fileHandler = new FileHandler();
     }
 
-    public function submitProject(array $data): bool|int
+    public function submitProject(array $data): bool
     {
-        $assignment = $this->fileHandler->handleFiles($data['assignment']);
+        $exists = $this->cohortSubmissionModel
+            ->where('profile_id', $data['profile_id'])
+            ->where('lesson_id', $data['lesson_id'])
+            ->exists();
+
+        if ($exists) {
+            return true;
+        }
 
         $insertData = [
-            'assignment' => json_encode($assignment),
             'profile_id' => $data['profile_id'],
             'cohort_id' => $data['cohort_id'],
             'lesson_id' => $data['lesson_id'],
             'quiz_score' => $data['quiz_score'],
         ];
+
+        if (!empty($data['assignment'])) {
+            $assignment = $this->fileHandler->handleFiles($data['assignment']);
+            $insertData['assignment'] = json_encode($assignment);
+        }
 
         return $this->cohortSubmissionModel->insert($insertData);
     }

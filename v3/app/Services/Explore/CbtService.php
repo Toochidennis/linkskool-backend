@@ -5,6 +5,7 @@ namespace V3\App\Services\Explore;
 use V3\App\Common\Enums\QuestionType;
 use V3\App\Models\Explore\Exam;
 use V3\App\Models\Explore\ExamType;
+use V3\App\Models\Portal\Academics\Course;
 use V3\App\Models\Portal\ELearning\Quiz;
 
 class CbtService
@@ -13,13 +14,15 @@ class CbtService
     private ExamType $examType;
     private QuestionService $questionService;
     private Quiz $quiz;
+    private Course $course;
 
     public function __construct(\PDO $pdo)
     {
         $this->exam = new Exam($pdo);
         $this->examType = new ExamType($pdo);
-        $this->questionService = new QuestionService($pdo);
         $this->quiz = new Quiz($pdo);
+        $this->course = new Course($pdo);
+        $this->questionService = new QuestionService($pdo);
     }
 
     /**
@@ -54,6 +57,48 @@ class CbtService
                 'year' => 'ASC'
             ])
             ->get();
+    }
+
+    public function getCourseWithYears(int $examTypeId): array
+    {
+        $rows = $this->course
+            ->select([
+                'course_table.id AS course_id',
+                'course_table.course_name',
+                'exam.id AS exam_id',
+                'exam.year'
+            ])
+            ->join('exam', 'course_table.id= exam.course_id', 'LEFT')
+            ->where('exam.exam_type', '=', $examTypeId)
+            ->orderBy([
+                'course_table.id' => 'ASC',
+                'exam.year' => 'DESC'
+            ])
+            ->get();
+
+        $formatted = [];
+        foreach ($rows as $row) {
+            $courseId = $row['course_id'];
+            if (!isset($formatted[$courseId])) {
+                $formatted[$courseId] = [
+                    'course_id' => $courseId,
+                    'course_name' => $row['course_name'],
+                    'years' => []
+                ];
+
+                $formatted[$courseId]['years'][] = [
+                    'exam_id' => $row['exam_id'],
+                    'year' => $row['year']
+                ];
+            } else {
+                $formatted[$courseId]['years'][] = [
+                    'exam_id' => $row['exam_id'],
+                    'year' => $row['year']
+                ];
+            }
+        }
+
+        return array_values($formatted);
     }
 
     /**
@@ -217,7 +262,7 @@ class CbtService
                 'duration' => $exam['body'] ?? 0,
                 'course_name' => ucwords(strtolower($exam['course_name'])),
             ],
-            'questions' => $grouped
+            'questions' => $grouped[0] ?? []
         ];
     }
 

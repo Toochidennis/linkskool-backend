@@ -35,7 +35,7 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
                 'description' => 'nullable|string',
                 'goals' => 'nullable|string',
                 'objectives' => 'nullable|string',
-                'video_url' => 'required|string',
+                'video_url' => 'nullable|string',
                 'recorded_video_url' => 'nullable|string',
                 'display_order' => 'required|integer',
                 'write_up_content' => 'nullable|string',
@@ -45,6 +45,13 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
                 'author_name' => 'required|string|max:255',
                 'author_id' => 'required|integer',
                 'lesson_date' => 'required|date',
+                'status' => 'required|string|in:draft,published,archived',
+                'zoom_info' => 'nullable|array',
+                'zoom_info.url' => 'required_with:zoom_info|string',
+                'zoom_info.meeting_id' => 'nullable|string',
+                'zoom_info.passcode' => 'nullable|string',
+                'zoom_info.start_time' => 'required_with:zoom_info|date',
+                'zoom_info.end_time' => 'required_with:zoom_info|date',
 
                 //Files
                 'certificate' => 'nullable|array',
@@ -100,7 +107,7 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
                 'description' => 'nullable|string',
                 'goals' => 'nullable|string',
                 'objectives' => 'nullable|string',
-                'video_url' => 'required|string',
+                'video_url' => 'nullable|string',
                 'recorded_video_url' => 'nullable|string',
                 'display_order' => 'required|integer',
                 'write_up_content' => 'nullable|string',
@@ -110,6 +117,13 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
                 'author_name' => 'required|string|max:255',
                 'author_id' => 'required|integer',
                 'lesson_date' => 'required|date',
+                'status' => 'required|string|in:draft,published,archived',
+                'zoom_info' => 'nullable|array',
+                'zoom_info.url' => 'required_with:zoom_info|string',
+                'zoom_info.meeting_id' => 'nullable|string',
+                'zoom_info.passcode' => 'nullable|string',
+                'zoom_info.start_time' => 'required_with:zoom_info|date',
+                'zoom_info.end_time' => 'required_with:zoom_info|date',
 
                 //Files
                 'certificate' => 'nullable|array',
@@ -151,6 +165,41 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
         );
     }
 
+    #[Route(
+        '/learn/programs/cohorts/lessons/{lesson_id}/status',
+        'PUT',
+        ['api', 'auth']
+    )]
+    public function updateStatus(array $vars)
+    {
+        $validated = $this->validate(
+            data: [...$this->getRequestData(), ...$vars],
+            rules: [
+                'lesson_id' => 'required|integer',
+                'status' => 'required|string|in:draft,published,archived',
+            ]
+        );
+
+        $success = $this->service->updateStatus(
+            (int) $validated['lesson_id'],
+            $validated['status']
+        );
+
+        if (!$success) {
+            $this->respondError(
+                message: 'Failed to update lesson status.',
+                statusCode: HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            data: [
+                'success' => true,
+                'message' => 'Lesson status updated successfully.',
+            ],
+            statusCode: HttpStatus::OK
+        );
+    }
 
     #[Route(
         '/learn/programs/cohorts/{cohort_id}/lessons',
