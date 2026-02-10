@@ -1,0 +1,15 @@
+[2026-01-23 20:18:08] SQL EXCEPTION: SQLSTATE[HY000] [2019] Unknown character set in C:\xampp\htdocs\api3\v3\app\Database\DatabaseConnector.php on line 26
+Request: GET /api3/v3/public/activity-logs?page=1?page=1 from ::1
+
+[2026-01-24 12:11:23] SQL EXCEPTION: SQLSTATE[HY000] [2019] Unknown character set in C:\xampp\htdocs\api3\v3\app\Database\DatabaseConnector.php on line 26
+Request: GET /api3/v3/public/activity-logs?page=1?page=1 from ::1
+
+[2026-01-24 12:35:46] EXCEPTION: hash_equals(): Argument #1 ($known_string) must be of type string, bool given in C:\xampp\htdocs\api3\v3\app\Common\Traits\AuthenticatesRequests.php on line 79
+Request: GET /api3/v3/public/learn/courses? from ::1
+
+[2026-01-24 13:10:38] SQL EXCEPTION: SQLSTATE[HY000] [2019] Unknown character set in C:\xampp\htdocs\api3\v3\app\Database\DatabaseConnector.php on line 26
+Request: GET /api3/v3/public/activity-logs?page=1?page=1 from ::1
+
+[2026-02-03 14:57:11] SQL EXCEPTION: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'question_ids' in 'SELECT' in C:\xampp\htdocs\api3\v3\app\Database\Query\QueryBuilder.php on line 277
+Request: GET /api3/v3/public/cbt/exams/3/download? from ::1
+

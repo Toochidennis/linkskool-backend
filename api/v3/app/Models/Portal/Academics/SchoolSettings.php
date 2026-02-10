@@ -1,0 +1,17 @@
+<?php
+
+namespace V3\App\Models\Portal\Academics;
+
+use PDO;
+use V3\App\Models\BaseModel;
+
+class SchoolSettings extends BaseModel
+{
+    protected string $table = 'school_settings_table';
+
+    public function __construct(PDO $pdo)
+    {
+        parent::__construct($pdo);
+        $this->table($this->table);
+    }
+}
