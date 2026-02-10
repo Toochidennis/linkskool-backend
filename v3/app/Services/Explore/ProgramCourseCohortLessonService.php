@@ -94,7 +94,7 @@ class ProgramCourseCohortLessonService
                 'display_order' => $data['display_order'],
                 'write_up_content' => $data['write_up_content'] ?? null,
                 'assignment_instructions' => $data['assignment_instructions'] ?? null,
-                'assignment_due_date' => $data['assignment_due_date'] ?? null,
+                'assignment_due_date' => !empty($data['assignment_due_date']) ? $data['assignment_due_date'] : null,
                 'is_final_lesson' => $data['is_final_lesson'] ?? false,
                 'lesson_date' => $data['lesson_date'],
                 'status' => $data['status'] ?? 'draft',

@@ -47,11 +47,11 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
                 'lesson_date' => 'required|date',
                 'status' => 'required|string|in:draft,published,archived',
                 'zoom_info' => 'nullable|array',
-                'zoom_info.url' => 'required_with:zoom_info|string',
+                'zoom_info.url' => 'nullable|string',
                 'zoom_info.meeting_id' => 'nullable|string',
                 'zoom_info.passcode' => 'nullable|string',
-                'zoom_info.start_time' => 'required_with:zoom_info|date',
-                'zoom_info.end_time' => 'required_with:zoom_info|date',
+                'zoom_info.start_time' => 'required_with:zoom_info.url|date',
+                'zoom_info.end_time' => 'required_with:zoom_info.url|date',
 
                 //Files
                 'certificate' => 'nullable|array',
@@ -119,11 +119,11 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
                 'lesson_date' => 'required|date',
                 'status' => 'required|string|in:draft,published,archived',
                 'zoom_info' => 'nullable|array',
-                'zoom_info.url' => 'required_with:zoom_info|string',
+                'zoom_info.url' => 'nullable|string',
                 'zoom_info.meeting_id' => 'nullable|string',
                 'zoom_info.passcode' => 'nullable|string',
-                'zoom_info.start_time' => 'required_with:zoom_info|date',
-                'zoom_info.end_time' => 'required_with:zoom_info|date',
+                'zoom_info.start_time' => 'required_with:zoom_info.url|date',
+                'zoom_info.end_time' => 'required_with:zoom_info.url|date',
 
                 //Files
                 'certificate' => 'nullable|array',
