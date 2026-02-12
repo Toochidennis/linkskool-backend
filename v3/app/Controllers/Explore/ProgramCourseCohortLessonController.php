@@ -254,6 +254,86 @@ class ProgramCourseCohortLessonController extends ExploreBaseController
     }
 
     #[Route(
+        '/learn/programs/cohorts/lessons/{lesson_id}/assignments',
+        'GET',
+        ['api', 'auth']
+    )]
+    public function getLessonSubmissions(array $vars)
+    {
+        $validated = $this->validate(
+            data: $vars,
+            rules: [
+                'lesson_id' => 'required|integer',
+            ]
+        );
+
+        $submissions = $this->service->getLessonSubmissions((int) $validated['lesson_id']);
+
+        $this->respond(
+            data: [
+                'success' => true,
+                'data' => $submissions
+            ],
+            statusCode: HttpStatus::OK
+        );
+    }
+
+    #[Route('/learn/programs/submissions/{submission_id}/grade', 'POST', middleware: ['api', 'auth'])]
+    public function gradeSubmission(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'assigned_score' => 'required|numeric|min:0|max:100',
+                'comment' => 'nullable|string',
+                'graded_by' => 'required|integer',
+                'notify_student' => 'nullable|boolean',
+                'submission_id' => 'required|integer',
+            ]
+        );
+
+        $updated = $this->service->gradeSubmission($validated);
+
+        if (!$updated) {
+            $this->respondError(
+                'Failed to grade submission.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            data: [
+                'success' => true,
+                'message' => 'Submission graded successfully.'
+            ],
+            statusCode: HttpStatus::OK
+        );
+    }
+
+    #[Route('/learn/programs/submissions/notify', 'POST', middleware: ['api', 'auth'])]
+    public function notifyStudent(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'submission_ids' => 'required|array|min:1',
+                'submission_ids.*' => 'required|integer',
+                'graded_by' => 'required|integer',
+            ]
+        );
+
+        $this->service->notifyStudents($validated['submission_ids'], $validated['graded_by']);
+
+        $this->respond(
+            data: [
+                'success' => true,
+                'message' => 'Student notified successfully.'
+            ],
+            statusCode: HttpStatus::OK
+        );
+    }
+
+    #[Route(
         '/learn/programs/cohorts/lessons/{lesson_id}',
         'DELETE',
         ['api', 'auth']

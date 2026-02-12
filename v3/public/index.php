@@ -15,6 +15,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use V3\App\Common\Events\EventDispatcher;
+use V3\App\Events\SubmissionGraded;
+use V3\App\Listeners\SendSubmissionGradedEmail;
+
 V3\App\Common\Utilities\EnvLoader::load();
 V3\App\Common\Utilities\Logger::init();
 V3\App\Common\Routing\RouteDispatcher::handle();
+
+EventDispatcher::listen(
+    SubmissionGraded::class,
+    new SendSubmissionGradedEmail()
+);

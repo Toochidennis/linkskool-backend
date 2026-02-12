@@ -6,6 +6,10 @@ final class PaystackService
 {
     public function verify(string $reference): array
     {
+        $paystackSecretKey = getenv('APP_ENV') === 'production'
+            ? getenv('PAYSTACK_PROD_SECRET_KEY') :
+            getenv('PAYSTACK_DEV_SECRET_KEY');
+
         $curl = curl_init();
 
         curl_setopt_array($curl, [
@@ -13,7 +17,7 @@ final class PaystackService
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 15,
             CURLOPT_HTTPHEADER => [
-                "Authorization: Bearer " . getenv('PAYSTACK_SECRET_KEY'),
+                "Authorization: Bearer $paystackSecretKey",
             ],
         ]);
 

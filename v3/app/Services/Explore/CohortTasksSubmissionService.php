@@ -28,7 +28,7 @@ class CohortTasksSubmissionService
                 'quiz_score' => $data['quiz_score'],
             ];
             if (!empty($data['assignment'])) {
-                $updateData['assignment'] = json_encode($this->fileHandler->handleFiles($data['assignment']));
+                $updateData['files'] = json_encode($this->fileHandler->handleFiles($data['assignment']));
             }
             return $this->cohortSubmissionModel
                 ->where('profile_id', $data['profile_id'])
@@ -59,18 +59,5 @@ class CohortTasksSubmissionService
         }
 
         return $this->cohortSubmissionModel->insert($insertData);
-    }
-
-    public function gradeSubmission(array $data): bool
-    {
-        return $this->cohortSubmissionModel
-            ->where('id', $data['submission_id'])
-            ->update([
-                'assigned_score' => $data['assigned_score'],
-                'remark' => $data['remark'] ?? null,
-                'comment' => $data['comment'] ?? null,
-                'graded_by' => $data['graded_by'],
-                'graded_at' => date('Y-m-d H:i:s'),
-            ]);
     }
 }

@@ -29,7 +29,9 @@ class CohortTasksSubmissionController extends ExploreBaseController
                 'assignment.*.old_file_name' => 'nullable|string',
                 'assignment.*.file' => 'required_with:assignment|string',
                 'assignment.*.type' => 'required_with:assignment|string|in:pdf',
-                'submission_type' => 'required|string|in:upload,text,link,mixed',
+                'submission_type' => 'required|string|in:upload,text,link',
+                'text_content' => 'required_if:submission_type,text|string',
+                'link_url' => 'required_if:submission_type,link|url',
                 'profile_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
                 'lesson_id' => 'required|integer',
@@ -56,26 +58,5 @@ class CohortTasksSubmissionController extends ExploreBaseController
             ],
             HttpStatus::CREATED
         );
-    }
-
-    #[Route('/lessons/{lesson_id}/assignments/{submission_id}/grade', 'POST', middleware: ['api', 'auth'])]
-    public function gradeSubmission(array $vars): void
-    {
-        $validated = $this->validate(
-            [...$this->getRequestData(), ...$vars],
-            [
-                'assigned_score' => 'required|numeric|min:0|max:100',
-                'remark' => 'nullable|string',
-                'comment' => 'nullable|string',
-                'graded_by' => 'required|integer',
-            ]
-        );
-
-        $this->submissionService->gradeSubmission($validated);
-
-        $this->respond([
-            'success' => true,
-            'message' => 'Submission graded successfully.'
-        ]);
     }
 }

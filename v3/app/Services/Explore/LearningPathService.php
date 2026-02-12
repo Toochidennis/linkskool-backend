@@ -274,6 +274,33 @@ class LearningPathService
 
     private function formatLessonWithSubmission(array $row): array
     {
+        $submission = null;
+
+        if (!empty($row['submission_type'])) {
+            $files = !empty($row['files'])
+                ? json_decode($row['files'], true)
+                : [];
+
+            $submission = [
+                'submission_type' => $row['submission_type'],
+                'files' => $files ?: null,
+                'text_content' => $row['text_content'] ?? null,
+                'link_url' => $row['link_url'] ?? null,
+                'quiz_score' => $row['quiz_score'] !== null
+                    ? (float) $row['quiz_score']
+                    : null,
+
+                'assigned_score' => $row['assigned_score'] !== null
+                    ? (float) $row['assigned_score']
+                    : null,
+                'remark' => $row['remark'] ?? null,
+                'comment' => $row['comment'] ?? null,
+                'graded_at' => $row['graded_at'] ?? null,
+                'notified_at' => $row['notified_at'] ?? null,
+                'submitted_at' => $row['submitted_at'] ?? null,
+            ];
+        }
+
         return [
             'lesson' => [
                 'id' => $row['id'],
@@ -298,15 +325,10 @@ class LearningPathService
                     : null
             ],
 
-            'submission' => $row['assignment'] !== null ? [
-                'assignment' => json_decode($row['assignment'], true)[0]['file_name'],
-                'quiz_score' => $row['quiz_score'] !== null
-                    ? (int) $row['quiz_score']
-                    : null,
-                'submitted_at' => $row['submitted_at']
-            ] : null
+            'submission' => $submission
         ];
     }
+
 
     public function getCohortLessonsWithSubmission(
         int $cohortId,

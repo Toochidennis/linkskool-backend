@@ -14,11 +14,19 @@
         "league/csv": "^9.27",
         "phpoffice/phpspreadsheet": "^5.2",
         "box/spout": "^3.3",
-        "ezyang/htmlpurifier": "^4.19"
+        "ezyang/htmlpurifier": "^4.19",
+        "mailgun/mailgun-php": "^4.3",
+        "symfony/http-client": "^8.0",
+        "nyholm/psr7": "^1.8"
     },
     "autoload": {
         "psr-4": {
             "V3\\App\\": "app/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
         }
     }
 }
