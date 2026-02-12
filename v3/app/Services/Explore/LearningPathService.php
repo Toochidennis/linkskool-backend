@@ -287,10 +287,11 @@ class LearningPathService
                 'assignment_url' => $row['assignment_url'],
                 'certificate_url' => $row['certificate_url'],
                 'assignment_instructions' => $row['assignment_instructions'],
+                'assignment_submission_type' => $row['assignment_submission_type'] ?? 'upload',
                 'is_final_lesson' => (bool) $row['is_final_lesson'],
                 'display_order' => (int) $row['display_order'],
                 'lesson_date' => $row['lesson_date'],
-                'assignment_due_date' => $row['assignment_due_date'],
+                'assignment_due_date' => $row['assignment_due_date'] ?? null,
                 'has_quiz' => (bool) $row['has_quiz'],
                 'live_session_info' => !empty($row['zoom_info'])
                     ? json_decode($row['zoom_info'], true)
@@ -404,7 +405,6 @@ class LearningPathService
         ])[0] ?? [];
 
         return [
-            // user-facing wording
             'total_courses_enrolled'  => (int) ($row['total_courses_enrolled'] ?? 0),
             'total_courses_completed' => (int) ($row['total_courses_completed'] ?? 0),
 
