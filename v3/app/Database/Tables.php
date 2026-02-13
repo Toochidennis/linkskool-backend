@@ -121,5 +121,6 @@ class Tables
         'devices',
         'payments',
         'vouchers',
+        'email_logs',
     ];
 }

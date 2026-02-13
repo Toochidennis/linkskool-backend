@@ -27,8 +27,10 @@ class SendSubmissionGradedEmail
         $name = trim($profile['first_name'] . ' ' . $profile['last_name']);
         $student['name'] = !empty($name) ? $name : 'Student';
 
+        $v3root = realpath(__DIR__ . '/../');
+
         $html = TemplateRenderer::render(
-            __DIR__ . '/../../Templates/emails/submission_graded.php',
+            $v3root . '/Templates/emails/submission_graded.php',
             [
                 'student_name' => $student['name'],
                 'assigned_score' => $event->assignedScore,
@@ -38,7 +40,7 @@ class SendSubmissionGradedEmail
             ]
         );
 
-        (new MailService())->send(
+        (new MailService($pdo))->send(
             "$student[name] <{$student['email']}>",
             'Your Assignment Has Been Graded',
             $html

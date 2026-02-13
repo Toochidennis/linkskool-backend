@@ -59,7 +59,7 @@ class LicenseService
             ->where('device_id', $deviceId)
             ->where('status', 'active')
             ->where('platform', 'desktop')
-            ->where('revoked_at', null)
+            ->whereNull('revoked_at')
             ->first();
 
         if ($existing && !$this->isExpired($existing['expires_at'])) {
@@ -87,7 +87,7 @@ class LicenseService
             ->where('user_id', $userId)
             ->where('status', 'active')
             ->where('platform', 'desktop')
-            ->where('revoked_at', null)
+            ->whereNull('revoked_at')
             ->count();
 
         if ($plan && $plan['max_devices'] !== null && $activeCount >= $plan['max_devices']) {
@@ -153,7 +153,7 @@ class LicenseService
             // ->where('device_id', $deviceId)
             ->where('status', 'active')
             ->where('platform', 'mobile')
-            ->where('revoked_at', null)
+            ->whereNull('revoked_at')
             ->first();
 
         if ($existing && !$this->isExpired($existing['expires_at'])) {
@@ -181,7 +181,7 @@ class LicenseService
             ->where('user_id', $userId)
             ->where('status', 'active')
             ->where('platform', 'mobile')
-            ->where('revoked_at', null)
+            ->whereNull('revoked_at')
             ->count();
 
         if ($plan && $plan['max_devices'] !== null && $activeCount >= $plan['max_devices']) {
@@ -336,7 +336,7 @@ class LicenseService
                 ->where('device_id', $device['id'])
                 ->where('platform', 'desktop')
                 ->where('status', 'active')
-                ->where('revoked_at', null)
+                ->whereNull('revoked_at')
                 ->first();
 
             if (!$license) {
@@ -392,14 +392,23 @@ class LicenseService
             ->where('user_id', $userId)
             ->where('platform', 'mobile')
             ->where('status', 'active')
-            ->where('revoked_at', null)
+            ->whereNull('revoked_at')
             ->first();
 
-        if ($license || $this->isExpired($license['expires_at'])) {
+        if ($license && $this->isExpired($license['expires_at'])) {
+            return [
+                'active' => false,
+                'reason' => 'expired',
+                'expires_at' => $license['expires_at'],
+            ];
+        }
+
+        if ($license && !$this->isExpired($license['expires_at'])) {
             return [
                 'active' => true,
                 'license_id' => (int) $license['id'],
                 'expires_at' => $license['expires_at'],
+                'device_bound' => false,
                 'source' => $license['type'],
             ];
         }
@@ -409,6 +418,7 @@ class LicenseService
             ->where('type', 'trial')
             ->where('platform', 'mobile')
             ->where('status', 'active')
+            ->whereNull('revoked_at')
             ->first();
 
         if ($trial && !$this->isExpired($trial['expires_at'])) {
@@ -416,6 +426,14 @@ class LicenseService
                 'active' => true,
                 'source' => $trial['type'],
                 'license_id' => (int) $trial['id'],
+                'expires_at' => $trial['expires_at'],
+            ];
+        }
+
+        if ($trial && $this->isExpired($trial['expires_at'])) {
+            return [
+                'active' => false,
+                'reason' => 'trial_expired',
                 'expires_at' => $trial['expires_at'],
             ];
         }

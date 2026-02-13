@@ -21,9 +21,10 @@ use V3\App\Listeners\SendSubmissionGradedEmail;
 
 V3\App\Common\Utilities\EnvLoader::load();
 V3\App\Common\Utilities\Logger::init();
-V3\App\Common\Routing\RouteDispatcher::handle();
 
 EventDispatcher::listen(
     SubmissionGraded::class,
     new SendSubmissionGradedEmail()
 );
+
+V3\App\Common\Routing\RouteDispatcher::handle();

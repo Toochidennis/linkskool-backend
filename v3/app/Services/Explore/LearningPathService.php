@@ -243,9 +243,7 @@ class LearningPathService
         $sql = "
             SELECT 
                 l.*,
-                s.assignment,
-                s.quiz_score,
-                s.created_at AS submitted_at,
+                s.*,
                 EXISTS (
                     SELECT 1 
                     FROM cohort_lesson_quizzes q
@@ -274,6 +272,7 @@ class LearningPathService
 
     private function formatLessonWithSubmission(array $row): array
     {
+
         $submission = null;
 
         if (!empty($row['submission_type'])) {
@@ -283,7 +282,7 @@ class LearningPathService
 
             $submission = [
                 'submission_type' => $row['submission_type'],
-                'files' => $files ?: null,
+                'assignment' => $files ?: null,
                 'text_content' => $row['text_content'] ?? null,
                 'link_url' => $row['link_url'] ?? null,
                 'quiz_score' => $row['quiz_score'] !== null
