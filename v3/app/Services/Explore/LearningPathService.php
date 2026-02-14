@@ -242,8 +242,36 @@ class LearningPathService
     {
         $sql = "
             SELECT 
-                l.*,
-                s.*,
+                l.id,
+                l.title,
+                l.description,
+                l.goals,
+                l.objectives,
+                l.video_url,
+                l.recorded_video_url,
+                l.material_url,
+                l.assignment_url,
+                l.certificate_url,
+                l.assignment_instructions,
+                l.assignment_submission_type,
+                l.is_final_lesson,
+                l.display_order,
+                l.lesson_date,
+                l.assignment_due_date,
+                l.zoom_info,
+
+                s.id AS submission_id,
+                s.submission_type,
+                s.files,
+                s.text_content,
+                s.link_url,
+                s.quiz_score,
+                s.assigned_score,
+                s.remark,
+                s.comment,
+                s.graded_at,
+                s.notified_at,
+                s.created_at AS submission_created_at,
                 EXISTS (
                     SELECT 1 
                     FROM cohort_lesson_quizzes q
@@ -268,6 +296,64 @@ class LearningPathService
         }
 
         return $this->formatLessonWithSubmission($row[0]);
+    }
+
+    public function getCohortLessonsWithSubmission(
+        int $cohortId,
+        int $profileId
+    ): array {
+        $sql = "
+            SELECT 
+                l.id,
+                l.title,
+                l.description,
+                l.goals,
+                l.objectives,
+                l.video_url,
+                l.recorded_video_url,
+                l.material_url,
+                l.assignment_url,
+                l.certificate_url,
+                l.assignment_instructions,
+                l.assignment_submission_type,
+                l.is_final_lesson,
+                l.display_order,
+                l.lesson_date,
+                l.assignment_due_date,
+                l.zoom_info,
+
+                s.id AS submission_id,
+                s.submission_type,
+                s.files,
+                s.text_content,
+                s.link_url,
+                s.quiz_score,
+                s.assigned_score,
+                s.remark,
+                s.comment,
+                s.graded_at,
+                s.notified_at,
+                s.created_at AS submission_created_at,
+                EXISTS (
+                    SELECT 1 
+                    FROM cohort_lesson_quizzes q
+                    WHERE q.lesson_id = l.id
+                ) AS has_quiz
+            FROM program_course_cohort_lessons l
+            LEFT JOIN cohort_tasks_submissions s
+                ON s.lesson_id = l.id
+                AND s.profile_id = :profile_id
+            WHERE l.cohort_id = :cohort_id
+            AND l.status = 'published'
+            ORDER BY l.display_order ASC
+        ";
+
+        $rows = $this->programCourseCohortLessonModel->rawQuery($sql, [
+            'cohort_id'  => $cohortId,
+            'profile_id' => $profileId
+        ]);
+
+        return array_map([$this, 'formatLessonWithSubmission'], $rows);
     }
 
     private function formatLessonWithSubmission(array $row): array
@@ -296,7 +382,7 @@ class LearningPathService
                 'comment' => $row['comment'] ?? null,
                 'graded_at' => $row['graded_at'] ?? null,
                 'notified_at' => $row['notified_at'] ?? null,
-                'submitted_at' => $row['submitted_at'] ?? null,
+                'submitted_at' => $row['submission_created_at'] ?? null,
             ];
         }
 
@@ -313,7 +399,7 @@ class LearningPathService
                 'assignment_url' => $row['assignment_url'],
                 'certificate_url' => $row['certificate_url'],
                 'assignment_instructions' => $row['assignment_instructions'],
-                'assignment_submission_type' => $row['assignment_submission_type'] ?? 'upload',
+                'assignment_submission_type' => $row['assignment_submission_type'],
                 'is_final_lesson' => (bool) $row['is_final_lesson'],
                 'display_order' => (int) $row['display_order'],
                 'lesson_date' => $row['lesson_date'],
@@ -328,38 +414,6 @@ class LearningPathService
         ];
     }
 
-
-    public function getCohortLessonsWithSubmission(
-        int $cohortId,
-        int $profileId
-    ): array {
-        $sql = "
-            SELECT 
-                l.*,
-                s.assignment,
-                s.quiz_score,
-                s.created_at AS submitted_at,
-                EXISTS (
-                    SELECT 1 
-                    FROM cohort_lesson_quizzes q
-                    WHERE q.lesson_id = l.id
-                ) AS has_quiz
-            FROM program_course_cohort_lessons l
-            LEFT JOIN cohort_tasks_submissions s
-                ON s.lesson_id = l.id
-                AND s.profile_id = :profile_id
-            WHERE l.cohort_id = :cohort_id
-            AND l.status = 'published'
-            ORDER BY l.display_order ASC
-        ";
-
-        $rows = $this->programCourseCohortLessonModel->rawQuery($sql, [
-            'cohort_id'  => $cohortId,
-            'profile_id' => $profileId
-        ]);
-
-        return array_map([$this, 'formatLessonWithSubmission'], $rows);
-    }
 
     public function getLessonQuiz(int $lessonId): array
     {
