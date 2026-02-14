@@ -74,6 +74,9 @@ class CohortTasksSubmissionService
             $payload['files'] = json_encode($assignment);
         }
 
+        $payload['notified_at'] = null;
+        $payload['graded_at'] = null;
+
         return $payload;
     }
 }
