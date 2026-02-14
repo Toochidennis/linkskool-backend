@@ -282,7 +282,7 @@ class LearningPathService
 
             $submission = [
                 'submission_type' => $row['submission_type'],
-                'assignment' => $files ?: null,
+                'assignment' => !empty($files) ? $files[0]['file_name'] : null,
                 'text_content' => $row['text_content'] ?? null,
                 'link_url' => $row['link_url'] ?? null,
                 'quiz_score' => $row['quiz_score'] !== null

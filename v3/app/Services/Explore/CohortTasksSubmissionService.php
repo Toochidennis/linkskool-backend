@@ -18,46 +18,62 @@ class CohortTasksSubmissionService
 
     public function submitProject(array $data): bool|int
     {
-        $exists = $this->cohortSubmissionModel
-            ->where('profile_id', $data['profile_id'])
-            ->where('lesson_id', $data['lesson_id'])
-            ->exists();
+        $conditions = [
+            ["profile_id", "=", $data['profile_id']],
+            ["cohort_id", "=", $data['cohort_id']],
+            ["lesson_id", "=", $data['lesson_id']],
+        ];
 
-        if ($exists) {
-            $updateData = [
-                'quiz_score' => $data['quiz_score'],
-            ];
-            if (!empty($data['assignment'])) {
-                $updateData['files'] = json_encode($this->fileHandler->handleFiles($data['assignment']));
+        $query = $this->cohortSubmissionModel
+            ->whereGroup($conditions);
+
+        if ($query->exists()) {
+            $updateData = $this->buildSubmissionPayload($data, false);
+
+            if (empty($updateData)) {
+                return false;
             }
+
             return $this->cohortSubmissionModel
-                ->where('profile_id', $data['profile_id'])
-                ->where('lesson_id', $data['lesson_id'])
-                ->where('cohort_id', $data['cohort_id'])
+                ->whereGroup($conditions)
                 ->update($updateData);
         }
 
-        $insertData = [
-            'profile_id' => $data['profile_id'],
-            'cohort_id' => $data['cohort_id'],
-            'lesson_id' => $data['lesson_id'],
-            'submission_type' => $data['submission_type'],
-            'quiz_score' => $data['quiz_score'],
-        ];
+        $insertData = $this->buildSubmissionPayload($data, true);
+        return $this->cohortSubmissionModel->insert($insertData);
+    }
+
+    private function buildSubmissionPayload(array $data, bool $isInsert): array
+    {
+        $payload = [];
+
+        if ($isInsert) {
+            $payload['profile_id'] = $data['profile_id'];
+            $payload['cohort_id'] = $data['cohort_id'];
+            $payload['lesson_id'] = $data['lesson_id'];
+        }
+
+        if (isset($data['submission_type'])) {
+            $payload['submission_type'] = $data['submission_type'];
+        }
+
+        if (!empty($data['quiz_score']) && $data['quiz_score'] !== 0) {
+            $payload['quiz_score'] = $data['quiz_score'];
+        }
 
         if (!empty($data['text_content'])) {
-            $insertData['text_content'] = $data['text_content'];
+            $payload['text_content'] = $data['text_content'];
         }
 
         if (!empty($data['link_url'])) {
-            $insertData['link_url'] = $data['link_url'];
+            $payload['link_url'] = $data['link_url'];
         }
 
         if (!empty($data['assignment'])) {
             $assignment = $this->fileHandler->handleFiles($data['assignment']);
-            $insertData['files'] = json_encode($assignment);
+            $payload['files'] = json_encode($assignment);
         }
 
-        return $this->cohortSubmissionModel->insert($insertData);
+        return $payload;
     }
 }

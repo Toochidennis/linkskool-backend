@@ -35,7 +35,7 @@ class CohortTasksSubmissionController extends ExploreBaseController
                 'profile_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
                 'lesson_id' => 'required|integer',
-                'quiz_score' => 'required|numeric|min:0|max:100',
+                'quiz_score' => 'nullable|numeric|min:0|max:100',
             ]
         );
 

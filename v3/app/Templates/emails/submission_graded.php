@@ -60,7 +60,7 @@ $instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
 <p style="margin:0 0 18px 0;font-size:16px;color:#334155;"><strong style="font-weight:700;color:#1e293b;font-size:15px;">Instructor Feedback:</strong><br><span style="color:#475569;font-size:15px;line-height:1.7;"><?= nl2br($comment) ?></span></p>
 <?php endif; ?>
 
-<div style="margin-top:36px;text-align:center;">
+{% comment %} <div style="margin-top:36px;text-align:center;">
 <?php if ($safeViewDetailsUrl !== ''): ?>
     <a href="<?= $safeViewDetailsUrl ?>" 
        style="background:#1a73e8;color:#ffffff;padding:14px 32px;font-size:15px;font-weight:600;
@@ -79,7 +79,7 @@ $instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
         View details from your dashboard after signing in.
     </p>
 <?php endif; ?>
-</div>
+</div> {% endcomment %}
 
 <p style="margin:40px 0 0 0;font-size:14px;color:#64748b;text-align:center;line-height:1.6;">
 <strong style="font-weight:600;color:#475569;">Have questions?</strong><br>
