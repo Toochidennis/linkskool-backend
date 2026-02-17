@@ -2,6 +2,8 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Common\Events\EventDispatcher;
+use V3\App\Events\SubmissionGraded;
 use V3\App\Models\Explore\CohortTasksSubmission;
 
 class GradeLessonAssignmentService
@@ -13,8 +15,19 @@ class GradeLessonAssignmentService
         $this->submission = new CohortTasksSubmission($pdo);
     }
 
-        public function getLessonSubmissions(int $lessonId): array
-    {
+    public function getLessonSubmissions(
+        int $lessonId,
+        int $page = 1,
+        int $limit = 25
+    ): array {
+        $page = max(1, $page);
+        $limit = max(1, min(25, $limit));
+        $offset = ($page - 1) * $limit;
+
+        $total = $this->submission
+            ->where('lesson_id', $lessonId)
+            ->count();
+
         $sql = "
             SELECT
                 s.id,
@@ -42,13 +55,16 @@ class GradeLessonAssignmentService
                 ON p.id = s.profile_id
             WHERE s.lesson_id = :lesson_id
             ORDER BY s.created_at DESC
+            LIMIT :limit OFFSET :offset
         ";
 
         $rows = $this->submission->rawQuery($sql, [
-            'lesson_id' => $lessonId
+            'lesson_id' => $lessonId,
+            'limit' => $limit,
+            'offset' => $offset,
         ]);
 
-        return array_map(function (array $row) {
+        $data = array_map(function (array $row) {
             $files = !empty($row['files'])
                 ? json_decode($row['files'], true)
                 : null;
@@ -91,6 +107,18 @@ class GradeLessonAssignmentService
                 'updated_at' => $row['updated_at'] ?? null,
             ];
         }, $rows);
+
+        return [
+            'data' => $data,
+            'meta' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $total,
+                'total_pages' => $limit > 0 ? (int) ceil($total / $limit) : 0,
+                'has_next_page' => ($page * $limit) < $total,
+                'has_prev_page' => $page > 1,
+            ]
+        ];
     }
 
     public function gradeSubmissions(array $data): bool

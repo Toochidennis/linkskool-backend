@@ -150,8 +150,6 @@ class DownloadExamsService
         $images = [];
 
         foreach ($questions as &$question) {
-
-            // Question files
             if (!empty($question['question_files'])) {
                 foreach ($question['question_files'] as &$file) {
                     if (!empty($file['file_name'])) {

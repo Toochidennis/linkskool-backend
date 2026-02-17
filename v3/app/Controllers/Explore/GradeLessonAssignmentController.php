@@ -26,18 +26,24 @@ class GradeLessonAssignmentController extends ExploreBaseController
     public function getLessonSubmissions(array $vars)
     {
         $validated = $this->validate(
-            data: $vars,
+            data: [...$this->getRequestData(), ...$vars],
             rules: [
                 'lesson_id' => 'required|integer',
+                'page' => 'nullable|integer|min:1',
+                'limit' => 'nullable|integer|min:1|max:25',
             ]
         );
 
-        $submissions = $this->service->getLessonSubmissions((int) $validated['lesson_id']);
+        $submissions = $this->service->getLessonSubmissions(
+            (int) $validated['lesson_id'],
+            (int)($validated['page'] ?? 1),
+            (int)($validated['limit'] ?? 25)
+        );
 
         $this->respond(
             data: [
                 'success' => true,
-                'data' => $submissions
+                'data' => $submissions,
             ],
             statusCode: HttpStatus::OK
         );
