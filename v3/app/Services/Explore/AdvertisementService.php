@@ -39,7 +39,11 @@ class AdvertisementService
             ]
         ];
 
-        $processedImages = $this->fileHandler->handleFiles($imageMap);
+        $processedImages = $this->fileHandler->handleFiles(
+            $imageMap,
+            false,
+            $this->buildAdGroupPath($data)
+        );
 
         $payload = [
             'title' => $data['title'],
@@ -76,7 +80,11 @@ class AdvertisementService
                 ]
             ];
 
-            $processedImages = $this->fileHandler->handleFiles($imageMap);
+            $processedImages = $this->fileHandler->handleFiles(
+                $imageMap,
+                false,
+                $this->buildAdGroupPath($data)
+            );
             $imageData = $processedImages[0];
         }
 
@@ -116,7 +124,11 @@ class AdvertisementService
                 ]
             ];
 
-            $processedImages = $this->fileHandler->handleFiles($imageMap, true);
+            $processedImages = $this->fileHandler->handleFiles(
+                $imageMap,
+                true,
+                $this->buildAdGroupPath($data)
+            );
             $payload['image'] = json_encode($processedImages[0]);
         }
 
@@ -180,4 +192,22 @@ class AdvertisementService
     //         ->where('id', '=', $id)
     //         ->update(['image' => null]);
     // }
+
+    private function buildAdGroupPath(array $data): string
+    {
+        $position = $this->toSlug((string)($data['display_position'] ?? 'general'));
+        $title = $this->toSlug((string)($data['title'] ?? 'ad'));
+        $id = (int)($data['id'] ?? 0);
+
+        if ($id > 0) {
+            return "explore/advertisements/{$position}/{$id}/{$title}";
+        }
+
+        return "explore/advertisements/{$position}/{$title}";
+    }
+
+    private function toSlug(string $text): string
+    {
+        return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
+    }
 }

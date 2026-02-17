@@ -5,7 +5,7 @@ namespace V3\App\Services\Portal\ELearning;
 use PDO;
 use V3\App\Common\Enums\ContentType;
 use V3\App\Common\Enums\QuestionType;
-use V3\App\Common\Utilities\PathResolver;
+use V3\App\Common\Utilities\FileHandler;
 use V3\App\Models\Portal\Academics\ClassModel;
 use V3\App\Models\Portal\ELearning\Content;
 use V3\App\Models\Portal\ELearning\Quiz;
@@ -14,7 +14,7 @@ class ContentManagerService
 {
     private Content $content;
     private Quiz $quiz;
-    private string $contentPath;
+    private FileHandler $fileHandler;
     private ClassModel $classModel;
 
     /**
@@ -28,9 +28,7 @@ class ContentManagerService
         $this->content = new Content($pdo);
         $this->quiz = new Quiz($pdo);
         $this->classModel = new ClassModel($pdo);
-
-        $paths = PathResolver::getContentPaths();
-        $this->contentPath = $paths['absolute'];
+        $this->fileHandler = new FileHandler();
     }
 
     private function getRecentContent(
@@ -503,15 +501,6 @@ class ContentManagerService
      */
     private function deleteFiles(array $files): void
     {
-        foreach ($files as $file) {
-            $filePath = $file['file_name'] ?? $file['old_file_name'] ?? null;
-
-            if ($filePath) {
-                $absolute = $this->contentPath . basename($filePath);
-                if (file_exists($absolute)) {
-                    @unlink($absolute); // Suppress warning, continue even if file fails
-                }
-            }
-        }
+        $this->fileHandler->deleteFiles($files);
     }
 }

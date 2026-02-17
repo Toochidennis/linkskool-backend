@@ -6,7 +6,7 @@ use V3\App\Common\Utilities\FileHandler;
 
 class StorageService
 {
-    public static function saveFile(array $file): string
+    public static function saveFile(array $file, ?string $groupPath = null): string
     {
         $fileHandler = new FileHandler();
 
@@ -32,7 +32,7 @@ class StorageService
             throw new \Exception("No valid image provided.");
         }
 
-        $processedFiles = $fileHandler->handleFiles($imageMap);
+        $processedFiles = $fileHandler->handleFiles($imageMap, false, $groupPath);
         return $processedFiles[0]['file_name'];
     }
 

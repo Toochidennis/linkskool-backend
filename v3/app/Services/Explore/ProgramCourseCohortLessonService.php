@@ -2,8 +2,6 @@
 
 namespace V3\App\Services\Explore;
 
-use V3\App\Common\Events\EventDispatcher;
-use V3\App\Events\SubmissionGraded;
 use V3\App\Models\Explore\CohortLessonQuiz;
 use V3\App\Models\Explore\CohortTasksSubmission;
 use V3\App\Models\Explore\ProgramCourseCohortLesson;
@@ -62,7 +60,7 @@ class ProgramCourseCohortLessonService
                 $payload['thumbnail'] = $this->getYouTubeThumbnail($data['video_url']);
             }
 
-            $fileUrls = $this->processNewFiles();
+            $fileUrls = $this->processNewFiles($data);
             $payload = [...$payload, ...$fileUrls];
 
             $lessonId = $this->cohortLesson->insert($payload);
@@ -115,7 +113,7 @@ class ProgramCourseCohortLessonService
                 $payload['thumbnail'] = $this->getYouTubeThumbnail($data['video_url']);
             }
 
-            $fileUrls = $this->processNewFiles(isUpdate: true);
+            $fileUrls = $this->processNewFiles($data, isUpdate: true);
 
             $payload = [...$payload, ...$fileUrls];
 
@@ -144,7 +142,7 @@ class ProgramCourseCohortLessonService
             ->update(['status' => $status]);
     }
 
-    private function processNewFiles($isUpdate = false): array
+    private function processNewFiles(array $data, bool $isUpdate = false): array
     {
         $urls = [
             'assignment_url' => null,
@@ -159,14 +157,23 @@ class ProgramCourseCohortLessonService
         }
 
         if ($material) {
-            $urls['material_url'] = StorageService::saveFile($material);
+            $urls['material_url'] = StorageService::saveFile(
+                $material,
+                $this->buildLessonGroupPath($data, 'materials')
+            );
         }
 
         if (isset($_FILES['assignment'])) {
-            $urls['assignment_url'] = StorageService::saveFile($_FILES['assignment']);
+            $urls['assignment_url'] = StorageService::saveFile(
+                $_FILES['assignment'],
+                $this->buildLessonGroupPath($data, 'assignments')
+            );
         }
         if (isset($_FILES['certificate'])) {
-            $urls['certificate_url'] = StorageService::saveFile($_FILES['certificate']);
+            $urls['certificate_url'] = StorageService::saveFile(
+                $_FILES['certificate'],
+                $this->buildLessonGroupPath($data, 'certificates')
+            );
         }
 
         return $urls;
@@ -183,6 +190,21 @@ class ProgramCourseCohortLessonService
         if (isset($data['old_certificate_url'], $fileUrls['certificate_url'])) {
             StorageService::deleteFile($data['old_certificate_url']);
         }
+    }
+
+    private function buildLessonGroupPath(array $data, string $assetType): string
+    {
+        $programId = (int)($data['program_id'] ?? 0);
+        $courseId = (int)($data['course_id'] ?? 0);
+        $cohortId = (int)($data['cohort_id'] ?? 0);
+        $lessonSlug = $this->toSlug((string)($data['title'] ?? 'lesson'));
+
+        return "explore/programs/{$programId}/courses/{$courseId}/cohorts/{$cohortId}/lessons/{$lessonSlug}/{$assetType}";
+    }
+
+    private function toSlug(string $text): string
+    {
+        return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
     }
 
     private function isYouTubeUrl(string $url): bool
@@ -304,170 +326,5 @@ class ProgramCourseCohortLessonService
         return $this->cohortLesson
             ->where('id', $id)
             ->delete();
-    }
-
-    public function getLessonSubmissions(int $lessonId): array
-    {
-        $sql = "
-            SELECT
-                s.id,
-                s.profile_id,
-                s.cohort_id,
-                s.lesson_id,
-                s.submission_type,
-                s.text_content,
-                s.link_url,
-                s.files,
-                s.quiz_score,
-                s.assigned_score,
-                s.remark,
-                s.comment,
-                s.graded_by,
-                s.graded_at,
-                s.notified_by,
-                s.notified_at,
-                s.created_at,
-                s.updated_at,
-                p.first_name,
-                p.last_name
-            FROM cohort_tasks_submissions s
-            LEFT JOIN program_profiles p
-                ON p.id = s.profile_id
-            WHERE s.lesson_id = :lesson_id
-            ORDER BY s.created_at DESC
-        ";
-
-        $rows = $this->submission->rawQuery($sql, [
-            'lesson_id' => $lessonId
-        ]);
-
-        return array_map(function (array $row) {
-            $files = !empty($row['files'])
-                ? json_decode($row['files'], true)
-                : null;
-
-            $fullName = trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? ''));
-
-            return [
-                'id' => (int) $row['id'],
-                'lesson_id' => (int) $row['lesson_id'],
-                'cohort_id' => $row['cohort_id'],
-                'profile' => [
-                    'id' => (int) $row['profile_id'],
-                    'first_name' => $row['first_name'] ?? null,
-                    'last_name' => $row['last_name'] ?? null,
-                    'full_name' => $fullName !== '' ? $fullName : null,
-                ],
-                'submission' => [
-                    'type' => $row['submission_type'] ?? null,
-                    'text_content' => $row['text_content'] ?? null,
-                    'link_url' => $row['link_url'] ?? null,
-                    'files' => \is_array($files) ? $files : null,
-                    'quiz_score' => $row['quiz_score'] !== null
-                        ? (float) $row['quiz_score']
-                        : null,
-                ],
-                'grading' => [
-                    'assigned_score' => $row['assigned_score'] !== null
-                        ? (float) $row['assigned_score']
-                        : null,
-                    'remark' => $row['remark'] ?? null,
-                    'comment' => $row['comment'] ?? null,
-                    'graded_by' => $row['graded_by'] !== null ? (int) $row['graded_by'] : null,
-                    'graded_at' => $row['graded_at'] ?? null,
-                ],
-                'notification' => [
-                    'notified_by' => $row['notified_by'] !== null ? (int) $row['notified_by'] : null,
-                    'notified_at' => $row['notified_at'] ?? null,
-                ],
-                'created_at' => $row['created_at'] ?? null,
-                'updated_at' => $row['updated_at'] ?? null,
-            ];
-        }, $rows);
-    }
-
-    public function gradeSubmission(array $data): bool
-    {
-        $score = (float) ($data['assigned_score'] ?? 0);
-        $remark = $data['remark'] ?? $this->getRemarkByScore($score);
-
-        $updated =  $this->submission
-            ->where('id', $data['submission_id'])
-            ->update([
-                'assigned_score' => $score,
-                'remark' => $remark,
-                'comment' => $data['comment'] ?? null,
-                'graded_by' => $data['graded_by'],
-                'graded_at' => date('Y-m-d H:i:s'),
-            ]);
-
-        if (!$updated) {
-            return false;
-        }
-
-        if (!empty($data['notify_student'])) {
-            $this->notifyStudents([$data['submission_id']], $data['graded_by']);
-        }
-
-        return true;
-    }
-
-    private function getRemarkByScore(float|int $score): string
-    {
-        $normalizedScore = max(0, min(100, (float) $score));
-
-        if ($normalizedScore >= 85) {
-            return 'Excellent Work!';
-        }
-
-        if ($normalizedScore >= 70) {
-            return 'Good Job!';
-        }
-
-        if ($normalizedScore >= 60) {
-            return 'Good Effort, but there is room for improvement.';
-        }
-
-        if ($normalizedScore >= 50) {
-            return 'Fair Effort, but there is room for improvement.';
-        }
-
-        return 'Needs Improvement. Please review the material and try again.';
-    }
-
-
-    public function notifyStudents(array $submissionIds, int $notifiedBy): void
-    {
-        $submissions = $this->submission
-            ->in('id', $submissionIds)
-            ->get();
-
-        if (!$submissions) {
-            return;
-        }
-
-        foreach ($submissions as $submission) {
-            if (!empty($submission['notified_at'])) {
-                continue; // already notified
-            }
-
-            EventDispatcher::dispatch(
-                new SubmissionGraded(
-                    $submission['id'],
-                    $submission['profile_id'],
-                    $submission['lesson_id'],
-                    $submission['assigned_score'],
-                    $submission['remark'],
-                    $submission['comment']
-                )
-            );
-
-            $this->submission
-                ->where('id', $submission['id'])
-                ->update([
-                    'notified_at' => date('Y-m-d H:i:s'),
-                    'notified_by' => $notifiedBy,
-                ]);
-        }
     }
 }

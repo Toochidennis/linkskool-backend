@@ -21,9 +21,12 @@ class ProgramService
         if (!isset($_FILES['image'])) {
             throw new \Exception("Invalid image upload.");
         }
-        $data['image_url'] = StorageService::saveFile($_FILES['image']);
+        $slug = $this->toSlug($data['name']);
+        $data['image_url'] = StorageService::saveFile(
+            $_FILES['image'],
+            "explore/programs/{$slug}"
+        );
 
-        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['name'])));
 
         $payload = [
             'name' => $data['name'],
@@ -48,7 +51,11 @@ class ProgramService
     public function updateProgram(array $data): bool
     {
         if (isset($_FILES['image'])) {
-            $data['image_url'] = StorageService::saveFile($_FILES['image']);
+            $slug = $this->toSlug($data['name']);
+            $data['image_url'] = StorageService::saveFile(
+                $_FILES['image'],
+                "explore/programs/{$slug}"
+            );
         }
 
         $payload = [
@@ -220,5 +227,10 @@ class ProgramService
         return $this->programModel
             ->where('id', $id)
             ->delete();
+    }
+
+    private function toSlug(string $text): string
+    {
+        return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
     }
 }

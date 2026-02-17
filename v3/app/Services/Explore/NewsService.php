@@ -47,7 +47,11 @@ class NewsService
             }
         }
 
-        $processedImages = $this->fileHandler->handleFiles($imageMap);
+        $processedImages = $this->fileHandler->handleFiles(
+            $imageMap,
+            false,
+            $this->buildNewsGroupPath($data)
+        );
 
         $payload = [
             'title' => $data['title'],
@@ -330,9 +334,30 @@ class NewsService
         }
 
         $uploadedImages = $newImages
-            ? $this->fileHandler->handleFiles($newImages)
+            ? $this->fileHandler->handleFiles(
+                $newImages,
+                false,
+                $this->buildNewsGroupPath($images)
+            )
             : [];
 
         return $uploadedImages;
+    }
+
+    private function buildNewsGroupPath(array $data): string
+    {
+        $id = (int)($data['id'] ?? 0);
+        $title = $this->toSlug((string)($data['title'] ?? 'news'));
+
+        if ($id > 0) {
+            return "explore/news/{$id}/{$title}";
+        }
+
+        return "explore/news/{$title}";
+    }
+
+    private function toSlug(string $text): string
+    {
+        return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
     }
 }

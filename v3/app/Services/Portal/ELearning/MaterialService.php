@@ -20,7 +20,10 @@ class MaterialService
     public function addMaterial(array $data): int|bool
     {
         $payload = $this->buildAddPayload(data: $data);
-        $result = $this->handler->handleFiles(files: $data['files']);
+        $result = $this->handler->handleFiles(
+            files: $data['files'],
+            groupPath: $this->buildMaterialGroupPath($data)
+        );
         $payload['url'] = json_encode($result);
         return $this->content->insert(data: $payload);
     }
@@ -28,7 +31,11 @@ class MaterialService
     public function updateMaterial(array $data): bool|int
     {
         $payload = $this->buildUpdatePayload($data);
-        $result = $this->handler->handleFiles(files: $data['files'], isUpdate: true);
+        $result = $this->handler->handleFiles(
+            files: $data['files'],
+            isUpdate: true,
+            groupPath: $this->buildMaterialGroupPath($data)
+        );
         $payload['url'] = json_encode($result);
 
         return $this->content
@@ -71,5 +78,26 @@ class MaterialService
             'parent' => $data['topic_id'] ?? 0,
             'path_label' => json_encode($data['classes']),
         ];
+    }
+
+    private function buildMaterialGroupPath(array $data): string
+    {
+        $courseId = (int)($data['course_id'] ?? 0);
+        $syllabusId = (int)($data['syllabus_id'] ?? 0);
+        $topicId = (int)($data['topic_id'] ?? 0);
+        $contentId = (int)($data['id'] ?? 0);
+        $title = $this->toSlug((string)($data['title'] ?? 'material'));
+
+        $base = "portal/elearning/materials/courses/{$courseId}/syllabi/{$syllabusId}/topics/{$topicId}";
+        if ($contentId > 0) {
+            return "{$base}/content/{$contentId}/{$title}";
+        }
+
+        return "{$base}/{$title}";
+    }
+
+    private function toSlug(string $text): string
+    {
+        return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
     }
 }

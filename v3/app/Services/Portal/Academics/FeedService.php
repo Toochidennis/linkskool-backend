@@ -25,7 +25,13 @@ class FeedService
 
     public function addContent(array $data)
     {
-        $files = json_encode($this->fileHandler->handleFiles($data['files'] ?? []));
+        $files = json_encode(
+            $this->fileHandler->handleFiles(
+                $data['files'] ?? [],
+                false,
+                'portal/academics/feed'
+            )
+        );
 
         $payload = [
             "title" => $data['title'],
@@ -44,7 +50,13 @@ class FeedService
 
     public function updateContent(array $data)
     {
-        $files = json_encode($this->fileHandler->handleFiles($data['files'] ?? [], true));
+        $files = json_encode(
+            $this->fileHandler->handleFiles(
+                $data['files'] ?? [],
+                true,
+                'portal/academics/feed'
+            )
+        );
         $payload = [
             "title" => $data['title'],
             "body" => $data['content'],

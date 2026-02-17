@@ -22,9 +22,11 @@ class LearningCourseService
             throw new \Exception("Invalid image upload.");
         }
 
-        $data['image_url'] = StorageService::saveFile($_FILES['image']);
-
-        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title'])));
+        $slug = $this->toSlug($data['title']);
+        $data['image_url'] = StorageService::saveFile(
+            $_FILES['image'],
+            "explore/courses/{$slug}"
+        );
 
         $payload = [
             'title' => $data['title'],
@@ -42,11 +44,15 @@ class LearningCourseService
     public function update(array $data)
     {
         if (isset($_FILES['image'])) {
-            $data['image_url'] = StorageService::saveFile($_FILES['image']);
+            $slug = $this->toSlug($data['title']);
+            $data['image_url'] = StorageService::saveFile(
+                $_FILES['image'],
+                "explore/courses/{$slug}"
+            );
         }
 
         if ($data['title']) {
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title'])));
+            $slug = $this->toSlug($data['title']);
         }
 
         $payload = [
@@ -124,5 +130,10 @@ class LearningCourseService
         return $this->learningCourseModel
             ->where('id', $id)
             ->delete();
+    }
+
+    private function toSlug(string $text): string
+    {
+        return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
     }
 }

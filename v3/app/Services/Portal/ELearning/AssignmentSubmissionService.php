@@ -20,7 +20,15 @@ class AssignmentSubmissionService
 
     public function submitAssignment(array $data): bool
     {
-        $filePath = $this->fileHandler->handleFiles($data['files']);
+        $filePath = $this->fileHandler->handleFiles(
+            $data['files'],
+            false,
+            sprintf(
+                'portal/elearning/assignments/%d/students/%d',
+                (int)$data['assignment_id'],
+                (int)$data['student_id']
+            )
+        );
 
         $payload = [
             'exam' => $data['assignment_id'],

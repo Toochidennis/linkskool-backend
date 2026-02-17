@@ -4,7 +4,6 @@ namespace V3\App\Services\Explore;
 
 use PDO;
 use V3\App\Common\Utilities\FileHandler;
-use V3\App\Common\Utilities\PathResolver;
 use V3\App\Common\Utilities\QuestionImportFormatter;
 use V3\App\Common\Utilities\QuestionImportParser;
 use V3\App\Models\Explore\Exam;
@@ -18,7 +17,6 @@ class ExamService
     private AuditLog $auditLog;
     private FileHandler $handler;
     private Quiz $quiz;
-    private string $contentPath;
     private QuestionService $questionService;
 
     public function __construct(PDO $pdo)
@@ -28,8 +26,6 @@ class ExamService
         $this->auditLog = new AuditLog($pdo);
         $this->quiz = new Quiz($pdo);
         $this->handler = new FileHandler();
-        $paths = PathResolver::getContentPaths();
-        $this->contentPath = $paths['absolute'];
 
         $this->questionService = new QuestionService($pdo);
     }
@@ -84,7 +80,12 @@ class ExamService
             }
         }
 
-        $processedFiles = !empty($allFiles) ? $this->handler->handleFiles(files: $allFiles) : [];
+        $processedFiles = !empty($allFiles)
+            ? $this->handler->handleFiles(
+                files: $allFiles,
+                groupPath: $this->buildExamGroupPath($settings)
+            )
+            : [];
 
         // Map processed files back to questions
         foreach ($fileMap as $idx => $fileInfo) {
@@ -258,14 +259,16 @@ class ExamService
         foreach ($questionsData as $idx => $question) {
             $processedQuestionFiles = $this->handler->handleFiles(
                 files: $question['question_files'] ?? [],
-                isUpdate: true
+                isUpdate: true,
+                groupPath: $this->buildExamGroupPath($settings, $settings['exam_id'] ?? null)
             );
 
             $options = $question['options'] ?? [];
             foreach ($options as &$option) {
                 $option['option_files'] = $this->handler->handleFiles(
                     files: $option['option_files'] ?? [],
-                    isUpdate: true
+                    isUpdate: true,
+                    groupPath: $this->buildExamGroupPath($settings, $settings['exam_id'] ?? null)
                 );
             }
             unset($option);
@@ -469,16 +472,7 @@ class ExamService
      */
     private function deleteFiles(array $files): void
     {
-        foreach ($files as $file) {
-            $filePath = $file['file_name'] ?? $file['old_file_name'] ?? null;
-
-            if ($filePath) {
-                $absolute = $this->contentPath . basename($filePath);
-                if (file_exists($absolute)) {
-                    @unlink($absolute); // Suppress warning, continue even if file fails
-                }
-            }
-        }
+        $this->handler->deleteFiles($files);
     }
 
     /**
@@ -573,5 +567,23 @@ class ExamService
 
         $decoded = json_decode($data, true);
         return \is_array($decoded) ? $decoded : [];
+    }
+
+    private function buildExamGroupPath(array $settings, ?int $examId = null): string
+    {
+        $courseId = (int)($settings['course_id'] ?? 0);
+        $year = (int)($settings['year'] ?? date('Y'));
+        $title = $this->toSlug((string)($settings['title'] ?? ($settings['course_name'] ?? 'exam')));
+
+        if ($examId && $examId > 0) {
+            return "explore/exams/courses/{$courseId}/years/{$year}/{$examId}/{$title}";
+        }
+
+        return "explore/exams/courses/{$courseId}/years/{$year}/{$title}";
+    }
+
+    private function toSlug(string $text): string
+    {
+        return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
     }
 }

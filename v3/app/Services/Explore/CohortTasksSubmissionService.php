@@ -70,7 +70,13 @@ class CohortTasksSubmissionService
         }
 
         if (!empty($data['assignment'])) {
-            $assignment = $this->fileHandler->handleFiles($data['assignment']);
+            $groupPath = sprintf(
+                'explore/submissions/cohorts/%d/lessons/%d/profiles/%d',
+                (int)$data['cohort_id'],
+                (int)$data['lesson_id'],
+                (int)$data['profile_id']
+            );
+            $assignment = $this->fileHandler->handleFiles($data['assignment'], false, $groupPath);
             $payload['files'] = json_encode($assignment);
         }
 

@@ -21,7 +21,12 @@ class ProgramCourseCohortService
             throw new \Exception("Invalid image upload.");
         }
 
-        $data['image_url'] = StorageService::saveFile($_FILES['image']);
+        $cohortSlug = $this->toSlug($data['title']);
+        $courseSlug = $this->toSlug($data['course_name'] ?? (string)$data['course_id']);
+        $data['image_url'] = StorageService::saveFile(
+            $_FILES['image'],
+            "explore/programs/{$data['program_id']}/courses/{$courseSlug}/cohorts/{$cohortSlug}"
+        );
 
         $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title'])));
 
@@ -61,7 +66,11 @@ class ProgramCourseCohortService
     public function updateProgramCourseCohort(array $data)
     {
         if (isset($_FILES['image'])) {
-            $data['image_url'] = StorageService::saveFile($_FILES['image']);
+            $cohortSlug = $this->toSlug($data['title']);
+            $data['image_url'] = StorageService::saveFile(
+                $_FILES['image'],
+                "explore/cohorts/{$data['id']}/{$cohortSlug}"
+            );
         }
 
         $payload = [
@@ -137,5 +146,10 @@ class ProgramCourseCohortService
         return $this->cohort
             ->where('id', $id)
             ->delete();
+    }
+
+    private function toSlug(string $text): string
+    {
+        return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
     }
 }

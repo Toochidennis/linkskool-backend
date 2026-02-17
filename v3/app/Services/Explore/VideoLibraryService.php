@@ -42,7 +42,11 @@ class VideoLibraryService
                 ]
             ];
 
-            $processedImages = $this->fileHandler->handleFiles($imageMap);
+            $processedImages = $this->fileHandler->handleFiles(
+                $imageMap,
+                false,
+                $this->buildVideoGroupPath($data)
+            );
             $thumbnailUrl = $processedImages[0]['file_name'] ?? null;
         }
 
@@ -95,7 +99,11 @@ class VideoLibraryService
                 ]
             ];
 
-            $processedImages = $this->fileHandler->handleFiles($imageMap);
+            $processedImages = $this->fileHandler->handleFiles(
+                $imageMap,
+                false,
+                $this->buildVideoGroupPath($data)
+            );
             $thumbnailUrl = $processedImages[0]['file_name'] ?? null;
         }
 
@@ -158,6 +166,27 @@ class VideoLibraryService
         return $this->videoLibrary
             ->where('id', '=', $id)
             ->delete();
+    }
+
+    private function buildVideoGroupPath(array $data): string
+    {
+        $courseId = (int)($data['course_id'] ?? 0);
+        $syllabusId = (int)($data['syllabus_id'] ?? 0);
+        $topicId = (int)($data['topic_id'] ?? 0);
+        $title = $this->toSlug((string)($data['title'] ?? 'video'));
+        $id = (int)($data['id'] ?? 0);
+
+        $base = "explore/video-library/courses/{$courseId}/syllabi/{$syllabusId}/topics/{$topicId}";
+        if ($id > 0) {
+            return "{$base}/videos/{$id}/{$title}";
+        }
+
+        return "{$base}/videos/{$title}";
+    }
+
+    private function toSlug(string $text): string
+    {
+        return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
     }
 
     public function getSyllabusByCourse(int $courseId): array

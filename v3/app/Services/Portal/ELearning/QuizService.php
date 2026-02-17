@@ -44,13 +44,19 @@ class QuizService
                 $options = $question['options'] ?? [];
 
                 if (!empty($questionFiles)) {
-                    $questionFiles = $this->handler->handleFiles(files: $questionFiles);
+                    $questionFiles = $this->handler->handleFiles(
+                        files: $questionFiles,
+                        groupPath: $this->buildQuizGroupPath($settings)
+                    );
                 }
 
                 if (!empty($options)) {
                     foreach ($options as &$option) {
                         if (isset($option['option_files']) && !empty($option['option_files'])) {
-                            $option['option_files'] =  $this->handler->handleFiles(files: $option['option_files']);
+                            $option['option_files'] =  $this->handler->handleFiles(
+                                files: $option['option_files'],
+                                groupPath: $this->buildQuizGroupPath($settings)
+                            );
                         }
                     }
                 }
@@ -125,7 +131,11 @@ class QuizService
                 $options = $question['options'] ?? [];
 
                 if (!empty($questionFiles)) {
-                    $questionFiles = $this->handler->handleFiles(files: $questionFiles, isUpdate: true);
+                    $questionFiles = $this->handler->handleFiles(
+                        files: $questionFiles,
+                        isUpdate: true,
+                        groupPath: $this->buildQuizGroupPath($settings, $settings['id'] ?? null)
+                    );
                 }
 
                 if (!empty($options)) {
@@ -133,7 +143,8 @@ class QuizService
                         if (isset($option['option_files']) && !empty($option['option_files'] ?? [])) {
                             $option['option_files'] = $this->handler->handleFiles(
                                 files: $option['option_files'],
-                                isUpdate: true
+                                isUpdate: true,
+                                groupPath: $this->buildQuizGroupPath($settings, $settings['id'] ?? null)
                             );
                         }
                     }
@@ -261,5 +272,25 @@ class QuizService
     private function json(array $data): string
     {
         return json_encode($data, JSON_THROW_ON_ERROR);
+    }
+
+    private function buildQuizGroupPath(array $settings, ?int $contentId = null): string
+    {
+        $courseId = (int)($settings['course_id'] ?? 0);
+        $syllabusId = (int)($settings['syllabus_id'] ?? 0);
+        $topicId = (int)($settings['topic_id'] ?? 0);
+        $title = $this->toSlug((string)($settings['title'] ?? 'quiz'));
+
+        $base = "portal/elearning/quizzes/courses/{$courseId}/syllabi/{$syllabusId}/topics/{$topicId}";
+        if ($contentId && $contentId > 0) {
+            return "{$base}/content/{$contentId}/{$title}";
+        }
+
+        return "{$base}/{$title}";
+    }
+
+    private function toSlug(string $text): string
+    {
+        return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
     }
 }

@@ -31,7 +31,11 @@ class StudentService
     {
         if (!empty($data['photo']) && \is_array($data['photo'])) {
             $data['photo']['type'] = 'image';
-            $file = $this->fileHandler->handleFiles($data['photo']);
+            $file = $this->fileHandler->handleFiles(
+                $data['photo'],
+                false,
+                'portal/academics/students/photos'
+            );
             $data['photo'] = $file[0]['old_file_name'];
         }
         $payload = [
@@ -92,7 +96,11 @@ class StudentService
     {
         if (!empty($data['photo']) && \is_array($data['photo'])) {
             $data['photo']['type'] = 'image';
-            $file = $this->fileHandler->handleFiles($data['photo']);
+            $file = $this->fileHandler->handleFiles(
+                $data['photo'],
+                false,
+                'portal/academics/students/photos'
+            );
             $data['photo'] = $file[0]['old_file_name'];
         }
 
