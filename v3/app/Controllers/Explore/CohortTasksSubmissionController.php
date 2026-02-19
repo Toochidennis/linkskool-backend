@@ -48,6 +48,19 @@ class CohortTasksSubmissionController extends ExploreBaseController
             );
         }
 
+        $submissionId = (int) $submissionId;
+        $gradedBy = (int) $validated['profile_id'];
+
+        register_shutdown_function(function () use ($submissionId, $gradedBy) {
+            if (function_exists('fastcgi_finish_request')) {
+                @fastcgi_finish_request();
+            }
+
+            ignore_user_abort(true);
+            @set_time_limit(0);
+            $this->submissionService->autoGradeSubmission($submissionId, $gradedBy);
+        });
+
         $this->respond(
             [
                 'success' => true,

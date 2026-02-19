@@ -272,6 +272,7 @@ class LearningPathService
                 s.graded_at,
                 s.notified_at,
                 s.created_at AS submission_created_at,
+                CASE WHEN a.lesson_id IS NULL THEN 0 ELSE 1 END AS has_attendance,
                 EXISTS (
                     SELECT 1 
                     FROM cohort_lesson_quizzes q
@@ -281,6 +282,12 @@ class LearningPathService
             LEFT JOIN cohort_tasks_submissions s
                 ON s.lesson_id = l.id
                 AND s.profile_id = :profile_id
+            LEFT JOIN (
+                SELECT DISTINCT lesson_id
+                FROM cohort_lesson_attendance
+                WHERE profile_id = :profile_id
+            ) a
+                ON a.lesson_id = l.id
             WHERE l.id = :lesson_id
             LIMIT 1
         ";
@@ -288,7 +295,7 @@ class LearningPathService
         $row = $this->programCourseCohortLessonModel
             ->rawQuery($sql, [
                 'lesson_id' => $lessonId,
-                'profile_id'   => $profileId
+                'profile_id' => $profileId,
             ]);
 
         if (empty($row)) {
@@ -334,6 +341,7 @@ class LearningPathService
                 s.graded_at,
                 s.notified_at,
                 s.created_at AS submission_created_at,
+                CASE WHEN a.lesson_id IS NULL THEN 0 ELSE 1 END AS has_attendance,
                 EXISTS (
                     SELECT 1 
                     FROM cohort_lesson_quizzes q
@@ -343,6 +351,12 @@ class LearningPathService
             LEFT JOIN cohort_tasks_submissions s
                 ON s.lesson_id = l.id
                 AND s.profile_id = :profile_id
+            LEFT JOIN (
+                SELECT DISTINCT lesson_id
+                FROM cohort_lesson_attendance
+                WHERE profile_id = :profile_id
+            ) a
+                ON a.lesson_id = l.id
             WHERE l.cohort_id = :cohort_id
             AND l.status = 'published'
             ORDER BY l.display_order ASC
@@ -350,7 +364,7 @@ class LearningPathService
 
         $rows = $this->programCourseCohortLessonModel->rawQuery($sql, [
             'cohort_id'  => $cohortId,
-            'profile_id' => $profileId
+            'profile_id' => $profileId,
         ]);
 
         return array_map([$this, 'formatLessonWithSubmission'], $rows);
@@ -401,6 +415,7 @@ class LearningPathService
                 'assignment_instructions' => $row['assignment_instructions'],
                 'assignment_submission_type' => $row['assignment_submission_type'],
                 'is_final_lesson' => (bool) $row['is_final_lesson'],
+                'has_attendance' => (bool) ($row['has_attendance'] ?? false),
                 'display_order' => (int) $row['display_order'],
                 'lesson_date' => $row['lesson_date'],
                 'assignment_due_date' => $row['assignment_due_date'] ?? null,

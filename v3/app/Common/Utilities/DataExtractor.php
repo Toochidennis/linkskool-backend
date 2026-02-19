@@ -4,13 +4,16 @@ namespace V3\App\Common\Utilities;
 
 class DataExtractor
 {
+    private static ?string $rawBody = null;
+
     public static function extractPostData()
     {
         $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
 
         if (stripos($contentType, 'application/json') !== false) {
             // JSON Request
-            $post = json_decode(file_get_contents('php://input'), true);
+            self::$rawBody = file_get_contents('php://input');
+            $post = json_decode(self::$rawBody, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 http_response_code(400);
                 $response['message'] = 'Invalid JSON payload. Ensure that all fields are provided.';
@@ -30,5 +33,10 @@ class DataExtractor
             $response['message'] = 'Unsupported Content-Type.';
             ResponseHandler::sendJsonResponse($response);
         }
+    }
+
+    public static function getRawBody(): string
+    {
+        return self::$rawBody ?? '';
     }
 }

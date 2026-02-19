@@ -34,20 +34,172 @@ class BillingService
         }
     }
 
+    public function initiate(array $data): array
+    {
+        if ($data['method'] !== 'online') {
+            return [
+                'status' => 'failed',
+                'message' => 'Only online payment can be initiated.',
+            ];
+        }
+
+        return $this->initiatePaymentOnline($data);
+    }
+
+    public function handlePaystackWebhook(array $payload, ?string $signature, string $rawBody): array
+    {
+        $paystack = new PaystackService();
+
+        if (!$paystack->isValidWebhookSignature($rawBody, $signature)) {
+            return [
+                'status' => 'failed',
+                'message' => 'Invalid webhook signature.',
+            ];
+        }
+
+        if (($payload['event'] ?? '') !== 'transaction.success') {
+            return [
+                'status' => 'ignored',
+                'message' => 'Event ignored.',
+            ];
+        }
+
+        $reference = trim((string) ($payload['data']['reference'] ?? ''));
+        $metadata = $payload['data']['metadata'] ?? [];
+
+        if ($reference === '' || !\is_array($metadata)) {
+            return [
+                'status' => 'failed',
+                'message' => 'Missing reference or metadata.',
+            ];
+        }
+
+        $verificationData = [
+            'user_id' => (int) ($metadata['user_id'] ?? 0),
+            'plan_id' => (int) ($metadata['plan_id'] ?? 0),
+            'method' => 'online',
+            'platform' => (string) ($metadata['platform'] ?? ''),
+            'first_name' => (string) ($metadata['first_name'] ?? ''),
+            'last_name' => (string) ($metadata['last_name'] ?? ''),
+            'reference' => $reference,
+        ];
+
+        if (
+            $verificationData['user_id'] <= 0 ||
+            $verificationData['plan_id'] <= 0 ||
+            $verificationData['platform'] === '' ||
+            $verificationData['first_name'] === '' ||
+            $verificationData['last_name'] === ''
+        ) {
+            return [
+                'status' => 'failed',
+                'message' => 'Invalid metadata payload.',
+            ];
+        }
+
+        return $this->verifyPaymentOnline($verificationData);
+    }
+
+    private function initiatePaymentOnline(array $data): array
+    {
+        $paystack = new PaystackService();
+        $reference = $data['reference'] ?? ('BILL-' . date('YmdHis') . '-' . bin2hex(random_bytes(5)));
+        $amount = $this->computePrice((int) $data['plan_id']);
+        $payload = [
+            'email' => $data['email'],
+            'amount' => $amount,
+            'reference' => $reference,
+            'metadata' => [
+                'user_id' => (int) $data['user_id'],
+                'plan_id' => (int) $data['plan_id'],
+                'platform' => (string) $data['platform'],
+                'first_name' => (string) $data['first_name'],
+                'last_name' => (string) $data['last_name'],
+            ],
+        ];
+
+        if (!empty($data['callback_url'])) {
+            $payload['callback_url'] = $data['callback_url'];
+        }
+
+        try {
+            $initialized = $paystack->initialize($payload);
+            $resolvedReference = (string) ($initialized['reference'] ?? $reference);
+            $pendingPayload = [
+                'user_id' => $data['user_id'],
+                'amount' => $amount,
+                'plan_id' => $data['plan_id'],
+                'reference' => $resolvedReference,
+                'status' => 'pending',
+                'message' => 'Payment initialized, awaiting webhook verification.',
+                'method' => $data['method'],
+                'platform' => $data['platform'],
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
+            ];
+
+            $existing = $this->payment
+                ->where('reference', $resolvedReference)
+                ->first();
+
+            if (!empty($existing)) {
+                $saved = $this->payment
+                    ->where('reference', $resolvedReference)
+                    ->update($pendingPayload);
+            } else {
+                $saved = $this->payment->insert($pendingPayload);
+            }
+
+            if (!$saved) {
+                return [
+                    'status' => 'failed',
+                    'message' => 'Failed to create pending payment record.',
+                ];
+            }
+
+            return [
+                'status' => 'pending',
+                'message' => 'Payment initialized successfully.',
+                'payment_url' => $initialized['authorization_url'],
+                'access_code' => $initialized['access_code'],
+                'reference' => $resolvedReference,
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'status' => 'failed',
+                'message' => 'Failed to initialize payment: ' . $e->getMessage(),
+            ];
+        }
+    }
+
     private function verifyPaymentOnline(array $data)
     {
         $paystack = new PaystackService();
-        $verification = $paystack->verify($data['reference']);
+        try {
+            $verification = $paystack->verify($data['reference']);
+        } catch (\Throwable $e) {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment verification failed: ' . $e->getMessage(),
+            ];
+        }
 
-        if (!$verification['status']) {
+        if (!$verification['success']) {
             return [
                 'status' => 'failed',
                 'message' => 'Payment verification failed: ' . $verification['message'],
             ];
         }
 
+        if (($verification['status'] ?? '') !== 'success') {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment is not successful: ' . ($verification['status'] ?? 'unknown'),
+            ];
+        }
+
         $expected = $this->computePrice($data['plan_id']);
-        $amountPaid =  $verification['amount'] * 100; // convert to kobo
+        $amountPaid = (int) ($verification['amount_kobo'] ?? ((float) $verification['amount'] * 100));
 
         if ($amountPaid !== $expected) {
             return [
@@ -56,29 +208,40 @@ class BillingService
             ];
         }
 
-        if ($this->payment->where('reference', $data['reference'])->exists()) {
+        $existingPayment = $this->payment
+            ->where('reference', $data['reference'])
+            ->first();
+        if (!empty($existingPayment) && \in_array($existingPayment['status'] ?? '', ['paid', 'success'], true)) {
             return [
-                'status' => 'paid',
+                'status' => 'success',
                 'message' => 'Payment already recorded'
             ];
         }
 
-        $paymentId = $this->payment->insert([
+        $successPayload = [
             'user_id' => $data['user_id'],
             'amount' => $amountPaid,
             'plan_id' => $data['plan_id'],
             'reference' => $data['reference'],
-            'status' => 'paid',
+            'status' => 'success',
             'message' => 'Payment verified successfully',
             'method' => $data['method'],
             'platform' => $data['platform'],
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
-        ]);
+        ];
+
+        if (!empty($existingPayment)) {
+            $paymentId = $this->payment
+                ->where('reference', $data['reference'])
+                ->update($successPayload);
+        } else {
+            $paymentId = $this->payment->insert($successPayload);
+        }
 
         if ($paymentId) {
             return [
-                'status' => 'paid',
+                'status' => 'success',
                 'message' => 'Payment verified successfully',
                 'salt' => bin2hex(random_bytes(16)) // generate a random salt for license generation
             ];
@@ -149,7 +312,7 @@ class BillingService
     {
         return $this->payment
             ->where('user_id', $userId)
-            ->where('status', 'paid')
+            ->in('status', ['paid', 'success'])
             ->where('platform', $platform)
             ->exists();
     }
@@ -158,7 +321,7 @@ class BillingService
     {
         return $this->payment
             ->where('user_id', $userId)
-            ->where('status', 'paid')
+            ->in('status', ['paid', 'success'])
             ->where('platform', $platform)
             ->orderBy('created_at', 'desc')
             ->first();

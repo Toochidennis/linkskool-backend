@@ -3,14 +3,12 @@
 namespace V3\App\Services\Explore;
 
 use V3\App\Models\Explore\CohortLessonQuiz;
-use V3\App\Models\Explore\CohortTasksSubmission;
 use V3\App\Models\Explore\ProgramCourseCohortLesson;
 
 class ProgramCourseCohortLessonService
 {
     private ProgramCourseCohortLesson $cohortLesson;
     private CohortLessonQuiz $cohortLessonQuiz;
-    private CohortTasksSubmission $submission;
     private \PDO $pdo;
 
     public function __construct(\PDO $pdo)
@@ -18,7 +16,6 @@ class ProgramCourseCohortLessonService
         $this->pdo = $pdo;
         $this->cohortLesson = new ProgramCourseCohortLesson($pdo);
         $this->cohortLessonQuiz = new CohortLessonQuiz($pdo);
-        $this->submission = new CohortTasksSubmission($pdo);
     }
 
     public function addLessonToCohort(array $data): bool

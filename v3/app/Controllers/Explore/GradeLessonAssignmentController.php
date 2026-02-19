@@ -19,7 +19,7 @@ class GradeLessonAssignmentController extends ExploreBaseController
     }
 
     #[Route(
-        '/learn//lessons/{lesson_id}/submissions',
+        '/learn/lessons/{lesson_id}/submissions',
         'GET',
         ['api', 'auth']
     )]

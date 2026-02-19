@@ -4,6 +4,8 @@ namespace V3\App\Controllers\Explore;
 
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
+use V3\App\Common\Utilities\DataExtractor;
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\BillingService;
 
 #[Group('/public/cbt')]
@@ -41,5 +43,61 @@ class BillingController extends ExploreBaseController
             'message' => 'Payment successful',
             'data' => $res
         ]);
+    }
+
+    #[Route('/billing/initiate', 'POST', ['api'])]
+    public function initiate(): void
+    {
+        $validated = $this->validate(
+            $this->getRequestData(),
+            [
+                'user_id' => 'required|integer',
+                'plan_id' => 'required|integer',
+                'method' => 'required|string|in:online',
+                'platform' => 'required|string|in:mobile,desktop',
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+                'email' => 'required|email',
+                'callback_url' => 'nullable|url',
+                'reference' => 'nullable|string',
+            ]
+        );
+
+        $res = $this->service->initiate($validated);
+        $isSuccess = ($res['status'] ?? '') === 'pending';
+
+        $this->respond([
+            'success' => $isSuccess,
+            'message' => $res['message'] ?? 'Payment initialization completed.',
+            'data' => $res
+        ], $isSuccess ? HttpStatus::OK : HttpStatus::BAD_REQUEST);
+    }
+
+    #[Route('/billing/webhook/paystack', 'POST')]
+    public function paystackWebhook(): void
+    {
+        $signature = $_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] ?? null;
+        $payload = $this->getRequestData();
+        $rawBody = DataExtractor::getRawBody();
+
+        $res = $this->service->handlePaystackWebhook($payload, $signature, $rawBody);
+
+        if (($res['status'] ?? '') === 'failed') {
+            $statusCode = str_contains((string) ($res['message'] ?? ''), 'signature')
+                ? HttpStatus::UNAUTHORIZED
+                : HttpStatus::BAD_REQUEST;
+
+            $this->respond([
+                'success' => false,
+                'message' => $res['message'] ?? 'Webhook processing failed.',
+                'data' => $res
+            ], $statusCode);
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => $res['message'] ?? 'Webhook processed.',
+            'data' => $res
+        ], HttpStatus::OK);
     }
 }

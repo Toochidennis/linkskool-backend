@@ -9,10 +9,12 @@ use V3\App\Models\Explore\CohortTasksSubmission;
 class GradeLessonAssignmentService
 {
     private CohortTasksSubmission $submission;
+    private BulkAutoGradeService $bulkAutoGradeService;
 
     public function __construct(\PDO $pdo)
     {
         $this->submission = new CohortTasksSubmission($pdo);
+        $this->bulkAutoGradeService = new BulkAutoGradeService($pdo, $this->submission);
     }
 
     public function getLessonSubmissions(
@@ -136,7 +138,7 @@ class GradeLessonAssignmentService
                 'notify_student' => $data['notify_student'] ?? false,
             ];
 
-            if (!$this->gradeSubmission($gradeData)) {
+            if (!$this->gradeSubmissionManually($gradeData)) {
                 return false;
             }
         }
@@ -144,7 +146,7 @@ class GradeLessonAssignmentService
         return true;
     }
 
-    private function gradeSubmission(array $data): bool
+    private function gradeSubmissionManually(array $data): bool
     {
         $score = (float) ($data['assigned_score'] ?? 0);
         $remark = $data['remark'] ?? $this->getRemarkByScore($score);
@@ -226,5 +228,16 @@ class GradeLessonAssignmentService
                     'notified_by' => $notifiedBy,
                 ]);
         }
+    }
+
+    public function autoGradeSubmissions(array $data): array
+    {
+        return $this->bulkAutoGradeService->autoGradeSubmissions([
+            'submission_ids' => $data['submission_ids'],
+            'graded_by' => $data['graded_by'],
+            'batch_id' => $data['batch_id'] ?? null,
+            'persist_review' => true,
+            'apply_submission_state' => true,
+        ]);
     }
 }
