@@ -171,4 +171,30 @@ class LearningPathController extends ExploreBaseController
             ]
         );
     }
+
+    #[Route('/cohorts/{cohort_id}/profiles/{profile_id}/lesson-performance', 'GET', ['api'])]
+    public function getLessonPerformanceByCohortAndProfile(array $vars): void
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'profile_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+            ]
+        );
+
+        $data = $this->learningPathService
+            ->getLessonPerformanceByProfile(
+                (int) $validated['profile_id'],
+                (int) $validated['cohort_id']
+            );
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Lesson performance retrieved successfully.',
+                'data' => $data,
+            ]
+        );
+    }
 }

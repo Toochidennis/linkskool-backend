@@ -18,7 +18,8 @@
         "mailgun/mailgun-php": "^4.3",
         "symfony/http-client": "^7.0",
         "nyholm/psr7": "^1.8",
-        "smalot/pdfparser": "^2.12"
+        "smalot/pdfparser": "^2.12",
+        "google/auth": "^1.50"
     },
     "autoload": {
         "psr-4": {

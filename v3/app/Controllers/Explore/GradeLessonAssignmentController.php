@@ -30,7 +30,7 @@ class GradeLessonAssignmentController extends ExploreBaseController
             rules: [
                 'lesson_id' => 'required|integer',
                 'page' => 'nullable|integer|min:1',
-                'limit' => 'nullable|integer|min:1|max:25',
+                'limit' => 'nullable|integer',
             ]
         );
 

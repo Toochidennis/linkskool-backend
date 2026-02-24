@@ -31,10 +31,22 @@ class CohortTasksSubmissionService
 
         if ($query->exists()) {
             $existingSubmission = $this->cohortSubmissionModel
-                ->select(['id'])
+                ->select(['id', 'quiz_score'])
                 ->whereGroup($conditions)
                 ->first();
             $updateData = $this->buildSubmissionPayload($data, false);
+
+            if (array_key_exists('quiz_score', $updateData)) {
+                $existingQuizScore = $existingSubmission['quiz_score'] ?? null;
+                $incomingQuizScore = (float) $updateData['quiz_score'];
+
+                if (
+                    $existingQuizScore !== null
+                    && $incomingQuizScore <= (float) $existingQuizScore
+                ) {
+                    unset($updateData['quiz_score']);
+                }
+            }
 
             if (empty($updateData) || empty($existingSubmission['id'])) {
                 return false;

@@ -23,7 +23,7 @@ class GradeLessonAssignmentService
         int $limit = 25
     ): array {
         $page = max(1, $page);
-        $limit = max(1, min(25, $limit));
+        $limit = max(1, $limit);
         $offset = ($page - 1) * $limit;
 
         $total = $this->submission
@@ -84,7 +84,7 @@ class GradeLessonAssignmentService
                     'full_name' => $fullName !== '' ? $fullName : null,
                 ],
                 'submission' => [
-                    'type' => $row['submission_type'] ?? null,
+                    'type' => $row['submission_type'],
                     'text_content' => $row['text_content'] ?? null,
                     'link_url' => $row['link_url'] ?? null,
                     'files' => \is_array($files) ? $files : null,
@@ -105,7 +105,7 @@ class GradeLessonAssignmentService
                     'notified_by' => $row['notified_by'] !== null ? (int) $row['notified_by'] : null,
                     'notified_at' => $row['notified_at'] ?? null,
                 ],
-                'created_at' => $row['created_at'] ?? null,
+                'created_at' => $row['created_at'],
                 'updated_at' => $row['updated_at'] ?? null,
             ];
         }, $rows);
@@ -113,6 +113,7 @@ class GradeLessonAssignmentService
         return [
             'data' => $data,
             'meta' => [
+                'lesson_id' => $lessonId,
                 'page' => $page,
                 'limit' => $limit,
                 'total' => $total,

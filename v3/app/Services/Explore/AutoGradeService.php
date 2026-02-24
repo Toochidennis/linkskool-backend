@@ -6,6 +6,7 @@ class AutoGradeService
 {
     private const MAX_RETRIES = 3;
     private const RETRY_BACKOFF_MS = 1000;
+    private const MAX_COMMENT_WORDS = 20;
 
     public function grade(string $questionText, string $answerText): array
     {
@@ -16,22 +17,42 @@ class AutoGradeService
     private function buildPrompt(string $question, string $answer): string
     {
         return <<<PROMPT
-            You are a strict academic grader.
+            You are a strict academic teacher grading student work.
 
-            Grade the student answer strictly.
+            Follow ALL rules exactly.
 
-            Return ONLY valid JSON in this format:
+            Return ONLY valid JSON.
+            Do not include explanations.
+            Do not include markdown.
+            Do not include text before or after the JSON.
+
+            JSON format:
             {
             "score": number between 0 and 100,
-            "comment": "Detailed academic feedback (max 60 words)"
+            "comment": "One short sentence, maximum 20 words"
             }
+
+            Comment rules:
+            - Exactly 1 sentence.
+            - Maximum 20 words.
+            - Sound natural and human.
+            - Be direct and constructive.
+            - Mention what was missing.
+            - Suggest one clear improvement.
+            - No robotic phrases like "the response is" or "this constitutes".
+
+            Score rules:
+            - 0-49 = major gaps.
+            - 50-69 = basic understanding but missing depth.
+            - 70-84 = good but incomplete.
+            - 85-100 = strong and well-developed.
 
             QUESTION:
             {$question}
 
             STUDENT ANSWER:
             {$answer}
-        PROMPT;
+            PROMPT;
     }
 
     private function callAIWithRetry(string $prompt, int $retryCount = 0): array
@@ -104,7 +125,7 @@ class AutoGradeService
 
             return [
                 'score' => max(0, min(100, (float)$parsed['score'])),
-                'comment' => trim((string)$parsed['comment']),
+                'comment' => $this->humanizeComment((string) ($parsed['comment'] ?? '')),
             ];
         } catch (\Throwable $e) {
             if ($retryCount < self::MAX_RETRIES) {
@@ -140,5 +161,21 @@ class AutoGradeService
         }
 
         return [];
+    }
+
+    private function humanizeComment(string $comment): string
+    {
+        $clean = trim(preg_replace('/\s+/', ' ', $comment) ?? '');
+        if ($clean === '') {
+            return 'Needs more direct answers to the task.';
+        }
+
+        $words = preg_split('/\s+/', $clean) ?: [];
+        if (count($words) > self::MAX_COMMENT_WORDS) {
+            $words = array_slice($words, 0, self::MAX_COMMENT_WORDS);
+            $clean = rtrim(implode(' ', $words), " \t\n\r\0\x0B.,;:!?") . '.';
+        }
+
+        return $clean;
     }
 }

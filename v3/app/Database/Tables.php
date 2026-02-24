@@ -122,5 +122,7 @@ class Tables
         'payments',
         'vouchers',
         'email_logs',
+        'ai_grading_reviews',
+        'cohort_lesson_attendance'
     ];
 }

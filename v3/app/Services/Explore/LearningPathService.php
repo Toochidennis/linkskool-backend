@@ -285,7 +285,7 @@ class LearningPathService
             LEFT JOIN (
                 SELECT DISTINCT lesson_id
                 FROM cohort_lesson_attendance
-                WHERE profile_id = :profile_id
+                WHERE profile_id = :attendance_profile_id
             ) a
                 ON a.lesson_id = l.id
             WHERE l.id = :lesson_id
@@ -296,6 +296,7 @@ class LearningPathService
             ->rawQuery($sql, [
                 'lesson_id' => $lessonId,
                 'profile_id' => $profileId,
+                'attendance_profile_id' => $profileId,
             ]);
 
         if (empty($row)) {
@@ -354,7 +355,7 @@ class LearningPathService
             LEFT JOIN (
                 SELECT DISTINCT lesson_id
                 FROM cohort_lesson_attendance
-                WHERE profile_id = :profile_id
+                WHERE profile_id = :attendance_profile_id
             ) a
                 ON a.lesson_id = l.id
             WHERE l.cohort_id = :cohort_id
@@ -365,6 +366,7 @@ class LearningPathService
         $rows = $this->programCourseCohortLessonModel->rawQuery($sql, [
             'cohort_id'  => $cohortId,
             'profile_id' => $profileId,
+            'attendance_profile_id' => $profileId,
         ]);
 
         return array_map([$this, 'formatLessonWithSubmission'], $rows);
@@ -509,5 +511,208 @@ class LearningPathService
 
             'programs' => $this->getProgramsWithCourses(null, $profileId)
         ];
+    }
+
+    public function getLessonPerformanceByProfile(int $profileId, int $cohortId): array
+    {
+        $sql = "
+            SELECT DISTINCT
+                l.id AS lesson_id,
+                l.title AS lesson_title,
+                l.display_order,
+                l.cohort_id,
+                l.assignment_url,
+                l.assignment_instructions,
+                l.assignment_due_date,
+                l.zoom_info,
+                c.zoom_link,
+                s.quiz_score,
+                s.assigned_score,
+                s.submission_type,
+                s.text_content,
+                s.link_url,
+                s.files,
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM cohort_lesson_quizzes q
+                        WHERE q.lesson_id = l.id
+                    ) THEN 1
+                    ELSE 0
+                END AS has_quiz,
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM cohort_lesson_attendance a
+                        WHERE a.lesson_id = l.id
+                          AND a.profile_id = :attendance_profile_id
+                    ) THEN 1
+                    ELSE 0
+                END AS has_attendance
+            FROM program_course_cohort_enrollments e
+            INNER JOIN program_course_cohort_lessons l
+                ON l.cohort_id = e.cohort_id
+               AND l.status = 'published'
+            LEFT JOIN program_course_cohorts c
+                ON c.id = l.cohort_id
+            LEFT JOIN cohort_tasks_submissions s
+                ON s.id = (
+                    SELECT s2.id
+                    FROM cohort_tasks_submissions s2
+                    WHERE s2.lesson_id = l.id
+                      AND s2.profile_id = :submission_profile_id
+                    ORDER BY s2.id DESC
+                    LIMIT 1
+                )
+            WHERE e.profile_id = :profile_id
+              AND e.cohort_id = :cohort_id
+            ORDER BY l.display_order ASC, l.id ASC
+        ";
+
+        $rows = $this->programCourseCohortLessonModel->rawQuery($sql, [
+            'profile_id' => $profileId,
+            'cohort_id' => $cohortId,
+            'submission_profile_id' => $profileId,
+            'attendance_profile_id' => $profileId,
+        ]);
+
+        $attendanceSupposed = 0;
+        $attendanceTaken = 0;
+        $assignmentsSupposed = 0;
+        $assignmentsDone = 0;
+        $quizzesSupposed = 0;
+        $quizzesTaken = 0;
+        $scoreSum = 0.0;
+        $scoreCount = 0;
+        $lessons = [];
+
+        foreach ($rows as $row) {
+            $hasAttendance = (bool) ($row['has_attendance'] ?? false);
+            $hasQuiz = (bool) ($row['has_quiz'] ?? false);
+            $quizScore = $row['quiz_score'] !== null ? (float) $row['quiz_score'] : null;
+            $assignmentScore = $row['assigned_score'] !== null ? (float) $row['assigned_score'] : null;
+
+            $attendanceExpected = $this->isAttendanceExpected($row);
+            $assignmentExpected = $this->isAssignmentExpected($row);
+            $assignmentDone = $this->isAssignmentDone($row);
+            $quizTaken = $quizScore !== null;
+
+            if ($attendanceExpected) {
+                $attendanceSupposed++;
+                if ($hasAttendance) {
+                    $attendanceTaken++;
+                }
+            }
+
+            if ($assignmentExpected) {
+                $assignmentsSupposed++;
+            }
+
+            if ($assignmentDone) {
+                $assignmentsDone++;
+            }
+
+            if ($hasQuiz) {
+                $quizzesSupposed++;
+            }
+
+            if ($quizTaken) {
+                $quizzesTaken++;
+            }
+
+            if ($hasQuiz) {
+                $scoreSum += $quizScore ?? 0.0;
+                $scoreCount++;
+            }
+
+            if ($assignmentExpected) {
+                $scoreSum += $assignmentScore ?? 0.0;
+                $scoreCount++;
+            }
+
+            $lessons[] = [
+                'lesson_id' => (int) $row['lesson_id'],
+                'title' => $row['lesson_title'],
+                'display_order' => (int) $row['display_order'],
+                'attendance_taken' => $hasAttendance,
+                'quiz_score' => $quizScore,
+                'assignment_score' => $assignmentScore,
+            ];
+        }
+
+        return [
+            'overall_score_percentage' => $scoreCount > 0
+                ? round($scoreSum / $scoreCount, 2)
+                : 0.0,
+            'attendance' => [
+                'taken' => $attendanceTaken,
+                'supposed' => $attendanceSupposed,
+            ],
+            'assignments' => [
+                'taken' => $assignmentsDone,
+                'supposed' => $assignmentsSupposed,
+            ],
+            'quizzes' => [
+                'taken' => $quizzesTaken,
+                'supposed' => $quizzesSupposed,
+            ],
+            'lessons' => $lessons,
+        ];
+    }
+
+    private function isAttendanceExpected(array $row): bool
+    {
+        if ($this->hasNonEmptyValue($row['zoom_link'] ?? null)) {
+            return true;
+        }
+
+        if (!$this->hasNonEmptyValue($row['zoom_info'] ?? null)) {
+            return false;
+        }
+
+        $zoomInfo = json_decode((string) $row['zoom_info'], true);
+        if (\is_array($zoomInfo)) {
+            if ($this->hasNonEmptyValue($zoomInfo['url'] ?? null)) {
+                return true;
+            }
+
+            return !empty($zoomInfo);
+        }
+
+        return false;
+    }
+
+    private function isAssignmentExpected(array $row): bool
+    {
+        return $this->hasNonEmptyValue($row['assignment_url'] ?? null)
+            || $this->hasNonEmptyValue($row['assignment_instructions'] ?? null)
+            || $this->hasNonEmptyValue($row['assignment_due_date'] ?? null);
+    }
+
+    private function isAssignmentDone(array $row): bool
+    {
+        if ($this->hasNonEmptyValue($row['submission_type'] ?? null)) {
+            return true;
+        }
+
+        if ($this->hasNonEmptyValue($row['text_content'] ?? null)) {
+            return true;
+        }
+
+        if ($this->hasNonEmptyValue($row['link_url'] ?? null)) {
+            return true;
+        }
+
+        if (!$this->hasNonEmptyValue($row['files'] ?? null)) {
+            return false;
+        }
+
+        $files = json_decode((string) $row['files'], true);
+        return \is_array($files) && !empty($files);
+    }
+
+    private function hasNonEmptyValue(mixed $value): bool
+    {
+        return $value !== null && trim((string) $value) !== '';
     }
 }

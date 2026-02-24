@@ -65,6 +65,10 @@ class BulkAutoGradeService
             $applySubmissionState
         );
 
+        if ($persistReview) {
+            $results = $this->fetchBatchResults($batchId);
+        }
+
         return [
             'batch_id' => $batchId,
             'results' => $results,
@@ -107,6 +111,52 @@ class BulkAutoGradeService
         return $this->submission->rawQuery($sql, $bindings);
     }
 
+    private function fetchBatchResults(string $batchId): array
+    {
+        $sql = "
+            SELECT
+                r.*,
+                s.profile_id,
+                s.lesson_id,
+                s.submission_type,
+                s.text_content,
+                s.link_url,
+                s.files,
+                l.assignment_url,
+                p.first_name,
+                p.last_name
+            FROM ai_grading_reviews r
+            LEFT JOIN cohort_tasks_submissions s
+                ON s.id = r.submission_id
+            LEFT JOIN program_course_cohort_lessons l
+                ON l.id = s.lesson_id
+            LEFT JOIN program_profiles p
+                ON p.id = s.profile_id
+            WHERE r.batch_id = :batch_id
+            ORDER BY r.id ASC
+        ";
+
+        $rows = $this->submission->rawQuery($sql, ['batch_id' => $batchId]);
+
+        return array_map(function (array $row): array {
+            $firstName = trim((string) ($row['first_name'] ?? ''));
+            $lastName = trim((string) ($row['last_name'] ?? ''));
+            $fullName = trim($firstName . ' ' . $lastName);
+
+            return [
+                'submission_id' => (int) $row['submission_id'],
+                'profile_id' => (int) $row['profile_id'],
+                'student_name' => $fullName !== '' ? $fullName : null,
+                'lesson_id' => (int) $row['lesson_id'],
+                'assignment_url' => $row['assignment_url'] ?? null,
+                'submitted' => $this->buildSubmittedPayload($row),
+                'score' => max(0, min(100, (float) ($row['score'] ?? 0))),
+                'comment' => $row['comment'] ?? 'AI grading failed.',
+                'status' => $row['status'],
+            ];
+        }, $rows);
+    }
+
     private function gradeRows(
         array $rows,
         string $batchId,
@@ -138,16 +188,19 @@ class BulkAutoGradeService
                     'batch_id' => $batchId,
                     'lesson_id' => $row['lesson_id'],
                     'submission_id' => $row['id'],
-                    'ai_score' => $score,
-                    'ai_comment' => $comment,
+                    'score' => $score,
+                    'comment' => $comment,
                     'status' => 'pending',
                     'created_by' => $gradedBy,
-                    'created_at' => date('Y-m-d H:i:s')
                 ]);
             }
 
             $results[] = [
                 'submission_id' => (int) $row['id'],
+                'profile_id' => (int) ($row['profile_id'] ?? 0),
+                'lesson_id' => (int) ($row['lesson_id'] ?? 0),
+                'assignment_url' => $row['assignment_url'] ?? null,
+                'submitted' => $this->buildSubmittedPayload($row),
                 'score' => $score,
                 'comment' => $comment,
                 'ai_error' => $graded['error'] ?? null,
@@ -285,6 +338,16 @@ class BulkAutoGradeService
     {
         $files = json_decode($encoded, true);
         return \is_array($files) ? $files : [];
+    }
+
+    private function buildSubmittedPayload(array $submission): array
+    {
+        return [
+            'submission_type' => $submission['submission_type'] ?? $submission['type'] ?? null,
+            'text_content' => $submission['text_content'] ?? null,
+            'link_url' => $submission['link_url'] ?? null,
+            'files' => $this->decodeFiles((string) ($submission['files'] ?? '')),
+        ];
     }
 
     private function toAbsolutePath(string $path): ?string
