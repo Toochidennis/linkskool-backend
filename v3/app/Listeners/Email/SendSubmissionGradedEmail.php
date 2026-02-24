@@ -14,36 +14,48 @@ class SendSubmissionGradedEmail
 {
     public function __invoke(SubmissionGraded $event): void
     {
-        $pdo = DatabaseConnector::connect();
+        try {
+            $pdo = DatabaseConnector::connect();
 
-        $profile = (new ProgramProfile($pdo))->where('id', $event->profileId)->first();
-        $student = (new CbtUser($pdo))->where('id', $profile['user_id'])->first();
-        $lesson = (new ProgramCourseCohortLesson($pdo))->where('id', $event->lessonId)->first();
+            $profile = (new ProgramProfile($pdo))->where('id', $event->profileId)->first();
+            if (empty($profile)) {
+                return;
+            }
 
-        if (!$student || empty($student['email'])) {
+            $student = (new CbtUser($pdo))->where('id', $profile['user_id'])->first();
+            $lesson = (new ProgramCourseCohortLesson($pdo))->where('id', $event->lessonId)->first();
+
+            if (!$student || empty($student['email'])) {
+                return;
+            }
+
+            $name = trim(($profile['first_name'] ?? '') . ' ' . ($profile['last_name'] ?? ''));
+            $student['name'] = !empty($name) ? $name : 'Student';
+
+            $v3root = realpath(__DIR__ . '/../../');
+            if ($v3root === false) {
+                return;
+            }
+
+            $html = TemplateRenderer::render(
+                $v3root . '/Templates/emails/submission_graded.php',
+                [
+                    'student_name' => $student['name'],
+                    'assigned_score' => $event->assignedScore,
+                    'remark' => $event->remark,
+                    'comment' => $event->comment,
+                    'lesson_title' => $lesson['title'] ?? 'Lesson',
+                ]
+            );
+
+            (new MailService($pdo))->send(
+                "$student[name] <{$student['email']}>",
+                'Your Assignment Has Been Graded',
+                $html
+            );
+        } catch (\Throwable) {
+            // Fail quietly; notifications should not break core request flow.
             return;
         }
-
-        $name = trim($profile['first_name'] . ' ' . $profile['last_name']);
-        $student['name'] = !empty($name) ? $name : 'Student';
-
-        $v3root = realpath(__DIR__ . '/../');
-
-        $html = TemplateRenderer::render(
-            $v3root . '/Templates/emails/submission_graded.php',
-            [
-                'student_name' => $student['name'],
-                'assigned_score' => $event->assignedScore,
-                'remark' => $event->remark,
-                'comment' => $event->comment,
-                'lesson_title' => $lesson['title'],
-            ]
-        );
-
-        (new MailService($pdo))->send(
-            "$student[name] <{$student['email']}>",
-            'Your Assignment Has Been Graded',
-            $html
-        );
     }
 }

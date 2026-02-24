@@ -53,9 +53,11 @@ class CbtUserController extends ExploreBaseController
     {
         $data = $this->validate($this->getRequestData(), [
             'google_token' => 'required|string',
+            'fcm_token' => 'nullable|string',
         ]);
 
-        $response = $this->authBootstrapService->bootstrapWithGoogleToken($data['google_token']);
+        $response = $this->authBootstrapService
+            ->bootstrapWithGoogleToken($data['google_token'], $data['fcm_token'] ?? null);
 
         if (empty($response)) {
             $this->respondError(
@@ -126,6 +128,26 @@ class CbtUserController extends ExploreBaseController
 
 
         return $user;
+    }
+
+    #[Route('/{id:\d+}/fcm-token', 'POST', ['api'])]
+    public function upsertFcmToken(array $vars): void
+    {
+        $data = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'id' => 'required|integer|min:1',
+                'fcm_token' => 'required|string',
+            ]
+        );
+
+        $this->authBootstrapService
+            ->upsertFcmToken((int) $data['id'], (string) $data['fcm_token']);
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Fcm token updated successfully',
+        ]);
     }
 
     #[Route('/{id:\d+}/phone', 'PUT', ['api'])]

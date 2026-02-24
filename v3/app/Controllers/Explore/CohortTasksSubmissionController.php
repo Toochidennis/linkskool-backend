@@ -29,7 +29,7 @@ class CohortTasksSubmissionController extends ExploreBaseController
                 'assignment.*.old_file_name' => 'nullable|string',
                 'assignment.*.file' => 'required_with:assignment|string',
                 'assignment.*.type' => 'required_with:assignment|string|in:pdf',
-                'submission_type' => 'required|string|in:upload,text,link',
+                'submission_type' => 'nullable|string|in:upload,text,link',
                 'text_content' => 'required_if:submission_type,text|string',
                 'link_url' => 'required_if:submission_type,link|url',
                 'profile_id' => 'required|integer',

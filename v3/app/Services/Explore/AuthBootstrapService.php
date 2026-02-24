@@ -4,11 +4,13 @@ namespace V3\App\Services\Explore;
 
 use PDO;
 use Throwable;
+use V3\App\Models\Common\UserDeviceToken;
 
 class AuthBootstrapService
 {
     private CbtUserService $cbtUserService;
     private ProgramProfileService $profileService;
+    private UserDeviceToken $userDeviceToken;
     private PDO $pdo;
 
     public function __construct(PDO $pdo)
@@ -16,6 +18,7 @@ class AuthBootstrapService
         $this->pdo = $pdo;
         $this->cbtUserService = new CbtUserService($pdo);
         $this->profileService = new ProgramProfileService($pdo);
+        $this->userDeviceToken = new UserDeviceToken($pdo);
     }
 
     /**
@@ -33,6 +36,8 @@ class AuthBootstrapService
         try {
             // Identity
             $user = $this->cbtUserService->findOrCreateUserByEmail($googleData);
+
+            $this->upsertFcmToken($user['id'], $googleData['fcm_token'] ?? null);
 
             // Update phone on identity if missing
             if ($phone && empty($user['phone'])) {
@@ -81,7 +86,7 @@ class AuthBootstrapService
         }
     }
 
-    public function bootstrapWithGoogleToken(string $token): array
+    public function bootstrapWithGoogleToken(string $token, ?string $fcmToken = null): array
     {
         $tokens = $this->exchangeCodeForTokens($token);
         $accessToken = $tokens['access_token'] ?? null;
@@ -99,6 +104,7 @@ class AuthBootstrapService
             'email' => $googleProfile['email'],
             'profile_picture' => $googleProfile['picture'] ?? null,
             'gender' => $googleProfile['gender'] ?? null,
+            'fcm_token' => $fcmToken,
         ]);
     }
 
@@ -250,5 +256,32 @@ class AuthBootstrapService
     public function createProfile(array $data): array
     {
         return $this->profileService->createProfile($data);
+    }
+
+    public function upsertFcmToken(int $userId, ?string $fcmToken): void
+    {
+        if (empty($fcmToken)) {
+            return;
+        }
+
+        $existingToken = $this->userDeviceToken
+            ->where('user_id', $userId)
+            ->where('fcm_token', $fcmToken)
+            ->first();
+
+        if ($existingToken) {
+            $this->userDeviceToken
+                ->where('user_id', $userId)
+                ->where('fcm_token', $fcmToken)
+                ->update([
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+        }
+
+        $this->userDeviceToken->insert([
+            'user_id' => $userId,
+            'fcm_token' => $fcmToken,
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
     }
 }
