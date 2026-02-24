@@ -1,10 +1,10 @@
 <?php
 
-namespace V3\App\Listeners;
+namespace V3\App\Listeners\Email;
 
 use V3\App\Common\Utilities\TemplateRenderer;
 use V3\App\Database\DatabaseConnector;
-use V3\App\Events\SubmissionGraded;
+use V3\App\Events\Email\SubmissionGraded;
 use V3\App\Services\Common\MailService;
 use V3\App\Models\Explore\ProgramProfile;
 use V3\App\Models\Explore\CbtUser;

@@ -1,6 +1,6 @@
 <?php
 
-namespace V3\App\Events;
+namespace V3\App\Events\Email;
 
 class SubmissionGraded
 {

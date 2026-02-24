@@ -3,7 +3,7 @@
 namespace V3\App\Services\Explore;
 
 use V3\App\Common\Events\EventDispatcher;
-use V3\App\Events\SubmissionGraded;
+use V3\App\Events\Email\SubmissionGraded;
 use V3\App\Models\Explore\CohortTasksSubmission;
 
 class GradeLessonAssignmentService
@@ -20,15 +20,44 @@ class GradeLessonAssignmentService
     public function getLessonSubmissions(
         int $lessonId,
         int $page = 1,
-        int $limit = 25
+        int $limit = 25,
+        ?string $status = null,
+        ?string $submissionType = null
     ): array {
         $page = max(1, $page);
         $limit = max(1, $limit);
         $offset = ($page - 1) * $limit;
 
-        $total = $this->submission
-            ->where('lesson_id', $lessonId)
-            ->count();
+        $filtersSql = "
+              AND files IS NOT NULL
+              AND TRIM(files) <> ''
+              AND TRIM(files) <> '[]'
+              AND LOWER(TRIM(files)) <> 'null'
+        ";
+        $params = ['lesson_id' => $lessonId];
+
+        if ($status === 'graded') {
+            $filtersSql .= " AND graded_at IS NOT NULL";
+        } elseif ($status === 'ungraded') {
+            $filtersSql .= " AND graded_at IS NULL";
+        } elseif ($status === 'notified') {
+            $filtersSql .= " AND notified_at IS NOT NULL";
+        }
+
+        if ($submissionType !== null && trim($submissionType) !== '') {
+            $filtersSql .= " AND submission_type = :submission_type";
+            $params['submission_type'] = $submissionType;
+        }
+
+        $countSql = "
+            SELECT COUNT(*) AS total
+            FROM cohort_tasks_submissions
+            WHERE lesson_id = :lesson_id
+              {$filtersSql}
+        ";
+
+        $totalRows = $this->submission->rawQuery($countSql, $params);
+        $total = (int) ($totalRows[0]['total'] ?? 0);
 
         $sql = "
             SELECT
@@ -56,12 +85,20 @@ class GradeLessonAssignmentService
             LEFT JOIN program_profiles p
                 ON p.id = s.profile_id
             WHERE s.lesson_id = :lesson_id
+              AND s.files IS NOT NULL
+              AND TRIM(s.files) <> ''
+              AND TRIM(s.files) <> '[]'
+              AND LOWER(TRIM(s.files)) <> 'null'
+              " . ($status === 'graded' ? "AND s.graded_at IS NOT NULL" : "") . "
+              " . ($status === 'ungraded' ? "AND s.graded_at IS NULL" : "") . "
+              " . ($status === 'notified' ? "AND s.notified_at IS NOT NULL" : "") . "
+              " . (($submissionType !== null && trim($submissionType) !== '') ? "AND s.submission_type = :submission_type" : "") . "
             ORDER BY s.created_at DESC
             LIMIT :limit OFFSET :offset
         ";
 
         $rows = $this->submission->rawQuery($sql, [
-            'lesson_id' => $lessonId,
+            ...$params,
             'limit' => $limit,
             'offset' => $offset,
         ]);

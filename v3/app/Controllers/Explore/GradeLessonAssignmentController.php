@@ -31,13 +31,17 @@ class GradeLessonAssignmentController extends ExploreBaseController
                 'lesson_id' => 'required|integer',
                 'page' => 'nullable|integer|min:1',
                 'limit' => 'nullable|integer',
+                'status' => 'nullable|string|in:graded,ungraded,notified',
+                'submission_type' => 'nullable|string|in:upload,text,link,mixed',
             ]
         );
 
         $submissions = $this->service->getLessonSubmissions(
             (int) $validated['lesson_id'],
             (int)($validated['page'] ?? 1),
-            (int)($validated['limit'] ?? 25)
+            (int)($validated['limit'] ?? 25),
+            $validated['status'] ?? null,
+            $validated['submission_type'] ?? null
         );
 
         $this->respond(
