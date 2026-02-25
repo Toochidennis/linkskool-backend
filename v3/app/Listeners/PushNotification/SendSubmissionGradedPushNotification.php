@@ -54,6 +54,7 @@ class SendSubmissionGradedPushNotification
                 'profile_id' => (string) $event->profileId,
                 'course_id' => (string) $lesson['course_id'],
                 'program_id' => (string) $lesson['program_id'],
+                'type' => 'submission_graded',
             ];
 
             $notificationService = new NotificationService($pdo);

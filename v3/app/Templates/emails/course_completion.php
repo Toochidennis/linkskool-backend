@@ -1,10 +1,14 @@
 <?php
-$studentName = htmlspecialchars($data['student_name'] ?? 'Student', ENT_QUOTES, 'UTF-8');
-$courseName = htmlspecialchars($data['course_name'] ?? 'Course', ENT_QUOTES, 'UTF-8');
+$studentName = htmlspecialchars($data['student_name'], ENT_QUOTES, 'UTF-8');
+$courseName = htmlspecialchars($data['course_name'], ENT_QUOTES, 'UTF-8');
 $certificateName = htmlspecialchars($data['certificate_name'] ?? $studentName, ENT_QUOTES, 'UTF-8');
 $certificateUrl = htmlspecialchars($data['certificate_url'] ?? '', ENT_QUOTES, 'UTF-8');
-$assetUrl = getenv('ASSET_URL') ?: 'https://linkskool.net';
+$assetUrl = getenv('ASSET_URL') ?? 'https://linkskool.net';
 $logoUrl = $assetUrl . '/assets/logo.png';
+$facebookIcon = 'https://img.icons8.com/color/48/facebook-new.png';
+$xIcon = 'https://img.icons8.com/color/48/twitterx--v1.png';
+$youtubeIcon = 'https://img.icons8.com/color/48/youtube-play.png';
+$instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
 ?>
 <!DOCTYPE html>
 <html>
@@ -34,11 +38,33 @@ $logoUrl = $assetUrl . '/assets/logo.png';
                                 <a href="<?= $certificateUrl ?>" style="display:inline-block;background:#7e22ce;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">Download Certificate</a>
                             </p>
                         <?php endif; ?>
+
+                        <p style="margin:40px 0 0 0;font-size:14px;color:#64748b;text-align:center;line-height:1.6;">
+                            <strong style="font-weight:600;color:#475569;">Have questions?</strong><br>
+                            Our support team is available to help you with anything you need.
+                        </p>
                     </td>
                 </tr>
                 <tr>
-                    <td style="background:#f8fafc;padding:18px 20px;text-align:center;font-size:13px;color:#64748b;">
-                        © <?= date('Y') ?> Linkskool. All rights reserved.
+                    <td style="background:#f8fafc;padding:24px 20px;text-align:center;border-top:1px solid #e2e8f0;">
+                        <p style="margin:0 0 14px 0;font-size:14px;font-weight:700;color:#334155;letter-spacing:0.01em;">Contact Us</p>
+                        <a href="https://www.facebook.com/share/1Dwd5kQsgM/" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
+                            <img src="<?= $facebookIcon ?>" alt="Facebook" width="22" height="22" style="display:block;">
+                        </a>
+                        <a href="https://x.com/DigitalDreamsNG" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
+                            <img src="<?= $xIcon ?>" alt="X (Twitter)" width="22" height="22" style="display:block;">
+                        </a>
+                        <a href="https://www.youtube.com/@digitaldreamsictacademy1353" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
+                            <img src="<?= $youtubeIcon ?>" alt="YouTube" width="22" height="22" style="display:block;">
+                        </a>
+                        <a href="https://www.instagram.com/digitaldreamslimited/?hl=en" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
+                            <img src="<?= $instagramIcon ?>" alt="Instagram" width="22" height="22" style="display:block;">
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#f8fafc;padding:16px 20px 24px 20px;text-align:center;font-size:13px;color:#94a3b8;border-top:1px solid #e2e8f0;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+                        <span style="font-weight:500;">© <?= date('Y') ?> Linkskool.</span> All rights reserved.
                     </td>
                 </tr>
             </table>

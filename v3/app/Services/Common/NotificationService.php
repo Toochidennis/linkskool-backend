@@ -45,7 +45,7 @@ class NotificationService
                     ],
                     'data' => [
                         'lesson_id' => $data['lesson_id'] ?? '',
-                        'type' => $data['type'] ?? 'submission_graded',
+                        'type' => $data['type'],
                         'cohort_id' => $data['cohort_id'] ?? '',
                         'profile_id' => $data['profile_id'] ?? '',
                         'course_id' => $data['course_id'] ?? '',

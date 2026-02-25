@@ -19,7 +19,7 @@ class SendClassReminderEmail
                 return;
             }
 
-            $subject = 'Class Reminder: ' . ($lesson['title'] ?? 'Upcoming Lesson');
+            $subject = 'Class Reminder: ' . htmlspecialchars((string) $lesson['title'], ENT_QUOTES, 'UTF-8');
             $joinUrl = '';
             $zoomInfo = json_decode((string) ($lesson['zoom_info'] ?? ''), true);
             if (\is_array($zoomInfo)) {
@@ -34,14 +34,13 @@ class SendClassReminderEmail
 
                 $name = trim(
                     (string) ($recipient['first_name'] ?? '') . ' ' .
-                    (string) ($recipient['last_name'] ?? '')
+                        (string) ($recipient['last_name'] ?? '')
                 );
-                $name = $name !== '' ? $name : 'Student';
 
                 $html = $service->renderClassReminderEmail([
                     'student_name' => $name,
-                    'lesson_title' => (string) ($lesson['title'] ?? 'Upcoming Lesson'),
-                    'class_date' => (string) ($lesson['lesson_date'] ?? ''),
+                    'lesson_title' => htmlspecialchars((string) ($lesson['title']), ENT_QUOTES, 'UTF-8'),
+                    'class_date' => (string) ($lesson['lesson_date']),
                     'class_time' => '',
                     'join_url' => $joinUrl,
                 ]);

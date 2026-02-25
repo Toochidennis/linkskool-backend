@@ -24,7 +24,7 @@ class SendLiveClassReminderEmail
                 return;
             }
 
-            $subject = 'Live Class Starts Soon: ' . ($lesson['title'] ?? 'Lesson');
+            $subject = 'Live Class Starts Soon: ' . htmlspecialchars((string) ($lesson['title'] ?? 'Live Class'), ENT_QUOTES, 'UTF-8');
             $joinUrl = (string) ($zoomInfo['url'] ?? '');
             $startTime = (string) ($zoomInfo['start_time'] ?? '');
 
@@ -38,11 +38,10 @@ class SendLiveClassReminderEmail
                     (string) ($recipient['first_name'] ?? '') . ' ' .
                     (string) ($recipient['last_name'] ?? '')
                 );
-                $name = $name !== '' ? $name : 'Student';
 
                 $html = $service->renderClassReminderEmail([
                     'student_name' => $name,
-                    'lesson_title' => (string) ($lesson['title'] ?? 'Live Class'),
+                    'lesson_title' => (string) $lesson['title'],
                     'class_date' => (string) ($lesson['lesson_date'] ?? ''),
                     'class_time' => $startTime,
                     'join_url' => $joinUrl,

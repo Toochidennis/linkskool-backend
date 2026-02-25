@@ -19,9 +19,13 @@ class SendAssignmentDueReminderEmail
                 return;
             }
 
-            $subject = 'Assignment Due Reminder: ' . ($lesson['title'] ?? 'Lesson');
-            $lessonTitle = htmlspecialchars((string) ($lesson['title'] ?? 'Lesson'), ENT_QUOTES, 'UTF-8');
+            $subject = 'Assignment Due Reminder: ' . $lesson['title'];
+            $lessonTitle = htmlspecialchars((string) ($lesson['title']), ENT_QUOTES, 'UTF-8');
             $dueDate = htmlspecialchars((string) ($lesson['assignment_due_date'] ?? ''), ENT_QUOTES, 'UTF-8');
+
+            if (empty($dueDate)) {
+                $dueDate = 'TBD';
+            }
 
             $recipients = $service->getRecipientsForLesson($event->lessonId);
             foreach ($recipients as $recipient) {
@@ -35,9 +39,8 @@ class SendAssignmentDueReminderEmail
 
                 $name = trim(
                     (string) ($recipient['first_name'] ?? '') . ' ' .
-                    (string) ($recipient['last_name'] ?? '')
+                        (string) ($recipient['last_name'] ?? '')
                 );
-                $name = $name !== '' ? $name : 'Student';
 
                 $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
                 $html = "<p>Hello {$safeName},</p>

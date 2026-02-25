@@ -20,15 +20,11 @@ class SendWelcomeEmail
             }
 
             $name = trim($event->firstName . ' ' . $event->lastName);
-            $name = $name !== '' ? $name : 'Student';
 
             $html = TemplateRenderer::render(
                 $v3root . '/Templates/emails/registration.php',
                 [
                     'student_name' => $name,
-                    'program_name' => 'Linkskool',
-                    'course_name' => 'Learning Dashboard',
-                    'app_url' => getenv('APP_URL2') ?: 'https://linkschoolonline.com/cbt-app',
                 ]
             );
 

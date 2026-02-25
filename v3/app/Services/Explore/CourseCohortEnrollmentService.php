@@ -2,6 +2,8 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Common\Events\EventDispatcher;
+use V3\App\Events\Email\CohortCourseEnrolled;
 use V3\App\Models\Explore\ProgramCohortCourseEnrollment;
 use V3\App\Models\Portal\Payments\Transaction;
 
@@ -37,7 +39,22 @@ class CourseCohortEnrollmentService
             'trial_expiry_date' => $data['trial_expiry_date'] ?? null,
         ];
 
-        return $this->enrollmentModel->insert($payload);
+        $enrollmentId = $this->enrollmentModel->insert($payload);
+
+        if ($enrollmentId) {
+            EventDispatcher::dispatch(
+                new CohortCourseEnrolled(
+                    (int) $data['profile_id'],
+                    (int) $data['program_id'],
+                    (int) $data['course_id'],
+                    (int) $data['cohort_id'],
+                    $data['course_name'] ?? null,
+                    $data['cohort_name'] ?? null
+                )
+            );
+        }
+
+        return (bool) $enrollmentId;
     }
 
     public function unEnrollUser(array $data): bool
@@ -136,7 +153,7 @@ class CourseCohortEnrollmentService
                         'trial_expiry_date' => $data['trial_expiry_date'] ?? null,
                     ]);
             } else {
-                $this->enrollmentModel->insert([
+                $enrollmentInserted = $this->enrollmentModel->insert([
                     'profile_id' => $data['profile_id'],
                     'program_id' => $data['program_id'],
                     'course_id' => $data['course_id'],
@@ -150,6 +167,19 @@ class CourseCohortEnrollmentService
                     'lessons_taken' => $data['lessons_taken'] ?? null,
                     'trial_expiry_date' => $data['trial_expiry_date'] ?? null,
                 ]);
+
+                if ($enrollmentInserted && $status === 1) {
+                    EventDispatcher::dispatch(
+                        new CohortCourseEnrolled(
+                            (int) $data['profile_id'],
+                            (int) $data['program_id'],
+                            (int) $data['course_id'],
+                            (int) $data['cohort_id'],
+                            $data['course_name'] ?? null,
+                            $data['cohort_name'] ?? null
+                        )
+                    );
+                }
             }
 
             $this->pdo->commit();

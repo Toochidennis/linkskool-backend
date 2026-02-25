@@ -19,8 +19,8 @@ class SendLessonPublishedEmail
                 return;
             }
 
-            $subject = 'New Lesson Published: ' . ($lesson['title'] ?? 'Lesson');
-            $lessonTitle = htmlspecialchars((string) ($lesson['title'] ?? 'Lesson'), ENT_QUOTES, 'UTF-8');
+            $subject = 'New Lesson Published: ' . htmlspecialchars((string) ($lesson['title'] ?? 'Lesson'), ENT_QUOTES, 'UTF-8');
+            $lessonTitle = htmlspecialchars((string) $lesson['title'], ENT_QUOTES, 'UTF-8');
             $html = "<p>A new lesson has been published: <strong>{$lessonTitle}</strong>.</p>";
 
             $recipients = $service->getRecipientsForLesson($event->lessonId);
@@ -31,9 +31,8 @@ class SendLessonPublishedEmail
 
                 $name = trim(
                     (string) ($recipient['first_name'] ?? '') . ' ' .
-                    (string) ($recipient['last_name'] ?? '')
+                        (string) ($recipient['last_name'] ?? '')
                 );
-                $name = $name !== '' ? $name : 'Student';
 
                 $service->sendEmailOnce(
                     (string) $recipient['email'],
