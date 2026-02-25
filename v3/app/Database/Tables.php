@@ -123,6 +123,8 @@ class Tables
         'vouchers',
         'email_logs',
         'ai_grading_reviews',
-        'cohort_lesson_attendance'
+        'cohort_lesson_attendance',
+        'user_device_tokens',
+        'notifications',
     ];
 }

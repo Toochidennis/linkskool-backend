@@ -7,28 +7,34 @@ use V3\App\Models\Common\Notification;
 
 class NotificationService
 {
-    private $messagingUrl;
     private $projectUrl;
     private Notification $notification;
 
     public function __construct(\PDO $pdo)
     {
-        $this->messagingUrl = $_ENV['FIREBASE_MESSAGING_URL'];
-        $this->projectUrl = $_ENV['FIREBASE_PROJECT_URL'];
+        $this->projectUrl = getenv('FIREBASE_PROJECT_URL');
         $this->notification = new Notification($pdo);
     }
 
     public function send(string $to, string $title, string $body): void
     {
         try {
-            $scopes = [$this->messagingUrl];
+            $scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
 
             $credentials = new ServiceAccountCredentials(
                 $scopes,
-                json_decode(file_get_contents(__DIR__ . '/../../../config/firebase-service-account.json'), true)
+                json_decode(
+                    file_get_contents(__DIR__ . '/../../../config/firebase-service-account.json'),
+                    true
+                )
             );
 
-            $accessToken = $credentials->fetchAuthToken();
+            $accessTokenData = $credentials->fetchAuthToken();
+            $accessToken = $accessTokenData['access_token'] ?? null;
+
+            if (!$accessToken) {
+                throw new \RuntimeException('Failed to retrieve Firebase access token.');
+            }
 
             $message = [
                 'message' => [
@@ -41,15 +47,29 @@ class NotificationService
             ];
 
             $curl = curl_init($this->projectUrl);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, [
-                "Authorization: Bearer $accessToken",
-                'Content-Type: application/json',
+
+            curl_setopt_array($curl, [
+                CURLOPT_HTTPHEADER => [
+                    "Authorization: Bearer {$accessToken}",
+                    'Content-Type: application/json',
+                ],
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode($message),
+                CURLOPT_RETURNTRANSFER => true,
             ]);
-            curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($message));
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_exec($curl);
+
+            $response = curl_exec($curl);
+
+            if ($response === false) {
+                throw new \RuntimeException('Curl error: ' . curl_error($curl));
+            }
+
+            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             curl_close($curl);
+
+            if ($httpCode !== 200) {
+                throw new \RuntimeException("FCM failed with HTTP $httpCode. Response: $response");
+            }
 
             $this->notification->insert([
                 'recipient_token' => $to,

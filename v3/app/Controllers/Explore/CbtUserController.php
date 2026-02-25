@@ -30,7 +30,8 @@ class CbtUserController extends ExploreBaseController
             'last_name' => 'required|string',
             'email' => 'required|email|max:255',
             'profile_picture' => 'nullable|string|max:255',
-            'attempt' => 'required|integer|min:0',
+            'attempt' => 'nullable|integer|min:0',
+            'fcm_token' => 'nullable|string',
         ]);
 
         $user = $this->authBootstrapService->bootstrap($data);
