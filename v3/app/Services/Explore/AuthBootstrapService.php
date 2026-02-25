@@ -4,6 +4,8 @@ namespace V3\App\Services\Explore;
 
 use PDO;
 use Throwable;
+use V3\App\Common\Events\EventDispatcher;
+use V3\App\Events\Auth\UserRegisteredFirstTime;
 use V3\App\Models\Common\UserDeviceToken;
 
 class AuthBootstrapService
@@ -31,11 +33,18 @@ class AuthBootstrapService
      */
     public function bootstrap(array $googleData, ?string $phone = null, ?string $birthDate = null): array
     {
+        $isFirstRegistration = false;
+        $registeredUserId = null;
+
         $this->pdo->beginTransaction();
 
         try {
+            $existing = $this->cbtUserService->getUserByEmail((string) $googleData['email']);
+            $isFirstRegistration = empty($existing);
+
             // Identity
             $user = $this->cbtUserService->findOrCreateUserByEmail($googleData);
+            $registeredUserId = (int) $user['id'];
 
             $this->upsertFcmToken($user['id'], $googleData['fcm_token'] ?? null);
 
@@ -75,6 +84,17 @@ class AuthBootstrapService
 
             $user = $this->cbtUserService->getUserByEmail($user['email']);
             unset($user['password']);
+
+            if ($isFirstRegistration && $registeredUserId !== null) {
+                EventDispatcher::dispatch(
+                    new UserRegisteredFirstTime(
+                        $registeredUserId,
+                        (string) $user['email'],
+                        (string) ($user['first_name'] ?? ''),
+                        (string) ($user['last_name'] ?? '')
+                    )
+                );
+            }
 
             return [
                 'user' => $user,
@@ -221,6 +241,15 @@ class AuthBootstrapService
             ]);
 
             unset($user['password']);
+
+            EventDispatcher::dispatch(
+                new UserRegisteredFirstTime(
+                    (int) $user['id'],
+                    (string) $user['email'],
+                    (string) ($user['first_name'] ?? ''),
+                    (string) ($user['last_name'] ?? '')
+                )
+            );
 
             return [
                 'user' => $user,

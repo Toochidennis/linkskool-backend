@@ -11,5 +11,6 @@ class Notification extends BaseModel
     public function __construct(\PDO $pdo)
     {
         parent::__construct($pdo);
+        parent::table($this->table);
     }
 }

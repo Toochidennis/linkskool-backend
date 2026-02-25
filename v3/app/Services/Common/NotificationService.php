@@ -16,7 +16,7 @@ class NotificationService
         $this->notification = new Notification($pdo);
     }
 
-    public function send(string $to, string $title, string $body): void
+    public function send(string $to, string $title, string $body, array $data = []): void
     {
         try {
             $scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
@@ -43,6 +43,14 @@ class NotificationService
                         'title' => $title,
                         'body' => $body,
                     ],
+                    'data' => [
+                        'lesson_id' => $data['lesson_id'] ?? '',
+                        'type' => $data['type'] ?? 'submission_graded',
+                        'cohort_id' => $data['cohort_id'] ?? '',
+                        'profile_id' => $data['profile_id'] ?? '',
+                        'course_id' => $data['course_id'] ?? '',
+                        'program_id' => $data['program_id'] ?? '',
+                    ]
                 ],
             ];
 

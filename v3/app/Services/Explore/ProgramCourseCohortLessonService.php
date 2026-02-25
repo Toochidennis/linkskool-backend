@@ -2,6 +2,8 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Common\Events\EventDispatcher;
+use V3\App\Events\Lesson\LessonPublished;
 use V3\App\Models\Explore\CohortLessonQuiz;
 use V3\App\Models\Explore\ProgramCourseCohortLesson;
 
@@ -20,6 +22,8 @@ class ProgramCourseCohortLessonService
 
     public function addLessonToCohort(array $data): bool
     {
+        $lessonId = null;
+
         try {
             $this->pdo->beginTransaction();
 
@@ -66,6 +70,11 @@ class ProgramCourseCohortLessonService
             }
 
             $this->pdo->commit();
+
+            if (($payload['status'] ?? 'draft') === 'published') {
+                EventDispatcher::dispatch(new LessonPublished((int) $lessonId));
+            }
+
             return true;
         } catch (\Exception $e) {
             $this->pdo->rollBack();
@@ -75,8 +84,15 @@ class ProgramCourseCohortLessonService
 
     public function updateLesson(array $data)
     {
+        $previousStatus = null;
+
         try {
             $this->pdo->beginTransaction();
+
+            $existingLesson = $this->cohortLesson
+                ->where('id', $data['lesson_id'])
+                ->first();
+            $previousStatus = $existingLesson['status'] ?? null;
 
             $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title'])));
 
@@ -125,6 +141,11 @@ class ProgramCourseCohortLessonService
             $this->cleanupOldFiles($data, $fileUrls);
 
             $this->pdo->commit();
+
+            if ($previousStatus !== 'published' && ($payload['status'] ?? 'draft') === 'published') {
+                EventDispatcher::dispatch(new LessonPublished((int) $data['lesson_id']));
+            }
+
             return true;
         } catch (\Exception $e) {
             $this->pdo->rollBack();
@@ -134,9 +155,19 @@ class ProgramCourseCohortLessonService
 
     public function updateStatus(int $lessonId, string $status)
     {
-        return $this->cohortLesson
+        $lesson = $this->cohortLesson
+            ->where('id', $lessonId)
+            ->first();
+
+        $updated = $this->cohortLesson
             ->where('id', $lessonId)
             ->update(['status' => $status]);
+
+        if ($updated && ($lesson['status'] ?? null) !== 'published' && $status === 'published') {
+            EventDispatcher::dispatch(new LessonPublished($lessonId));
+        }
+
+        return $updated;
     }
 
     private function processNewFiles(array $data, bool $isUpdate = false): array

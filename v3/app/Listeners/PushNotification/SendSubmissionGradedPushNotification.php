@@ -48,12 +48,19 @@ class SendSubmissionGradedPushNotification
                 (string) $event->assignedScore
             );
 
+            $data = [
+                'lesson_id' => (string) $event->lessonId,
+                'cohort_id' => (string)  $lesson['cohort_id'],
+                'profile_id' => (string) $event->profileId,
+                'course_id' => (string) $lesson['course_id'],
+                'program_id' => (string) $lesson['program_id'],
+            ];
+
             $notificationService = new NotificationService($pdo);
             foreach ($tokens as $token) {
-                $notificationService->send($token, $title, $body);
+                $notificationService->send($token, $title, $body, $data);
             }
         } catch (\Throwable) {
-            // Fail quietly; notifications should not break core request flow.
             return;
         }
     }
