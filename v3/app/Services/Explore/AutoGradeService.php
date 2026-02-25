@@ -93,7 +93,7 @@ class AutoGradeService
             curl_close($ch);
 
             if ($response === false) {
-                throw new \RuntimeException('DeepSeek request failed: ' . $curlError);
+                throw new \RuntimeException('Request failed: ' . $curlError);
             }
 
             if ($httpCode === 429) {
@@ -103,24 +103,24 @@ class AutoGradeService
                     return $this->callAIWithRetry($prompt, $retryCount + 1);
                 }
 
-                throw new \RuntimeException('DeepSeek API rate limit exceeded after retries');
+                throw new \RuntimeException('API rate limit exceeded after retries');
             }
 
             if ($httpCode >= 400) {
-                throw new \RuntimeException("DeepSeek API error: HTTP {$httpCode}");
+                throw new \RuntimeException("API error: HTTP {$httpCode}");
             }
 
             $decoded = json_decode($response, true);
             $content = $decoded['choices'][0]['message']['content'] ?? '';
 
             if (!\is_string($content) || trim($content) === '') {
-                throw new \RuntimeException('Invalid DeepSeek response structure');
+                throw new \RuntimeException('Invalid response structure');
             }
 
             $parsed = $this->parseResponseContent($content);
 
             if (!isset($parsed['score']) || !isset($parsed['comment'])) {
-                throw new \RuntimeException('Missing score/comment in AI response');
+                throw new \RuntimeException('Missing score/comment in response');
             }
 
             return [
@@ -136,7 +136,7 @@ class AutoGradeService
 
             return [
                 'score' => 0,
-                'comment' => 'AI grading failed.',
+                'comment' => 'Grading failed.',
                 'error' => $e->getMessage(),
             ];
         }
