@@ -242,6 +242,20 @@ class LearningPathService
     {
         $lessons = $this->getLessonsByCohort($cohortId);
 
+        $cohort = $this->programCourseCohortModel
+            ->select(['next_cohort'])
+            ->where('id', $cohortId)
+            ->first();
+
+        if (empty($cohort) || $cohort['next_cohort'] === null) {
+            return [
+                'lessons' => $lessons,
+                'next_course' => null,
+            ];
+        }
+
+        $nextCohort = json_decode($cohort['next_cohort'], true) ?? null;
+
         $sql = "
             SELECT
                 p.course_id,
@@ -262,28 +276,18 @@ class LearningPathService
         ";
 
         $rows = $this->programCourseCohortModel->rawQuery($sql, [
-            'cohort_id' => $cohortId,
+            'cohort_id' => $nextCohort['id'],
             'profile_id' => $profileId,
         ]);
 
-        if (empty($rows)) {
-            return [
-                'lessons' => $lessons,
-                'next_course' => null,
-            ];
-        }
-
         $row = $rows[0];
-        $nextCohort = !empty($row['next_cohort'])
-            ? json_decode($row['next_cohort'], true)
-            : null;
 
         return [
             'lessons' => $lessons,
             'next_course' => !empty($nextCohort['id'])
                 ? [
                     'id' => $nextCohort['id'],
-                    'course_name' => $row['course_name'],
+                    'course_name' => html_entity_decode($row['course_name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                     'description' => $row['course_description'],
                     'course_id' => (int) $row['course_id'],
                     'is_enrolled' => (bool) $row['is_enrolled'],
