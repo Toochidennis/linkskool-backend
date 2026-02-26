@@ -16,6 +16,7 @@ class QueryBuilder
 {
     private PDO $pdo;
     private string $table;
+    private int $transactionDepth = 0;
     private array $selectColumns = ['*'];
     private array $whereConditions = [];
     private array $whereBindings = [];
@@ -527,6 +528,55 @@ class QueryBuilder
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($bindings);
         return $stmt->rowCount();
+    }
+
+    public function beginTransaction(): bool
+    {
+        if ($this->transactionDepth === 0 && !$this->pdo->inTransaction()) {
+            $started = $this->pdo->beginTransaction();
+            if ($started) {
+                $this->transactionDepth = 1;
+            }
+
+            return $started;
+        }
+
+        $this->transactionDepth++;
+        return true;
+    }
+
+    public function commit(): bool
+    {
+        if ($this->transactionDepth > 1) {
+            $this->transactionDepth--;
+            return true;
+        }
+
+        if ($this->pdo->inTransaction()) {
+            $committed = $this->pdo->commit();
+            $this->transactionDepth = 0;
+            return $committed;
+        }
+
+        $this->transactionDepth = 0;
+        return true;
+    }
+
+    public function rollBack(): bool
+    {
+        if ($this->pdo->inTransaction()) {
+            $rolledBack = $this->pdo->rollBack();
+            $this->transactionDepth = 0;
+            return $rolledBack;
+        }
+
+        $this->transactionDepth = 0;
+        return true;
+    }
+
+    public function inTransaction(): bool
+    {
+        return $this->pdo->inTransaction();
     }
 
     /**

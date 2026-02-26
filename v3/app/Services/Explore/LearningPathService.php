@@ -238,6 +238,59 @@ class LearningPathService
             ->get();
     }
 
+    public function getLessonsByCohortWithNextCourse(int $cohortId, int $profileId): array
+    {
+        $lessons = $this->getLessonsByCohort($cohortId);
+
+        $sql = "
+            SELECT
+                p.course_id,
+                p.next_cohort,
+                lc.title AS course_name,
+                lc.description AS course_description,
+                EXISTS (
+                    SELECT 1
+                    FROM program_course_cohort_enrollments e
+                    WHERE e.profile_id = :profile_id
+                    AND e.cohort_id = p.id
+                ) AS is_enrolled
+            FROM program_course_cohorts p
+            INNER JOIN learning_courses lc
+                ON lc.id = p.course_id
+            WHERE p.id = :cohort_id
+            LIMIT 1
+        ";
+
+        $rows = $this->programCourseCohortModel->rawQuery($sql, [
+            'cohort_id' => $cohortId,
+            'profile_id' => $profileId,
+        ]);
+
+        if (empty($rows)) {
+            return [
+                'lessons' => $lessons,
+                'next_course' => null,
+            ];
+        }
+
+        $row = $rows[0];
+        $nextCohort = !empty($row['next_cohort'])
+            ? json_decode($row['next_cohort'], true)
+            : null;
+
+        return [
+            'lessons' => $lessons,
+            'next_course' => !empty($nextCohort['id'])
+                ? [
+                    'id' => $nextCohort['id'],
+                    'course_name' => $row['course_name'],
+                    'description' => $row['course_description'],
+                    'course_id' => (int) $row['course_id'],
+                    'is_enrolled' => (bool) $row['is_enrolled'],
+                ] : null,
+        ];
+    }
+
     public function getLessonById(int $lessonId, int $profileId): array
     {
         $sql = "

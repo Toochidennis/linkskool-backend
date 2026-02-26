@@ -53,7 +53,7 @@ class LessonNotificationTargetService
             INNER JOIN cbt_users u
                 ON u.id = p.user_id
             WHERE l.id = :lesson_id
-              AND (e.status IS NULL OR e.status <> 'completed')
+                AND (e.status IS NULL OR e.status <> 'completed')
         ";
 
         $rows = $this->lessonModel->rawQuery($sql, ['lesson_id' => $lessonId]);
@@ -83,7 +83,7 @@ class LessonNotificationTargetService
                     SELECT s2.id
                     FROM cohort_tasks_submissions s2
                     WHERE s2.lesson_id = l.id
-                      AND s2.profile_id = :profile_id
+                        AND s2.profile_id = :profile_id
                     ORDER BY s2.id DESC
                     LIMIT 1
                 )
@@ -171,7 +171,7 @@ class LessonNotificationTargetService
             SELECT 1
             FROM email_logs
             WHERE subject = :subject
-              AND recipient LIKE :recipient
+                AND recipient LIKE :recipient
             LIMIT 1
             ",
             [
@@ -190,8 +190,8 @@ class LessonNotificationTargetService
             SELECT 1
             FROM notifications
             WHERE recipient_token = :token
-              AND title = :title
-              AND body = :body
+                AND title = :title
+                AND body = :body
             LIMIT 1
             ",
             [

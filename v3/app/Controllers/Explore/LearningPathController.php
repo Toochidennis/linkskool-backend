@@ -82,6 +82,31 @@ class LearningPathController extends ExploreBaseController
         );
     }
 
+    #[Route('/cohorts/{cohort_id}/lessons/v2', 'GET', ['api'])]
+    public function cohortLessonsV2(array $vars): void
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'cohort_id' => 'required|integer',
+                'profile_id' => 'required|integer'
+            ]
+        );
+
+        $response = $this->learningPathService->getLessonsByCohortWithNextCourse(
+            $validated['cohort_id'],
+            $validated['profile_id'],
+        );
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Lessons retrieved successfully.',
+                'data' => $response,
+            ]
+        );
+    }
+
     #[Route('/cohorts/{cohort_id}/profiles/{profile_id}/lessons', 'GET', ['api'])]
     public function getCohortLessonsWithSubmission(array $vars)
     {

@@ -42,6 +42,13 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'trial_value' => 'required_if:is_free,false|integer',
                 'cost' => 'required_if:is_free,false|numeric',
 
+                'next_cohort' => 'nullable|array',
+                'next_cohort.id' => 'required_with:next_cohort|integer',
+                'next_cohort.title' => 'required_with:next_cohort|string',
+                'next_cohort.description' => 'nullable|string',
+                'next_cohort.start_date' => 'required_with:next_cohort|date',
+                'next_cohort.end_date' => 'required_with:next_cohort|date|after_or_equal:next_cohort.start_date',
+
                 'image' => 'required|array',
                 'image.name' => 'required|string',
                 'image.tmp_name' => 'required|string',
@@ -90,6 +97,13 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'trial_type' => 'required_if:is_free,false|in:views,days',
                 'trial_value' => 'required_if:is_free,false|integer',
                 'cost' => 'required_if:is_free,false|numeric',
+
+                'next_cohort' => 'nullable|array',
+                'next_cohort.id' => 'required_with:next_cohort|integer',
+                'next_cohort.title' => 'required_with:next_cohort|string',
+                'next_cohort.description' => 'nullable|string',
+                'next_cohort.start_date' => 'required_with:next_cohort|date',
+                'next_cohort.end_date' => 'required_with:next_cohort|date|after_or_equal:next_cohort.start_date',
 
                 'image' => 'array',
                 'image.name' => 'string',
@@ -165,6 +179,32 @@ class ProgramCourseCohortController extends ExploreBaseController
             ->getAllCohortsByCourseId(
                 (int)$validatedData['program_id'],
                 (int)$validatedData['course_id']
+            );
+
+        $this->respond(
+            [
+                'success' => true,
+                'data' => $cohorts
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/learn/programs/{program_id}/cohorts', 'GET', ['api', 'auth'])]
+    public function getProgramCohorts(array $vars)
+    {
+        $validatedData = $this->validate(
+            $vars,
+            [
+                'program_id' => 'required|integer',
+                'cohort_id' => 'nullable|integer',
+            ]
+        );
+
+        $cohorts = $this->cohortService
+            ->getProgramCohorts(
+                (int)$validatedData['program_id'],
+                (int)$validatedData['cohort_id'] ?? null,
             );
 
         $this->respond(

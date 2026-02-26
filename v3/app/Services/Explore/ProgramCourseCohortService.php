@@ -53,12 +53,14 @@ class ProgramCourseCohortService
             'instructor_name' => $data['instructor_name'] ?? null,
         ];
 
-        $this->cohort->rawExecute(
-            "UPDATE program_course_cohorts
-                SET `status` = 'completed'
-                WHERE course_id = :course_id",
-            ['course_id' => $data['course_id']]
-        );
+        if (isset($data['next_cohort']) && !empty($data['next_cohort'])) {
+            $payload['next_cohort'] = json_encode($data['next_cohort']);
+        }
+
+        $this->cohort
+            ->where('program_id', $data['program_id'])
+            ->where('course_id', $data['course_id'])
+            ->update(['status' => 'completed']);
 
         return $this->cohort->insert($payload);
     }
@@ -93,6 +95,10 @@ class ProgramCourseCohortService
             'updated_at' => date('Y-m-d H:i:s'),
         ];
 
+        if (isset($data['next_cohort']) && !empty($data['next_cohort'])) {
+            $payload['next_cohort'] = json_encode($data['next_cohort']);
+        }
+
         $id = $this->cohort
             ->where('id', $data['id'])
             ->update(
@@ -118,10 +124,32 @@ class ProgramCourseCohortService
 
     public function getAllCohortsByCourseId(int $programId, int $courseId)
     {
-        return $this->cohort
+        $rows = $this->cohort
             ->where('program_id', $programId)
             ->where('course_id', $courseId)
             ->orderBy('start_date', 'ASC')
+            ->get();
+
+        return array_map(function (array $cohort): array {
+            $cohort['next_cohort'] = !empty($cohort['next_cohort'])
+                ? json_decode($cohort['next_cohort'], true)
+                : null;
+
+            return $cohort;
+        }, $rows);
+    }
+
+    public function getProgramCohorts(int $programId, ?int $cohortId = null)
+    {
+        $query =  $this->cohort
+            ->select(['id, title, description, start_date, end_date'])
+            ->where('program_id', $programId);
+
+        if ($cohortId !== null) {
+            $query->notIn('id', [$cohortId]);
+        }
+
+        return $query->orderBy('start_date', 'ASC')
             ->get();
     }
 

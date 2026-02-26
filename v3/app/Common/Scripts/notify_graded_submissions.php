@@ -53,4 +53,4 @@ while (true) {
     }
 }
 
-// echo sprintf("Processed graded notifications: %d\n", $totalProcessed);
+echo sprintf("Processed graded notifications: %d\n", $totalProcessed);

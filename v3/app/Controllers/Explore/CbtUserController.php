@@ -127,7 +127,6 @@ class CbtUserController extends ExploreBaseController
             'data' => $user
         ]);
 
-
         return $user;
     }
 

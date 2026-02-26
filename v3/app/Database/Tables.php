@@ -126,5 +126,6 @@ class Tables
         'cohort_lesson_attendance',
         'user_device_tokens',
         'notifications',
+        'program_flow',
     ];
 }
