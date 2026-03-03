@@ -341,7 +341,7 @@ class CbtService
         return \is_array($decoded) ? $decoded : [];
     }
 
-    public function getExamsWithSubjects()
+    public function getExamsWithCourses()
     {
         $exams = $this->getExamMeta();
 

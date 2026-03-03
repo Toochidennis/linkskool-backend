@@ -57,10 +57,15 @@ class CbtController extends ExploreBaseController
         ]);
     }
 
-    /**
-     * GET /public/cbt/exams/{examTypeId}/courses/{courseId}/questions
-     * Returns all questions for a given exam type and course.
-     */
+    #[Route('/exams-courses', 'GET', ['api'])]
+    public function getExamsWithCourses()
+    {
+        $this->respond([
+            'success' => true,
+            'data' => $this->cbtService->getExamsWithCourses()
+        ]);
+    }
+
     #[Route('/exams/{exam_id:\d+}/questions', 'GET', ['api'])]
     public function getQuestions(array $vars)
     {
