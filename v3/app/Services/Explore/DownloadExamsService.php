@@ -17,9 +17,9 @@ class DownloadExamsService
         $this->quiz = new Quiz($pdo);
     }
 
-    public function buildZip(int $examType): string
+    public function buildZip(int $examType, int $courseId = 0): string
     {
-        $data = $this->formatExamsAndQuestions($examType);
+        $data = $this->formatExamsAndQuestions($examType, $courseId);
 
         $questions = $data['questions'];
         $images = $this->normalizeQuestionsAndExtractImages($questions);
@@ -69,9 +69,12 @@ class DownloadExamsService
         rmdir($dir);
     }
 
-    private function formatExamsAndQuestions(int $examType): array
+    private function formatExamsAndQuestions(int $examType, int $courseId = 0): array
     {
-        $exams = $this->fetchExams($examType);
+        $exams = $courseId > 0 ?
+            $this->fetchExamsByCourseId($examType, $courseId)
+            : $this->fetchExams($examType);
+
         $allQuestionIds = [];
 
         foreach ($exams as $exam) {
@@ -104,6 +107,26 @@ class DownloadExamsService
                 'url'
             ])
             ->where('exam_type', '=', $examType)
+            ->get();
+
+        return $exams;
+    }
+
+    private function fetchExamsByCourseId(int $examType, int $courseId): array
+    {
+        $exams = $this->exam
+            ->select([
+                'id',
+                'description',
+                'course_name',
+                'course_id',
+                'year',
+                'exam_type',
+                'url AS question_ids',
+                'url'
+            ])
+            ->where('exam_type', '=', $examType)
+            ->where('course_id', '=', $courseId)
             ->get();
 
         return $exams;

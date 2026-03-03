@@ -2,9 +2,11 @@
 
 namespace V3\App\Listeners\Email;
 
+use V3\App\Common\Utilities\TemplateRenderer;
 use V3\App\Database\DatabaseConnector;
 use V3\App\Events\Lesson\ClassReminderDue;
 use V3\App\Services\Explore\LessonNotificationTargetService;
+use V3\App\Services\Common\MailService;
 
 class SendClassReminderEmail
 {
@@ -13,18 +15,19 @@ class SendClassReminderEmail
         try {
             $pdo = DatabaseConnector::connect();
             $service = new LessonNotificationTargetService($pdo);
-            $lesson = $service->getLesson($event->lessonId);
+            $mailService = new MailService($pdo);
 
+            $lesson = $service->getLesson($event->lessonId);
             if (empty($lesson)) {
                 return;
             }
 
-            $subject = 'Class Reminder: ' . htmlspecialchars((string) $lesson['title'], ENT_QUOTES, 'UTF-8');
-            $joinUrl = '';
-            $zoomInfo = json_decode((string) ($lesson['zoom_info'] ?? ''), true);
-            if (\is_array($zoomInfo)) {
-                $joinUrl = (string) ($zoomInfo['url'] ?? '');
+            $v3root = realpath(__DIR__ . '/../../');
+            if ($v3root === false) {
+                return;
             }
+
+            $subject = 'Class Reminder: ' . htmlspecialchars((string) ($lesson['title'] ?? 'Class'), ENT_QUOTES, 'UTF-8');
 
             $recipients = $service->getRecipientsForLesson($event->lessonId);
             foreach ($recipients as $recipient) {
@@ -32,26 +35,24 @@ class SendClassReminderEmail
                     continue;
                 }
 
-                $name = trim(
+                $recipientName = trim(
                     (string) ($recipient['first_name'] ?? '') . ' ' .
                         (string) ($recipient['last_name'] ?? '')
-                );
+                ) ?: 'Learner';
 
-                $html = $service->renderClassReminderEmail([
-                    'student_name' => $name,
-                    'lesson_title' => htmlspecialchars((string) ($lesson['title']), ENT_QUOTES, 'UTF-8'),
-                    'class_date' => (string) ($lesson['lesson_date']),
-                    'class_time' => '',
-                    'join_url' => $joinUrl,
+                // Prepare lesson data for template
+                $templateData = array_merge($lesson, [
+                    'first_name' => $recipient['first_name'] ?? '',
+                    'last_name' => $recipient['last_name'] ?? '',
                 ]);
 
-                if ($html === '') {
-                    continue;
-                }
+                $html = TemplateRenderer::render(
+                    $v3root . '/Templates/emails/class_reminder.php',
+                    $templateData
+                );
 
-                $service->sendEmailOnce(
-                    (string) $recipient['email'],
-                    $name,
+                $mailService->send(
+                    "{$recipientName} <{$recipient['email']}>",
                     $subject,
                     $html
                 );

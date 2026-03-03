@@ -11,8 +11,11 @@ class Sanitizer
     {
         $nullFields = [];
 
+        $config = \HTMLPurifier_Config::createDefault();
+        $purifier = new \HTMLPurifier($config);
+
         // Recursive function to check for nulls and sanitize
-        $process = function ($value, $keyPath) use (&$process, &$nullFields): array|string|null {
+        $process = function ($value, $keyPath) use (&$process, &$nullFields, $purifier): array|string|null {
             if ($value === null) {
                 $nullFields[] = $keyPath;
                 return null; // Keep null as-is, but record it
@@ -25,8 +28,6 @@ class Sanitizer
                 }
                 return $sanitized;
             }
-
-            $purifier = new \HTMLPurifier(\HTMLPurifier_Config::createDefault());
 
             // Sanitize scalar value
             return $purifier->purify(trim((string)$value));

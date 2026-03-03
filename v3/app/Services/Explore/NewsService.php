@@ -62,6 +62,7 @@ class NewsService
             'author_id' => $data['author_id'],
             'author_name' => $data['author_name'],
             'status' => $data['status'],
+            'deadline' => $data['deadline'] ?? null,
         ];
 
         $newsId = $this->newsModel->insert($payload);
@@ -114,6 +115,7 @@ class NewsService
                 'author_id' => $data['author_id'],
                 'author_name' => $data['author_name'],
                 'status' => $data['status'],
+                'deadline' => $data['deadline'] ?? null,
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
 

@@ -22,7 +22,7 @@ class SendAssignmentDueReminderPushNotification
             $title = 'Assignment Due Reminder';
             $body = sprintf(
                 'Submit pending quiz/assignment for %s before the deadline.',
-                (string) ($lesson['title'] ?? 'Lesson')
+                (string) ($lesson['title'])
             );
 
             $data = [

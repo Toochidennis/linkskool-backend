@@ -2,9 +2,11 @@
 
 namespace V3\App\Listeners\Email;
 
+use V3\App\Common\Utilities\TemplateRenderer;
 use V3\App\Database\DatabaseConnector;
 use V3\App\Events\Lesson\LessonPublished;
 use V3\App\Services\Explore\LessonNotificationTargetService;
+use V3\App\Services\Common\MailService;
 
 class SendLessonPublishedEmail
 {
@@ -13,15 +15,17 @@ class SendLessonPublishedEmail
         try {
             $pdo = DatabaseConnector::connect();
             $service = new LessonNotificationTargetService($pdo);
+            $mailService = new MailService($pdo);
 
             $lesson = $service->getLesson($event->lessonId);
             if (empty($lesson)) {
                 return;
             }
 
-            $subject = 'New Lesson Published: ' . htmlspecialchars((string) ($lesson['title'] ?? 'Lesson'), ENT_QUOTES, 'UTF-8');
-            $lessonTitle = htmlspecialchars((string) $lesson['title'], ENT_QUOTES, 'UTF-8');
-            $html = "<p>A new lesson has been published: <strong>{$lessonTitle}</strong>.</p>";
+            $v3root = realpath(__DIR__ . '/../../');
+            if ($v3root === false) {
+                return;
+            }
 
             $recipients = $service->getRecipientsForLesson($event->lessonId);
             foreach ($recipients as $recipient) {
@@ -29,14 +33,26 @@ class SendLessonPublishedEmail
                     continue;
                 }
 
-                $name = trim(
+                $recipientName = trim(
                     (string) ($recipient['first_name'] ?? '') . ' ' .
                         (string) ($recipient['last_name'] ?? '')
+                ) ?: 'Learner';
+
+                $subject = 'New Lesson Published: ' . htmlspecialchars((string) ($lesson['title']), ENT_QUOTES, 'UTF-8');
+
+                // Prepare lesson data for template
+                $templateData = array_merge($lesson, [
+                    'first_name' => $recipient['first_name'] ?? '',
+                    'last_name' => $recipient['last_name'] ?? '',
+                ]);
+
+                $html = TemplateRenderer::render(
+                    $v3root . '/Templates/emails/lesson_published.php',
+                    $templateData
                 );
 
-                $service->sendEmailOnce(
-                    (string) $recipient['email'],
-                    $name,
+                $mailService->send(
+                    "{$recipientName} <{$recipient['email']}>",
                     $subject,
                     $html
                 );

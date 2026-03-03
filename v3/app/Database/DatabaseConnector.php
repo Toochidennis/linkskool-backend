@@ -15,6 +15,8 @@ class DatabaseConnector
         $dbPass = getenv('DB_PASS');
         $dbCollation = getenv('COLLATION');
         $dbCharset = getenv('CHARSET');
+        $dbTimezone = getenv('DB_TIMEZONE') ?: 'Africa/Lagos';
+        $dbTimezoneOffset = '+01:00';
 
         $dsn = "mysql:host={$dbHost};dbname={$dbName};charset={$dbCharset}";
         $options = [
@@ -23,6 +25,14 @@ class DatabaseConnector
             PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$dbCharset} COLLATE {$dbCollation}",
         ];
 
-        return new PDO($dsn, $dbUser, $dbPass, $options);
+        $pdo = new PDO($dsn, $dbUser, $dbPass, $options);
+
+        try {
+            $pdo->exec("SET time_zone = '{$dbTimezone}'");
+        } catch (\PDOException $exception) {
+            $pdo->exec("SET time_zone = '{$dbTimezoneOffset}'");
+        }
+
+        return $pdo;
     }
 }

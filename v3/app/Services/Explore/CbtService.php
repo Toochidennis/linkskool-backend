@@ -113,7 +113,8 @@ class CbtService
                 'description',
                 'shortname',
                 'picref',
-                'display_order'
+                'display_order',
+                'course_ids'
             ])
             ->where('is_active', '=', 1)
             ->get();
@@ -125,7 +126,8 @@ class CbtService
                 'desc' => $row['description'],
                 'short' => $row['shortname'],
                 'pic' => $this->formatRef($row['picref'] ?? ''),
-                'display_order' => $row['display_order']
+                'display_order' => $row['display_order'],
+                'course_ids' => json_decode($row['course_ids'] ?? '[]', true) ?? []
             ];
         }
 
@@ -337,5 +339,29 @@ class CbtService
 
         $decoded = json_decode($data, associative: true);
         return \is_array($decoded) ? $decoded : [];
+    }
+
+    public function getExamsWithSubjects()
+    {
+        $exams = $this->getExamMeta();
+
+        foreach ($exams as &$exam) {
+            $courseIds = $exam['course_ids'];
+
+            if (!empty($courseIds)) {
+                $result = $this->course
+                    ->select(['id', 'course_name'])
+                    ->in('id', $courseIds)
+                    ->get();
+
+                $courses = array_map(function ($row) {
+                    $row['course_name'] = ucwords(strtolower($row['course_name']));
+                    return $row;
+                }, $result);
+
+                $exam['courses'] = $courses;
+                unset($exam['course_ids']);
+            }
+        }
     }
 }

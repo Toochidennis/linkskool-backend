@@ -66,7 +66,7 @@ class LearningPathService
         LEFT JOIN program_course_cohorts c
             ON c.program_id = p.id
             AND c.course_id = lc.id
-            AND c.status = 'ongoing'
+            AND c.status IN ('ongoing', 'upcoming')
 
         LEFT JOIN program_course_cohort_enrollments e
             ON e.program_id = p.id
@@ -262,6 +262,7 @@ class LearningPathService
                 p.next_cohort,
                 lc.title AS course_name,
                 lc.description AS course_description,
+                lc.image_url,
                 EXISTS (
                     SELECT 1
                     FROM program_course_cohort_enrollments e
@@ -290,6 +291,7 @@ class LearningPathService
                     'course_name' => html_entity_decode($row['course_name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                     'description' => $row['course_description'],
                     'course_id' => (int) $row['course_id'],
+                    'image' => $row['image_url'],
                     'is_enrolled' => (bool) $row['is_enrolled'],
                 ] : null,
         ];

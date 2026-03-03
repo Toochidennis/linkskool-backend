@@ -16,6 +16,10 @@ EnvLoader::load();
 Logger::init();
 RegisterEventListeners::register();
 
+// Set PHP timezone to match database
+$dbTimezone = getenv('DB_TIMEZONE') ?: 'Africa/Lagos';
+date_default_timezone_set($dbTimezone);
+
 $pdo = DatabaseConnector::connect();
 $lessonModel = new ProgramCourseCohortLesson($pdo);
 

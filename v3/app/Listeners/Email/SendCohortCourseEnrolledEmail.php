@@ -47,12 +47,11 @@ class SendCohortCourseEnrolledEmail
 
             $studentName = trim(
                 (string) ($profile['first_name'] ?? '') . ' ' .
-                (string) ($profile['last_name'] ?? '')
+                    (string) ($profile['last_name'] ?? '')
             );
             $studentName = $studentName !== '' ? $studentName : 'Student';
             $programName = (string) ($program['name'] ?? 'Program');
-            $courseName = (string) ($event->courseName ?? $course['title'] ?? 'Course');
-            $cohortName = (string) ($event->cohortName ?? $cohort['name'] ?? 'Cohort');
+            $courseName = (string) ($event->courseName ?? $course['title']);
 
             $v3root = realpath(__DIR__ . '/../../');
             if ($v3root === false) {
@@ -65,8 +64,12 @@ class SendCohortCourseEnrolledEmail
                     'student_name' => $studentName,
                     'program_name' => $programName,
                     'course_name' => $courseName,
-                    'cohort_name' => $cohortName,
-                    'app_url' => getenv('APP_URL2') ?: 'https://linkschoolonline.com/cbt-app',
+                    'cohort_description' => (string) ($cohort['description'] ?? ''),
+                    'cohort_benefits' => (string) ($cohort['benefits'] ?? ''),
+                    'cohort_image_url' => (string) ($cohort['image_url'] ?? ''),
+                    'cohort_start_date' => (string) ($cohort['start_date'] ?? ''),
+                    'cohort_end_date' => (string) ($cohort['end_date'] ?? ''),
+                    'instructor_name' => (string) ($cohort['instructor_name'] ?? ''),
                 ]
             );
 

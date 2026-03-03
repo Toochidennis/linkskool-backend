@@ -151,7 +151,7 @@ class BulkAutoGradeService
                 'assignment_url' => $row['assignment_url'] ?? null,
                 'submitted' => $this->buildSubmittedPayload($row),
                 'score' => max(0, min(100, (float) ($row['score'] ?? 0))),
-                'comment' => $row['comment'] ?? 'AI grading failed.',
+                'comment' => $row['comment'] ?? 'Grading failed.',
                 'status' => $row['status'],
             ];
         }, $rows);
@@ -173,7 +173,7 @@ class BulkAutoGradeService
             $graded = $this->autoGradeService->grade($questionText, $answerText);
 
             $score = max(0, min(100, (float) ($graded['score'] ?? 0)));
-            $comment = $graded['comment'] ?? 'AI grading failed.';
+            $comment = $graded['comment'] ?? 'Grading failed.';
 
             if (isset($graded['error'])) {
                 $failed++;
