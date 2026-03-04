@@ -11,6 +11,7 @@ class MailService
     private string $domain;
     private string $from;
     private EmailLog $emailLog;
+    private ?bool $supportsEventKey = null;
 
     public function __construct(\PDO $pdo)
     {
@@ -20,8 +21,18 @@ class MailService
         $this->emailLog = new EmailLog($pdo);
     }
 
-    public function send(string $to, string $subject, string $html): void
+    public function send(string $to, string $subject, string $html, ?string $eventKey = null): void
     {
+        $payload = [
+            'recipient' => $to,
+            'subject' => $subject,
+            'created_at' => date('Y-m-d H:i:s'),
+        ];
+
+        if ($eventKey !== null && $this->supportsEventKey()) {
+            $payload['event_key'] = $eventKey;
+        }
+
         try {
             $response = $this->mailgun->messages()->send($this->domain, [
                 'from' => $this->from,
@@ -31,21 +42,29 @@ class MailService
             ]);
 
             $this->emailLog->insert([
-                'recipient' => $to,
-                'subject' => $subject,
+                ...$payload,
                 'status' => 'sent',
                 'response_id' => $response->getId(),
-                'created_at' => date('Y-m-d H:i:s'),
             ]);
         } catch (\Throwable $e) {
             $this->emailLog->insert([
-                'recipient' => $to,
-                'subject' => $subject,
+                ...$payload,
                 'status' => 'failed',
                 'response_id' => null,
                 'error_message' => $e->getMessage(),
-                'created_at' => date('Y-m-d H:i:s'),
             ]);
         }
+    }
+
+    private function supportsEventKey(): bool
+    {
+        if ($this->supportsEventKey !== null) {
+            return $this->supportsEventKey;
+        }
+
+        $rows = $this->emailLog->rawQuery("SHOW COLUMNS FROM email_logs LIKE 'event_key'");
+        $this->supportsEventKey = !empty($rows);
+
+        return $this->supportsEventKey;
     }
 }

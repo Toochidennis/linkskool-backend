@@ -6,7 +6,6 @@ use V3\App\Common\Utilities\TemplateRenderer;
 use V3\App\Database\DatabaseConnector;
 use V3\App\Events\Lesson\ClassReminderDue;
 use V3\App\Services\Explore\LessonNotificationTargetService;
-use V3\App\Services\Common\MailService;
 
 class SendClassReminderEmail
 {
@@ -15,7 +14,6 @@ class SendClassReminderEmail
         try {
             $pdo = DatabaseConnector::connect();
             $service = new LessonNotificationTargetService($pdo);
-            $mailService = new MailService($pdo);
 
             $lesson = $service->getLesson($event->lessonId);
             if (empty($lesson)) {
@@ -28,6 +26,7 @@ class SendClassReminderEmail
             }
 
             $subject = 'Class Reminder: ' . htmlspecialchars((string) ($lesson['title'] ?? 'Class'), ENT_QUOTES, 'UTF-8');
+            $eventKey = sprintf('class_reminder:lesson:%d', $event->lessonId);
 
             $recipients = $service->getRecipientsForLesson($event->lessonId);
             foreach ($recipients as $recipient) {
@@ -51,10 +50,12 @@ class SendClassReminderEmail
                     $templateData
                 );
 
-                $mailService->send(
-                    "{$recipientName} <{$recipient['email']}>",
+                $service->sendEmailOnce(
+                    (string) $recipient['email'],
+                    $recipientName,
                     $subject,
-                    $html
+                    $html,
+                    $eventKey
                 );
             }
         } catch (\Throwable) {

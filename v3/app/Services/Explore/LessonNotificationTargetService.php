@@ -18,6 +18,8 @@ class LessonNotificationTargetService
     private UserDeviceToken $userDeviceToken;
     private MailService $mailService;
     private NotificationService $notificationService;
+    private ?bool $emailLogSupportsEventKey = null;
+    private ?bool $notificationLogSupportsEventKey = null;
 
     public function __construct(\PDO $pdo)
     {
@@ -112,16 +114,18 @@ class LessonNotificationTargetService
         string $email,
         string $name,
         string $subject,
-        string $html
+        string $html,
+        ?string $eventKey = null
     ): void {
-        if ($this->hasEmailBeenSent($email, $subject)) {
+        if ($this->hasEmailBeenSent($email, $subject, $eventKey)) {
             return;
         }
 
         $this->mailService->send(
             "{$name} <{$email}>",
             $subject,
-            $html
+            $html,
+            $eventKey
         );
     }
 
@@ -143,7 +147,7 @@ class LessonNotificationTargetService
         }
 
         foreach ($tokens as $token) {
-            if ($this->hasPushBeenSent($token, $title, $body)) {
+            if ($this->hasPushBeenSent($token, $title, $body, $data['event_key'] ?? null)) {
                 continue;
             }
 
@@ -164,8 +168,26 @@ class LessonNotificationTargetService
         );
     }
 
-    private function hasEmailBeenSent(string $email, string $subject): bool
+    private function hasEmailBeenSent(string $email, string $subject, ?string $eventKey = null): bool
     {
+        if ($eventKey !== null && $this->emailLogSupportsEventKey()) {
+            $rows = $this->emailLog->rawQuery(
+                "
+                SELECT 1
+                FROM email_logs
+                WHERE event_key = :event_key
+                  AND recipient LIKE :recipient
+                LIMIT 1
+                ",
+                [
+                    'event_key' => $eventKey,
+                    'recipient' => '%<' . $email . '>%',
+                ]
+            );
+
+            return !empty($rows);
+        }
+
         $rows = $this->emailLog->rawQuery(
             "
             SELECT 1
@@ -183,8 +205,26 @@ class LessonNotificationTargetService
         return !empty($rows);
     }
 
-    private function hasPushBeenSent(string $token, string $title, string $body): bool
+    private function hasPushBeenSent(string $token, string $title, string $body, ?string $eventKey = null): bool
     {
+        if ($eventKey !== null && $this->notificationLogSupportsEventKey()) {
+            $rows = $this->notificationLog->rawQuery(
+                "
+                SELECT 1
+                FROM notifications
+                WHERE recipient_token = :token
+                  AND event_key = :event_key
+                LIMIT 1
+                ",
+                [
+                    'token' => $token,
+                    'event_key' => $eventKey,
+                ]
+            );
+
+            return !empty($rows);
+        }
+
         $rows = $this->notificationLog->rawQuery(
             "
             SELECT 1
@@ -202,6 +242,30 @@ class LessonNotificationTargetService
         );
 
         return !empty($rows);
+    }
+
+    private function emailLogSupportsEventKey(): bool
+    {
+        if ($this->emailLogSupportsEventKey !== null) {
+            return $this->emailLogSupportsEventKey;
+        }
+
+        $rows = $this->emailLog->rawQuery("SHOW COLUMNS FROM email_logs LIKE 'event_key'");
+        $this->emailLogSupportsEventKey = !empty($rows);
+
+        return $this->emailLogSupportsEventKey;
+    }
+
+    private function notificationLogSupportsEventKey(): bool
+    {
+        if ($this->notificationLogSupportsEventKey !== null) {
+            return $this->notificationLogSupportsEventKey;
+        }
+
+        $rows = $this->notificationLog->rawQuery("SHOW COLUMNS FROM notifications LIKE 'event_key'");
+        $this->notificationLogSupportsEventKey = !empty($rows);
+
+        return $this->notificationLogSupportsEventKey;
     }
 
     private function isAssignmentDone(array $row): bool

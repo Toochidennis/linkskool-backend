@@ -29,6 +29,7 @@ class SendClassReminderPushNotification
                 'profile_id' => '',
                 'course_id' => (string) ($lesson['course_id'] ?? ''),
                 'program_id' => (string) ($lesson['program_id'] ?? ''),
+                'event_key' => sprintf('class_reminder:lesson:%d', $event->lessonId),
             ];
 
             $recipients = $service->getRecipientsForLesson($event->lessonId);

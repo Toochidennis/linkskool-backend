@@ -20,6 +20,7 @@ class SendAssignmentDueReminderEmail
             }
 
             $subject = 'Assignment Due Reminder: ' . $lesson['title'];
+            $eventKey = sprintf('assignment_due_reminder:lesson:%d', $event->lessonId);
             $lessonTitle = htmlspecialchars((string) ($lesson['title']), ENT_QUOTES, 'UTF-8');
             $dueDate = htmlspecialchars((string) ($lesson['assignment_due_date'] ?? ''), ENT_QUOTES, 'UTF-8');
 
@@ -51,7 +52,8 @@ class SendAssignmentDueReminderEmail
                     (string) $recipient['email'],
                     $name,
                     $subject,
-                    $html
+                    $html,
+                    $eventKey
                 );
             }
         } catch (\Throwable) {

@@ -9,6 +9,7 @@ class NotificationService
 {
     private $projectUrl;
     private Notification $notification;
+    private ?bool $supportsEventKey = null;
 
     public function __construct(\PDO $pdo)
     {
@@ -18,6 +19,18 @@ class NotificationService
 
     public function send(string $to, string $title, string $body, array $data = []): void
     {
+        $payload = [
+            'recipient_token' => $to,
+            'title' => $title,
+            'body' => $body,
+            'created_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $eventKey = $data['event_key'] ?? null;
+        if ($eventKey !== null && $this->supportsEventKey()) {
+            $payload['event_key'] = $eventKey;
+        }
+
         try {
             $scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
 
@@ -79,20 +92,24 @@ class NotificationService
                 throw new \RuntimeException("FCM failed with HTTP $httpCode. Response: $response");
             }
 
-            $this->notification->insert([
-                'recipient_token' => $to,
-                'title' => $title,
-                'body' => $body,
-                'created_at' => date('Y-m-d H:i:s'),
-            ]);
+            $this->notification->insert($payload);
         } catch (\Throwable $e) {
             $this->notification->insert([
-                'recipient_token' => $to,
-                'title' => $title,
-                'body' => $body,
+                ...$payload,
                 'error_message' => $e->getMessage(),
-                'created_at' => date('Y-m-d H:i:s'),
             ]);
         }
+    }
+
+    private function supportsEventKey(): bool
+    {
+        if ($this->supportsEventKey !== null) {
+            return $this->supportsEventKey;
+        }
+
+        $rows = $this->notification->rawQuery("SHOW COLUMNS FROM notifications LIKE 'event_key'");
+        $this->supportsEventKey = !empty($rows);
+
+        return $this->supportsEventKey;
     }
 }
