@@ -23,31 +23,31 @@ $instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
         <td align="center">
             <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
                 <tr>
-                    <td align="center" style="background:linear-gradient(135deg,#9333ea 0%,#6b21a8 100%);padding:28px 24px;">
-                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="160" style="display:block;">
+                    <td align="center" style="background:#f8f9fa;padding:20px 24px;border-bottom:1px solid #e5e5e5;">
+                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="100" style="display:block;height:auto;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding:36px;">
-                        <h2 style="margin:0 0 16px 0;font-size:28px;color:#0f172a;">Congratulations</h2>
-                        <p style="margin:0 0 12px 0;">Hi <strong><?= $studentName ?></strong>,</p>
-                        <p style="margin:0 0 12px 0;">You have successfully completed <strong><?= $courseName ?></strong>.</p>
-                        <p style="margin:0 0 22px 0;">Certificate name: <strong><?= $certificateName ?></strong></p>
+                    <td style="padding:32px 28px;">
+                        <h2 style="margin:0 0 16px 0;font-size:28px;color:#0f172a;font-weight:600;">Congratulations!</h2>
+                        <p style="margin:0 0 10px 0;font-size:15px;color:#64748b;">Hi <strong><?= $studentName ?></strong>,</p>
+                        <p style="margin:0 0 10px 0;font-size:15px;color:#64748b;">You have successfully completed <strong><?= $courseName ?></strong>.</p>
+                        <p style="margin:0 0 24px 0;font-size:15px;color:#64748b;">Certificate name: <strong><?= $certificateName ?></strong></p>
                         <?php if ($certificateUrl !== ''): ?>
-                            <p style="margin:0;">
-                                <a href="<?= $certificateUrl ?>" style="display:inline-block;background:#7e22ce;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">Download Certificate</a>
+                            <p style="margin:0 0 28px 0;">
+                                <a href="<?= $certificateUrl ?>" style="display:inline-block;background:#3b82f6;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-weight:600;font-size:14px;">Download Certificate</a>
                             </p>
                         <?php endif; ?>
 
-                        <p style="margin:40px 0 0 0;font-size:14px;color:#64748b;text-align:center;line-height:1.6;">
+                        <p style="margin:0;font-size:13px;color:#64748b;text-align:center;line-height:1.5;">
                             <strong style="font-weight:600;color:#475569;">Have questions?</strong><br>
-                            Our support team is available to help you with anything you need.
+                            Our support team is available to help you.
                         </p>
                     </td>
                 </tr>
                 <tr>
                     <td style="background:#f8fafc;padding:24px 20px;text-align:center;border-top:1px solid #e2e8f0;">
-                        <p style="margin:0 0 14px 0;font-size:14px;font-weight:700;color:#334155;letter-spacing:0.01em;">Contact Us</p>
+                        <p style="margin:0 0 14px 0;font-size:13px;font-weight:600;color:#334155;letter-spacing:0.01em;">Follow Us</p>
                         <a href="https://www.facebook.com/share/1Dwd5kQsgM/" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
                             <img src="<?= $facebookIcon ?>" alt="Facebook" width="22" height="22" style="display:block;">
                         </a>

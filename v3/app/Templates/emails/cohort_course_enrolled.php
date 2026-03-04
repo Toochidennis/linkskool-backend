@@ -34,68 +34,49 @@ $checkIcon = 'https://img.icons8.com/color/32/ok.png';
             <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.12);">
                 <!-- Header -->
                 <tr>
-                    <td align="center" style="background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);padding:32px 24px;">
-                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="160" style="display:block;margin:0;height:auto;">
+                    <td align="center" style="background:#f8f9fa;padding:20px 24px;border-bottom:1px solid #e5e5e5;">
+                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="100" style="display:block;margin:0;height:auto;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
                     </td>
                 </tr>
 
                 <!-- Main Content -->
                 <tr>
-                    <td style="padding:40px 36px;">
+                    <td style="padding:32px 28px;">
                         <!-- Welcome Message -->
-                        <h1 style="margin:0 0 8px 0;font-size:32px;color:#0f172a;font-weight:700;">Welcome Aboard! 🎉</h1>
-                        <p style="margin:0 0 28px 0;font-size:16px;color:#64748b;">Hello <strong><?= $studentName ?></strong>,</p>
+                        <h1 style="margin:0 0 6px 0;font-size:28px;color:#0f172a;font-weight:600;">Welcome Aboard!</h1>
+                        <p style="margin:0 0 28px 0;font-size:15px;color:#64748b;">Hello <strong><?= $studentName ?></strong>,</p>
 
                         <!-- Confirmation Message -->
-                        <div style="margin:24px 0;padding:20px;background:#f0fdf4;border:2px solid #dcfce7;border-radius:8px;">
-                            <table width="100%" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td style="vertical-align:top;padding-right:12px;width:32px;">
-                                        <img src="<?= $checkIcon ?>" alt="Success" width="28" height="28" style="display:block;">
-                                    </td>
-                                    <td style="vertical-align:top;">
-                                        <p style="margin:0;font-size:15px;color:#15803d;font-weight:600;">
-                                            You're successfully enrolled in <strong><?= $courseName ?></strong>
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
+                        <div style="margin:0 0 24px 0;padding:18px;background:#f0fdf4;border:1px solid #d1fae5;border-radius:6px;">
+                            <p style="margin:0;font-size:15px;color:#15803d;font-weight:600;">
+                                ✓ You're successfully enrolled in <strong><?= $courseName ?></strong>
+                            </p>
                         </div>
 
                         <!-- Course Image (if available) -->
                         <?php if ($cohortImageUrl): ?>
-                        <div style="margin:28px 0;border-radius:8px;overflow:hidden;max-width:100%;">
-                            <img src="<?= $cohortImageUrl ?>" alt="<?= $courseName ?>" style="width:100%;height:auto;display:block;max-height:300px;object-fit:cover;">
+                        <div style="margin:0 0 24px 0;border-radius:6px;overflow:hidden;">
+                            <img src="<?= $cohortImageUrl ?>" alt="<?= $courseName ?>" style="width:100%;height:auto;display:block;max-height:280px;object-fit:cover;">
                         </div>
                         <?php endif; ?>
 
                         <!-- Course Details Card -->
-                        <div style="margin:28px 0;padding:24px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
-                            <table width="100%" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td style="padding:8px 0;font-size:13px;color:#6b7280;">
-                                        <strong style="color:#1e293b;">Program:</strong> <?= $programName ?>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding:8px 0;font-size:13px;color:#6b7280;">
-                                        <strong style="color:#1e293b;">Course:</strong> <?= $courseName ?>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding:8px 0;font-size:13px;color:#6b7280;">
-                                        <strong style="color:#1e293b;">Instructor:</strong> <?= $instructorName ?>
-                                    </td>
-                                </tr>
-                                <?php if ($startDate || $endDate): ?>
-                                <tr>
-                                    <td style="padding:8px 0;font-size:13px;color:#6b7280;">
-                                        <strong style="color:#1e293b;">Duration:</strong> 
-                                        <?php if ($startDate): ?><?= $startDate ?><?php if ($endDate): ?> - <?= $endDate ?><?php endif; ?><?php else: ?><?= $endDate ?? 'TBD' ?><?php endif; ?>
-                                    </td>
-                                </tr>
-                                <?php endif; ?>
-                            </table>
+                        <div style="margin:0 0 24px 0;padding:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
+                            <p style="margin:0 0 8px 0;font-size:14px;color:#475569;">
+                                <strong style="color:#0f172a;">Program:</strong> <?= $programName ?>
+                            </p>
+                            <p style="margin:0 0 8px 0;font-size:14px;color:#475569;">
+                                <strong style="color:#0f172a;">Course:</strong> <?= $courseName ?>
+                            </p>
+                            <p style="margin:0 0 8px 0;font-size:14px;color:#475569;">
+                                <strong style="color:#0f172a;">Instructor:</strong> <?= $instructorName ?>
+                            </p>
+                            <?php if ($startDate || $endDate): ?>
+                            <p style="margin:0;font-size:14px;color:#475569;">
+                                <strong style="color:#0f172a;">Duration:</strong> 
+                                <?php if ($startDate): ?><?= $startDate ?><?php if ($endDate): ?> - <?= $endDate ?><?php endif; ?><?php else: ?><?= $endDate ?? 'TBD' ?><?php endif; ?>
+                            </p>
+                            <?php endif; ?>
                         </div>
 
                         <!-- Course Description -->

@@ -2,7 +2,9 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Common\Events\EventDispatcher;
 use V3\App\Common\Utilities\FileHandler;
+use V3\App\Events\News\NewsPosted;
 use V3\App\Models\Explore\News;
 use V3\App\Models\Explore\NewsCategory;
 use V3\App\Models\Explore\NewsCategoryPivot;
@@ -74,19 +76,34 @@ class NewsService
             ]);
         }
 
+        if ($newsId && ($payload['status'] ?? 'draft') === 'published') {
+            EventDispatcher::dispatch(new NewsPosted((int) $newsId));
+        }
+
         return $newsId ?: false;
     }
 
     public function updateNewsStatus(int $newsId, string $status): bool
     {
-        return $this->newsModel
+        $existingNews = $this->newsModel
+            ->where('id', $newsId)
+            ->first();
+
+        $updated = $this->newsModel
             ->where('id', $newsId)
             ->update(['status' => $status]);
+
+        if ($updated && ($existingNews['status'] ?? null) !== 'published' && $status === 'published') {
+            EventDispatcher::dispatch(new NewsPosted($newsId));
+        }
+
+        return $updated;
     }
 
     public function updateNews(array $data): bool
     {
         $newImages = $this->uploadNewImages($data);
+        $previousStatus = null;
 
         [$finalImages, $filesToDelete] = $this->resolveImages(
             (int)$data['id'],
@@ -96,6 +113,11 @@ class NewsService
 
         try {
             $this->pdo->beginTransaction();
+            $existingNews = $this->newsModel
+                ->where('id', $data['id'])
+                ->first();
+            $previousStatus = $existingNews['status'] ?? null;
+
             $this->newsCategoryPivotModel
                 ->where('news_id', $data['id'])
                 ->delete();
@@ -131,6 +153,10 @@ class NewsService
 
         foreach ($filesToDelete as $file) {
             $this->fileHandler->deleteOldFile($file);
+        }
+
+        if ($previousStatus !== 'published' && ($data['status'] ?? 'draft') === 'published') {
+            EventDispatcher::dispatch(new NewsPosted((int) $data['id']));
         }
 
         return true;
@@ -206,7 +232,7 @@ class NewsService
         $latestIds = array_slice(
             array_column($news['data'], 'id'),
             0,
-            5
+            10
         );
 
         $latestCategories = [];

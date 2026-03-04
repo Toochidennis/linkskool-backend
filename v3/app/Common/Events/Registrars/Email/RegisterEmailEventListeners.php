@@ -10,10 +10,12 @@ use V3\App\Events\Lesson\AssignmentDueReminderDue;
 use V3\App\Events\Lesson\ClassReminderDue;
 use V3\App\Events\Lesson\LessonPublished;
 use V3\App\Events\Lesson\LiveClassReminderDue;
+use V3\App\Events\News\NewsPosted;
 use V3\App\Listeners\Email\SendAssignmentDueReminderEmail;
 use V3\App\Listeners\Email\SendClassReminderEmail;
 use V3\App\Listeners\Email\SendCohortCourseEnrolledEmail;
 use V3\App\Listeners\Email\SendLessonPublishedEmail;
+use V3\App\Listeners\Email\SendNewsPostedEmail;
 use V3\App\Listeners\Email\SendSubmissionGradedEmail;
 use V3\App\Listeners\Email\SendLiveClassReminderEmail;
 use V3\App\Listeners\Email\SendWelcomeEmail;
@@ -35,6 +37,11 @@ class RegisterEmailEventListeners
         EventDispatcher::listen(
             LessonPublished::class,
             new SendLessonPublishedEmail()
+        );
+
+        EventDispatcher::listen(
+            NewsPosted::class,
+            new SendNewsPostedEmail()
         );
 
         EventDispatcher::listen(

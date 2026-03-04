@@ -22,27 +22,27 @@ $instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
             <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
                 <!-- Header -->
                 <tr>
-                    <td align="center" style="background:linear-gradient(135deg,#059669 0%,#047857 100%);padding:36px 24px;">
-                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="180" style="display:block;">
+                    <td align="center" style="background:#f8f9fa;padding:20px 24px;border-bottom:1px solid #e5e5e5;">
+                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="100" style="display:block;height:auto;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
                     </td>
                 </tr>
 
                 <!-- Welcome Message -->
                 <tr>
-                    <td style="padding:36px 32px;">
-                        <h1 style="margin:0 0 8px 0;font-size:32px;font-weight:700;color:#0f172a;">Welcome, <?= $studentName ?>!</h1>
-                        <p style="margin:0 0 24px 0;font-size:16px;color:#475569;line-height:1.6;">
+                    <td style="padding:32px 28px;">
+                        <h1 style="margin:0 0 6px 0;font-size:28px;font-weight:600;color:#0f172a;">Welcome, <?= $studentName ?>!</h1>
+                        <p style="margin:0 0 28px 0;font-size:15px;color:#64748b;line-height:1.6;">
                             We're excited to have you join the Linkskool learning community. Your account is now active and ready to use.
                         </p>
                     </td>
                 </tr>
 
-                <!-- What is Linkskool -->
+                <!-- About Linkskool -->
                 <tr>
-                    <td style="padding:0 32px;">
-                        <div style="background:#f0fdf4;border-left:4px solid #059669;padding:20px;border-radius:6px;margin-bottom:24px;">
-                            <h3 style="margin:0 0 12px 0;font-size:16px;font-weight:700;color:#065f46;">About Linkskool</h3>
-                            <p style="margin:0;font-size:14px;color:#166534;line-height:1.6;">
+                    <td style="padding:0 28px;">
+                        <div style="background:#f8fafc;border-left:3px solid#3b82f6;padding:18px;border-radius:4px;margin-bottom:24px;">
+                            <h3 style="margin:0 0 10px 0;font-size:15px;font-weight:600;color:#0f172a;">About Linkskool</h3>
+                            <p style="margin:0;font-size:14px;color:#475569;line-height:1.6;">
                                 Linkskool is a modern online learning platform designed to empower students with quality education. 
                                 Learn at your own pace, access expert instructors, and achieve your educational goals.
                             </p>
@@ -52,22 +52,24 @@ $instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
 
                 <!-- Key Features -->
                 <tr>
-                    <td style="padding:0 32px;">
-                        <h3 style="margin:0 0 16px 0;font-size:16px;font-weight:700;color:#0f172a;">What You Can Do Now</h3>
-                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-                            <tr>
-                                <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;">
-                                    <p style="margin:0;font-size:14px;color:#475569;font-weight:600;">📚 Explore Courses</p>
-                                    <p style="margin:4px 0 0 0;font-size:13px;color:#64748b;">Browse and enroll in courses from world-class instructors.</p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;">
-                                    <p style="margin:0;font-size:14px;color:#475569;font-weight:600;">🎓 Learn at Your Pace</p>
-                                    <p style="margin:4px 0 0 0;font-size:13px;color:#64748b;">Access lessons, assignments, and exams whenever it suits your schedule.</p>
-                                </td>
-                            </tr>
-                            <tr>
+                    <td style="padding:0 28px;">
+                        <h3 style="margin:0 0 16px 0;font-size:15px;font-weight:600;color:#0f172a;">What You Can Do Now</h3>
+                        <div style="margin-bottom:24px;">
+                            <div style="padding:14px 0;border-bottom:1px solid #e2e8f0;">
+                                <p style="margin:0 0 4px 0;font-size:14px;color:#0f172a;font-weight:600;">📚 Explore Courses</p>
+                                <p style="margin:0;font-size:13px;color:#64748b;">Browse and enroll in courses from world-class instructors.</p>
+                            </div>
+                            <div style="padding:14px 0;border-bottom:1px solid #e2e8f0;">
+                                <p style="margin:0 0 4px 0;font-size:14px;color:#0f172a;font-weight:600;">🎓 Learn at Your Pace</p>
+                                <p style="margin:0;font-size:13px;color:#64748b;">Access lessons, assignments, and exams whenever it suits your schedule.</p>
+                            </div>
+                            <div style="padding:14px 0;">
+                                <p style="margin:0 0 4px 0;font-size:14px;color:#0f172a;font-weight:600;">🏆 Track Your Progress</p>
+                                <p style="margin:0;font-size:13px;color:#64748b;">Monitor your learning journey and earn certificates.</p>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
                                 <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;">
                                     <p style="margin:0;font-size:14px;color:#475569;font-weight:600;">📊 Track Progress</p>
                                     <p style="margin:4px 0 0 0;font-size:13px;color:#64748b;">Monitor your learning progress with detailed reports and feedback.</p>

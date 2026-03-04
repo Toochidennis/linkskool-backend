@@ -117,11 +117,13 @@ class CbtService
                 'course_ids'
             ])
             ->where('is_active', '=', 1)
+            ->orderBy('display_order', 'ASC')
             ->get();
 
         $meta = [];
         foreach ($rows as $row) {
             $meta[$row['id']] = [
+                'id' => $row['id'],
                 'title' => $row['title'],
                 'desc' => $row['description'],
                 'short' => $row['shortname'],
@@ -359,9 +361,16 @@ class CbtService
                     return $row;
                 }, $result);
 
+                // Sort courses by name in ascending order
+                usort($courses, function ($a, $b) {
+                    return strcmp($a['course_name'], $b['course_name']);
+                });
+
                 $exam['courses'] = $courses;
                 unset($exam['course_ids']);
             }
         }
+
+        return array_values($exams);
     }
 }

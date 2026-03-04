@@ -8,10 +8,12 @@ use V3\App\Events\Lesson\AssignmentDueReminderDue;
 use V3\App\Events\Lesson\ClassReminderDue;
 use V3\App\Events\Lesson\LessonPublished;
 use V3\App\Events\Lesson\LiveClassReminderDue;
+use V3\App\Events\News\NewsPosted;
 use V3\App\Listeners\PushNotification\SendAssignmentDueReminderPushNotification;
 use V3\App\Listeners\PushNotification\SendClassReminderPushNotification;
 use V3\App\Listeners\PushNotification\SendLessonPublishedPushNotification;
 use V3\App\Listeners\PushNotification\SendLiveClassReminderPushNotification;
+use V3\App\Listeners\PushNotification\SendNewsPostedPushNotification;
 use V3\App\Listeners\PushNotification\SendSubmissionGradedPushNotification;
 
 class RegisterPushNotificationEventListeners
@@ -26,6 +28,11 @@ class RegisterPushNotificationEventListeners
         EventDispatcher::listen(
             LessonPublished::class,
             new SendLessonPublishedPushNotification()
+        );
+
+        EventDispatcher::listen(
+            NewsPosted::class,
+            new SendNewsPostedPushNotification()
         );
 
         EventDispatcher::listen(

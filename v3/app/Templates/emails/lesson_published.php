@@ -52,48 +52,36 @@ $checkIcon = 'https://img.icons8.com/color/32/ok.png';
             <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.12);">
                 <!-- Header with Logo -->
                 <tr>
-                    <td align="center" style="background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);padding:32px 24px;">
-                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="160" style="display:block;margin:0;height:auto;">
+                    <td align="center" style="background:#f8f9fa;padding:20px 24px;border-bottom:1px solid #e5e5e5;">
+                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="100" style="display:block;margin:0;height:auto;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
                     </td>
                 </tr>
 
                 <!-- Main Content -->
                 <tr>
-                    <td style="padding:40px 36px;">
+                    <td style="padding:32px 28px;">
                         <!-- Greeting -->
-                        <h1 style="margin:0 0 8px 0;font-size:32px;color:#0f172a;font-weight:700;">Welcome to Your New Lesson! 🎓</h1>
-                        <p style="margin:0 0 24px 0;font-size:16px;color:#64748b;">Hello <strong><?= $recipientName ?></strong>,</p>
+                        <h1 style="margin:0 0 6px 0;font-size:28px;color:#0f172a;font-weight:600;">New Lesson Published</h1>
+                        <p style="margin:0 0 28px 0;font-size:15px;color:#64748b;">Hello <strong><?= $recipientName ?></strong>,</p>
 
                         <!-- Lesson Card -->
-                        <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;border:2px solid #dbeafe;border-radius:8px;overflow:hidden;background:#f0f9ff;">
-                            <tr>
-                                <td style="padding:24px;background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);">
-                                    <h2 style="margin:0;font-size:24px;color:#ffffff;font-weight:700;"><?= $lessonTitle ?></h2>
-                                    <p style="margin:8px 0 0 0;font-size:14px;color:#dbeafe;">Part of <strong><?= $courseName ?></strong></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:20px 24px;">
-                                    <table width="100%" cellpadding="0" cellspacing="0">
-                                        <tr>
-                                            <td style="padding:8px 0;font-size:14px;color:#475569;">
-                                                <strong style="color:#1e293b;">Instructor:</strong> <?= $authorName ?>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding:8px 0;font-size:14px;color:#475569;">
-                                                <strong style="color:#1e293b;">Date:</strong> <?= $lessonDate ?>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
+                        <div style="margin:0 0 28px 0;padding:20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+                            <h2 style="margin:0 0 6px 0;font-size:20px;color:#0f172a;font-weight:600;"><?= $lessonTitle ?></h2>
+                            <p style="margin:0 0 16px 0;font-size:14px;color:#64748b;">Part of <strong><?= $courseName ?></strong></p>
+                            <div style="padding:12px 0 0 0;border-top:1px solid #e2e8f0;">
+                                <p style="margin:0 0 6px 0;font-size:14px;color:#475569;">
+                                    <strong style="color:#0f172a;">Instructor:</strong> <?= $authorName ?>
+                                </p>
+                                <p style="margin:0;font-size:14px;color:#475569;">
+                                    <strong style="color:#0f172a;">Date:</strong> <?= $lessonDate ?>
+                                </p>
+                            </div>
+                        </div>
 
                         <!-- Description Section -->
                         <?php if ($description): ?>
-                        <div style="margin:32px 0;padding:24px;background:#f8fafc;border-left:4px solid #3b82f6;border-radius:0 8px 8px 0;">
-                            <h3 style="margin:0 0 12px 0;font-size:16px;color:#1e293b;font-weight:600;">About This Lesson</h3>
+                        <div style="margin:0 0 24px 0;padding:18px;background:#f8fafc;border-left:3px solid #3b82f6;border-radius:4px;">
+                            <h3 style="margin:0 0 8px 0;font-size:15px;color:#0f172a;font-weight:600;">About This Lesson</h3>
                             <p style="margin:0;font-size:14px;line-height:1.6;color:#475569;white-space:pre-wrap;">
                                 <?= htmlspecialchars_decode($description) ?>
                             </p>
@@ -102,9 +90,9 @@ $checkIcon = 'https://img.icons8.com/color/32/ok.png';
 
                         <!-- Learning Goals -->
                         <?php if ($goals): ?>
-                        <div style="margin:24px 0;">
-                            <h3 style="margin:0 0 12px 0;font-size:16px;color:#1e293b;font-weight:600;">🎯 Learning Goals</h3>
-                            <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;">
+                        <div style="margin:0 0 24px 0;">
+                            <h3 style="margin:0 0 10px 0;font-size:15px;color:#0f172a;font-weight:600;">Learning Goals</h3>
+                            <p style="margin:0;padding:14px;background:#f8fafc;border-radius:4px;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;">
                                 <?= htmlspecialchars_decode($goals) ?>
                             </p>
                         </div>
@@ -112,9 +100,9 @@ $checkIcon = 'https://img.icons8.com/color/32/ok.png';
 
                         <!-- Learning Objectives -->
                         <?php if ($objectives): ?>
-                        <div style="margin:24px 0;">
-                            <h3 style="margin:0 0 12px 0;font-size:16px;color:#1e293b;font-weight:600;">✓ Learning Objectives</h3>
-                            <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;">
+                        <div style="margin:0 0 24px 0;">
+                            <h3 style="margin:0 0 10px 0;font-size:15px;color:#0f172a;font-weight:600;">Learning Objectives</h3>
+                            <p style="margin:0;padding:14px;background:#f8fafc;border-radius:4px;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;">
                                 <?= htmlspecialchars_decode($objectives) ?>
                             </p>
                         </div>
@@ -122,109 +110,74 @@ $checkIcon = 'https://img.icons8.com/color/32/ok.png';
 
                         <!-- Resources & Content -->
                         <?php if ($hasVideo || $hasMaterial || $hasZoom || $hasAssignment): ?>
-                        <div style="margin:32px 0;padding:24px;background:#f0fdf4;border:1px solid #dcfce7;border-radius:8px;">
-                            <h3 style="margin:0 0 16px 0;font-size:16px;color:#1e293b;font-weight:600;">📚 Lesson Resources</h3>
-                            <table width="100%" cellpadding="0" cellspacing="0">
+                        <div style="margin:0 0 24px 0;padding:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
+                            <h3 style="margin:0 0 14px 0;font-size:15px;color:#0f172a;font-weight:600;">Lesson Resources</h3>
+                            <div>
                                 <?php if ($hasVideo): ?>
-                                <tr>
-                                    <td style="padding:12px 0;border-bottom:1px solid #dcfce7;font-size:14px;">
-                                        <div style="display:inline-block;width:24px;vertical-align:middle;">
-                                            <img src="<?= $videoIcon ?>" alt="Video" width="20" height="20" style="display:block;">
-                                        </div>
-                                        <span style="margin-left:8px;color:#1e293b;font-weight:600;">Video Content</span>
-                                        <span style="float:right;color:#16a34a;font-weight:600;">✓ Available</span>
-                                    </td>
-                                </tr>
+                                <div style="padding:10px 0;border-bottom:1px solid #e2e8f0;font-size:14px;color:#475569;">
+                                    ✓ <strong style="color:#0f172a;">Video Content</strong> - Available
+                                </div>
                                 <?php endif; ?>
                                 
                                 <?php if ($hasMaterial): ?>
-                                <tr>
-                                    <td style="padding:12px 0;border-bottom:1px solid #dcfce7;font-size:14px;">
-                                        <div style="display:inline-block;width:24px;vertical-align:middle;">
-                                            <img src="<?= $documentIcon ?>" alt="Material" width="20" height="20" style="display:block;">
-                                        </div>
-                                        <span style="margin-left:8px;color:#1e293b;font-weight:600;">Course Material</span>
-                                        <span style="float:right;color:#16a34a;font-weight:600;">✓ Available</span>
-                                    </td>
-                                </tr>
+                                <div style="padding:10px 0;border-bottom:1px solid #e2e8f0;font-size:14px;color:#475569;">
+                                    ✓ <strong style="color:#0f172a;">Course Material</strong> - Available
+                                </div>
                                 <?php endif; ?>
                                 
                                 <?php if ($hasZoom): ?>
-                                <tr>
-                                    <td style="padding:12px 0;border-bottom:1px solid #dcfce7;font-size:14px;">
-                                        <div style="display:inline-block;width:24px;vertical-align:middle;">
-                                            <img src="<?= $zoomIcon ?>" alt="Zoom" width="20" height="20" style="display:block;">
-                                        </div>
-                                        <span style="margin-left:8px;color:#1e293b;font-weight:600;">Live Session (Zoom)</span>
-                                        <span style="float:right;color:#16a34a;font-weight:600;">✓ Scheduled</span>
-                                    </td>
-                                </tr>
-                                <?php if ($zoomStartTime || $zoomEndTime): ?>
-                                <tr>
-                                    <td style="padding:0 0 12px 32px;font-size:12px;color:#64748b;border-bottom:1px solid #dcfce7;">
-                                        <strong>Time:</strong> <?php if ($zoomStartTime): ?><?= $zoomStartTime ?><?php if ($zoomEndTime): ?> - <?= $zoomEndTime ?><?php endif; ?><?php else: ?>To be confirmed<?php endif; ?>
-                                    </td>
-                                </tr>
-                                <?php endif; ?>
+                                <div style="padding:10px 0;<?php if ($hasAssignment): ?>border-bottom:1px solid #e2e8f0;<?php endif ?>font-size:14px;color:#475569;">
+                                    ✓ <strong style="color:#0f172a;">Live Session (Zoom)</strong> - Scheduled
+                                    <?php if ($zoomStartTime || $zoomEndTime): ?>
+                                    <div style="padding:6px 0 0 20px;font-size:13px;color:#64748b;">
+                                        Time: <?php if ($zoomStartTime): ?><?= $zoomStartTime ?><?php if ($zoomEndTime): ?> - <?= $zoomEndTime ?><?php endif; ?><?php else: ?>To be confirmed<?php endif; ?>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
                                 <?php endif; ?>
                                 
                                 <?php if ($hasAssignment): ?>
-                                <tr>
-                                    <td style="padding:12px 0;font-size:14px;">
-                                        <div style="display:inline-block;width:24px;vertical-align:middle;">
-                                            <img src="<?= $documentIcon ?>" alt="Assignment" width="20" height="20" style="display:block;">
-                                        </div>
-                                        <span style="margin-left:8px;color:#1e293b;font-weight:600;">Assignment</span>
-                                        <?php if ($assignmentDueDate): ?>
-                                        <span style="float:right;color:#ea580c;font-weight:600;">Due: <?= $assignmentDueDate ?></span>
-                                        <?php else: ?>
-                                        <span style="float:right;color:#16a34a;font-weight:600;">✓ Included</span>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
+                                <div style="padding:10px 0;font-size:14px;color:#475569;">
+                                    ✓ <strong style="color:#0f172a;">Assignment</strong> 
+                                    <?php if ($assignmentDueDate): ?>- Due: <span style="color:#ea580c;font-weight:600;"><?= $assignmentDueDate ?></span><?php else: ?>- Included<?php endif; ?>
+                                </div>
                                 <?php endif; ?>
-                            </table>
+                            </div>
                         </div>
                         <?php endif; ?>
 
                         <!-- Assignment Instructions -->
                         <?php if ($hasAssignment): ?>
-                        <div style="margin:24px 0;padding:20px;background:#fffbeb;border-left:4px solid #ea580c;border-radius:0 6px 6px 0;">
-                            <h4 style="margin:0 0 12px 0;font-size:15px;color:#92400e;font-weight:600;">📝 Assignment Instructions</h4>
+                        <div style="margin:0 0 24px 0;padding:18px;background:#fffbeb;border-left:3px solid #f59e0b;border-radius:4px;">
+                            <h4 style="margin:0 0 10px 0;font-size:14px;color:#0f172a;font-weight:600;">Assignment Instructions</h4>
                             <p style="margin:0;font-size:13px;line-height:1.6;color:#78350f;white-space:pre-wrap;">
                                 <?= htmlspecialchars_decode($data['assignment_instructions']) ?>
                             </p>
                             <?php if ($assignmentDueDate): ?>
-                            <p style="margin:12px 0 0 0;font-size:13px;color:#b45309;font-weight:600;">
-                                ⏰ Due Date: <?= $assignmentDueDate ?>
+                            <p style="margin:12px 0 0 0;font-size:13px;color:#f59e0b;font-weight:600;">
+                                Due Date: <?= $assignmentDueDate ?>
                             </p>
                             <?php endif; ?>
                         </div>
                         <?php endif; ?>
 
                         <!-- CTA Button -->
-                        <div style="margin:32px 0;text-align:center;">
-                            <a href="<?= getenv('APP_URL') ?: 'https://linkskool.net' ?>/learn/lessons" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;transition:opacity 0.2s;">
-                                Start Learning Now →
+                        <div style="margin:28px 0;text-align:center;">
+                            <a href="<?= getenv('APP_URL') ?: 'https://linkskool.net' ?>/learn/lessons" style="display:inline-block;padding:14px 36px;background:#3b82f6;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;">
+                                Start Learning Now
                             </a>
                         </div>
 
                         <!-- Tips Section -->
-                        <div style="margin:32px 0;padding:20px;background:#f3f4f6;border-radius:8px;">
-                            <h4 style="margin:0 0 12px 0;font-size:14px;color:#374151;font-weight:600;">💡 Tips to Get the Most Out of This Lesson</h4>
-                            <ul style="margin:0;padding-left:20px;font-size:13px;color:#6b7280;line-height:1.8;">
-                                <li style="margin:6px 0;">Set aside dedicated time to focus on the lesson without distractions</li>
-                                <li style="margin:6px 0;">Take notes as you go through the content</li>
-                                <li style="margin:6px 0;">Complete all assignments by the due date for comprehensive learning</li>
-                                <li style="margin:6px 0;">Reach out to your instructor if you have any questions</li>
+                        <div style="margin:28px 0 0 0;padding:18px;background:#f8fafc;border-radius:6px;">
+                            <h4 style="margin:0 0 10px 0;font-size:14px;color:#0f172a;font-weight:600;">Tips for Success</h4>
+                            <ul style="margin:0;padding-left:20px;font-size:13px;color:#64748b;line-height:1.8;">
+                                <li style="margin:4px 0;">Set aside dedicated time to focus on the lesson</li>
+                                <li style="margin:4px 0;">Take notes as you go through the content</li>
+                                <li style="margin:4px 0;">Complete assignments by the due date</li>
+                                <li style="margin:4px 0;">Reach out to your instructor if you have questions</li>
                             </ul>
                         </div>
-
-                        <!-- Support Message -->
-                        <p style="margin:28px 0 0 0;font-size:13px;color:#64748b;text-align:center;line-height:1.6;">
-                            <strong style="font-weight:600;color:#475569;">Questions or Need Help?</strong><br>
-                            Our support team is ready to assist you with anything you need.
-                        </p>
                     </td>
                 </tr>
 

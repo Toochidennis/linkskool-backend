@@ -55,45 +55,45 @@ if ($score < 50) {
 
 <!-- Header -->
 <tr>
-<td align="center" style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);padding:32px 24px;">
-    <img src="<?= $logoUrl ?>" alt="Linkskool" width="160" style="display:block;margin:0;height:auto;">
+<td align="center" style="background:#f8f9fa;padding:20px 24px;border-bottom:1px solid #e5e5e5;">
+    <img src="<?= $logoUrl ?>" alt="Linkskool" width="100" style="display:block;margin:0;height:auto;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
 </td>
 </tr>
 
 <!-- Main Content -->
 <tr>
-<td style="padding:40px 36px;">
+<td style="padding:32px 28px;">
 
 <!-- Title -->
-<h1 style="margin:0 0 12px 0;color:#0f172a;font-size:32px;font-weight:700;line-height:1.25;">🎓 Your Assignment Has Been Graded</h1>
+<h1 style="margin:0 0 10px 0;color:#0f172a;font-size:28px;font-weight:600;line-height:1.25;">Assignment Graded</h1>
 
-<p style="margin:0 0 24px 0;font-size:16px;color:#64748b;">Hello <strong style="color:#1e293b;"><?= $studentName ?></strong>,</p>
+<p style="margin:0 0 24px 0;font-size:15px;color:#64748b;">Hello <strong style="color:#0f172a;"><?= $studentName ?></strong>,</p>
 
 <!-- Assignment Info Card -->
-<div style="margin:24px 0;padding:20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+<div style="margin:0 0 24px 0;padding:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
     <p style="margin:0;font-size:14px;color:#475569;">
-        <strong style="color:#1e293b;">Assignment:</strong> <?= $lessonTitle ?>
+        <strong style="color:#0f172a;">Assignment:</strong> <?= $lessonTitle ?>
     </p>
 </div>
 
-<!-- Score Display with Performance Indicator -->
-<div style="margin:32px 0;padding:32px 28px;background:linear-gradient(135deg, <?= $performanceBg ?> 0%, rgba(255,255,255,0.5) 100%);border:2px solid <?= $performanceBorder ?>;border-radius:12px;text-align:center;">
-    <p style="margin:0 0 8px 0;font-size:12px;font-weight:700;color:<?= $performanceColor ?>;text-transform:uppercase;letter-spacing:0.08em;">Performance Level</p>
-    <h2 style="margin:0 0 12px 0;font-size:14px;color:<?= $performanceColor ?>;font-weight:600;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;"><?= $performanceLevel ?></h2>
-    <p style="margin:0;font-size:54px;font-weight:800;color:<?= $performanceColor ?>;line-height:1;letter-spacing:-0.02em;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-        <?= $score ?><span style="font-size:32px;font-weight:700;">%</span>
+<!-- Score Display -->
+<div style="margin:0 0 24px 0;padding:28px 24px;background:<?= $performanceBg ?>;border:1px solid <?= $performanceBorder ?>;border-radius:8px;text-align:center;">
+    <p style="margin:0 0 6px 0;font-size:12px;font-weight:600;color:<?= $performanceColor ?>;text-transform:uppercase;letter-spacing:0.05em;">Performance Level</p>
+    <h2 style="margin:0 0 12px 0;font-size:14px;color:<?= $performanceColor ?>;font-weight:600;"><?= $performanceLevel ?></h2>
+    <p style="margin:0 0 12px 0;font-size:48px;font-weight:700;color:<?= $performanceColor ?>;line-height:1;">
+        <?= $score ?><span style="font-size:28px;">%</span>
     </p>
     
     <!-- Progress Bar -->
-    <div style="margin:20px 0 0 0;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
+    <div style="margin:0;height:6px;background:rgba(0,0,0,0.1);border-radius:3px;overflow:hidden;">
         <div style="width:<?= $score ?>%;height:100%;background:<?= $performanceColor ?>;border-radius:3px;"></div>
     </div>
 </div>
 
 <!-- Remark Section -->
 <?php if ($remark): ?>
-<div style="margin:28px 0;padding:20px;background:#f8fafc;border-left:4px solid #3b82f6;border-radius:0 8px 8px 0;">
-    <h3 style="margin:0 0 10px 0;font-size:15px;color:#1e293b;font-weight:600;">📋 Remark</h3>
+<div style="margin:0 0 24px 0;padding:18px;background:#f8fafc;border-left:3px solid #3b82f6;border-radius:4px;">
+    <h3 style="margin:0 0 10px 0;font-size:15px;color:#0f172a;font-weight:600;">Remark</h3>
     <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;">
         <?= nl2br($remark) ?>
     </p>

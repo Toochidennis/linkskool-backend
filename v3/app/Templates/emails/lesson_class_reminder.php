@@ -52,48 +52,36 @@ $playIcon = 'https://img.icons8.com/color/32/play-button.png';
             <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.12);">
                 <!-- Header with Logo -->
                 <tr>
-                    <td align="center" style="background:linear-gradient(135deg,#059669 0%,#047857 100%);padding:32px 24px;">
-                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="160" style="display:block;margin:0;height:auto;">
+                    <td align="center" style="background:#f8f9fa;padding:20px 24px;border-bottom:1px solid #e5e5e5;">
+                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="100" style="display:block;margin:0;height:auto;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
                     </td>
                 </tr>
 
                 <!-- Main Content -->
                 <tr>
-                    <td style="padding:40px 36px;">
+                    <td style="padding:32px 28px;">
                         <!-- Greeting -->
-                        <h1 style="margin:0 0 8px 0;font-size:32px;color:#0f172a;font-weight:700;">🎬 Live Class Starting Soon!</h1>
-                        <p style="margin:0 0 24px 0;font-size:16px;color:#64748b;">Hello <strong><?= $recipientName ?></strong>,</p>
+                        <h1 style="margin:0 0 6px 0;font-size:28px;color:#0f172a;font-weight:600;">🎬 Live Class Starting Soon!</h1>
+                        <p style="margin:0 0 28px 0;font-size:15px;color:#64748b;">Hello <strong><?= $recipientName ?></strong>,</p>
 
                         <!-- Lesson Card -->
-                        <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;border:2px solid #d1fae5;border-radius:8px;overflow:hidden;background:#f0fdf4;">
-                            <tr>
-                                <td style="padding:24px;background:linear-gradient(135deg,#059669 0%,#047857 100%);">
-                                    <h2 style="margin:0;font-size:24px;color:#ffffff;font-weight:700;"><?= $lessonTitle ?></h2>
-                                    <p style="margin:8px 0 0 0;font-size:14px;color:#d1fae5;">Part of <strong><?= $courseName ?></strong></p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:20px 24px;">
-                                    <table width="100%" cellpadding="0" cellspacing="0">
-                                        <tr>
-                                            <td style="padding:8px 0;font-size:14px;color:#475569;">
-                                                <strong style="color:#1e293b;">Instructor:</strong> <?= $authorName ?>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding:8px 0;font-size:14px;color:#475569;">
-                                                <strong style="color:#1e293b;">Date:</strong> <?= $lessonDate ?>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
+                        <div style="margin:0 0 28px 0;padding:20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+                            <h2 style="margin:0 0 6px 0;font-size:20px;color:#0f172a;font-weight:600;"><?= $lessonTitle ?></h2>
+                            <p style="margin:0 0 16px 0;font-size:14px;color:#64748b;">Part of <strong><?= $courseName ?></strong></p>
+                            <div style="padding:12px 0 0 0;border-top:1px solid #e2e8f0;">
+                                <p style="margin:0 0 6px 0;font-size:14px;color:#475569;">
+                                    <strong style="color:#0f172a;">Instructor:</strong> <?= $authorName ?>
+                                </p>
+                                <p style="margin:0;font-size:14px;color:#475569;">
+                                    <strong style="color:#0f172a;">Date:</strong> <?= $lessonDate ?>
+                                </p>
+                            </div>
+                        </div>
 
                         <!-- Description -->
                         <?php if ($description): ?>
-                        <div style="margin:24px 0;padding:20px;background:#f8fafc;border-left:4px solid #059669;border-radius:0 8px 8px 0;">
-                            <h3 style="margin:0 0 8px 0;font-size:15px;color:#1e293b;font-weight:600;">About This Session</h3>
+                        <div style="margin:0 0 28px 0;padding:18px;background:#f8fafc;border-left:3px solid #3b82f6;border-radius:4px;">
+                            <h3 style="margin:0 0 8px 0;font-size:15px;color:#0f172a;font-weight:600;">About This Session</h3>
                             <p style="margin:0;font-size:14px;line-height:1.6;color:#475569;white-space:pre-wrap;">
                                 <?= htmlspecialchars_decode($description) ?>
                             </p>
@@ -101,99 +89,82 @@ $playIcon = 'https://img.icons8.com/color/32/play-button.png';
                         <?php endif; ?>
 
                         <!-- Join Options -->
-                        <div style="margin:32px 0;">
-                            <h3 style="margin:0 0 16px 0;font-size:16px;color:#1e293b;font-weight:600;">📡 How to Join</h3>
+                        <div style="margin:0 0 28px 0;">
+                            <h3 style="margin:0 0 16px 0;font-size:16px;color:#0f172a;font-weight:600;">Join Your Class</h3>
                             
                             <!-- Zoom Option -->
                             <?php if ($hasZoom): ?>
-                            <div style="margin:16px 0;padding:20px;background:#eff6ff;border:2px solid #dbeafe;border-radius:8px;">
-                                <table width="100%" cellpadding="0" cellspacing="0">
-                                    <tr>
-                                        <td style="vertical-align:top;padding-right:12px;">
-                                            <img src="<?= $zoomIconUrl ?>" alt="Zoom" width="28" height="28" style="display:block;">
-                                        </td>
-                                        <td style="vertical-align:top;">
-                                            <h4 style="margin:0 0 8px 0;font-size:15px;color:#1e293b;font-weight:600;">Join on Zoom</h4>
-                                            <p style="margin:0 0 4px 0;font-size:13px;color:#475569;">
-                                                <strong>Time:</strong> 
-                                                <?php if ($zoomStartTime): ?>
-                                                    <?= $zoomStartTime ?>
-                                                    <?php if ($zoomEndTime): ?> - <?= $zoomEndTime ?><?php endif; ?>
-                                                <?php else: ?>
-                                                    Check class schedule
-                                                <?php endif; ?>
-                                            </p>
-                                        </td>
-                                        <td style="vertical-align:middle;text-align:right;">
-                                            <a href="<?= $zoomUrl ?>" style="display:inline-block;padding:8px 16px;background:#2563eb;color:white;text-decoration:none;border-radius:6px;font-weight:600;font-size:13px;">
-                                                Join →
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </table>
+                            <div style="margin:0 0 16px 0;padding:18px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
+                                <div style="margin:0 0 12px 0;">
+                                    <img src="<?= $zoomIconUrl ?>" alt="Zoom" width="24" height="24" style="display:inline-block;vertical-align:middle;margin-right:8px;">
+                                    <h4 style="display:inline-block;vertical-align:middle;margin:0;font-size:15px;color:#0f172a;font-weight:600;">Join on Zoom</h4>
+                                </div>
+                                <p style="margin:0 0 14px 0;font-size:13px;color:#475569;">
+                                    <strong>Time:</strong> 
+                                    <?php if ($zoomStartTime): ?>
+                                        <?= $zoomStartTime ?>
+                                        <?php if ($zoomEndTime): ?> - <?= $zoomEndTime ?><?php endif; ?>
+                                    <?php else: ?>
+                                        Check class schedule
+                                    <?php endif; ?>
+                                </p>
+                                <a href="<?= $zoomUrl ?>" style="display:inline-block;width:100%;padding:12px 0;background:#3b82f6;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px;text-align:center;box-sizing:border-box;">
+                                    Join Zoom Session
+                                </a>
                             </div>
                             <?php endif; ?>
 
                             <!-- YouTube Option -->
                             <?php if ($hasYouTube): ?>
-                            <div style="margin:16px 0;padding:20px;background:#fef2f2;border:2px solid #fee2e2;border-radius:8px;">
-                                <table width="100%" cellpadding="0" cellspacing="0">
-                                    <tr>
-                                        <td style="vertical-align:top;padding-right:12px;">
-                                            <img src="<?= $yIcon ?>" alt="YouTube" width="28" height="28" style="display:block;">
-                                        </td>
-                                        <td style="vertical-align:top;">
-                                            <h4 style="margin:0 0 8px 0;font-size:15px;color:#1e293b;font-weight:600;">Join via YouTube Live</h4>
-                                            <p style="margin:0 0 4px 0;font-size:13px;color:#475569;">
-                                                <strong>Time:</strong> 
-                                                <?php if ($zoomStartTime): ?>
-                                                    <?= $zoomStartTime ?>
-                                                    <?php if ($zoomEndTime): ?> - <?= $zoomEndTime ?><?php endif; ?>
-                                                <?php else: ?>
-                                                    Check class schedule
-                                                <?php endif; ?>
-                                            </p>
-                                        </td>
-                                        <td style="vertical-align:middle;text-align:right;">
-                                            <a href="<?= $youtubeUrl ?>" style="display:inline-block;padding:8px 16px;background:#dc2626;color:white;text-decoration:none;border-radius:6px;font-weight:600;font-size:13px;">
-                                                Join →
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </table>
+                            <div style="margin:0 0 16px 0;padding:18px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
+                                <div style="margin:0 0 12px 0;">
+                                    <img src="<?= $yIcon ?>" alt="YouTube" width="24" height="24" style="display:inline-block;vertical-align:middle;margin-right:8px;">
+                                    <h4 style="display:inline-block;vertical-align:middle;margin:0;font-size:15px;color:#0f172a;font-weight:600;">Join via YouTube Live</h4>
+                                </div>
+                                <p style="margin:0 0 14px 0;font-size:13px;color:#475569;">
+                                    <strong>Time:</strong> 
+                                    <?php if ($zoomStartTime): ?>
+                                        <?= $zoomStartTime ?>
+                                        <?php if ($zoomEndTime): ?> - <?= $zoomEndTime ?><?php endif; ?>
+                                    <?php else: ?>
+                                        Check class schedule
+                                    <?php endif; ?>
+                                </p>
+                                <a href="<?= $youtubeUrl ?>" style="display:inline-block;width:100%;padding:12px 0;background:#3b82f6;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px;text-align:center;box-sizing:border-box;">
+                                    Join YouTube Live
+                                </a>
                             </div>
                             <?php endif; ?>
                         </div>
 
                         <!-- Recorded Session -->
                         <?php if ($hasRecordedVideo): ?>
-                        <div style="margin:24px 0;padding:20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
-                            <h4 style="margin:0 0 12px 0;font-size:14px;color:#1e293b;font-weight:600;">📹 Watch Recording</h4>
-                            <p style="margin:0 0 12px 0;font-size:13px;color:#475569;">
-                                If you missed the live session, you can watch the recorded version.
+                        <div style="margin:0 0 28px 0;padding:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
+                            <h4 style="margin:0 0 8px 0;font-size:14px;color:#0f172a;font-weight:600;">📹 Missed the Live Session?</h4>
+                            <p style="margin:0 0 14px 0;font-size:13px;color:#475569;">
+                                You can watch the recorded version anytime.
                             </p>
-                            <a href="<?= $recordedVideoUrl ?>" style="display:inline-block;padding:10px 20px;background:#6366f1;color:white;text-decoration:none;border-radius:6px;font-weight:600;font-size:13px;">
-                                <img src="<?= $playIcon ?>" alt="Play" width="16" height="16" style="display:inline;margin-right:6px;vertical-align:middle;">
+                            <a href="<?= $recordedVideoUrl ?>" style="display:inline-block;padding:10px 20px;background:#64748b;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;font-size:13px;">
                                 Watch Recording
                             </a>
                         </div>
                         <?php endif; ?>
 
                         <!-- Preparation Tips -->
-                        <div style="margin:28px 0;padding:20px;background:#f3f4f6;border-radius:8px;">
-                            <h4 style="margin:0 0 12px 0;font-size:14px;color:#374151;font-weight:600;">✨ Before You Join</h4>
-                            <ul style="margin:0;padding-left:20px;font-size:13px;color:#6b7280;line-height:1.8;">
-                                <li style="margin:6px 0;">Make sure your internet connection is stable</li>
-                                <li style="margin:6px 0;">Test your camera and microphone (if required)</li>
-                                <li style="margin:6px 0;">Join a few minutes early to resolve any technical issues</li>
-                                <li style="margin:6px 0;">Have your materials ready if needed</li>
+                        <div style="margin:0 0 24px 0;padding:18px;background:#f8fafc;border-radius:6px;">
+                            <h4 style="margin:0 0 12px 0;font-size:14px;color:#0f172a;font-weight:600;">Before You Join</h4>
+                            <ul style="margin:0;padding-left:20px;font-size:13px;color:#64748b;line-height:1.8;">
+                                <li style="margin:4px 0;">Ensure your internet connection is stable</li>
+                                <li style="margin:4px 0;">Test your camera and microphone if required</li>
+                                <li style="margin:4px 0;">Join a few minutes early</li>
+                                <li style="margin:4px 0;">Have your materials ready</li>
                             </ul>
                         </div>
 
                         <!-- Support Message -->
-                        <p style="margin:28px 0 0 0;font-size:13px;color:#64748b;text-align:center;line-height:1.6;">
-                            <strong style="font-weight:600;color:#475569;">Technical Issues?</strong><br>
-                            Our support team is ready to help. Contact us immediately if you have any problems joining.
+                        <p style="margin:0;font-size:13px;color:#64748b;text-align:center;line-height:1.5;">
+                            <strong style="color:#475569;">Need help?</strong><br>
+                            Contact our support team if you experience any issues.
                         </p>
                     </td>
                 </tr>
