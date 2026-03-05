@@ -22,8 +22,8 @@ $instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
             <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
                 <!-- Header -->
                 <tr>
-                    <td align="center" style="background:#f8f9fa;padding:20px 24px;border-bottom:1px solid #e5e5e5;">
-                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="100" style="display:block;height:auto;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                    <td align="center" style="background:#f8f9fa;padding:16px 24px;border-bottom:1px solid #e5e5e5;">
+                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="50" style="display:block;height:auto;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,0.08);">
                     </td>
                 </tr>
 

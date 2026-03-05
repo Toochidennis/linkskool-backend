@@ -27,7 +27,7 @@ class ProgramCourseCohortLessonService
         try {
             $this->pdo->beginTransaction();
 
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title'])));
+            $slug = $this->generateUuidV4();
 
             $payload = [
                 'slug' => $slug,
@@ -94,10 +94,7 @@ class ProgramCourseCohortLessonService
                 ->first();
             $previousStatus = $existingLesson['status'] ?? null;
 
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title'])));
-
             $payload = [
-                'slug' => $slug,
                 'cohort_id' => $data['cohort_id'],
                 'course_id' => $data['course_id'],
                 'program_id' => $data['program_id'],
@@ -233,6 +230,15 @@ class ProgramCourseCohortLessonService
     private function toSlug(string $text): string
     {
         return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
+    }
+
+    private function generateUuidV4(): string
+    {
+        $bytes = random_bytes(16);
+        $bytes[6] = chr(ord($bytes[6]) & 0x0f | 0x40);
+        $bytes[8] = chr(ord($bytes[8]) & 0x3f | 0x80);
+
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
     }
 
     private function isYouTubeUrl(string $url): bool

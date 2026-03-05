@@ -38,7 +38,8 @@ trait ValidationTrait
                 'max' => 'The :attribute may not be greater than :max.',
                 'unique' => 'The :attribute has already been taken.',
                 'required_without' => 'The :attribute field is required when :values is not present.',
-                'required_with' => 'The :attribute field is required when :values is present.'
+                'required_with' => 'The :attribute field is required when :values is present.',
+                'prohibited_unless' => 'The :attribute field is prohibited unless :other is in :values.',
             ]);
             $translator = new Translator($loader, 'en');
             $this->validationFactory = new Factory($translator);

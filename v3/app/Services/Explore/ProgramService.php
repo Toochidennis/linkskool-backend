@@ -21,12 +21,11 @@ class ProgramService
         if (!isset($_FILES['image'])) {
             throw new \Exception("Invalid image upload.");
         }
-        $slug = $this->toSlug($data['name']);
+        $slug = $this->generateUuidV4();
         $data['image_url'] = StorageService::saveFile(
             $_FILES['image'],
             "explore/programs/{$slug}"
         );
-
 
         $payload = [
             'name' => $data['name'],
@@ -232,5 +231,14 @@ class ProgramService
     private function toSlug(string $text): string
     {
         return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
+    }
+
+    private function generateUuidV4(): string
+    {
+        $bytes = random_bytes(16);
+        $bytes[6] = chr(ord($bytes[6]) & 0x0f | 0x40);
+        $bytes[8] = chr(ord($bytes[8]) & 0x3f | 0x80);
+
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
     }
 }

@@ -37,10 +37,13 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'capacity' => 'nullable|integer',
                 'delivery_mode' => 'nullable|string|in:virtual,onsite,hybrid',
                 'zoom_link' => 'nullable|string',
+                'video_url' => 'nullable|string',
                 'is_free' => 'required|boolean',
-                'trial_type' => 'required_if:is_free,false|in:views,days',
-                'trial_value' => 'required_if:is_free,false|integer',
+                'trial_type' => 'nullable|in:views,days',
+                'trial_value' => 'required_if:trial_type,views,days|integer',
                 'cost' => 'required_if:is_free,false|numeric',
+                'discount' => 'nullable|integer|min:0|max:100',
+                'learning_type' => 'nullable|string|in:self_paced,instructor_led',
 
                 'next_cohort' => 'nullable|array',
                 'next_cohort.id' => 'required_with:next_cohort|integer',
@@ -49,11 +52,11 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'next_cohort.start_date' => 'required_with:next_cohort|date',
                 'next_cohort.end_date' => 'required_with:next_cohort|date|after_or_equal:next_cohort.start_date',
 
-                'image' => 'required|array',
-                'image.name' => 'required|string',
-                'image.tmp_name' => 'required|string',
-                'image.error' => 'required|integer',
-                'image.size' => 'required|integer|max:2097152' // 2 MB
+                'image' => 'nullable|array',
+                'image.name' => 'required_with:image|string',
+                'image.tmp_name' => 'required_with:image|string',
+                'image.error' => 'required_with:image|integer',
+                'image.size' => 'required_with:image|integer|max:2097152' // 2 MB
             ]
         );
 
@@ -94,9 +97,12 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'delivery_mode' => 'nullable|string|in:virtual,onsite,hybrid',
                 'zoom_link' => 'nullable|string',
                 'is_free' => 'required|boolean',
-                'trial_type' => 'required_if:is_free,false|in:views,days',
-                'trial_value' => 'required_if:is_free,false|integer',
+                'trial_type' => 'nullable|in:views,days',
+                'trial_value' => 'prohibited_unless:trial_type,views,days|integer',
                 'cost' => 'required_if:is_free,false|numeric',
+                'discount' => 'nullable|integer|min:0|max:100',
+                'video_url' => 'nullable|string',
+                'learning_type' => 'required|string|in:self_paced,instructor_led',
 
                 'next_cohort' => 'nullable|array',
                 'next_cohort.id' => 'required_with:next_cohort|integer',
@@ -105,11 +111,11 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'next_cohort.start_date' => 'required_with:next_cohort|date',
                 'next_cohort.end_date' => 'required_with:next_cohort|date|after_or_equal:next_cohort.start_date',
 
-                'image' => 'array',
-                'image.name' => 'string',
-                'image.tmp_name' => 'string',
-                'image.error' => 'integer',
-                'image.size' => 'integer|max:2097152' // 2 MB
+                'image' => 'nullable|array',
+                'image.name' => 'required_with:image|string',
+                'image.tmp_name' => 'required_with:image|string',
+                'image.error' => 'required_with:image|integer',
+                'image.size' => 'required_with:image|integer|max:2097152' // 2 MB
             ]
         );
 
@@ -201,10 +207,11 @@ class ProgramCourseCohortController extends ExploreBaseController
             ]
         );
 
+        $cohortId = isset($validatedData['cohort_id']) ? (int)$validatedData['cohort_id'] : null;
         $cohorts = $this->cohortService
             ->getProgramCohorts(
                 (int)$validatedData['program_id'],
-                (int)$validatedData['cohort_id'] ?? null,
+                $cohortId
             );
 
         $this->respond(

@@ -48,6 +48,10 @@ class LearningPathService
             c.trial_type    AS trial_type,
             c.trial_value   AS trial_value,
             c.cost          AS cost,
+            c.discount      AS discount,
+            c.learning_type  AS learning_type,
+            c.video_url       AS video_url,
+            c.slug            AS cohort_slug,
 
             e.status        AS enrollment_status,
             e.payment_status AS payment_status,
@@ -130,6 +134,19 @@ class LearningPathService
 
                 'has_active_cohort' => $row['active_cohort_id'] !== null,
                 'cohort_id' => $row['active_cohort_id'],
+                'slug' => $row['active_cohort_id'] !== null ? $row['cohort_slug'] : null,
+
+                'discount' => $row['active_cohort_id'] !== null
+                    ? (int) $row['discount']
+                    : null,
+
+                'learning_type' => $row['active_cohort_id'] !== null
+                    ? $row['learning_type']
+                    : null,
+
+                'video_url' => $row['active_cohort_id'] !== null
+                    ? $row['video_url']
+                    : null,
 
                 'is_free' => $row['active_cohort_id'] !== null
                     ? (bool) $row['is_free']
@@ -207,7 +224,6 @@ class LearningPathService
             INNER JOIN learning_courses lc
                 ON lc.id = p.course_id
             WHERE p.id = :cohort_id
-            AND p.status = 'ongoing'
             ORDER BY p.start_date ASC
             LIMIT 1
         ";

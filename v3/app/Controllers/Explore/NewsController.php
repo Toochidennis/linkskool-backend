@@ -79,6 +79,7 @@ class NewsController extends ExploreBaseController
                 'author_id' => 'required|integer',
                 'author_name' => 'required|string|max:100',
                 'status' => 'required|string|in:draft,published,archived',
+                'notify' => 'nullable|boolean',
                 'old_images' => 'nullable|array|min:1',
                 'old_images.*file_name' => 'nullable|string|filled',
                 'old_images.*old_file_name' => 'nullable|string|filled',
@@ -110,6 +111,35 @@ class NewsController extends ExploreBaseController
             [
                 'success' => true,
                 'message' => 'News item updated successfully',
+            ]
+        );
+    }
+
+    #[Route(path: '/news/{id}/notify', method: 'PUT', middleware: ['api', 'auth'])]
+    public function notifyNews(array $vars): void
+    {
+        $data = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'id' => 'required|integer',
+                'notified_by' => 'required|integer',
+            ]
+        );
+
+        $newsId = (int)$data['id'];
+        $res = $this->newsService->notifyNews($newsId, $data['notified_by']);
+
+        if (!$res) {
+            $this->respondError(
+                "Failed to notify news.",
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'News notified successfully',
             ]
         );
     }

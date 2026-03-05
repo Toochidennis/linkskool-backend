@@ -17,18 +17,17 @@ class ProgramCourseCohortService
 
     public function addCohortToProgramCourse(array $data)
     {
-        if (!isset($_FILES['image'])) {
-            throw new \Exception("Invalid image upload.");
+        if (isset($_FILES['image'])) {
+            $cohortSlug = $this->toSlug($data['title']);
+            $courseSlug = $this->toSlug($data['course_name'] ?? (string)$data['course_id']);
+
+            $data['image_url'] = StorageService::saveFile(
+                $_FILES['image'],
+                "explore/programs/{$data['program_id']}/courses/{$courseSlug}/cohorts/{$cohortSlug}"
+            );
         }
 
-        $cohortSlug = $this->toSlug($data['title']);
-        $courseSlug = $this->toSlug($data['course_name'] ?? (string)$data['course_id']);
-        $data['image_url'] = StorageService::saveFile(
-            $_FILES['image'],
-            "explore/programs/{$data['program_id']}/courses/{$courseSlug}/cohorts/{$cohortSlug}"
-        );
-
-        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $data['title'])));
+        $slug = $this->generateUuidV4();
 
         $payload = [
             'slug' => $slug,
@@ -42,15 +41,18 @@ class ProgramCourseCohortService
             'start_date' => $data['start_date'],
             'end_date' => $data['end_date'],
             'status' => $data['status'],
-            'image_url' => $data['image_url'],
+            'image_url' => $data['image_url'] ?? null,
             'capacity' => $data['capacity'] ?? null,
             'delivery_mode' => $data['delivery_mode'] ?? 'virtual',
             'zoom_link' => $data['zoom_link'] ?? null,
+            'video_url' => $data['video_url'] ?? null,
             'is_free' => $data['is_free'],
             'trial_type' => $data['trial_type'] ?? null,
             'trial_value' => $data['trial_value'] ?? null,
             'cost' => $data['cost'] ?? null,
+            'discount' => $data['discount'] ?? null,
             'instructor_name' => $data['instructor_name'] ?? null,
+            'learning_type' => $data['learning_type'] ?? 'instructor_led',
         ];
 
         if (isset($data['next_cohort']) && !empty($data['next_cohort'])) {
@@ -83,14 +85,16 @@ class ProgramCourseCohortService
             'start_date' => $data['start_date'],
             'end_date' => $data['end_date'],
             'status' => $data['status'],
-            'image_url' => $data['image_url'] ?? null,
             'capacity' => $data['capacity'] ?? null,
             'delivery_mode' => $data['delivery_mode'] ?? 'virtual',
             'zoom_link' => $data['zoom_link'] ?? null,
+            'video_url' => $data['video_url'] ?? null,
             'is_free' => $data['is_free'],
             'trial_type' => $data['trial_type'] ?? null,
             'trial_value' => $data['trial_value'] ?? null,
             'instructor_name' => $data['instructor_name'] ?? null,
+            'learning_type' => $data['learning_type'] ?? 'instructor_led',
+            'discount' => $data['discount'] ?? null,
             'cost' => $data['cost'] ?? null,
             'updated_at' => date('Y-m-d H:i:s'),
         ];
@@ -99,13 +103,14 @@ class ProgramCourseCohortService
             $payload['next_cohort'] = json_encode($data['next_cohort']);
         }
 
+        if ($data['image_url'] ?? null) {
+            $payload['image_url'] = $data['image_url'];
+        }
+
         $id = $this->cohort
             ->where('id', $data['id'])
             ->update(
-                array_filter(
-                    $payload,
-                    fn($value) => $value !== null
-                )
+                $payload
             );
 
         if (isset($data['old_image_url'])) {
@@ -179,5 +184,14 @@ class ProgramCourseCohortService
     private function toSlug(string $text): string
     {
         return strtolower(trim((string)preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
+    }
+
+    private function generateUuidV4(): string
+    {
+        $bytes = random_bytes(16);
+        $bytes[6] = chr(ord($bytes[6]) & 0x0f | 0x40);
+        $bytes[8] = chr(ord($bytes[8]) & 0x3f | 0x80);
+
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
     }
 }
