@@ -76,8 +76,8 @@ class NewsService
             ]);
         }
 
-        if ($newsId && ($payload['status'] ?? 'draft') === 'published') {
-            EventDispatcher::dispatch(new NewsPosted((int) $newsId));
+        if (($data['notify'] ?? false)) {
+            $this->notifyNews($newsId, $payload['author_id']);
         }
 
         return $newsId ?: false;
@@ -93,11 +93,28 @@ class NewsService
             ->where('id', $newsId)
             ->update(['status' => $status]);
 
-        if ($updated && ($existingNews['status'] ?? null) !== 'published' && $status === 'published') {
-            EventDispatcher::dispatch(new NewsPosted($newsId));
+        return $updated;
+    }
+
+    public function notifyNews(int $newsId, int $notifiedBy): bool
+    {
+        $existingNews = $this->newsModel
+            ->where('id', $newsId)
+            ->first();
+
+        if (!$existingNews || $existingNews['status'] !== 'published') {
+            return false;
         }
 
-        return $updated;
+        EventDispatcher::dispatch(new NewsPosted($newsId));
+        $this->newsModel
+            ->where('id', $newsId)
+            ->update([
+                'notified_at' => date('Y-m-d H:i:s'),
+                'notified_by' => $notifiedBy,
+            ]);
+
+        return true;
     }
 
     public function updateNews(array $data): bool
@@ -155,10 +172,6 @@ class NewsService
             $this->fileHandler->deleteOldFile($file);
         }
 
-        if ($previousStatus !== 'published' && ($data['status'] ?? 'draft') === 'published') {
-            EventDispatcher::dispatch(new NewsPosted((int) $data['id']));
-        }
-
         return true;
     }
 
@@ -171,7 +184,9 @@ class NewsService
 
     public function getNewsAdmin(): array
     {
-        $result =  $this->newsModel->get();
+        $result =  $this->newsModel
+            ->orderBy(['date_posted' => 'DESC', 'created_at' => 'DESC'])
+            ->get();
 
         foreach ($result as &$news) {
             $categories = json_decode($news['category_ids'], true);
@@ -206,7 +221,7 @@ class NewsService
     {
         $news = $this->newsModel
             ->where('status', 'published')
-            ->orderBy('date_posted', 'DESC')
+            ->orderBy(['date_posted' => 'DESC', 'created_at' => 'DESC'])
             ->paginate($filters['page'] ?? 1, $filters['limit'] ?? 25);
 
         $formattedNews = array_map(function ($item) {
