@@ -22,14 +22,22 @@ class DownloadExamsController extends ExploreBaseController
         $validated = $this->validate(
             $vars,
             [
+<<<<<<< HEAD
                 'exam_type' => 'required|integer|min:1',
                 'course_id' => 'sometimes|integer|min:0'
+=======
+                'exam_type' => 'required|integer|min:1'
+>>>>>>> refs/remotes/origin/main
             ]
         );
 
         $examType = (int)$validated['exam_type'];
+<<<<<<< HEAD
         $courseId = isset($validated['course_id']) ? (int)$validated['course_id'] : 0;
         $zipPath = $this->downloadExamsService->buildZip($examType, $courseId);
+=======
+        $zipPath = $this->downloadExamsService->buildZip($examType);
+>>>>>>> refs/remotes/origin/main
 
         header('Content-Description: File Transfer');
         header('Content-Type: application/zip');

@@ -1,7 +1,11 @@
 {
     "require": {
         "nikic/fast-route": "^1.3",
+<<<<<<< HEAD
         "firebase/php-jwt": "^7.0.0",
+=======
+        "firebase/php-jwt": "^6.10",
+>>>>>>> refs/remotes/origin/main
         "illuminate/translation": "^12.19",
         "illuminate/validation": "^12.19",
         "illuminate/support": "^12.19",
@@ -14,17 +18,22 @@
         "league/csv": "^9.27",
         "phpoffice/phpspreadsheet": "^5.2",
         "box/spout": "^3.3",
+<<<<<<< HEAD
         "ezyang/htmlpurifier": "^4.19",
         "mailgun/mailgun-php": "^4.3",
         "symfony/http-client": "^7.0",
         "nyholm/psr7": "^1.8",
         "smalot/pdfparser": "^2.12",
         "google/auth": "^1.50"
+=======
+        "ezyang/htmlpurifier": "^4.19"
+>>>>>>> refs/remotes/origin/main
     },
     "autoload": {
         "psr-4": {
             "V3\\App\\": "app/"
         }
+<<<<<<< HEAD
     },
     "config": {
         "allow-plugins": {
@@ -33,5 +42,7 @@
         "platform": {
             "php": "8.2"
         }
+=======
+>>>>>>> refs/remotes/origin/main
     }
 }
