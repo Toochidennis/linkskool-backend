@@ -96,7 +96,10 @@ class ProgramQueryService
             c.discount,
             c.cost,
             c.trial_type,
-            c.trial_value
+            c.trial_value,
+            c.is_free,
+            c.enrollment_deadline,
+            c.learning_type
         FROM programs p
         INNER JOIN program_courses pc
             ON pc.program_id = p.id
@@ -141,6 +144,9 @@ class ProgramQueryService
                     'cost' => $row['cost'] !== null ? (float) $row['cost'] : null,
                     'trial_type' => $row['trial_type'],
                     'trial_value' => $row['trial_value'] !== null ? (int) $row['trial_value'] : null,
+                    'is_free' => (bool) $row['is_free'],
+                    'enrollment_deadline' => $row['enrollment_deadline'] ?? null,
+                    'learning_type' => $row['learning_type'],
                 ];
             }
         }
@@ -156,7 +162,6 @@ class ProgramQueryService
                 'image_url' => $program['image_url'],
                 'shortname' => $program['shortname'],
                 'sponsor' => $program['sponsor'],
-                'status' => $program['status'],
                 'course_count' => (int) $program['course_count'],
             ],
             'courses' => array_values($courses),
@@ -170,6 +175,9 @@ class ProgramQueryService
             p.id AS program_id,
             p.slug AS program_slug,
             p.name AS program_name,
+            p.description AS program_description,
+            p.image_url AS program_image_url,
+            p.sponsor AS program_sponsor,
             lc.id AS course_id,
             lc.slug AS course_slug,
             lc.title AS course_name,
@@ -189,7 +197,10 @@ class ProgramQueryService
             c.trial_value,
             c.delivery_mode,
             c.video_url,
-            c.is_free
+            c.image_url AS cohort_image_url,
+            c.is_free,
+            c.enrollment_deadline,
+            c.learning_type
         FROM program_course_cohorts c
         INNER JOIN programs p
             ON p.id = c.program_id
@@ -221,16 +232,19 @@ class ProgramQueryService
                 'id' => (int) $row['program_id'],
                 'slug' => $row['program_slug'],
                 'name' => $row['program_name'],
+                'description' => $row['program_description'],
+                'image_url' => $row['program_image_url'],
+                'sponsor' => $row['program_sponsor'],
             ],
             'course' => [
-                'id' => (int) $row['course_id'],
+                'courseId' => (int) $row['course_id'],
                 'slug' => $row['course_slug'],
-                'name' => $row['course_name'],
+                'courseName' => $row['course_name'],
                 'description' => $row['course_description'],
                 'image_url' => $row['course_image_url'],
             ],
             'cohort' => [
-                'id' => (int) $row['cohort_id'],
+                'cohortId' => (int) $row['cohort_id'],
                 'slug' => $row['cohort_slug'],
                 'title' => $row['cohort_title'],
                 'description' => $row['cohort_description'],
@@ -245,6 +259,9 @@ class ProgramQueryService
                 'delivery_mode' => $row['delivery_mode'],
                 'video_url' => $row['video_url'],
                 'is_free' => (bool) $row['is_free'],
+                'image_url' => $row['cohort_image_url'],
+                'enrollment_deadline' => $row['enrollment_deadline'],
+                'learning_type' => $row['learning_type'],
             ],
         ];
     }

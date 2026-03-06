@@ -19,53 +19,12 @@ class NotificationService
 
     public function send(string $to, string $title, string $body, array $data = []): void
     {
-        $payload = [
-            'recipient_token' => $to,
-            'title' => $title,
-            'body' => $body,
-            'created_at' => date('Y-m-d H:i:s'),
-        ];
-
         $eventKey = $data['event_key'] ?? null;
-        if ($eventKey !== null && $this->supportsEventKey()) {
-            $payload['event_key'] = $eventKey;
-        }
+        $payload = $this->buildLogPayload($to, $title, $body, $eventKey);
 
         try {
-            $scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
-
-            $credentials = new ServiceAccountCredentials(
-                $scopes,
-                json_decode(
-                    file_get_contents(__DIR__ . '/../../../config/firebase-service-account.json'),
-                    true
-                )
-            );
-
-            $accessTokenData = $credentials->fetchAuthToken();
-            $accessToken = $accessTokenData['access_token'] ?? null;
-
-            if (!$accessToken) {
-                throw new \RuntimeException('Failed to retrieve Firebase access token.');
-            }
-
-            $message = [
-                'message' => [
-                    'token' => $to,
-                    'notification' => [
-                        'title' => $title,
-                        'body' => $body,
-                    ],
-                    'data' => [
-                        'lesson_id' => $data['lesson_id'] ?? '',
-                        'type' => $data['type'],
-                        'cohort_id' => $data['cohort_id'] ?? '',
-                        'profile_id' => $data['profile_id'] ?? '',
-                        'course_id' => $data['course_id'] ?? '',
-                        'program_id' => $data['program_id'] ?? '',
-                    ]
-                ],
-            ];
+            $accessToken = $this->fetchAccessToken();
+            $message = $this->buildMessagePayload($to, $title, $body, $data);
 
             $curl = curl_init($this->projectUrl);
 
@@ -99,6 +58,143 @@ class NotificationService
                 'error_message' => $e->getMessage(),
             ]);
         }
+    }
+
+    public function sendBatch(array $tokens, string $title, string $body, array $data = []): void
+    {
+        $tokens = array_values(array_filter(array_unique($tokens)));
+        if (empty($tokens)) {
+            return;
+        }
+
+        $eventKey = $data['event_key'] ?? null;
+
+        try {
+            $accessToken = $this->fetchAccessToken();
+            $multiHandle = curl_multi_init();
+            $handles = [];
+
+            foreach ($tokens as $token) {
+                $curl = curl_init($this->projectUrl);
+                $message = $this->buildMessagePayload($token, $title, $body, $data);
+
+                curl_setopt_array($curl, [
+                    CURLOPT_HTTPHEADER => [
+                        "Authorization: Bearer {$accessToken}",
+                        'Content-Type: application/json',
+                    ],
+                    CURLOPT_POST => true,
+                    CURLOPT_POSTFIELDS => json_encode($message),
+                    CURLOPT_RETURNTRANSFER => true,
+                ]);
+
+                curl_multi_add_handle($multiHandle, $curl);
+                $handles[(int) $curl] = ['curl' => $curl, 'token' => $token];
+            }
+
+            do {
+                $status = curl_multi_exec($multiHandle, $active);
+                if ($active) {
+                    curl_multi_select($multiHandle, 1.0);
+                }
+            } while ($active && $status === CURLM_OK);
+
+            foreach ($handles as $entry) {
+                $curl = $entry['curl'];
+                $token = $entry['token'];
+                $payload = $this->buildLogPayload($token, $title, $body, $eventKey);
+
+                $response = curl_multi_getcontent($curl);
+                $curlError = curl_error($curl);
+                $httpCode = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+                if ($curlError !== '') {
+                    $this->notification->insert([
+                        ...$payload,
+                        'error_message' => 'Curl error: ' . $curlError,
+                    ]);
+                } elseif ($httpCode !== 200) {
+                    $this->notification->insert([
+                        ...$payload,
+                        'error_message' => "FCM failed with HTTP {$httpCode}. Response: {$response}",
+                    ]);
+                } else {
+                    $this->notification->insert($payload);
+                }
+
+                curl_multi_remove_handle($multiHandle, $curl);
+                curl_close($curl);
+            }
+
+            curl_multi_close($multiHandle);
+        } catch (\Throwable $e) {
+            foreach ($tokens as $token) {
+                $payload = $this->buildLogPayload($token, $title, $body, $eventKey);
+                $this->notification->insert([
+                    ...$payload,
+                    'error_message' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    private function fetchAccessToken(): string
+    {
+        $scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
+
+        $credentials = new ServiceAccountCredentials(
+            $scopes,
+            json_decode(
+                file_get_contents(__DIR__ . '/../../../config/firebase-service-account.json'),
+                true
+            )
+        );
+
+        $accessTokenData = $credentials->fetchAuthToken();
+        $accessToken = $accessTokenData['access_token'] ?? null;
+
+        if (!$accessToken) {
+            throw new \RuntimeException('Failed to retrieve Firebase access token.');
+        }
+
+        return $accessToken;
+    }
+
+    private function buildMessagePayload(string $to, string $title, string $body, array $data): array
+    {
+        return [
+            'message' => [
+                'token' => $to,
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body,
+                ],
+                'data' => [
+                    'lesson_id' => $data['lesson_id'] ?? '',
+                    'type' => $data['type'] ?? '',
+                    'cohort_id' => $data['cohort_id'] ?? '',
+                    'profile_id' => $data['profile_id'] ?? '',
+                    'course_id' => $data['course_id'] ?? '',
+                    'program_id' => $data['program_id'] ?? '',
+                ]
+            ],
+        ];
+    }
+
+    private function buildLogPayload(string $to, string $title, string $body, ?string $eventKey = null): array
+    {
+        $payload = [
+            'recipient_token' => $to,
+            'title' => $title,
+            'body' => $body,
+            'created_at' => date('Y-m-d H:i:s'),
+        ];
+
+        if ($eventKey !== null && $this->supportsEventKey()) {
+            $payload['event_key'] = $eventKey;
+        }
+
+        return $payload;
     }
 
     private function supportsEventKey(): bool

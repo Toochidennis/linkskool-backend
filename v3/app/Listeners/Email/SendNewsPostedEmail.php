@@ -22,25 +22,7 @@ class SendNewsPostedEmail
             $subject = 'News Update: ' . htmlspecialchars((string) ($news['title'] ?? 'New post'), ENT_QUOTES, 'UTF-8');
 
             $recipients = $service->getRecipients();
-            foreach ($recipients as $recipient) {
-                if (empty($recipient['email'])) {
-                    continue;
-                }
-
-                $recipientName = trim((string) ($recipient['name'] ?? '')) ?: 'User';
-
-                $html = $service->renderNewsPostedEmail([
-                    ...$news,
-                    'recipient_name' => $recipientName,
-                ]);
-
-                $service->sendEmailOnce(
-                    (string) $recipient['email'],
-                    $recipientName,
-                    $subject,
-                    $html
-                );
-            }
+            $service->sendEmailInBatches($recipients, $news, $subject);
         } catch (\Throwable) {
             return;
         }

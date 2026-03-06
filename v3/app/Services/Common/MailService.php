@@ -56,6 +56,51 @@ class MailService
         }
     }
 
+    public function sendBatch(array $to, string $subject, string $html, ?string $eventKey = null): void
+    {
+        $recipients = array_values(array_filter(array_unique($to)));
+        if (empty($recipients)) {
+            return;
+        }
+
+        $basePayload = [
+            'subject' => $subject,
+            'created_at' => date('Y-m-d H:i:s'),
+        ];
+
+        if ($eventKey !== null && $this->supportsEventKey()) {
+            $basePayload['event_key'] = $eventKey;
+        }
+
+        try {
+            $response = $this->mailgun->messages()->send($this->domain, [
+                'from' => $this->from,
+                'to' => $recipients,
+                'subject' => $subject,
+                'html' => $html,
+            ]);
+
+            foreach ($recipients as $recipient) {
+                $this->emailLog->insert([
+                    ...$basePayload,
+                    'recipient' => $recipient,
+                    'status' => 'sent',
+                    'response_id' => $response->getId(),
+                ]);
+            }
+        } catch (\Throwable $e) {
+            foreach ($recipients as $recipient) {
+                $this->emailLog->insert([
+                    ...$basePayload,
+                    'recipient' => $recipient,
+                    'status' => 'failed',
+                    'response_id' => null,
+                    'error_message' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
     private function supportsEventKey(): bool
     {
         if ($this->supportsEventKey !== null) {

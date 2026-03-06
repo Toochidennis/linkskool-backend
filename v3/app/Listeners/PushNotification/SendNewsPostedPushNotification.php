@@ -34,14 +34,7 @@ class SendNewsPostedPushNotification
             ];
 
             $recipients = $service->getRecipients();
-            foreach ($recipients as $recipient) {
-                $service->sendPushOnce(
-                    (int) $recipient['user_id'],
-                    $title,
-                    $body,
-                    $data
-                );
-            }
+            $service->sendPushInBatches($recipients, $title, $body, $data);
         } catch (\Throwable) {
             return;
         }

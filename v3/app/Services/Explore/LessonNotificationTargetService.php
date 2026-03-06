@@ -155,6 +155,94 @@ class LessonNotificationTargetService
         }
     }
 
+    public function sendEmailInBatches(
+        array $recipients,
+        string $subject,
+        string $html,
+        ?string $eventKey = null,
+        ?int $batchSize = null
+    ): void {
+        $batchSize = $this->resolveBatchSize(
+            $batchSize,
+            'EMAIL_BATCH_SIZE',
+            100
+        );
+
+        $batchRecipients = [];
+        foreach ($recipients as $recipient) {
+            $email = (string)($recipient['email'] ?? '');
+            if ($email === '') {
+                continue;
+            }
+
+            if ($this->hasEmailBeenSent($email, $subject, $eventKey)) {
+                continue;
+            }
+
+            $name = trim(
+                (string) ($recipient['first_name'] ?? '') . ' ' .
+                    (string) ($recipient['last_name'] ?? '')
+            ) ?: 'Learner';
+
+            $batchRecipients[] = "{$name} <{$email}>";
+        }
+
+        foreach (array_chunk($batchRecipients, $batchSize) as $chunk) {
+            $this->mailService->sendBatch($chunk, $subject, $html, $eventKey);
+        }
+    }
+
+    public function sendPushInBatches(
+        array $recipients,
+        string $title,
+        string $body,
+        array $data,
+        ?int $batchSize = null
+    ): void {
+        $batchSize = $this->resolveBatchSize(
+            $batchSize,
+            'PUSH_BATCH_SIZE',
+            300
+        );
+
+        $eventKey = $data['event_key'] ?? null;
+        $tokensMap = [];
+
+        foreach ($recipients as $recipient) {
+            $userId = (int)($recipient['user_id'] ?? 0);
+            if ($userId <= 0) {
+                continue;
+            }
+
+            $tokens = $this->userDeviceToken
+                ->select(['fcm_token'])
+                ->where('user_id', $userId)
+                ->get();
+
+            foreach ($tokens as $row) {
+                $token = (string)($row['fcm_token'] ?? '');
+                if ($token === '') {
+                    continue;
+                }
+
+                $tokensMap[$token] = true;
+            }
+        }
+
+        $pendingTokens = [];
+        foreach (array_keys($tokensMap) as $token) {
+            if ($this->hasPushBeenSent($token, $title, $body, $eventKey)) {
+                continue;
+            }
+
+            $pendingTokens[] = $token;
+        }
+
+        foreach (array_chunk($pendingTokens, $batchSize) as $chunk) {
+            $this->notificationService->sendBatch($chunk, $title, $body, $data);
+        }
+    }
+
     public function renderClassReminderEmail(array $data): string
     {
         $v3root = realpath(__DIR__ . '/../../');
@@ -293,5 +381,24 @@ class LessonNotificationTargetService
     private function hasNonEmptyValue(mixed $value): bool
     {
         return $value !== null && trim((string) $value) !== '';
+    }
+
+    private function resolveBatchSize(?int $batchSize, string $envKey, int $default): int
+    {
+        if ($batchSize !== null && $batchSize > 0) {
+            return $batchSize;
+        }
+
+        $envValue = getenv($envKey);
+        if ($envValue === false) {
+            return $default;
+        }
+
+        $parsed = filter_var($envValue, FILTER_VALIDATE_INT);
+        if ($parsed === false || $parsed <= 0) {
+            return $default;
+        }
+
+        return $parsed;
     }
 }

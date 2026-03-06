@@ -36,18 +36,16 @@ class SendAssignmentDueReminderPushNotification
             ];
 
             $recipients = $service->getRecipientsForLesson($event->lessonId);
+            $eligibleRecipients = [];
             foreach ($recipients as $recipient) {
                 if (!$service->shouldSendAssignmentReminder($event->lessonId, (int) $recipient['profile_id'])) {
                     continue;
                 }
 
-                $service->sendPushOnce(
-                    (int) $recipient['user_id'],
-                    $title,
-                    $body,
-                    $data
-                );
+                $eligibleRecipients[] = $recipient;
             }
+
+            $service->sendPushInBatches($eligibleRecipients, $title, $body, $data);
         } catch (\Throwable) {
             return;
         }

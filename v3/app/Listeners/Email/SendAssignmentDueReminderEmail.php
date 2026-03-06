@@ -29,33 +29,20 @@ class SendAssignmentDueReminderEmail
             }
 
             $recipients = $service->getRecipientsForLesson($event->lessonId);
+            $eligibleRecipients = [];
             foreach ($recipients as $recipient) {
-                if (empty($recipient['email'])) {
-                    continue;
-                }
-
                 if (!$service->shouldSendAssignmentReminder($event->lessonId, (int) $recipient['profile_id'])) {
                     continue;
                 }
 
-                $name = trim(
-                    (string) ($recipient['first_name'] ?? '') . ' ' .
-                        (string) ($recipient['last_name'] ?? '')
-                );
-
-                $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
-                $html = "<p>Hello {$safeName},</p>
-                    <p>This is a reminder that your lesson deliverables for <strong>{$lessonTitle}</strong> are due by <strong>{$dueDate}</strong>.</p>
-                    <p>Please submit your quiz and assignment before the deadline.</p>";
-
-                $service->sendEmailOnce(
-                    (string) $recipient['email'],
-                    $name,
-                    $subject,
-                    $html,
-                    $eventKey
-                );
+                $eligibleRecipients[] = $recipient;
             }
+
+            $html = "<p>Hello Learner,</p>
+                <p>This is a reminder that your lesson deliverables for <strong>{$lessonTitle}</strong> are due by <strong>{$dueDate}</strong>.</p>
+                <p>Please submit your quiz and assignment before the deadline.</p>";
+
+            $service->sendEmailInBatches($eligibleRecipients, $subject, $html, $eventKey);
         } catch (\Throwable) {
             return;
         }

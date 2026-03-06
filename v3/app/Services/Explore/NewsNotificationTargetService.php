@@ -41,12 +41,9 @@ class NewsNotificationTargetService
 
     public function getRecipients(): array
     {
-        $rows = $this->userModel->rawQuery(
-            "
-            SELECT id AS user_id, name, email
-            FROM cbt_users
-            "
-        );
+        $rows = $this->userModel
+            ->select(['id AS user_id', 'name', 'email'])
+            ->get();
 
         return array_values(array_filter($rows, function (array $row): bool {
             return !empty($row['user_id']);
@@ -94,6 +91,122 @@ class NewsNotificationTargetService
 
             $this->notificationService->send($token, $title, $body, $data);
         }
+    }
+
+    public function sendEmailInBatches(
+        array $recipients,
+        array $news,
+        string $subject,
+        ?int $batchSize = null
+    ): void {
+        $batchSize = $this->resolveBatchSize(
+            $batchSize,
+            'EMAIL_BATCH_SIZE',
+            100
+        );
+
+        $batchRecipients = [];
+
+        foreach ($recipients as $recipient) {
+            $email = (string)($recipient['email'] ?? '');
+            if ($email === '') {
+                continue;
+            }
+
+            if ($this->hasEmailBeenSent($email, $subject)) {
+                continue;
+            }
+
+            $name = trim((string)($recipient['name'] ?? '')) ?: 'User';
+            $batchRecipients[] = "{$name} <{$email}>";
+        }
+
+        if (empty($batchRecipients)) {
+            return;
+        }
+
+        $html = $this->renderNewsPostedEmail([
+            ...$news,
+            'recipient_name' => 'User',
+        ]);
+
+        foreach (array_chunk($batchRecipients, $batchSize) as $chunk) {
+            $this->mailService->sendBatch($chunk, $subject, $html);
+        }
+    }
+
+    public function sendPushInBatches(
+        array $recipients,
+        string $title,
+        string $body,
+        array $data,
+        ?int $batchSize = null
+    ): void {
+        $batchSize = $this->resolveBatchSize(
+            $batchSize,
+            'PUSH_BATCH_SIZE',
+            300
+        );
+
+        $tokens = [];
+
+        foreach ($recipients as $recipient) {
+            $userId = (int)($recipient['user_id'] ?? 0);
+            if ($userId <= 0) {
+                continue;
+            }
+
+            $userTokens = $this->userDeviceToken
+                ->select(['fcm_token'])
+                ->where('user_id', $userId)
+                ->get();
+
+            foreach ($userTokens as $row) {
+                $token = (string)($row['fcm_token'] ?? '');
+                if ($token === '') {
+                    continue;
+                }
+
+                $tokens[$token] = true;
+            }
+        }
+
+        $tokens = array_keys($tokens);
+        if (empty($tokens)) {
+            return;
+        }
+
+        $pendingTokens = [];
+        foreach ($tokens as $token) {
+            if ($this->hasPushBeenSent($token, $title, $body)) {
+                continue;
+            }
+
+            $pendingTokens[] = $token;
+        }
+
+        foreach (array_chunk($pendingTokens, $batchSize) as $chunk) {
+            $this->notificationService->sendBatch($chunk, $title, $body, $data);
+        }
+    }
+
+    private function resolveBatchSize(?int $batchSize, string $envKey, int $default): int
+    {
+        if ($batchSize !== null && $batchSize > 0) {
+            return $batchSize;
+        }
+
+        $envValue = getenv($envKey);
+        if ($envValue === false) {
+            return $default;
+        }
+
+        $parsed = filter_var($envValue, FILTER_VALIDATE_INT);
+        if ($parsed === false || $parsed <= 0) {
+            return $default;
+        }
+
+        return $parsed;
     }
 
     public function renderNewsPostedEmail(array $data): string

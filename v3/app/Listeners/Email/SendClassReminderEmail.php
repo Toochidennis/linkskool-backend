@@ -27,37 +27,16 @@ class SendClassReminderEmail
 
             $subject = 'Class Reminder: ' . htmlspecialchars((string) ($lesson['title'] ?? 'Class'), ENT_QUOTES, 'UTF-8');
             $eventKey = sprintf('class_reminder:lesson:%d', $event->lessonId);
+            $html = TemplateRenderer::render(
+                $v3root . '/Templates/emails/class_reminder.php',
+                array_merge($lesson, [
+                    'first_name' => '',
+                    'last_name' => '',
+                ])
+            );
 
             $recipients = $service->getRecipientsForLesson($event->lessonId);
-            foreach ($recipients as $recipient) {
-                if (empty($recipient['email'])) {
-                    continue;
-                }
-
-                $recipientName = trim(
-                    (string) ($recipient['first_name'] ?? '') . ' ' .
-                        (string) ($recipient['last_name'] ?? '')
-                ) ?: 'Learner';
-
-                // Prepare lesson data for template
-                $templateData = array_merge($lesson, [
-                    'first_name' => $recipient['first_name'] ?? '',
-                    'last_name' => $recipient['last_name'] ?? '',
-                ]);
-
-                $html = TemplateRenderer::render(
-                    $v3root . '/Templates/emails/class_reminder.php',
-                    $templateData
-                );
-
-                $service->sendEmailOnce(
-                    (string) $recipient['email'],
-                    $recipientName,
-                    $subject,
-                    $html,
-                    $eventKey
-                );
-            }
+            $service->sendEmailInBatches($recipients, $subject, $html, $eventKey);
         } catch (\Throwable) {
             return;
         }

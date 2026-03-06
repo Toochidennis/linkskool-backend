@@ -211,7 +211,7 @@ class BillingService
         $existingPayment = $this->payment
             ->where('reference', $data['reference'])
             ->first();
-        if (!empty($existingPayment) && \in_array($existingPayment['status'] ?? '', ['paid', 'success'], true)) {
+        if (!empty($existingPayment) && \in_array($existingPayment['status'] ?? '', ['success'], true)) {
             return [
                 'status' => 'success',
                 'message' => 'Payment already recorded'
@@ -278,7 +278,7 @@ class BillingService
             'amount' => 0,
             'plan_id' => $data['plan_id'],
             'reference' => 'voucher-' . $data['voucher_code'],
-            'status' => 'paid',
+            'status' => 'success',
             'message' => 'Voucher redeemed',
             'method' => 'voucher',
             'platform' => $data['platform'],
@@ -296,7 +296,7 @@ class BillingService
 
         if ($paymentId) {
             return [
-                'status' => 'paid',
+                'status' => 'success',
                 'message' => 'Voucher redeemed',
                 'salt' => bin2hex(random_bytes(16))
             ];
@@ -312,7 +312,7 @@ class BillingService
     {
         return $this->payment
             ->where('user_id', $userId)
-            ->in('status', ['paid', 'success'])
+            ->where('status', 'success')
             ->where('platform', $platform)
             ->exists();
     }
@@ -321,7 +321,7 @@ class BillingService
     {
         return $this->payment
             ->where('user_id', $userId)
-            ->in('status', ['paid', 'success'])
+            ->where('status', 'success')
             ->where('platform', $platform)
             ->orderBy('created_at', 'desc')
             ->first();

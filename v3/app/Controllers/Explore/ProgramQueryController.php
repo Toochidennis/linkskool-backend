@@ -2,6 +2,7 @@
 
 namespace V3\App\Controllers\Explore;
 
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\ProgramQueryService;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Routing\Group;
@@ -67,7 +68,7 @@ class ProgramQueryController extends ExploreBaseController
         if (!$data) {
             $this->respondError(
                 'Cohort not found.',
-                404
+                HttpStatus::NOT_FOUND
             );
         }
 

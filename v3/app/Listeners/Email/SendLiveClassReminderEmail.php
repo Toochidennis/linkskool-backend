@@ -31,39 +31,18 @@ class SendLiveClassReminderEmail
             }
 
             $eventKey = sprintf('live_class_reminder:lesson:%d', $event->lessonId);
-            $recipients = $service->getRecipientsForLesson($event->lessonId);
-            foreach ($recipients as $recipient) {
-                if (empty($recipient['email'])) {
-                    continue;
-                }
-
-                $recipientName = trim(
-                    (string) ($recipient['first_name'] ?? '') . ' ' .
-                        (string) ($recipient['last_name'] ?? '')
-                ) ?: 'Learner';
-
-                $subject = 'Live Class Starting Soon: ' . htmlspecialchars((string) ($lesson['title'] ?? 'Live Class'), ENT_QUOTES, 'UTF-8');
-
-                // Prepare lesson data for template
-                $templateData = array_merge($lesson, [
-                    'first_name' => $recipient['first_name'] ?? '',
-                    'last_name' => $recipient['last_name'] ?? '',
+            $subject = 'Live Class Starting Soon: ' . htmlspecialchars((string) ($lesson['title'] ?? 'Live Class'), ENT_QUOTES, 'UTF-8');
+            $html = TemplateRenderer::render(
+                $v3root . '/Templates/emails/lesson_class_reminder.php',
+                array_merge($lesson, [
+                    'first_name' => '',
+                    'last_name' => '',
                     'zoom_info' => $zoomInfo,
-                ]);
+                ])
+            );
 
-                $html = TemplateRenderer::render(
-                    $v3root . '/Templates/emails/lesson_class_reminder.php',
-                    $templateData
-                );
-
-                $service->sendEmailOnce(
-                    (string) $recipient['email'],
-                    $recipientName,
-                    $subject,
-                    $html,
-                    $eventKey
-                );
-            }
+            $recipients = $service->getRecipientsForLesson($event->lessonId);
+            $service->sendEmailInBatches($recipients, $subject, $html, $eventKey);
         } catch (\Throwable) {
             return;
         }
