@@ -235,23 +235,14 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         $validated = $this->validate(
             $this->getRequestData(),
             [
-                'profile_id' => 'required|integer',
-                'program_id' => 'nullable|integer',
-                'course_id' => 'nullable|integer',
-                'cohort_id' => 'nullable|integer',
-                'course_name' => 'nullable|string',
-                'cohort_name' => 'nullable|string',
-                'payment_item' => 'nullable|array',
-                'payment_item.program_id' => 'required_without:program_id|integer',
-                'payment_item.course_id' => 'required_without:course_id|integer',
-                'payment_item.cohort_id' => 'required_without:cohort_id|integer',
-                'payment_item.course_name' => 'nullable|string',
-                'payment_item.cohort_name' => 'nullable|string',
-                'amount' => 'required|numeric|min:0.01',
-                'method' => 'required|string',
-                'platform' => 'required|string',
                 'first_name' => 'required|string',
                 'last_name' => 'required|string',
+                'phone' => 'required|string',
+                'email' => 'required|email',
+                'items' => 'required|array|min:1',
+                'items.*.program_id' => 'required|integer',
+                'items.*.course_id' => 'required|integer',
+                'items.*.cohort_id' => 'required|integer'
             ]
         );
 
@@ -284,10 +275,10 @@ class CourseCohortEnrollmentController extends ExploreBaseController
                 'last_name' => 'required|string',
                 'phone' => 'required|string',
                 'email' => 'required|email',
-                'courses' => 'required|array|min:1',
-                'courses.*.program_id' => 'required|integer',
-                'courses.*.id' => 'required|integer',
-                'courses.*.cohort_id' => 'required|integer'
+                'items' => 'required|array|min:1',
+                'items.*.program_id' => 'required|integer',
+                'items.*.course_id' => 'required|integer',
+                'items.*.cohort_id' => 'required|integer'
             ]
         );
 

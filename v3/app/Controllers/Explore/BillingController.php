@@ -4,7 +4,6 @@ namespace V3\App\Controllers\Explore;
 
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
-use V3\App\Common\Utilities\DataExtractor;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\BillingService;
 

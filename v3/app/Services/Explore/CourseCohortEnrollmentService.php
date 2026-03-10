@@ -555,6 +555,7 @@ class CourseCohortEnrollmentService
                 'phone' => $data['phone'],
                 'birth_date' => $data['birth_date'] ?? null
             ],
+            $data['phone']
         );
     }
 
