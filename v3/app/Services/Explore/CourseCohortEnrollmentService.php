@@ -73,15 +73,6 @@ class CourseCohortEnrollmentService
 
     public function initiateMobilePayment(array $data): array
     {
-        $user = $this->registerUserIfNotExists($data);
-
-        if (empty($user) || empty($user['profiles'])) {
-            return [
-                'status' => 'failed',
-                'message' => 'User registration failed'
-            ];
-        }
-
         $reference = 'MOB-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
         $amount = $this->computePrice($data['cohort_id']);
 
@@ -123,6 +114,16 @@ class CourseCohortEnrollmentService
 
     public function initiateWebPayment(array $data): array
     {
+        $user = $this->registerUserIfNotExists($data);
+
+        if (empty($user) || empty($user['profiles'])) {
+            return [
+                'status' => 'failed',
+                'message' => 'User registration failed'
+            ];
+        }
+
+        $data['profile_id'] = $user['profiles'][0]['id'];
         $reference = 'WEB-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
 
         $this->pdo->beginTransaction();
@@ -162,7 +163,8 @@ class CourseCohortEnrollmentService
                 'amount' => $total,
                 'reference' => $reference,
                 'metadata' => [
-                    'payment_id' => $paymentId
+                    'payment_id' => $paymentId,
+                    'payment_type' => 'course',
                 ]
             ]);
 

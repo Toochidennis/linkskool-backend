@@ -38,6 +38,7 @@ class ProgramService
             'age_groups' => json_encode($data['age_groups']),
             'status' => $data['status'],
             'sponsor' => $data['sponsor'] ?? null,
+            'start_date' => $data['start_date'] ?? null,
         ];
 
         $id = $this->programModel->insert($payload);
@@ -60,24 +61,23 @@ class ProgramService
         $payload = [
             'name' => $data['name'],
             'description' => $data['description'],
-            'image_url' => $data['image_url'] ?? null,
             'shortname' => $data['shortname'] ?? null,
             'status' => $data['status'] ?? null,
             'sponsor' => $data['sponsor'] ?? null,
+            'start_date' => $data['start_date'] ?? null,
         ];
 
         if (isset($data['age_groups'])) {
             $payload['age_groups'] = json_encode($data['age_groups']);
         }
 
+        if (isset($data['image_url'])) {
+            $payload['image_url'] = $data['image_url'];
+        }
+
         $id = $this->programModel
             ->where('id', $data['id'])
-            ->update(
-                array_filter(
-                    $payload,
-                    fn($value) => $value !== null
-                )
-            );
+            ->update($payload);
 
         $this->upsertProgramCourses($data['courses'], $data['id']);
 
@@ -161,6 +161,7 @@ class ProgramService
             p.sponsor,
             p.age_groups,
             pc.course_id,
+            pc.start_date,
             l.title AS course_title
         FROM programs p
         LEFT JOIN program_courses pc 
@@ -190,6 +191,7 @@ class ProgramService
                     'status' => $row['status'],
                     'sponsor' => $row['sponsor'],
                     'age_groups' => json_decode($row['age_groups'] ?? '{}', true),
+                    'start_date' => $row['start_date'] ?? null,
                     'courses' => [],
                 ];
             }
