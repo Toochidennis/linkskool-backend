@@ -4,6 +4,7 @@ namespace V3\App\Services\Explore;
 
 use V3\App\Common\Events\EventDispatcher;
 use V3\App\Events\Email\CohortCourseEnrolled;
+use V3\App\Events\Email\CohortCoursesEnrolled;
 use V3\App\Models\Explore\CourseCohortPayment;
 use V3\App\Models\Explore\CourseCohortPaymentItem;
 use V3\App\Models\Explore\ProgramCohortCourseEnrollment;
@@ -47,7 +48,7 @@ class CourseCohortEnrollmentService
 
         $enrollmentId = $this->enrollmentModel->insert($payload);
 
-        if ($enrollmentId) {
+        if ($enrollmentId && ($data['send_notification'] ?? true)) {
             EventDispatcher::dispatch(
                 new CohortCourseEnrolled(
                     (int)$data['profile_id'],
@@ -131,8 +132,8 @@ class CourseCohortEnrollmentService
         try {
             $total = 0;
 
-            foreach ($data['courses'] as $course) {
-                $total += $this->computePrice($course['cohort_id']);
+            foreach ($data['items'] as $item) {
+                $total += $this->computePrice($item['cohort_id']);
             }
 
             $paymentId = $this->payment->insert([
@@ -144,14 +145,14 @@ class CourseCohortEnrollmentService
                 'platform' => 'web'
             ]);
 
-            foreach ($data['courses'] as $course) {
-                $price = $this->computePrice($course['cohort_id']);
+            foreach ($data['items'] as $item) {
+                $price = $this->computePrice($item['cohort_id']);
 
                 $this->paymentItem->insert([
                     'payment_id' => $paymentId,
-                    'program_id' => $course['program_id'],
-                    'course_id' => $course['course_id'],
-                    'cohort_id' => $course['cohort_id'],
+                    'program_id' => $item['program_id'],
+                    'course_id' => $item['course_id'],
+                    'cohort_id' => $item['cohort_id'],
                     'amount' => $price
                 ]);
             }
@@ -209,6 +210,10 @@ class CourseCohortEnrollmentService
             return ['status' => 'success'];
         }
 
+        if ((int)$verification['amount_kobo'] !== (int)$payment['amount']) {
+            return ['status' => 'failed'];
+        }
+
         $items = $this->paymentItem
             ->where('payment_id', $payment['id'])
             ->get();
@@ -220,14 +225,43 @@ class CourseCohortEnrollmentService
                 ->where('id', $payment['id'])
                 ->update(['status' => 'success']);
 
+            $enrolledItems = [];
+
             foreach ($items as $item) {
-                $this->enrollUser([
+                $enrolled = $this->enrollUser([
                     'profile_id' => $payment['profile_id'],
                     'program_id' => $item['program_id'],
                     'course_id' => $item['course_id'],
                     'cohort_id' => $item['cohort_id'],
-                    'enrollment_type' => 'paid'
+                    'enrollment_type' => 'paid',
+                    'send_notification' => false,
                 ]);
+
+                if ($enrolled) {
+                    $enrolledItems[] = $this->buildEnrollmentNotificationItem($item);
+                }
+            }
+
+            if (\count($enrolledItems) === 1) {
+                $item = $enrolledItems[0];
+
+                EventDispatcher::dispatch(
+                    new CohortCourseEnrolled(
+                        (int) $payment['profile_id'],
+                        (int) $item['program_id'],
+                        (int) $item['course_id'],
+                        (int) $item['cohort_id'],
+                        $item['course_name'],
+                        $item['cohort_name']
+                    )
+                );
+            } elseif (\count($enrolledItems) > 1) {
+                EventDispatcher::dispatch(
+                    new CohortCoursesEnrolled(
+                        (int) $payment['profile_id'],
+                        $enrolledItems
+                    )
+                );
             }
 
             $this->pdo->commit();
@@ -433,6 +467,43 @@ class CourseCohortEnrollmentService
         return (int) $amount;
     }
 
+    private function buildEnrollmentNotificationItem(array $item): array
+    {
+        $program = $this->programCourseCohort
+            ->select(['program_id', 'course_id', 'title', 'description'])
+            ->join('learning_courses', 'learning_courses.id = program_course_cohorts.course_id', 'LEFT')
+            ->where('program_course_cohorts.id', $item['cohort_id'])
+            ->first();
+
+        $cohort = $this->programCourseCohort
+            ->where('id', $item['cohort_id'])
+            ->first();
+
+        return [
+            'program_id' => (int) $item['program_id'],
+            'course_id' => (int) $item['course_id'],
+            'cohort_id' => (int) $item['cohort_id'],
+            'program_name' => $this->resolveProgramName($item['program_id']),
+            'course_name' => $program['title'] ?? null,
+            'cohort_name' => $cohort['title'] ?? null,
+        ];
+    }
+
+    private function resolveProgramName(int $programId): ?string
+    {
+        if ($programId <= 0) {
+            return null;
+        }
+
+        $row = $this->programCourseCohort
+            ->select(['name'])
+            ->join('programs', 'programs.id = program_course_cohorts.program_id', 'LEFT')
+            ->where('program_course_cohorts.program_id', $programId)
+            ->first();
+
+        return $row['name'] ?? null;
+    }
+
     public function getPaymentStatus(array $data): array
     {
         $enrollment = $this->enrollmentModel
@@ -497,5 +568,36 @@ class CourseCohortEnrollmentService
             ->where('profile_id', $filters['profile_id'])
             ->where('cohort_id', $filters['cohort_id'])
             ->update($payload);
+    }
+
+    public function reserve(array $data): bool
+    {
+        $user = $this->registerUserIfNotExists($data);
+
+        if (empty($user)) {
+            return false;
+        }
+
+        $data['profile_id'] = $user['profiles'][0]['id'];
+
+        foreach ($data['items'] as $item) {
+            $payload = [
+                'profile_id' => $data['profile_id'],
+                'program_id' => $item['program_id'],
+                'course_id' => $item['course_id'],
+                'cohort_id' => $item['cohort_id'],
+                'enrollment_type' => 'reserved',
+                'payment_status' => 'reserved'
+            ];
+
+            $exist = $this->isUserEnrolled($payload);
+            if ($exist) {
+                continue;
+            }
+
+            $this->enrollmentModel->insert($payload);
+        }
+
+        return true;
     }
 }

@@ -7,7 +7,7 @@ use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Services\Explore\CourseCohortEnrollmentService;
 
-#[Group('/public/learning/cohorts/{cohort_id}/enrollments')]
+#[Group('/public/learning/cohorts')]
 class CourseCohortEnrollmentController extends ExploreBaseController
 {
     private CourseCohortEnrollmentService $enrollmentService;
@@ -18,7 +18,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         $this->enrollmentService = new CourseCohortEnrollmentService($this->pdo);
     }
 
-    #[Route('', 'POST', ['api'])]
+    #[Route('/{cohort_id}/enrollments', 'POST', ['api'])]
     public function enrollUser(array $vars): void
     {
         $validated = $this->validate(
@@ -80,7 +80,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
     //     );
     // }
 
-    #[Route('/is-enrolled', 'GET', ['api'])]
+    #[Route('/{cohort_id}/enrollments/is-enrolled', 'GET', ['api'])]
     public function isUserEnrolled(array $vars): void
     {
         $validated = $this->validate(
@@ -102,7 +102,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         );
     }
 
-    #[Route('/status', 'PUT', ['api'])]
+    #[Route('/{cohort_id}/enrollments/status', 'PUT', ['api'])]
     public function updateStatus(array $vars): void
     {
         $validated = $this->validate(
@@ -129,7 +129,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         );
     }
 
-    #[Route('/payment', 'POST', ['api'])]
+    #[Route('/{cohort_id}/enrollments/payment', 'POST', ['api'])]
     public function verifyPayment(array $vars): void
     {
         $validated = $this->validate(
@@ -180,7 +180,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         );
     }
 
-    #[Route('/payment-status', 'GET', ['api'])]
+    #[Route('/{cohort_id}/enrollments/payment-status', 'GET', ['api'])]
     public function getPaymentStatus(array $vars): void
     {
         $validated = $this->validate(
@@ -202,7 +202,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         );
     }
 
-    #[Route('/lessons-taken', 'PUT', ['api'])]
+    #[Route('/{cohort_id}/enrollments/lessons-taken', 'PUT', ['api'])]
     public function updateLessonsTaken(array $vars)
     {
         $validated = $this->validate(
@@ -224,6 +224,87 @@ class CourseCohortEnrollmentController extends ExploreBaseController
             [
                 'status' => true,
                 'message' => 'Lessons taken updated successfully.',
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/enrollments/checkout', 'POST', ['api'])]
+    public function checkout()
+    {
+        $validated = $this->validate(
+            $this->getRequestData(),
+            [
+                'profile_id' => 'required|integer',
+                'program_id' => 'nullable|integer',
+                'course_id' => 'nullable|integer',
+                'cohort_id' => 'nullable|integer',
+                'course_name' => 'nullable|string',
+                'cohort_name' => 'nullable|string',
+                'payment_item' => 'nullable|array',
+                'payment_item.program_id' => 'required_without:program_id|integer',
+                'payment_item.course_id' => 'required_without:course_id|integer',
+                'payment_item.cohort_id' => 'required_without:cohort_id|integer',
+                'payment_item.course_name' => 'nullable|string',
+                'payment_item.cohort_name' => 'nullable|string',
+                'amount' => 'required|numeric|min:0.01',
+                'method' => 'required|string',
+                'platform' => 'required|string',
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+            ]
+        );
+
+        $res = $this->enrollmentService->initiateWebPayment($validated);
+
+        if ($res['status'] === 'failed') {
+            $this->respondError(
+                $res['message'],
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Payment initiated successfully.',
+                'data' => $res,
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/enrollments/reserve', 'POST', ['api'])]
+    public function reserves()
+    {
+        $validated = $this->validate(
+            $this->getRequestData(),
+            [
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+                'phone' => 'required|string',
+                'email' => 'required|email',
+                'courses' => 'required|array|min:1',
+                'courses.*.program_id' => 'required|integer',
+                'courses.*.id' => 'required|integer',
+                'courses.*.cohort_id' => 'required|integer'
+            ]
+        );
+
+        $res = $this->enrollmentService->reserve($validated);
+
+        if (!$res) {
+            $this->respondError(
+                'Reservation failed.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Reservation completed successfully.',
+                'data' => $res,
             ],
             HttpStatus::OK
         );

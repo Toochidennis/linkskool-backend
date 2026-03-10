@@ -222,4 +222,30 @@ class LearningPathController extends ExploreBaseController
             ]
         );
     }
+
+    #[Route('/cohorts/{cohort_id}/profiles/{profile_id}/leaderboard', 'GET', ['api'])]
+    public function getLeaderboardByCohortAndProfile(array $vars): void
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'profile_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+            ]
+        );
+
+        $data = $this->learningPathService
+            ->getLeaderboardByCohort(
+                (int) $validated['profile_id'],
+                (int) $validated['cohort_id']
+            );
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Leaderboard retrieved successfully.',
+                'data' => $data,
+            ]
+        );
+    }
 }

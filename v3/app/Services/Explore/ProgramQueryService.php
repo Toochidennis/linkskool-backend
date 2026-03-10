@@ -57,6 +57,7 @@ class ProgramQueryService
             p.image_url,
             p.shortname,
             p.sponsor,
+            p.start_date,
             COUNT(DISTINCT pc.course_id) AS course_count
         FROM programs p
         LEFT JOIN program_courses pc
@@ -71,7 +72,9 @@ class ProgramQueryService
             p.description,
             p.image_url,
             p.shortname,
-            p.sponsor
+            p.sponsor,
+            p.start_date
+        ORDER BY p.created_at DESC
         LIMIT 1
         ";
 
@@ -131,6 +134,7 @@ class ProgramQueryService
                     'course_name' => $row['course_name'],
                     'description' => $row['course_description'],
                     'image_url' => $row['course_image_url'],
+                    'start_date' => $row['start_date'] ?? null,
                     'cohort' => null,
                 ];
             }
@@ -162,6 +166,7 @@ class ProgramQueryService
                 'image_url' => $program['image_url'],
                 'shortname' => $program['shortname'],
                 'sponsor' => $program['sponsor'],
+                'start_date' => $program['start_date'] ?? null,
                 'course_count' => (int) $program['course_count'],
             ],
             'courses' => array_values($courses),
@@ -178,6 +183,7 @@ class ProgramQueryService
             p.description AS program_description,
             p.image_url AS program_image_url,
             p.sponsor AS program_sponsor,
+            p.start_date AS program_start_date,
             lc.id AS course_id,
             lc.slug AS course_slug,
             lc.title AS course_name,
@@ -235,6 +241,7 @@ class ProgramQueryService
                 'description' => $row['program_description'],
                 'image_url' => $row['program_image_url'],
                 'sponsor' => $row['program_sponsor'],
+                'start_date' => $row['program_start_date'] ?? null,
             ],
             'course' => [
                 'courseId' => (int) $row['course_id'],
