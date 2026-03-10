@@ -127,5 +127,8 @@ class Tables
         'user_device_tokens',
         'notifications',
         'program_flow',
+        'faqs',
+        'course_cohort_payments',
+        'course_cohort_payment_items',
     ];
 }

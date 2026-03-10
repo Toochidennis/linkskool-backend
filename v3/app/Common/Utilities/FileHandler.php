@@ -12,7 +12,7 @@ class FileHandler
     private int $thumbMaxWidth = 300;
     private int $thumbMaxHeight = 300;
     private int $jpegQuality = 80;
-    private int $maxFileSize = 5 * 1024 * 1024; // 5MB
+    private int $maxFileSize = 10 * 1024 * 1024; // 5MB
 
 
     public function __construct(int $contentType = 0)

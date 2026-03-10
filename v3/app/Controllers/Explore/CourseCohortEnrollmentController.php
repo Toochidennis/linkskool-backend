@@ -242,7 +242,8 @@ class CourseCohortEnrollmentController extends ExploreBaseController
                 'items' => 'required|array|min:1',
                 'items.*.program_id' => 'required|integer',
                 'items.*.course_id' => 'required|integer',
-                'items.*.cohort_id' => 'required|integer'
+                'items.*.cohort_id' => 'required|integer',
+                'callback_url' => 'required|string'
             ]
         );
 
@@ -266,7 +267,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
     }
 
     #[Route('/enrollments/reserve', 'POST', ['api'])]
-    public function reserves()
+    public function reserve()
     {
         $validated = $this->validate(
             $this->getRequestData(),
@@ -275,8 +276,8 @@ class CourseCohortEnrollmentController extends ExploreBaseController
                 'last_name' => 'required|string',
                 'phone' => 'required|string',
                 'email' => 'required|email',
+                'program_id' => 'required|integer',
                 'items' => 'required|array|min:1',
-                'items.*.program_id' => 'required|integer',
                 'items.*.course_id' => 'required|integer',
                 'items.*.cohort_id' => 'required|integer'
             ]

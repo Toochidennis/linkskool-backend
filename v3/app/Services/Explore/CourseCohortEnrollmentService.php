@@ -150,7 +150,7 @@ class CourseCohortEnrollmentService
 
                 $this->paymentItem->insert([
                     'payment_id' => $paymentId,
-                    'program_id' => $item['program_id'],
+                    'program_id' => $data['program_id'],
                     'course_id' => $item['course_id'],
                     'cohort_id' => $item['cohort_id'],
                     'amount' => $price
@@ -163,6 +163,7 @@ class CourseCohortEnrollmentService
                 'email' => $data['email'],
                 'amount' => $total,
                 'reference' => $reference,
+                'callback_url' => $data['callback_url'],
                 'metadata' => [
                     'payment_id' => $paymentId,
                     'payment_type' => 'course',
@@ -174,7 +175,8 @@ class CourseCohortEnrollmentService
             return [
                 'status' => 'pending',
                 'payment_url' => $payment['authorization_url'],
-                'reference' => $reference
+                'reference' => $reference,
+                'message' => 'Payment initialized successfully'
             ];
         } catch (\Throwable $e) {
             $this->pdo->rollBack();
@@ -584,7 +586,7 @@ class CourseCohortEnrollmentService
         foreach ($data['items'] as $item) {
             $payload = [
                 'profile_id' => $data['profile_id'],
-                'program_id' => $item['program_id'],
+                'program_id' => $data['program_id'],
                 'course_id' => $item['course_id'],
                 'cohort_id' => $item['cohort_id'],
                 'enrollment_type' => 'reserved',
