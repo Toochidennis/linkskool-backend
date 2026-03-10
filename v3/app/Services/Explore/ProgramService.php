@@ -159,9 +159,9 @@ class ProgramService
             p.shortname,
             p.status,
             p.sponsor,
+            p.start_date,
             p.age_groups,
             pc.course_id,
-            pc.start_date,
             l.title AS course_title
         FROM programs p
         LEFT JOIN program_courses pc 
