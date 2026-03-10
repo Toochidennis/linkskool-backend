@@ -12,7 +12,10 @@ class DataExtractor
 
         if (stripos($contentType, 'application/json') !== false) {
             // JSON Request
-            self::$rawBody = file_get_contents('php://input');
+            if (self::$rawBody === null) {
+                self::$rawBody = file_get_contents('php://input') ?: '';
+            }
+
             $post = json_decode(self::$rawBody, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 http_response_code(400);
@@ -37,6 +40,10 @@ class DataExtractor
 
     public static function getRawBody(): string
     {
-        return self::$rawBody ?? '';
+        if (self::$rawBody === null) {
+            self::$rawBody = file_get_contents('php://input') ?: '';
+        }
+
+        return self::$rawBody;
     }
 }

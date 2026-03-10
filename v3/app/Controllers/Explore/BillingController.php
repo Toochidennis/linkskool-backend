@@ -72,32 +72,4 @@ class BillingController extends ExploreBaseController
             'data' => $res
         ], $isSuccess ? HttpStatus::OK : HttpStatus::BAD_REQUEST);
     }
-
-    #[Route('/billing/webhook/paystack', 'POST')]
-    public function paystackWebhook(): void
-    {
-        $signature = $_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] ?? null;
-        $payload = $this->getRequestData();
-        $rawBody = DataExtractor::getRawBody();
-
-        $res = $this->service->handlePaystackWebhook($payload, $signature, $rawBody);
-
-        if (($res['status'] ?? '') === 'failed') {
-            $statusCode = str_contains((string) ($res['message'] ?? ''), 'signature')
-                ? HttpStatus::UNAUTHORIZED
-                : HttpStatus::BAD_REQUEST;
-
-            $this->respond([
-                'success' => false,
-                'message' => $res['message'] ?? 'Webhook processing failed.',
-                'data' => $res
-            ], $statusCode);
-        }
-
-        $this->respond([
-            'success' => true,
-            'message' => $res['message'] ?? 'Webhook processed.',
-            'data' => $res
-        ], HttpStatus::OK);
-    }
 }

@@ -54,31 +54,31 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         );
     }
 
-    #[Route('', 'DELETE', ['api'])]
-    public function unEnrollUser(array $vars): void
-    {
-        $validated = $this->validate(
-            [...$this->getRequestData(), ...$vars],
-            [
-                'profile_id' => 'required|integer',
-                'cohort_id' => 'required|integer',
-            ],
-        );
+    // #[Route('', 'DELETE', ['api'])]
+    // public function unEnrollUser(array $vars): void
+    // {
+    //     $validated = $this->validate(
+    //         [...$this->getRequestData(), ...$vars],
+    //         [
+    //             'profile_id' => 'required|integer',
+    //             'cohort_id' => 'required|integer',
+    //         ],
+    //     );
 
-        $success = $this->enrollmentService->unEnrollUser($validated);
+    //     $success = $this->enrollmentService->unEnrollUser($validated);
 
-        if (!$success) {
-            $this->respondError('Unenrollment failed.', HttpStatus::BAD_REQUEST);
-        }
+    //     if (!$success) {
+    //         $this->respondError('Unenrollment failed.', HttpStatus::BAD_REQUEST);
+    //     }
 
-        $this->respond(
-            [
-                'status' => true,
-                'message' => 'User unenrolled successfully.',
-            ],
-            HttpStatus::OK
-        );
-    }
+    //     $this->respond(
+    //         [
+    //             'status' => true,
+    //             'message' => 'User unenrolled successfully.',
+    //         ],
+    //         HttpStatus::OK
+    //     );
+    // }
 
     #[Route('/is-enrolled', 'GET', ['api'])]
     public function isUserEnrolled(array $vars): void
@@ -136,16 +136,24 @@ class CourseCohortEnrollmentController extends ExploreBaseController
             [...$this->getRequestData(), ...$vars],
             [
                 'profile_id' => 'required|integer',
-                'program_id' => 'required|integer',
-                'course_id' => 'required|integer',
-                'cohort_id' => 'required|integer',
+                'program_id' => 'nullable|integer',
+                'course_id' => 'nullable|integer',
+                'cohort_id' => 'nullable|integer',
                 'course_name' => 'nullable|string',
                 'cohort_name' => 'nullable|string',
-                'amount' => 'required|numeric|min:0.01',
+                'payment_item' => 'nullable|array',
+                'payment_item.program_id' => 'required_without:program_id|integer',
+                'payment_item.course_id' => 'required_without:course_id|integer',
+                'payment_item.cohort_id' => 'required_without:cohort_id|integer',
+                'payment_item.course_name' => 'nullable|string',
+                'payment_item.cohort_name' => 'nullable|string',
+                'amount' => 'nullable|numeric|min:0.01',
                 'reference' => 'required|string',
                 'lessons_taken' => 'nullable|integer|min:0',
-                'first_name' => 'required|string',
-                'last_name' => 'required|string',
+                'method' => 'nullable|string',
+                'platform' => 'nullable|string',
+                'first_name' => 'nullable|string',
+                'last_name' => 'nullable|string',
                 'enrollment_type' => 'required|string|in:free,paid,trial',
                 'trial_expiry_date' => 'nullable|date',
             ],
