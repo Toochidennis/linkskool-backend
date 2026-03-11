@@ -75,6 +75,22 @@ class Logger
         file_put_contents(self::$logFile, $message, FILE_APPEND);
     }
 
+    public static function info(string $message, array $context = []): void
+    {
+        $payload = $message;
+
+        if (!empty($context)) {
+            $json = json_encode($context, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $payload .= ' | context=' . ($json === false ? 'json_encode_failed' : $json);
+        }
+
+        file_put_contents(
+            self::$logFile,
+            self::buildMessage('INFO', $payload, __FILE__, __LINE__),
+            FILE_APPEND
+        );
+    }
+
     /** Simple classification for user-caused errors (extend if needed) */
     private static function isUserError(\Throwable $e): bool
     {

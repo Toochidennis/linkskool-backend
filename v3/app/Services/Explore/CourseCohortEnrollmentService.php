@@ -7,6 +7,8 @@ use V3\App\Events\Email\CohortCourseEnrolled;
 use V3\App\Events\Email\CohortCoursesEnrolled;
 use V3\App\Models\Explore\CourseCohortPayment;
 use V3\App\Models\Explore\CourseCohortPaymentItem;
+use V3\App\Models\Explore\LearningCourse;
+use V3\App\Models\Explore\Program;
 use V3\App\Models\Explore\ProgramCohortCourseEnrollment;
 use V3\App\Models\Explore\ProgramCourseCohort;
 use V3\App\Services\Paystack\PaystackService;
@@ -15,6 +17,8 @@ class CourseCohortEnrollmentService
 {
     protected ProgramCohortCourseEnrollment $enrollmentModel;
     private ProgramCourseCohort $programCourseCohort;
+    private Program $programModel;
+    private LearningCourse $learningCourseModel;
     private CourseCohortPayment $payment;
     private CourseCohortPaymentItem $paymentItem;
     private AuthBootstrapService $authBootstrapService;
@@ -27,6 +31,8 @@ class CourseCohortEnrollmentService
         $this->payment = new CourseCohortPayment($pdo);
         $this->paymentItem = new CourseCohortPaymentItem($pdo);
         $this->programCourseCohort = new ProgramCourseCohort($pdo);
+        $this->programModel = new Program($pdo);
+        $this->learningCourseModel = new LearningCourse($pdo);
         $this->authBootstrapService = new AuthBootstrapService($pdo);
     }
 
@@ -471,39 +477,28 @@ class CourseCohortEnrollmentService
 
     private function buildEnrollmentNotificationItem(array $item): array
     {
-        $program = $this->programCourseCohort
-            ->select(['program_id', 'course_id', 'title', 'description'])
-            ->join('learning_courses', 'learning_courses.id = program_course_cohorts.course_id', 'LEFT')
-            ->where('program_course_cohorts.id', $item['cohort_id'])
-            ->first();
-
         $cohort = $this->programCourseCohort
             ->where('id', $item['cohort_id'])
             ->first();
 
+        $programId = (int) ($item['program_id'] ?? $cohort['program_id'] ?? 0);
+        $courseId = (int) ($item['course_id'] ?? $cohort['course_id'] ?? 0);
+
+        $program = $programId > 0
+            ? $this->programModel->where('id', $programId)->first()
+            : [];
+        $course = $courseId > 0
+            ? $this->learningCourseModel->where('id', $courseId)->first()
+            : [];
+
         return [
-            'program_id' => (int) $item['program_id'],
-            'course_id' => (int) $item['course_id'],
+            'program_id' => $programId,
+            'course_id' => $courseId,
             'cohort_id' => (int) $item['cohort_id'],
-            'program_name' => $this->resolveProgramName($item['program_id']),
-            'course_name' => $program['title'] ?? null,
-            'cohort_name' => $cohort['title'] ?? null,
+            'program_name' => $program['name'] ?? null,
+            'course_name' => $course['title'] ?? null,
+            'cohort_name' => $item['cohort_name'] ?? null,
         ];
-    }
-
-    private function resolveProgramName(int $programId): ?string
-    {
-        if ($programId <= 0) {
-            return null;
-        }
-
-        $row = $this->programCourseCohort
-            ->select(['name'])
-            ->join('programs', 'programs.id = program_course_cohorts.program_id', 'LEFT')
-            ->where('program_course_cohorts.program_id', $programId)
-            ->first();
-
-        return $row['name'] ?? null;
     }
 
     public function getPaymentStatus(array $data): array
@@ -521,6 +516,14 @@ class CourseCohortEnrollmentService
             'payment_status' => $status,
             'is_paid' => $status === 'success',
         ];
+    }
+
+    public function checkPaymentStatus(string $reference)
+    {
+        return $this->payment
+            ->where('reference', $reference)
+            ->where('status', 'success')
+            ->exists();
     }
 
     private function computePrice(int $cohortId): int

@@ -57,7 +57,7 @@ class BillingService
             ];
         }
 
-        if (($payload['event'] ?? '') !== 'transaction.success') {
+        if (!\in_array(($payload['event'] ?? ''), ['transaction.success', 'charge.success'], true)) {
             return [
                 'status' => 'ignored',
                 'message' => 'Event ignored.',

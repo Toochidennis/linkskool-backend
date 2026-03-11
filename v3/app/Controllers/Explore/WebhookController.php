@@ -1,12 +1,13 @@
 <?php
 
-namespace V3\App\Controllers;
+namespace V3\App\Controllers\Explore;
 
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\DataExtractor;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\Explore\ExploreBaseController;
+use V3\App\Database\DatabaseConnector;
 use V3\App\Services\Explore\BillingService;
 use V3\App\Services\Explore\CourseCohortEnrollmentService;
 
@@ -18,25 +19,37 @@ class WebhookController extends ExploreBaseController
 
     public function __construct()
     {
-        parent::__construct();
-
+        $this->post = [];
+        $this->pdo = DatabaseConnector::connect();
         $this->billingService = new BillingService($this->pdo);
         $this->courseEnrollment = new CourseCohortEnrollmentService($this->pdo);
     }
 
-    #[Route('/webhook/paystack', 'POST')]
+    #[Route('/webhooks/paystack', 'POST')]
     public function paystackWebhook(): void
     {
-        $signature = $_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] ?? null;
+        $headers = array_change_key_case(getallheaders(), CASE_LOWER);
+
+        $signature =
+            $headers['x-paystack-signature']
+            ?? $_SERVER['http_x_paystack_signature']
+            ?? null;
+
         $rawBody   = DataExtractor::getRawBody();
 
-        $expected = hash_hmac('sha512', $rawBody, getenv('PAYSTACK_PROD_SECRET_KEY'));
+        $secretKey = getenv('APP_ENV') === 'production'
+            ? (string) getenv('PAYSTACK_PROD_SECRET_KEY')
+            : (string) getenv('PAYSTACK_DEV_SECRET_KEY');
+
+        $expected = hash_hmac('sha512', $rawBody, $secretKey);
 
         if (!hash_equals($expected, $signature)) {
             $this->respond([
                 'success' => false,
                 'message' => 'Invalid webhook signature'
             ], HttpStatus::UNAUTHORIZED);
+
+            return;
         }
 
         $payload = json_decode($rawBody, true);
@@ -52,7 +65,7 @@ class WebhookController extends ExploreBaseController
         $event = $payload['event'] ?? null;
         $data  = $payload['data'] ?? [];
 
-        if ($event !== 'charge.success') {
+        if (!in_array($event, ['charge.success', 'transaction.success'], true)) {
             $this->respond([
                 'success' => true,
                 'message' => 'Event ignored'

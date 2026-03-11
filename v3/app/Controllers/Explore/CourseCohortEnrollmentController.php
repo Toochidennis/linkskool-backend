@@ -239,8 +239,8 @@ class CourseCohortEnrollmentController extends ExploreBaseController
                 'last_name' => 'required|string',
                 'phone' => 'required|string',
                 'email' => 'required|email',
+                'program_id' => 'required|integer',
                 'items' => 'required|array|min:1',
-                'items.*.program_id' => 'required|integer',
                 'items.*.course_id' => 'required|integer',
                 'items.*.cohort_id' => 'required|integer',
                 'callback_url' => 'required|string'
@@ -263,6 +263,25 @@ class CourseCohortEnrollmentController extends ExploreBaseController
                 'data' => $res,
             ],
             HttpStatus::OK
+        );
+    }
+
+    #[Route('/enrollments/checkout/{reference}/status', 'POST', ['api'])]
+    public function checkPaymentStatus(array $vars)
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'reference' => 'required|string'
+            ]
+        );
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Payment verification',
+                'data' => $this->enrollmentService->checkPaymentStatus($validated['reference'])
+            ]
         );
     }
 
