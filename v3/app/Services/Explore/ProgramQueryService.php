@@ -128,7 +128,7 @@ class ProgramQueryService
             c.trial_value,
             c.is_free,
             c.enrollment_deadline,
-            c.learning_type,
+            c.learning_type
         FROM programs p
         INNER JOIN program_courses pc
             ON pc.program_id = p.id

@@ -277,7 +277,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         );
     }
 
-    #[Route('/enrollments/checkout/{reference}/status', 'POST', ['api'])]
+    #[Route('/enrollments/checkout/{reference}/status', 'GET', ['api'])]
     public function checkPaymentStatus(array $vars)
     {
         $validated = $this->validate(
@@ -326,6 +326,42 @@ class CourseCohortEnrollmentController extends ExploreBaseController
             [
                 'success' => true,
                 'message' => 'Reservation completed successfully.',
+                'data' => $res,
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/enrollments/free', 'POST', ['api'])]
+    public function freeEnroll()
+    {
+        $validated = $this->validate(
+            $this->getRequestData(),
+            [
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+                'phone' => 'required|string',
+                'email' => 'required|email',
+                'program_id' => 'required|integer',
+                'items' => 'required|array|min:1',
+                'items.*.course_id' => 'required|integer',
+                'items.*.cohort_id' => 'required|integer'
+            ]
+        );
+
+        $res = $this->enrollmentService->freeEnroll($validated);
+
+        if (!$res) {
+            $this->respondError(
+                'Free enrollment failed.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Free enrollment completed successfully.',
                 'data' => $res,
             ],
             HttpStatus::OK

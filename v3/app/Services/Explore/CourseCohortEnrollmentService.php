@@ -101,6 +101,13 @@ class CourseCohortEnrollmentService
         $reference = 'MOB-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
         $amount = $this->computePrice($data['cohort_id']);
 
+        if ($amount <= 0) {
+            return [
+                'status' => 'failed',
+                'message' => 'This course is free and should not be added to payment.',
+            ];
+        }
+
         $paymentId = $this->payment->insert([
             'profile_id' => $data['profile_id'],
             'reference' => $reference,
@@ -173,9 +180,25 @@ class CourseCohortEnrollmentService
 
         try {
             $total = 0;
+            $payableItems = [];
 
             foreach ($eligibility['allowed_items'] as $item) {
-                $total += $this->computePrice($item['cohort_id']);
+                $price = $this->computePrice((int) $item['cohort_id']);
+
+                if ($price <= 0) {
+                    continue;
+                }
+
+                $item['amount'] = $price;
+                $payableItems[] = $item;
+                $total += $price;
+            }
+
+            if (empty($payableItems) || $total <= 0) {
+                return [
+                    'status' => 'failed',
+                    'message' => 'The selected courses are free and should not be added to payment.',
+                ];
             }
 
             $paymentId = $this->payment->insert([
@@ -187,15 +210,13 @@ class CourseCohortEnrollmentService
                 'platform' => 'web'
             ]);
 
-            foreach ($eligibility['allowed_items'] as $item) {
-                $price = $this->computePrice($item['cohort_id']);
-
+            foreach ($payableItems as $item) {
                 $this->paymentItem->insert([
                     'payment_id' => $paymentId,
                     'program_id' => $data['program_id'],
                     'course_id' => $item['course_id'],
                     'cohort_id' => $item['cohort_id'],
-                    'amount' => $price
+                    'amount' => $item['amount']
                 ]);
             }
 
@@ -570,7 +591,7 @@ class CourseCohortEnrollmentService
             'cohort_id' => (int) $item['cohort_id'],
             'program_name' => $program['name'] ?? null,
             'course_name' => $course['title'] ?? null,
-            'cohort_name' => $item['cohort_name'] ?? null,
+            'cohort_name' => $item['cohort_name'] ?? ($cohort['title'] ?? null),
         ];
     }
 
@@ -706,6 +727,32 @@ class CourseCohortEnrollmentService
         ]);
     }
 
+    private function dispatchEnrollmentNotifications(int $profileId, array $items): void
+    {
+        if (\count($items) === 1) {
+            $item = $items[0];
+
+            EventDispatcher::dispatch(
+                new CohortCourseEnrolled(
+                    $profileId,
+                    (int) $item['program_id'],
+                    (int) $item['course_id'],
+                    (int) $item['cohort_id'],
+                    $item['course_name'] ?? null,
+                    $item['cohort_name'] ?? null
+                )
+            );
+
+            return;
+        }
+
+        if (\count($items) > 1) {
+            EventDispatcher::dispatch(
+                new CohortCoursesEnrolled($profileId, $items)
+            );
+        }
+    }
+
     public function getPaymentStatus(array $data): array
     {
         $enrollment = $this->enrollmentModel
@@ -737,14 +784,22 @@ class CourseCohortEnrollmentService
             ->where('id', $cohortId)
             ->first();
 
-        $price = (int)$row['cost'];
+        if (empty($row) || !isset($row['cost']) || $row['cost'] === null) {
+            return 0;
+        }
+
+        $price = (float) $row['cost'];
         $discount = $row['discount'] ?? null;
 
         if ($discount) {
             $price -= ($price * $discount / 100);
         }
 
-        return $price * 100;
+        if ($price <= 0) {
+            return 0;
+        }
+
+        return (int) round($price * 100);
     }
 
     public function updateLessonCount(array $data)
@@ -790,6 +845,7 @@ class CourseCohortEnrollmentService
         }
 
         $data['profile_id'] = $user['profiles'][0]['id'];
+        $reservedItems = [];
 
         foreach ($data['items'] as $item) {
             $payload = [
@@ -806,7 +862,88 @@ class CourseCohortEnrollmentService
                 continue;
             }
 
-            $this->enrollmentModel->insert($payload);
+            $reserved = $this->enrollmentModel->insert($payload);
+
+            if ($reserved) {
+                $reservedItems[] = $this->buildEnrollmentNotificationItem([
+                    'program_id' => $data['program_id'],
+                    'course_id' => $item['course_id'],
+                    'cohort_id' => $item['cohort_id'],
+                ]);
+            }
+        }
+
+        if (!empty($reservedItems)) {
+            $this->dispatchEnrollmentNotifications((int) $data['profile_id'], $reservedItems);
+        }
+
+        return true;
+    }
+
+    public function freeEnroll(array $data): bool
+    {
+        $user = $this->registerUserIfNotExists($data);
+
+        if (empty($user) || empty($user['profiles'])) {
+            return false;
+        }
+
+        $profileId = (int) $user['profiles'][0]['id'];
+        $freeEnrolledItems = [];
+
+        foreach ($data['items'] as $item) {
+            $existingEnrollment = $this->findExistingCourseEnrollment(
+                $profileId,
+                (int) $data['program_id'],
+                (int) $item['course_id']
+            );
+
+            if ($existingEnrollment !== null) {
+                if (!\in_array($existingEnrollment['enrollment_type'] ?? null, ['trial', 'reserved'], true)) {
+                    continue;
+                }
+
+                $this->enrollmentModel
+                    ->where('id', $existingEnrollment['id'])
+                    ->update([
+                        'cohort_id' => $item['cohort_id'],
+                        'enrollment_type' => 'free',
+                        'payment_status' => 'success',
+                        'status' => 'active',
+                        'trial_expiry_date' => null,
+                        'payment_reference' => null,
+                    ]);
+
+                $freeEnrolledItems[] = $this->buildEnrollmentNotificationItem([
+                    'program_id' => $data['program_id'],
+                    'course_id' => $item['course_id'],
+                    'cohort_id' => $item['cohort_id'],
+                ]);
+
+                continue;
+            }
+
+            $enrolled = $this->enrollmentModel->insert([
+                'profile_id' => $profileId,
+                'program_id' => $data['program_id'],
+                'course_id' => $item['course_id'],
+                'cohort_id' => $item['cohort_id'],
+                'enrollment_type' => 'free',
+                'payment_status' => 'success',
+                'status' => 'active',
+            ]);
+
+            if ($enrolled) {
+                $freeEnrolledItems[] = $this->buildEnrollmentNotificationItem([
+                    'program_id' => $data['program_id'],
+                    'course_id' => $item['course_id'],
+                    'cohort_id' => $item['cohort_id'],
+                ]);
+            }
+        }
+
+        if (!empty($freeEnrolledItems)) {
+            $this->dispatchEnrollmentNotifications($profileId, $freeEnrolledItems);
         }
 
         return true;
