@@ -35,6 +35,9 @@ class ProgramController extends ExploreBaseController
                 'courses' => 'required|array',
                 'courses.*.title' => 'required|string|max:255',
                 'courses.*.id' => 'required|string',
+                'video_url' => 'nullable|string',
+                'onboarding_steps' => 'nullable|array',
+                'onboarding_steps.*' => 'string',
 
                 'age_groups' => 'nullable|array',
                 'age_groups.*.min' => 'integer',
@@ -83,6 +86,9 @@ class ProgramController extends ExploreBaseController
                 'courses' => 'required|array',
                 'courses.*.title' => 'required|string|max:255',
                 'courses.*.id' => 'required|string',
+                'video_url' => 'nullable|string',
+                'onboarding_steps' => 'nullable|array',
+                'onboarding_steps.*' => 'string',
 
                 'age_groups' => 'required|array|min:1',
                 'age_groups.*.min' => 'integer',

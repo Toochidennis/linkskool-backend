@@ -39,6 +39,8 @@ class ProgramService
             'status' => $data['status'],
             'sponsor' => $data['sponsor'] ?? null,
             'start_date' => $data['start_date'] ?? null,
+            'video_url' => $data['video_url'] ?? null,
+            'onboarding_steps' => isset($data['onboarding_steps']) ? json_encode($data['onboarding_steps']) : null,
         ];
 
         $id = $this->programModel->insert($payload);
@@ -65,6 +67,8 @@ class ProgramService
             'status' => $data['status'] ?? null,
             'sponsor' => $data['sponsor'] ?? null,
             'start_date' => $data['start_date'] ?? null,
+            'video_url' => $data['video_url'] ?? null,
+            'onboarding_steps' => isset($data['onboarding_steps']) ? json_encode($data['onboarding_steps']) : null,
         ];
 
         if (isset($data['age_groups'])) {
@@ -161,7 +165,9 @@ class ProgramService
             p.sponsor,
             p.start_date,
             p.age_groups,
+            p.video_url,
             pc.course_id,
+            p.onboarding_steps,
             l.title AS course_title
         FROM programs p
         LEFT JOIN program_courses pc 
@@ -192,6 +198,10 @@ class ProgramService
                     'sponsor' => $row['sponsor'],
                     'age_groups' => json_decode($row['age_groups'] ?? '{}', true),
                     'start_date' => $row['start_date'] ?? null,
+                    'video_url' => $row['video_url'] ?? null,
+                    'onboarding_steps' => isset($row['onboarding_steps']) ?
+                        json_decode($row['onboarding_steps'], true)
+                        : null,
                     'courses' => [],
                 ];
             }

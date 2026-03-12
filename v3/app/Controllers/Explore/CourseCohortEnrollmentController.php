@@ -161,7 +161,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
 
         $result = $this->enrollmentService->verifyAndRecordPayment($validated);
 
-        if (!$result['success'] && $result['status'] === 0) {
+        if (!$result['success'] && $result['status'] === 'failed') {
             $this->respondError(
                 $result['message'],
                 HttpStatus::BAD_REQUEST
@@ -170,7 +170,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
 
         $this->respond(
             [
-                'status' => $result['status'] === 1,
+                'status' => $result['status'] === 'success',
                 'message' => $result['message'],
                 'data' => [
                     'payment_status' => $result['status'],
@@ -248,6 +248,17 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         );
 
         $res = $this->enrollmentService->initiateWebPayment($validated);
+
+        if ($res['status'] === 'blocked') {
+            $this->respond(
+                [
+                    'success' => false,
+                    'message' => $res['message'],
+                ],
+                HttpStatus::BAD_REQUEST
+            );
+            return;
+        }
 
         if ($res['status'] === 'failed') {
             $this->respondError(

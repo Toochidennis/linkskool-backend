@@ -80,6 +80,24 @@ class CourseCohortEnrollmentService
 
     public function initiateMobilePayment(array $data): array
     {
+        $existingEnrollment = $this->findExistingCourseEnrollment(
+            (int) $data['profile_id'],
+            (int) $data['program_id'],
+            (int) $data['course_id']
+        );
+
+        if (
+            $existingEnrollment !== null
+            && !\in_array($existingEnrollment['enrollment_type'] ?? null, ['trial', 'reserved'], true)
+        ) {
+            return [
+                'status' => 'blocked',
+                'message' => $this->buildBlockedCheckoutMessage([
+                    $this->buildBlockedCheckoutItem($data, $existingEnrollment),
+                ]),
+            ];
+        }
+
         $reference = 'MOB-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
         $amount = $this->computePrice($data['cohort_id']);
 
@@ -131,6 +149,24 @@ class CourseCohortEnrollmentService
         }
 
         $data['profile_id'] = $user['profiles'][0]['id'];
+        $eligibility = $this->categorizeCheckoutItems(
+            (int) $data['profile_id'],
+            (int) $data['program_id'],
+            $data['items']
+        );
+
+        if (!empty($eligibility['blocked_items'])) {
+            return [
+                'status' => 'blocked',
+                'message' => $this->buildBlockedCheckoutMessage(
+                    $eligibility['blocked_items'],
+                    $eligibility['allowed_items']
+                ),
+                'payment_url' => '',
+                'reference' => '',
+            ];
+        }
+
         $reference = 'WEB-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
 
         $this->pdo->beginTransaction();
@@ -138,7 +174,7 @@ class CourseCohortEnrollmentService
         try {
             $total = 0;
 
-            foreach ($data['items'] as $item) {
+            foreach ($eligibility['allowed_items'] as $item) {
                 $total += $this->computePrice($item['cohort_id']);
             }
 
@@ -151,7 +187,7 @@ class CourseCohortEnrollmentService
                 'platform' => 'web'
             ]);
 
-            foreach ($data['items'] as $item) {
+            foreach ($eligibility['allowed_items'] as $item) {
                 $price = $this->computePrice($item['cohort_id']);
 
                 $this->paymentItem->insert([
@@ -236,13 +272,12 @@ class CourseCohortEnrollmentService
             $enrolledItems = [];
 
             foreach ($items as $item) {
-                $enrolled = $this->enrollUser([
-                    'profile_id' => $payment['profile_id'],
-                    'program_id' => $item['program_id'],
-                    'course_id' => $item['course_id'],
-                    'cohort_id' => $item['cohort_id'],
-                    'enrollment_type' => 'paid',
-                    'send_notification' => false,
+                $enrolled = $this->markEnrollmentAsPaidOrCreate([
+                    'profile_id' => (int) $payment['profile_id'],
+                    'program_id' => (int) $item['program_id'],
+                    'course_id' => (int) $item['course_id'],
+                    'cohort_id' => (int) $item['cohort_id'],
+                    'payment_reference' => $reference,
                 ]);
 
                 if ($enrolled) {
@@ -367,15 +402,22 @@ class CourseCohortEnrollmentService
             }
 
             if (!empty($enrollment)) {
+                $updatePayload = [
+                    'payment_status' => $status,
+                    'payment_reference' => $data['reference'],
+                    'lessons_taken' => (int) ($data['lessons_taken'] ?? null),
+                    'trial_expiry_date' => $data['trial_expiry_date'] ?? null,
+                ];
+
+                if ($status === 'success' && \in_array($enrollment['enrollment_type'] ?? null, ['trial', 'reserved'], true)) {
+                    $updatePayload['enrollment_type'] = 'paid';
+                    $updatePayload['status'] = 'active';
+                }
+
                 $this->enrollmentModel
                     ->where('profile_id', $data['profile_id'])
                     ->where('cohort_id', $paymentItem['cohort_id'])
-                    ->update([
-                        'payment_status' => $status,
-                        'payment_reference' => $data['reference'],
-                        'lessons_taken' => (int) ($data['lessons_taken'] ?? null),
-                        'trial_expiry_date' => $data['trial_expiry_date'] ?? null,
-                    ]);
+                    ->update($updatePayload);
             } else {
                 $enrollmentInserted = $this->enrollmentModel->insert([
                     'profile_id' => $data['profile_id'],
@@ -425,7 +467,38 @@ class CourseCohortEnrollmentService
         ];
     }
 
-    private function buildTransactionPayload(array $data, int $status, string $message): array
+    private function categorizeCheckoutItems(int $profileId, int $programId, array $items): array
+    {
+        $blockedItems = [];
+        $allowedItems = [];
+
+        foreach ($items as $item) {
+            $existingEnrollment = $this->findExistingCourseEnrollment(
+                $profileId,
+                $programId,
+                (int) $item['course_id']
+            );
+
+            if ($existingEnrollment === null) {
+                $allowedItems[] = $item;
+                continue;
+            }
+
+            if (\in_array($existingEnrollment['enrollment_type'] ?? null, ['trial', 'reserved'], true)) {
+                $allowedItems[] = $item;
+                continue;
+            }
+
+            $blockedItems[] = $this->buildBlockedCheckoutItem($item, $existingEnrollment);
+        }
+
+        return [
+            'allowed_items' => $allowedItems,
+            'blocked_items' => $blockedItems,
+        ];
+    }
+
+    private function buildTransactionPayload(array $data, string $status, string $message): array
     {
         return [
             'reference' => $data['reference'],
@@ -499,6 +572,138 @@ class CourseCohortEnrollmentService
             'course_name' => $course['title'] ?? null,
             'cohort_name' => $item['cohort_name'] ?? null,
         ];
+    }
+
+    private function buildBlockedCheckoutItem(array $item, array $existingEnrollment): array
+    {
+        $notificationItem = $this->buildEnrollmentNotificationItem($item);
+
+        return [
+            'program_id' => (int) ($item['program_id'] ?? $notificationItem['program_id'] ?? 0),
+            'course_id' => (int) $item['course_id'],
+            'cohort_id' => (int) $item['cohort_id'],
+            'course_name' => $notificationItem['course_name'] ?? null,
+            'cohort_name' => $notificationItem['cohort_name'] ?? null,
+            'existing_enrollment_type' => $existingEnrollment['enrollment_type'] ?? null,
+            'existing_payment_status' => $existingEnrollment['payment_status'] ?? null,
+            'message' => 'User is already enrolled in this course.',
+        ];
+    }
+
+    private function findExistingCourseEnrollment(int $profileId, int $programId, int $courseId): ?array
+    {
+        $enrollment = $this->enrollmentModel
+            ->where('profile_id', $profileId)
+            ->where('program_id', $programId)
+            ->where('course_id', $courseId)
+            ->first();
+
+        return !empty($enrollment) ? $enrollment : null;
+    }
+
+    private function buildBlockedCheckoutMessage(array $blockedItems, array $allowedItems = []): string
+    {
+        $blockedCourseNames = array_values(array_filter(array_unique(array_map(
+            static fn(array $item) => trim((string) ($item['course_name'] ?? '')),
+            $blockedItems
+        ))));
+
+        if (empty($blockedCourseNames)) {
+            return 'You are already enrolled in one or more selected courses. Remove them and try again.';
+        }
+
+        $blockedList = $this->joinLabels($blockedCourseNames);
+
+        if (empty($allowedItems)) {
+            return "You are already enrolled in {$blockedList}. Remove it and try again.";
+        }
+
+        $allowedCourseNames = [];
+
+        foreach ($allowedItems as $item) {
+            $course = $this->learningCourseModel
+                ->where('id', (int) $item['course_id'])
+                ->first();
+
+            $title = trim((string) ($course['title'] ?? ''));
+
+            if ($title !== '') {
+                $allowedCourseNames[] = $title;
+            }
+        }
+
+        $allowedCourseNames = array_values(array_unique($allowedCourseNames));
+
+        if (empty($allowedCourseNames)) {
+            return "You are already enrolled in {$blockedList}. Remove it and try again.";
+        }
+
+        $allowedList = $this->joinLabels($allowedCourseNames);
+
+        return "You are already enrolled in {$blockedList}. Remove that and enroll in {$allowedList} that is yet to be enrolled.";
+    }
+
+    private function joinLabels(array $labels): string
+    {
+        $labels = array_values(array_filter(array_map(
+            static fn(string $label) => trim($label),
+            $labels
+        )));
+
+        $count = \count($labels);
+
+        if ($count === 0) {
+            return '';
+        }
+
+        if ($count === 1) {
+            return $labels[0];
+        }
+
+        if ($count === 2) {
+            return $labels[0] . ' and ' . $labels[1];
+        }
+
+        $last = array_pop($labels);
+
+        return implode(', ', $labels) . ', and ' . $last;
+    }
+
+    private function markEnrollmentAsPaidOrCreate(array $data): bool
+    {
+        $existingEnrollment = $this->findExistingCourseEnrollment(
+            (int) $data['profile_id'],
+            (int) $data['program_id'],
+            (int) $data['course_id']
+        );
+
+        if ($existingEnrollment !== null) {
+            $payload = [
+                'payment_status' => 'success',
+                'payment_reference' => $data['payment_reference'],
+            ];
+
+            if (\in_array($existingEnrollment['enrollment_type'] ?? null, ['trial', 'reserved'], true)) {
+                $payload['enrollment_type'] = 'paid';
+                $payload['status'] = 'active';
+                $payload['trial_expiry_date'] = null;
+            }
+
+            $updated = $this->enrollmentModel
+                ->where('id', $existingEnrollment['id'])
+                ->update($payload);
+
+            return (bool) $updated;
+        }
+
+        return $this->enrollUser([
+            'profile_id' => $data['profile_id'],
+            'program_id' => $data['program_id'],
+            'course_id' => $data['course_id'],
+            'cohort_id' => $data['cohort_id'],
+            'enrollment_type' => 'paid',
+            'send_notification' => false,
+        ]);
     }
 
     public function getPaymentStatus(array $data): array

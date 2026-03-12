@@ -25,6 +25,8 @@ class ProgramQueryService
             p.shortname,
             p.sponsor,
             p.status,
+            p.video_url,
+            p.onboarding_steps,
             COUNT(pc.course_id) AS course_count
         FROM programs p
         LEFT JOIN program_courses pc
@@ -39,11 +41,31 @@ class ProgramQueryService
             p.image_url,
             p.shortname,
             p.sponsor,
-            p.status
+            p.status,
+            p.video_url,
+            p.onboarding_steps
         ORDER BY p.created_at DESC
         ";
 
-        return $this->program->rawQuery($sql, ['status' => 'published']);
+        $rows = $this->program->rawQuery($sql, ['status' => 'published']);
+
+        return array_map(function ($row) {
+            return [
+                'id' => (int) $row['id'],
+                'slug' => $row['slug'],
+                'name' => $row['name'],
+                'description' => $row['description'],
+                'image_url' => $row['image_url'],
+                'shortname' => $row['shortname'],
+                'sponsor' => $row['sponsor'],
+                'status' => $row['status'],
+                'video_url' => $row['video_url'] ?? null,
+                'onboarding_steps' => isset($row['onboarding_steps']) ?
+                    json_decode($row['onboarding_steps'], true)
+                    : null,
+                'course_count' => (int) $row['course_count'],
+            ];
+        }, $rows);
     }
 
     public function getProgramCourseCohorts(string $slug)
@@ -58,6 +80,8 @@ class ProgramQueryService
             p.shortname,
             p.sponsor,
             p.start_date,
+            p.video_url,
+            p.onboarding_steps,
             COUNT(DISTINCT pc.course_id) AS course_count
         FROM programs p
         LEFT JOIN program_courses pc
@@ -73,7 +97,9 @@ class ProgramQueryService
             p.image_url,
             p.shortname,
             p.sponsor,
-            p.start_date
+            p.start_date,
+            p.video_url,
+            p.onboarding_steps
         ORDER BY p.created_at DESC
         LIMIT 1
         ";
@@ -102,7 +128,7 @@ class ProgramQueryService
             c.trial_value,
             c.is_free,
             c.enrollment_deadline,
-            c.learning_type
+            c.learning_type,
         FROM programs p
         INNER JOIN program_courses pc
             ON pc.program_id = p.id
@@ -135,6 +161,7 @@ class ProgramQueryService
                     'description' => $row['course_description'],
                     'image_url' => $row['course_image_url'],
                     'start_date' => $row['start_date'] ?? null,
+                    'video_url' => $row['video_url'] ?? null,
                     'cohort' => null,
                 ];
             }
@@ -167,7 +194,11 @@ class ProgramQueryService
                 'shortname' => $program['shortname'],
                 'sponsor' => $program['sponsor'],
                 'start_date' => $program['start_date'] ?? null,
+                'video_url' => $program['video_url'] ?? null,
                 'course_count' => (int) $program['course_count'],
+                'onboarding_steps' => isset($program['onboarding_steps']) ?
+                    json_decode($program['onboarding_steps'], true)
+                    : null,
             ],
             'courses' => array_values($courses),
         ];
@@ -184,6 +215,8 @@ class ProgramQueryService
             p.image_url AS program_image_url,
             p.sponsor AS program_sponsor,
             p.start_date AS program_start_date,
+            p.video_url AS program_video_url,
+            p.onboarding_steps AS program_onboarding_steps,
             lc.id AS course_id,
             lc.slug AS course_slug,
             lc.title AS course_name,
@@ -242,6 +275,10 @@ class ProgramQueryService
                 'image_url' => $row['program_image_url'],
                 'sponsor' => $row['program_sponsor'],
                 'start_date' => $row['program_start_date'] ?? null,
+                'video_url' => $row['program_video_url'] ?? null,
+                'onboarding_steps' => isset($row['program_onboarding_steps']) ?
+                    json_decode($row['program_onboarding_steps'], true)
+                    : null,
             ],
             'course' => [
                 'courseId' => (int) $row['course_id'],
