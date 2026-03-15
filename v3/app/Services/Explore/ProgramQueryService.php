@@ -25,6 +25,9 @@ class ProgramQueryService
             p.shortname,
             p.sponsor,
             p.status,
+            p.video_url,
+            p.onboarding_steps,
+            p.whatsapp_group_link,
             COUNT(pc.course_id) AS course_count
         FROM programs p
         LEFT JOIN program_courses pc
@@ -39,11 +42,33 @@ class ProgramQueryService
             p.image_url,
             p.shortname,
             p.sponsor,
-            p.status
+            p.status,
+            p.video_url,
+            p.onboarding_steps,
+            p.whatsapp_group_link
         ORDER BY p.created_at DESC
         ";
 
-        return $this->program->rawQuery($sql, ['status' => 'published']);
+        $rows = $this->program->rawQuery($sql, ['status' => 'published']);
+
+        return array_map(function ($row) {
+            return [
+                'id' => (int) $row['id'],
+                'slug' => $row['slug'],
+                'name' => $row['name'],
+                'description' => $row['description'],
+                'image_url' => $row['image_url'],
+                'shortname' => $row['shortname'],
+                'sponsor' => $row['sponsor'],
+                'status' => $row['status'],
+                'video_url' => $row['video_url'] ?? null,
+                'onboarding_steps' => isset($row['onboarding_steps']) ?
+                    json_decode($row['onboarding_steps'], true)
+                    : null,
+                'whatsapp_group_link' => $row['whatsapp_group_link'] ?? null,
+                'course_count' => (int) $row['course_count'],
+            ];
+        }, $rows);
     }
 
     public function getProgramCourseCohorts(string $slug)
@@ -57,6 +82,10 @@ class ProgramQueryService
             p.image_url,
             p.shortname,
             p.sponsor,
+            p.start_date,
+            p.video_url,
+            p.onboarding_steps,
+            p.whatsapp_group_link,
             COUNT(DISTINCT pc.course_id) AS course_count
         FROM programs p
         LEFT JOIN program_courses pc
@@ -71,7 +100,12 @@ class ProgramQueryService
             p.description,
             p.image_url,
             p.shortname,
-            p.sponsor
+            p.sponsor,
+            p.start_date,
+            p.video_url,
+            p.onboarding_steps,
+            p.whatsapp_group_link
+        ORDER BY p.created_at DESC
         LIMIT 1
         ";
 
@@ -99,7 +133,8 @@ class ProgramQueryService
             c.trial_value,
             c.is_free,
             c.enrollment_deadline,
-            c.learning_type
+            c.learning_type,
+            c.whatsapp_group_link AS cohort_whatsapp_group_link,
         FROM programs p
         INNER JOIN program_courses pc
             ON pc.program_id = p.id
@@ -131,6 +166,8 @@ class ProgramQueryService
                     'course_name' => $row['course_name'],
                     'description' => $row['course_description'],
                     'image_url' => $row['course_image_url'],
+                    'start_date' => $row['start_date'] ?? null,
+                    'video_url' => $row['video_url'] ?? null,
                     'cohort' => null,
                 ];
             }
@@ -147,6 +184,7 @@ class ProgramQueryService
                     'is_free' => (bool) $row['is_free'],
                     'enrollment_deadline' => $row['enrollment_deadline'] ?? null,
                     'learning_type' => $row['learning_type'],
+                    'whatsapp_group_link' => $row['cohort_whatsapp_group_link'] ?? null,
                 ];
             }
         }
@@ -162,7 +200,13 @@ class ProgramQueryService
                 'image_url' => $program['image_url'],
                 'shortname' => $program['shortname'],
                 'sponsor' => $program['sponsor'],
+                'start_date' => $program['start_date'] ?? null,
+                'video_url' => $program['video_url'] ?? null,
+                'whatsapp_group_link' => $program['whatsapp_group_link'] ?? null,
                 'course_count' => (int) $program['course_count'],
+                'onboarding_steps' => isset($program['onboarding_steps']) ?
+                    json_decode($program['onboarding_steps'], true)
+                    : null,
             ],
             'courses' => array_values($courses),
         ];
@@ -178,6 +222,10 @@ class ProgramQueryService
             p.description AS program_description,
             p.image_url AS program_image_url,
             p.sponsor AS program_sponsor,
+            p.start_date AS program_start_date,
+            p.video_url AS program_video_url,
+            p.onboarding_steps AS program_onboarding_steps,
+            p.whatsapp_group_link AS program_whatsapp_group_link,
             lc.id AS course_id,
             lc.slug AS course_slug,
             lc.title AS course_name,
@@ -200,7 +248,8 @@ class ProgramQueryService
             c.image_url AS cohort_image_url,
             c.is_free,
             c.enrollment_deadline,
-            c.learning_type
+            c.learning_type,
+            c.whatsapp_group_link AS cohort_whatsapp_group_link
         FROM program_course_cohorts c
         INNER JOIN programs p
             ON p.id = c.program_id
@@ -235,6 +284,12 @@ class ProgramQueryService
                 'description' => $row['program_description'],
                 'image_url' => $row['program_image_url'],
                 'sponsor' => $row['program_sponsor'],
+                'start_date' => $row['program_start_date'] ?? null,
+                'video_url' => $row['program_video_url'] ?? null,
+                'onboarding_steps' => isset($row['program_onboarding_steps']) ?
+                    json_decode($row['program_onboarding_steps'], true)
+                    : null,
+                'whatsapp_group_link' => $row['program_whatsapp_group_link'] ?? null,
             ],
             'course' => [
                 'courseId' => (int) $row['course_id'],
@@ -262,6 +317,7 @@ class ProgramQueryService
                 'image_url' => $row['cohort_image_url'],
                 'enrollment_deadline' => $row['enrollment_deadline'],
                 'learning_type' => $row['learning_type'],
+                'whatsapp_group_link' => $row['cohort_whatsapp_group_link'] ?? null,
             ],
         ];
     }

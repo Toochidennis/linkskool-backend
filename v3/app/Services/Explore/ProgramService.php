@@ -38,6 +38,10 @@ class ProgramService
             'age_groups' => json_encode($data['age_groups']),
             'status' => $data['status'],
             'sponsor' => $data['sponsor'] ?? null,
+            'start_date' => $data['start_date'] ?? null,
+            'video_url' => $data['video_url'] ?? null,
+            'onboarding_steps' => isset($data['onboarding_steps']) ? json_encode($data['onboarding_steps']) : null,
+            'whatsapp_group_link' => $data['whatsapp_group_link'] ?? null,
         ];
 
         $id = $this->programModel->insert($payload);
@@ -60,24 +64,26 @@ class ProgramService
         $payload = [
             'name' => $data['name'],
             'description' => $data['description'],
-            'image_url' => $data['image_url'] ?? null,
             'shortname' => $data['shortname'] ?? null,
             'status' => $data['status'] ?? null,
             'sponsor' => $data['sponsor'] ?? null,
+            'start_date' => $data['start_date'] ?? null,
+            'video_url' => $data['video_url'] ?? null,
+            'onboarding_steps' => isset($data['onboarding_steps']) ? json_encode($data['onboarding_steps']) : null,
+            'whatsapp_group_link' => $data['whatsapp_group_link'] ?? null,
         ];
 
         if (isset($data['age_groups'])) {
             $payload['age_groups'] = json_encode($data['age_groups']);
         }
 
+        if (isset($data['image_url'])) {
+            $payload['image_url'] = $data['image_url'];
+        }
+
         $id = $this->programModel
             ->where('id', $data['id'])
-            ->update(
-                array_filter(
-                    $payload,
-                    fn($value) => $value !== null
-                )
-            );
+            ->update($payload);
 
         $this->upsertProgramCourses($data['courses'], $data['id']);
 
@@ -159,8 +165,12 @@ class ProgramService
             p.shortname,
             p.status,
             p.sponsor,
+            p.start_date,
             p.age_groups,
+            p.video_url,
             pc.course_id,
+            p.onboarding_steps,
+            p.whatsapp_group_link,
             l.title AS course_title
         FROM programs p
         LEFT JOIN program_courses pc 
@@ -189,7 +199,13 @@ class ProgramService
                     'shortname' => $row['shortname'],
                     'status' => $row['status'],
                     'sponsor' => $row['sponsor'],
+                    'whatsapp_group_link' => $row['whatsapp_group_link'] ?? null,
                     'age_groups' => json_decode($row['age_groups'] ?? '{}', true),
+                    'start_date' => $row['start_date'] ?? null,
+                    'video_url' => $row['video_url'] ?? null,
+                    'onboarding_steps' => isset($row['onboarding_steps']) ?
+                        json_decode($row['onboarding_steps'], true)
+                        : null,
                     'courses' => [],
                 ];
             }
