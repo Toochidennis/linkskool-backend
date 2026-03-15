@@ -38,6 +38,7 @@ class ProgramController extends ExploreBaseController
                 'video_url' => 'nullable|string',
                 'onboarding_steps' => 'nullable|array',
                 'onboarding_steps.*' => 'string',
+                'whatsapp_group_link' => 'nullable|string',
 
                 'age_groups' => 'nullable|array',
                 'age_groups.*.min' => 'integer',
@@ -89,6 +90,7 @@ class ProgramController extends ExploreBaseController
                 'video_url' => 'nullable|string',
                 'onboarding_steps' => 'nullable|array',
                 'onboarding_steps.*' => 'string',
+                'whatsapp_group_link' => 'nullable|string',
 
                 'age_groups' => 'required|array|min:1',
                 'age_groups.*.min' => 'integer',

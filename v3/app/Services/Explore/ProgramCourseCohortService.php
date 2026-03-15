@@ -54,6 +54,7 @@ class ProgramCourseCohortService
             'instructor_name' => $data['instructor_name'] ?? null,
             'learning_type' => $data['learning_type'] ?? 'instructor_led',
             'enrollment_deadline' => $data['enrollment_deadline'] ?? null,
+            'whatsapp_group_link' => $data['whatsapp_group_link'] ?? null,
         ];
 
         if (isset($data['next_cohort']) && !empty($data['next_cohort'])) {
@@ -99,6 +100,7 @@ class ProgramCourseCohortService
             'cost' => $data['cost'] ?? null,
             'updated_at' => date('Y-m-d H:i:s'),
             'enrollment_deadline' => $data['enrollment_deadline'] ?? null,
+            'whatsapp_group_link' => $data['whatsapp_group_link'] ?? null,
         ];
 
         if (isset($data['next_cohort']) && !empty($data['next_cohort'])) {

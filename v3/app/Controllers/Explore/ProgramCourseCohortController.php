@@ -45,6 +45,7 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'discount' => 'nullable|integer|min:0|max:100',
                 'learning_type' => 'nullable|string|in:self_paced,instructor_led',
                 'enrollment_deadline' => 'nullable|date',
+                'whatsapp_group_link' => 'nullable|string',
 
                 'next_cohort' => 'nullable|array',
                 'next_cohort.id' => 'required_with:next_cohort|integer',
@@ -105,6 +106,7 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'video_url' => 'nullable|string',
                 'learning_type' => 'required|string|in:self_paced,instructor_led',
                 'enrollment_deadline' => 'nullable|date',
+                'whatsapp_group_link' => 'nullable|string',
 
                 'next_cohort' => 'nullable|array',
                 'next_cohort.id' => 'required_with:next_cohort|integer',
