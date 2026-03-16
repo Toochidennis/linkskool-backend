@@ -53,6 +53,8 @@ class LearningPathService
             c.video_url       AS video_url,
             c.slug            AS cohort_slug,
             c.enrollment_deadline AS enrollment_deadline,
+            c.start_date       AS cohort_start_date,
+            c.end_date         AS cohort_end_date,
 
             e.status        AS enrollment_status,
             e.payment_status AS payment_status,
@@ -174,6 +176,8 @@ class LearningPathService
                     : null,
                 'trial_expiry_date' => $row['trial_expiry_date'] ?? null,
                 'enrollment_deadline' => $row['enrollment_deadline'] ?? null,
+                'cohort_start_date' => $row['cohort_start_date'] ?? null,
+                'cohort_end_date' => $row['cohort_end_date'] ?? null,
             ];
         }
 

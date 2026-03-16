@@ -81,6 +81,7 @@ class CourseCohortDiscussionService
             'body' => $data['body'] ?? $discussion['body'],
             'is_pinned' => $data['is_pinned'] ?? (bool) $discussion['is_pinned'],
             'is_locked' => $data['is_locked'] ?? (bool) $discussion['is_locked'],
+            'updated_at' => date('Y-m-d H:i:s'),
         ];
 
         if (isset($data['files']) && \is_array($data['files'])) {
@@ -159,7 +160,6 @@ class CourseCohortDiscussionService
             'body' => $data['body'],
             'images' => $data['images'] ? json_encode($data['images']) : null,
             'depth' => $depth,
-            'likes_count' => 0,
         ];
 
         $postId =  $this->discussionPostModel->insert($payload);
@@ -213,6 +213,7 @@ class CourseCohortDiscussionService
 
         $payload = [
             'body' => $data['body'] ?? $post['body'],
+            'updated_at' => date('Y-m-d H:i:s'),
         ];
 
         if (isset($data['files']) && \is_array($data['files'])) {
