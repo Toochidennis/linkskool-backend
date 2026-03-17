@@ -12,7 +12,7 @@ class FileHandler
     private int $thumbMaxWidth = 300;
     private int $thumbMaxHeight = 300;
     private int $jpegQuality = 80;
-    private int $maxFileSize = 10 * 1024 * 1024; // 5MB
+    private int $maxFileSize = 10 * 1024 * 1024; // 10MB
 
 
     public function __construct(int $contentType = 0)
@@ -81,7 +81,7 @@ class FileHandler
         $ext = strtolower(pathinfo($cleanName, PATHINFO_EXTENSION));
 
         if (!\in_array($ext, $this->allowedExtensions, true)) {
-            throw new \Exception("File type not allowed: .$ext");
+            throw new \RuntimeException("File type not allowed: .$ext");
         }
 
         $uniquePrefix = uniqid('', true);
@@ -90,20 +90,20 @@ class FileHandler
         $directory = $this->contentPath . str_replace('/', DIRECTORY_SEPARATOR, $normalizedGroupPath);
 
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
-            throw new \Exception("Failed to create directory: {$directory}");
+            throw new \RuntimeException("Failed to create directory: {$directory}");
         }
 
         $filePath = "{$directory}{$newFileName}";
 
         $binary = base64_decode($file['file'], true);
         if ($binary === false) {
-            throw new \Exception("Invalid base64 file data");
+            throw new \RuntimeException("Invalid base64 file data");
         }
 
         $size = \strlen($binary);
         if ($size > $this->maxFileSize) {
-            throw new \Exception(
-                "File too large. Maximum allowed size is 5MB."
+            throw new \RuntimeException(
+                "File too large. Maximum allowed size is 10MB."
             );
         }
 
@@ -114,7 +114,7 @@ class FileHandler
         } else {
             // NON-IMAGE FILES: save directly
             if (file_put_contents($filePath, $binary) === false) {
-                throw new \Exception("Failed to save file: $newFileName");
+                throw new \RuntimeException("Failed to save file: $newFileName");
             }
         }
 
@@ -131,7 +131,7 @@ class FileHandler
     {
         $image = imagecreatefromstring($binary);
         if (!$image) {
-            throw new \Exception("Invalid image data");
+            throw new \RuntimeException("Invalid image data");
         }
 
         $width = imagesx($image);
@@ -183,7 +183,7 @@ class FileHandler
             default:
                 imagedestroy($thumb);
                 imagedestroy($image);
-                throw new \Exception("Unsupported image format");
+                throw new \RuntimeException("Unsupported image format");
         }
 
         imagedestroy($thumb);

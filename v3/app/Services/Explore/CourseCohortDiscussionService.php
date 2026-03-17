@@ -418,49 +418,15 @@ class CourseCohortDiscussionService
 
     public function getDiscussionById(int $discussionId): ?array
     {
-        $rows = $this->discussionModel->rawQuery(
-            "SELECT
-                d.*,
-                p.first_name,
-                p.last_name
-            FROM discussions d
-            LEFT JOIN program_profiles p
-                ON p.id = d.author_id
-            WHERE d.id = :discussion_id
-            LIMIT 1",
-            [
-                'discussion_id' => $discussionId,
-            ]
-        );
+        $discussion = $this->findDiscussionWithAuthor($discussionId);
 
-        if (!$rows) {
-            return null;
-        }
-
-        $row = $rows[0];
-        $fullName = trim((string) ($row['first_name'] ?? '') . ' ' . (string) ($row['last_name'] ?? ''));
-
-        return [
-            'id' => $row['id'],
-            'cohort_id' => $row['cohort_id'],
-            'author_id' => $row['author_id'],
-            'author' => [
-                'first_name' => $row['first_name'] ?? null,
-                'last_name' => $row['last_name'] ?? null,
-                'full_name' => $fullName !== '' ? $fullName : null,
-            ],
-            'title' => $row['title'],
-            'body' => $row['body'],
-            'images' => $row['images'] ? json_decode($row['images'], true) : [],
-            'is_pinned' => (bool) $row['is_pinned'],
-            'is_locked' => (bool) $row['is_locked'],
-            'created_at' => $row['created_at'],
-        ];
+        return $discussion ? $this->formatDiscussion($discussion) : null;
     }
 
     public function getDiscussionPosts(int $discussionId, int $page = 1, int $limit = 20): array
     {
         $offset = ($page - 1) * $limit;
+        $discussion = $this->findDiscussionWithAuthor($discussionId);
         $totalRows = $this->discussionPostModel->rawQuery(
             "SELECT COUNT(*) AS total
         FROM discussion_posts
@@ -494,24 +460,8 @@ class CourseCohortDiscussionService
         );
 
         return [
-            'data' => array_map(function (array $post) {
-                $fullName = trim((string) ($post['first_name'] ?? '') . ' ' . (string) ($post['last_name'] ?? ''));
-                return [
-                    'id' => (int)$post['id'],
-                    'discussion_id' => (int)$post['discussion_id'],
-                    'author_id' => (int)$post['author_id'],
-                    'author' => [
-                        'first_name' => $post['first_name'] ?? null,
-                        'last_name' => $post['last_name'] ?? null,
-                        'full_name' => $fullName !== '' ? $fullName : null,
-                    ],
-                    'body' => $post['body'],
-                    'images' => $post['images'] ? json_decode($post['images'], true) : [],
-                    'reply_count' => (int)$post['reply_count'],
-                    'likes_count' => (int)$post['likes_count'],
-                    'created_at' => $post['created_at'],
-                ];
-            }, $posts),
+            'discussion' => $discussion ? $this->formatDiscussion($discussion) : null,
+            'posts' => array_map(fn(array $post) => $this->formatPost($post), $posts),
             'meta' => [
                 'total' => $total,
                 'per_page' => $limit,
@@ -526,6 +476,7 @@ class CourseCohortDiscussionService
     public function getPostReplies(int $postId, int $page = 1, int $limit = 20): array
     {
         $offset = ($page - 1) * $limit;
+        $post = $this->findPostWithAuthor($postId);
         $totalRows = $this->discussionPostModel->rawQuery(
             "SELECT COUNT(*) AS total
         FROM discussion_posts
@@ -556,25 +507,8 @@ class CourseCohortDiscussionService
         );
 
         return [
-            'data' => array_map(function (array $reply) {
-                $fullName = trim((string) ($reply['first_name'] ?? '') . ' ' . (string) ($reply['last_name'] ?? ''));
-
-                return [
-                    'id' => (int) $reply['id'],
-                    'discussion_id' => (int) $reply['discussion_id'],
-                    'author_id' => (int) $reply['author_id'],
-                    'author' => [
-                        'first_name' => $reply['first_name'] ?? null,
-                        'last_name' => $reply['last_name'] ?? null,
-                        'full_name' => $fullName !== '' ? $fullName : null,
-                    ],
-                    'body' => $reply['body'],
-                    'images' => $reply['images'] ? json_decode($reply['images'], true) : [],
-                    'reply_count' => (int) $reply['reply_count'],
-                    'likes_count' => (int) $reply['likes_count'],
-                    'created_at' => $reply['created_at'],
-                ];
-            }, $replies),
+            'post' => $post ? $this->formatPost($post) : null,
+            'replies' => array_map(fn(array $reply) => $this->formatPost($reply), $replies),
             'meta' => [
                 'total' => $total,
                 'per_page' => $limit,
@@ -583,6 +517,91 @@ class CourseCohortDiscussionService
                 'has_next' => ($page * $limit) < $total,
                 'has_prev' => $page > 1,
             ],
+        ];
+    }
+
+    private function findDiscussionWithAuthor(int $discussionId): ?array
+    {
+        $rows = $this->discussionModel->rawQuery(
+            "SELECT
+                d.*,
+                p.first_name,
+                p.last_name
+            FROM discussions d
+            LEFT JOIN program_profiles p
+                ON p.id = d.author_id
+            WHERE d.id = :discussion_id
+            LIMIT 1",
+            [
+                'discussion_id' => $discussionId,
+            ]
+        );
+
+        return $rows[0] ?? null;
+    }
+
+    private function findPostWithAuthor(int $postId): ?array
+    {
+        $rows = $this->discussionPostModel->rawQuery(
+            "SELECT
+                p.*,
+                pp.first_name,
+                pp.last_name
+            FROM discussion_posts p
+            LEFT JOIN program_profiles pp
+                ON pp.id = p.author_id
+            WHERE p.id = :post_id
+            LIMIT 1",
+            [
+                'post_id' => $postId,
+            ]
+        );
+
+        return $rows[0] ?? null;
+    }
+
+    private function formatDiscussion(array $row): array
+    {
+        $fullName = trim((string) ($row['first_name'] ?? '') . ' ' . (string) ($row['last_name'] ?? ''));
+
+        return [
+            'id' => (int) $row['id'],
+            'cohort_id' => (int) $row['cohort_id'],
+            'author_id' => (int) $row['author_id'],
+            'author' => [
+                'first_name' => $row['first_name'] ?? null,
+                'last_name' => $row['last_name'] ?? null,
+                'full_name' => $fullName !== '' ? $fullName : null,
+            ],
+            'title' => $row['title'],
+            'body' => $row['body'],
+            'images' => $row['images'] ? json_decode($row['images'], true) : [],
+            'is_pinned' => (bool) $row['is_pinned'],
+            'is_locked' => (bool) $row['is_locked'],
+            'created_at' => $row['created_at'],
+        ];
+    }
+
+    private function formatPost(array $row): array
+    {
+        $fullName = trim((string) ($row['first_name'] ?? '') . ' ' . (string) ($row['last_name'] ?? ''));
+
+        return [
+            'id' => (int) $row['id'],
+            'parent_post_id' => isset($row['parent_post_id']) ? (int) $row['parent_post_id'] : null,
+            'discussion_id' => (int) $row['discussion_id'],
+            'author_id' => (int) $row['author_id'],
+            'author' => [
+                'first_name' => $row['first_name'] ?? null,
+                'last_name' => $row['last_name'] ?? null,
+                'full_name' => $fullName !== '' ? $fullName : null,
+            ],
+            'body' => $row['body'],
+            'images' => $row['images'] ? json_decode($row['images'], true) : [],
+            'depth' => isset($row['depth']) ? (int) $row['depth'] : 0,
+            'reply_count' => (int) $row['reply_count'],
+            'likes_count' => (int) $row['likes_count'],
+            'created_at' => $row['created_at'],
         ];
     }
 

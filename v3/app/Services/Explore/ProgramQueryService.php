@@ -134,7 +134,7 @@ class ProgramQueryService
             c.is_free,
             c.enrollment_deadline,
             c.learning_type,
-            c.whatsapp_group_link AS cohort_whatsapp_group_link,
+            c.whatsapp_group_link AS cohort_whatsapp_group_link
         FROM programs p
         INNER JOIN program_courses pc
             ON pc.program_id = p.id

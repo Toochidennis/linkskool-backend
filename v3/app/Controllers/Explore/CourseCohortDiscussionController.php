@@ -25,6 +25,8 @@ class CourseCohortDiscussionController extends ExploreBaseController
             [...$this->getRequestData(), ...$vars],
             [
                 'cohort_id' => 'required|integer',
+                'program_id' => 'required|integer',
+                'course_id' => 'required|integer',
                 'title' => 'required|string',
                 'body' => 'required|string',
                 'author_id' => 'required|integer',
@@ -62,6 +64,8 @@ class CourseCohortDiscussionController extends ExploreBaseController
             [
                 'parent_post_id' => 'nullable|integer',
                 'discussion_id' => 'required|integer',
+                'program_id' => 'required|integer',
+                'course_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
                 'body' => 'required|string',
                 'author_id' => 'required|integer',
@@ -97,6 +101,8 @@ class CourseCohortDiscussionController extends ExploreBaseController
             [
                 'discussion_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
+                'program_id' => 'required|integer',
+                'course_id' => 'required|integer',
                 'title' => 'required|string',
                 'body' => 'required|string',
                 'author_id' => 'required|integer',
@@ -133,6 +139,8 @@ class CourseCohortDiscussionController extends ExploreBaseController
             [
                 'post_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
+                'program_id' => 'required|integer',
+                'course_id' => 'required|integer',
                 'body' => 'required|string',
                 'author_id' => 'required|integer',
                 'files' => 'nullable|array|max:3',
@@ -210,8 +218,8 @@ class CourseCohortDiscussionController extends ExploreBaseController
         );
         $result = $this->discussionService
             ->getDiscussions(
-                $validated['page'],
-                $validated['limit']
+                $validated['page'] ?? 1,
+                $validated['limit'] ?? 20
             );
         return $this->respond([
             'success' => true,
@@ -248,7 +256,11 @@ class CourseCohortDiscussionController extends ExploreBaseController
             ]
         );
         $result = $this->discussionService
-            ->getDiscussionPosts($validated['discussion_id']);
+            ->getDiscussionPosts(
+                $validated['discussion_id'],
+                $validated['page'] ?? 1,
+                $validated['limit'] ?? 20
+            );
         return $this->respond([
             'success' => true,
             'data' => $result
@@ -268,8 +280,8 @@ class CourseCohortDiscussionController extends ExploreBaseController
         );
         $result = $this->discussionService->getPostReplies(
             $validated['post_id'],
-            $validated['page'],
-            $validated['limit']
+            $validated['page'] ?? 1,
+            $validated['limit'] ?? 20
         );
 
         return $this->respond([
