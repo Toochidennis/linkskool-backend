@@ -40,10 +40,12 @@ class AuthService
      */
     public function login(string $username, string $password): array
     {
+        $username = trim($username);
+
         // Attempt login as staff
         $staff = $this->staffModel
             ->select(columns: ['id', 'staff_no', 'surname', 'access_level', 'password'])
-            ->where('staff_no', '=', $username)
+            ->whereTrimmed('staff_no', '=', $username)
             ->where('password', '=', $password)
             ->first();
 

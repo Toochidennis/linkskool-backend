@@ -9,6 +9,7 @@ use V3\App\Events\Discussion\DiscussionPostReplied;
 use V3\App\Events\Discussion\DiscussionReplyReplied;
 use V3\App\Events\Discussion\DiscussionStarted;
 use V3\App\Models\Explore\Discussion;
+use V3\App\Models\Explore\DiscussionLike;
 use V3\App\Models\Explore\DiscussionPost;
 use V3\App\Models\Explore\DiscussionPostLike;
 use V3\App\Models\Explore\ProgramCourseCohort;
@@ -16,6 +17,7 @@ use V3\App\Models\Explore\ProgramCourseCohort;
 class CourseCohortDiscussionService
 {
     protected Discussion $discussionModel;
+    protected DiscussionLike $discussionLikeModel;
     protected DiscussionPost $discussionPostModel;
     protected DiscussionPostLike $discussionPostLikeModel;
     protected ProgramCourseCohort $cohortModel;
@@ -26,6 +28,7 @@ class CourseCohortDiscussionService
     public function __construct(\PDO $pdo)
     {
         $this->discussionModel = new Discussion($pdo);
+        $this->discussionLikeModel = new DiscussionLike($pdo);
         $this->discussionPostModel = new DiscussionPost($pdo);
         $this->discussionPostLikeModel = new DiscussionPostLike($pdo);
         $this->cohortModel = new ProgramCourseCohort($pdo);
@@ -49,7 +52,6 @@ class CourseCohortDiscussionService
         $payload = [
             'cohort_id' => $data['cohort_id'],
             'author_id' => $data['author_id'],
-            'title' => $data['title'],
             'body' => $data['body'] ?? null,
             'images' => $data['images'] ? json_encode($data['images']) : null,
             'is_pinned' => $data['is_pinned'] ?? false,
@@ -77,7 +79,6 @@ class CourseCohortDiscussionService
         }
 
         $payload = [
-            'title' => $data['title'] ?? $discussion['title'],
             'body' => $data['body'] ?? $discussion['body'],
             'is_pinned' => $data['is_pinned'] ?? (bool) $discussion['is_pinned'],
             'is_locked' => $data['is_locked'] ?? (bool) $discussion['is_locked'],
@@ -86,13 +87,10 @@ class CourseCohortDiscussionService
 
         if (isset($data['files']) && \is_array($data['files'])) {
             $payload['images'] = json_encode(
-                array_merge(
-                    $discussion['images'] ? json_decode($discussion['images'], true) : [],
-                    $this->fileHandler->handleFiles(
-                        $data['files'],
-                        false,
-                        "explore/programs/{$data['program_id']}/courses/{$data['course_id']}/cohorts/{$data['cohort_id']}/discussions/{$data['discussion_id']}"
-                    )
+                $this->fileHandler->handleFiles(
+                    $data['files'],
+                    false,
+                    "explore/programs/{$data['program_id']}/courses/{$data['course_id']}/cohorts/{$data['cohort_id']}/discussions/{$data['discussion_id']}"
                 )
             );
         }
@@ -126,17 +124,17 @@ class CourseCohortDiscussionService
                 ->first();
 
             if (!$parentPost) {
-                throw new \Exception("Parent post not found.");
+                throw new \RuntimeException("Parent post not found.");
             }
 
             if ($parentPost['discussion_id'] != $data['discussion_id']) {
-                throw new \Exception("Parent post does not belong to the same discussion.");
+                throw new \RuntimeException("Parent post does not belong to the same discussion.");
             }
 
             $depth = $parentPost['depth'] + 1;
 
             if ($depth > self::MAX_DEPTH) {
-                throw new \Exception("Maximum reply depth of " . self::MAX_DEPTH . " exceeded.");
+                throw new \RuntimeException("Maximum reply depth of " . self::MAX_DEPTH . " exceeded.");
             }
         }
 
@@ -146,11 +144,11 @@ class CourseCohortDiscussionService
             ->first();
 
         if ($discussion['is_locked']) {
-            throw new \Exception("Discussion is locked.");
+            throw new \RuntimeException("Discussion is locked.");
         }
 
         if ($discussion['cohort_id'] != $data['cohort_id']) {
-            throw new \Exception("Invalid cohort for this post.");
+            throw new \RuntimeException("Invalid cohort for this post.");
         }
 
         $payload = [
@@ -191,11 +189,11 @@ class CourseCohortDiscussionService
             ->first();
 
         if (!$post) {
-            throw new \Exception("Post not found.");
+            throw new \RuntimeException("Post not found.");
         }
 
         if (!$this->isEnrolledInCohort($data['author_id'], $data['cohort_id'])) {
-            throw new \Exception("User must be enrolled in the cohort to update the discussion post.");
+            throw new \RuntimeException("User must be enrolled in the cohort to update the discussion post.");
         }
 
         $discussion = $this->discussionModel
@@ -204,11 +202,11 @@ class CourseCohortDiscussionService
             ->first();
 
         if ($discussion['is_locked']) {
-            throw new \Exception("Discussion is locked.");
+            throw new \RuntimeException("Discussion is locked.");
         }
 
         if ($discussion['cohort_id'] != $data['cohort_id']) {
-            throw new \Exception("Invalid cohort for this post.");
+            throw new \RuntimeException("Invalid cohort for this post.");
         }
 
         $payload = [
@@ -218,13 +216,10 @@ class CourseCohortDiscussionService
 
         if (isset($data['files']) && \is_array($data['files'])) {
             $payload['images'] = json_encode(
-                array_merge(
-                    $post['images'] ? json_decode($post['images'], true) : [],
-                    $this->fileHandler->handleFiles(
-                        $data['files'],
-                        false,
-                        "explore/programs/{$data['program_id']}/courses/{$data['course_id']}/cohorts/{$data['cohort_id']}/discussions/{$data['discussion_id']}/posts/{$data['post_id']}"
-                    )
+                $this->fileHandler->handleFiles(
+                    $data['files'],
+                    false,
+                    "explore/programs/{$data['program_id']}/courses/{$data['course_id']}/cohorts/{$data['cohort_id']}/discussions/{$data['discussion_id']}/posts/{$data['post_id']}"
                 )
             );
         }
@@ -237,7 +232,7 @@ class CourseCohortDiscussionService
     public function likeDiscussionPost(array $data): void
     {
         if (!$this->isEnrolledInCohort($data['author_id'], $data['cohort_id'])) {
-            throw new \Exception("User must be enrolled in the cohort to like a discussion post.");
+            throw new \RuntimeException("User must be enrolled in the cohort to like a discussion post.");
         }
         $existingLike = $this->discussionPostLikeModel
             ->where('post_id', $data['post_id'])
@@ -245,7 +240,7 @@ class CourseCohortDiscussionService
             ->first();
 
         if ($existingLike) {
-            throw new \Exception("Post already liked by this user.");
+            throw new \RuntimeException("Post already liked by this user.");
         }
 
         $payload = [
@@ -265,7 +260,7 @@ class CourseCohortDiscussionService
     public function unlikeDiscussionPost(array $data): void
     {
         if (!$this->isEnrolledInCohort($data['author_id'], $data['cohort_id'])) {
-            throw new \Exception("User must be enrolled in the cohort to unlike a discussion post.");
+            throw new \RuntimeException("User must be enrolled in the cohort to unlike a discussion post.");
         }
 
         $existingLike = $this->discussionPostLikeModel
@@ -274,7 +269,7 @@ class CourseCohortDiscussionService
             ->first();
 
         if (!$existingLike) {
-            throw new \Exception("Like not found for this user and post.");
+            throw new \RuntimeException("Like not found for this user and post.");
         }
 
         $this->discussionPostLikeModel
@@ -289,29 +284,88 @@ class CourseCohortDiscussionService
         );
     }
 
+    public function likeDiscussion(array $data): void
+    {
+        if (!$this->isEnrolledInCohort($data['author_id'], $data['cohort_id'])) {
+            throw new \RuntimeException("User must be enrolled in the cohort to like a discussion.");
+        }
+
+        $existingLike = $this->discussionLikeModel
+            ->where('discussion_id', $data['discussion_id'])
+            ->where('profile_id', $data['author_id'])
+            ->first();
+
+        if ($existingLike) {
+            throw new \RuntimeException("Discussion already liked by this user.");
+        }
+
+        $this->discussionLikeModel->insert([
+            'discussion_id' => $data['discussion_id'],
+            'profile_id' => $data['author_id'],
+        ]);
+
+        $this->discussionModel->rawQuery(
+            "UPDATE discussions
+             SET likes_count = likes_count + 1
+             WHERE id = :id",
+            ['id' => $data['discussion_id']]
+        );
+    }
+
+    public function unlikeDiscussion(array $data): void
+    {
+        if (!$this->isEnrolledInCohort($data['author_id'], $data['cohort_id'])) {
+            throw new \RuntimeException("User must be enrolled in the cohort to unlike a discussion.");
+        }
+
+        $existingLike = $this->discussionLikeModel
+            ->where('discussion_id', $data['discussion_id'])
+            ->where('profile_id', $data['author_id'])
+            ->first();
+
+        if (!$existingLike) {
+            throw new \RuntimeException("Like not found for this user and discussion.");
+        }
+
+        $this->discussionLikeModel
+            ->where('id', $existingLike['id'])
+            ->delete();
+
+        $this->discussionModel->rawQuery(
+            "UPDATE discussions
+             SET likes_count = likes_count - 1
+             WHERE id = :id AND likes_count > 0",
+            ['id' => $data['discussion_id']]
+        );
+    }
+
     public function deleteDiscussion(array $data): bool
     {
         if (!$this->isEnrolledInCohort($data['author_id'], $data['cohort_id'])) {
-            throw new \Exception("User must be enrolled in the cohort to delete a discussion.");
+            throw new \RuntimeException("User must be enrolled in the cohort to delete a discussion.");
         }
 
-        $posts = $this->discussionPostModel
-            ->where('discussion_id', $data['discussion_id'])
-            ->get();
+        // $this->discussionLikeModel
+        //     ->where('discussion_id', $data['discussion_id'])
+        //     ->update(['deleted_at' => date('Y-m-d H:i:s')]);
 
-        foreach ($posts as $post) {
-            $this->discussionPostLikeModel
-                ->where('post_id', $post['id'])
-                ->delete();
-        }
+        // $posts = $this->discussionPostModel
+        //     ->where('discussion_id', $data['discussion_id'])
+        //     ->get();
 
-        $this->discussionPostModel
-            ->where('discussion_id', $data['discussion_id'])
-            ->delete();
+        // foreach ($posts as $post) {
+        //     $this->discussionPostLikeModel
+        //         ->where('post_id', $post['id'])
+        //         ->update(['deleted_at' => date('Y-m-d H:i:s')]);
+        // }
+
+        // $this->discussionPostModel
+        //     ->where('discussion_id', $data['discussion_id'])
+        //     ->update(['deleted_at' => date('Y-m-d H:i:s')]);
 
         return $this->discussionModel
             ->where('id', $data['discussion_id'])
-            ->delete();
+            ->update(['deleted_at' => date('Y-m-d H:i:s')]);
     }
 
     public function deleteDiscussionPost(array $data): bool
@@ -321,16 +375,16 @@ class CourseCohortDiscussionService
             ->first();
 
         if (!$post) {
-            throw new \Exception("Post not found.");
+            throw new \RuntimeException("Post not found.");
         }
 
         if (!$this->isEnrolledInCohort($data['author_id'], $data['cohort_id'])) {
-            throw new \Exception("User must be enrolled in the cohort to delete a discussion post.");
+            throw new \RuntimeException("User must be enrolled in the cohort to delete a discussion post.");
         }
 
-        $this->discussionPostLikeModel
-            ->where('post_id', $data['post_id'])
-            ->delete();
+        // $this->discussionPostLikeModel
+        //     ->where('post_id', $data['post_id'])
+        //     ->update(['deleted_at' => date('Y-m-d H:i:s')]);
 
         if ($post['parent_post_id']) {
             $this->discussionPostModel->rawQuery(
@@ -343,16 +397,25 @@ class CourseCohortDiscussionService
 
         return $this->discussionPostModel
             ->where('id', $data['post_id'])
-            ->delete();
+            ->update(['deleted_at' => date('Y-m-d H:i:s')]);
     }
 
-    public function getDiscussions(int $page = 1, int $limit = 20): array
+    public function getDiscussions(array $filters): array
     {
         $totalRows = $this->discussionModel->rawQuery(
             "SELECT COUNT(*) AS total
-            FROM discussions"
+            FROM discussions
+            WHERE cohort_id = :cohort_id
+              AND deleted_at IS NULL",
+            [
+                'cohort_id' => $filters['cohort_id'],
+            ]
         );
         $total = (int) ($totalRows[0]['total'] ?? 0);
+
+        $limit = $filters['limit'] ?? 20;
+        $page = $filters['page'] ?? 1;
+        $offset = ($page - 1) * $limit;
 
         $discussions = $this->discussionModel
             ->rawQuery(
@@ -366,6 +429,7 @@ class CourseCohortDiscussionService
                     d.images,
                     d.is_pinned AS is_pinned,
                     d.is_locked AS is_locked,
+                    d.likes_count AS likes_count,
                     pp.first_name,
                     pp.last_name,
                     COUNT(p.id) AS posts_count
@@ -374,12 +438,16 @@ class CourseCohortDiscussionService
                     ON pp.id = d.author_id
                 LEFT JOIN discussion_posts p
                     ON p.discussion_id = d.id
+                    AND p.deleted_at IS NULL
+                WHERE d.cohort_id = :cohort_id
+                AND d.deleted_at IS NULL
                 GROUP BY d.id
                 ORDER BY d.created_at DESC
                 LIMIT :limit OFFSET :offset",
                 [
                     'limit' => $limit,
-                    'offset' => ($page - 1) * $limit
+                    'offset' => $offset,
+                    'cohort_id' => $filters['cohort_id'],
                 ]
             );
 
@@ -402,6 +470,7 @@ class CourseCohortDiscussionService
                     'images' => $discussion['images'] ? json_decode($discussion['images'], true) : [],
                     'is_pinned' => (bool) $discussion['is_pinned'],
                     'is_locked' => (bool) $discussion['is_locked'],
+                    'likes_count' => (int) ($discussion['likes_count'] ?? 0),
                     'posts_count' => (int) $discussion['posts_count'],
                 ];
             }, $discussions),
@@ -423,7 +492,7 @@ class CourseCohortDiscussionService
         return $discussion ? $this->formatDiscussion($discussion) : null;
     }
 
-    public function getDiscussionPosts(int $discussionId, int $page = 1, int $limit = 20): array
+    public function getDiscussionPosts(int $discussionId, int $page = 1, int $limit = 20, ?int $authorId = null): array
     {
         $offset = ($page - 1) * $limit;
         $discussion = $this->findDiscussionWithAuthor($discussionId);
@@ -431,6 +500,7 @@ class CourseCohortDiscussionService
             "SELECT COUNT(*) AS total
         FROM discussion_posts
         WHERE discussion_id = :discussion_id
+        AND deleted_at IS NULL
         AND parent_post_id IS NULL",
             [
                 'discussion_id' => $discussionId,
@@ -442,18 +512,28 @@ class CourseCohortDiscussionService
             "SELECT 
             p.*,
             pp.first_name,
-            pp.last_name
+            pp.last_name,
+            CASE
+                WHEN dpl.id IS NULL THEN 0
+                ELSE 1
+            END AS is_liked
         FROM discussion_posts p
         LEFT JOIN program_profiles pp
             ON pp.id = p.author_id
+        LEFT JOIN discussion_post_likes dpl
+            ON dpl.post_id = p.id
+            AND dpl.profile_id = :author_id
         WHERE 
             p.discussion_id = :discussion_id
+        AND
+            p.deleted_at IS NULL
         AND 
             p.parent_post_id IS NULL
         ORDER BY p.created_at ASC
         LIMIT :limit OFFSET :offset",
             [
                 'discussion_id' => $discussionId,
+                'author_id' => $authorId,
                 'limit' => $limit,
                 'offset' => $offset
             ]
@@ -473,14 +553,15 @@ class CourseCohortDiscussionService
         ];
     }
 
-    public function getPostReplies(int $postId, int $page = 1, int $limit = 20): array
+    public function getPostReplies(int $postId, int $page = 1, int $limit = 20, ?int $authorId = null): array
     {
         $offset = ($page - 1) * $limit;
-        $post = $this->findPostWithAuthor($postId);
+        $post = $this->findPostWithAuthor($postId, $authorId);
         $totalRows = $this->discussionPostModel->rawQuery(
             "SELECT COUNT(*) AS total
         FROM discussion_posts
-        WHERE parent_post_id = :post_id",
+        WHERE parent_post_id = :post_id
+        AND deleted_at IS NULL",
             [
                 'post_id' => $postId,
             ]
@@ -491,16 +572,26 @@ class CourseCohortDiscussionService
             "SELECT 
             p.*,
             pp.first_name,
-            pp.last_name
+            pp.last_name,
+            CASE
+                WHEN dpl.id IS NULL THEN 0
+                ELSE 1
+            END AS is_liked
         FROM discussion_posts p
         LEFT JOIN program_profiles pp
             ON pp.id = p.author_id
+        LEFT JOIN discussion_post_likes dpl
+            ON dpl.post_id = p.id
+            AND dpl.profile_id = :author_id
         WHERE 
             p.parent_post_id = :post_id
+        AND
+            p.deleted_at IS NULL
         ORDER BY p.created_at ASC
         LIMIT :limit OFFSET :offset",
             [
                 'post_id' => $postId,
+                'author_id' => $authorId,
                 'limit' => $limit,
                 'offset' => $offset
             ]
@@ -531,6 +622,7 @@ class CourseCohortDiscussionService
             LEFT JOIN program_profiles p
                 ON p.id = d.author_id
             WHERE d.id = :discussion_id
+            AND d.deleted_at IS NULL
             LIMIT 1",
             [
                 'discussion_id' => $discussionId,
@@ -540,20 +632,29 @@ class CourseCohortDiscussionService
         return $rows[0] ?? null;
     }
 
-    private function findPostWithAuthor(int $postId): ?array
+    private function findPostWithAuthor(int $postId, ?int $authorId = null): ?array
     {
         $rows = $this->discussionPostModel->rawQuery(
             "SELECT
                 p.*,
                 pp.first_name,
-                pp.last_name
+                pp.last_name,
+                CASE
+                    WHEN dpl.id IS NULL THEN 0
+                    ELSE 1
+                END AS is_liked
             FROM discussion_posts p
             LEFT JOIN program_profiles pp
                 ON pp.id = p.author_id
+            LEFT JOIN discussion_post_likes dpl
+                ON dpl.post_id = p.id
+                AND dpl.profile_id = :author_id
             WHERE p.id = :post_id
+            AND p.deleted_at IS NULL
             LIMIT 1",
             [
                 'post_id' => $postId,
+                'author_id' => $authorId,
             ]
         );
 
@@ -578,6 +679,7 @@ class CourseCohortDiscussionService
             'images' => $row['images'] ? json_decode($row['images'], true) : [],
             'is_pinned' => (bool) $row['is_pinned'],
             'is_locked' => (bool) $row['is_locked'],
+            'likes_count' => (int) ($row['likes_count'] ?? 0),
             'created_at' => $row['created_at'],
         ];
     }
@@ -601,6 +703,7 @@ class CourseCohortDiscussionService
             'depth' => isset($row['depth']) ? (int) $row['depth'] : 0,
             'reply_count' => (int) $row['reply_count'],
             'likes_count' => (int) $row['likes_count'],
+            'is_liked' => (bool) ($row['is_liked'] ?? false),
             'created_at' => $row['created_at'],
         ];
     }

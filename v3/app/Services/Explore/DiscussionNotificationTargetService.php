@@ -255,10 +255,23 @@ class DiscussionNotificationTargetService
 
     public function buildPushData(string $type, array $fields): array
     {
-        return array_filter(
+        $payload = array_filter(
             array_merge(['type' => $type], $fields),
             static fn(mixed $value): bool => $value !== null && $value !== ''
         );
+
+        foreach ($payload as $key => $value) {
+            if (is_bool($value)) {
+                $payload[$key] = $value ? '1' : '0';
+                continue;
+            }
+
+            if (is_int($value) || is_float($value) || is_string($value)) {
+                $payload[$key] = (string) $value;
+            }
+        }
+
+        return $payload;
     }
 
     public function buildFullName(?string $firstName, ?string $lastName): ?string

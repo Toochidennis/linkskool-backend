@@ -27,7 +27,6 @@ class CourseCohortDiscussionController extends ExploreBaseController
                 'cohort_id' => 'required|integer',
                 'program_id' => 'required|integer',
                 'course_id' => 'required|integer',
-                'title' => 'required|string',
                 'body' => 'required|string',
                 'author_id' => 'required|integer',
                 'is_locked' => 'nullable|boolean',
@@ -103,7 +102,6 @@ class CourseCohortDiscussionController extends ExploreBaseController
                 'cohort_id' => 'required|integer',
                 'program_id' => 'required|integer',
                 'course_id' => 'required|integer',
-                'title' => 'required|string',
                 'body' => 'required|string',
                 'author_id' => 'required|integer',
                 'is_locked' => 'nullable|boolean',
@@ -131,7 +129,7 @@ class CourseCohortDiscussionController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/cohorts/{cohort_id}/discussions/posts/{post_id}', 'PUT', ['api'])]
+    #[Route('/cohorts/{cohort_id}/discussions/{discussion_id}/posts/{post_id}', 'PUT', ['api'])]
     public function updatePost(array $vars)
     {
         $validated = $this->validate(
@@ -141,6 +139,7 @@ class CourseCohortDiscussionController extends ExploreBaseController
                 'cohort_id' => 'required|integer',
                 'program_id' => 'required|integer',
                 'course_id' => 'required|integer',
+                'discussion_id' => 'required|integer',
                 'body' => 'required|string',
                 'author_id' => 'required|integer',
                 'files' => 'nullable|array|max:3',
@@ -206,21 +205,59 @@ class CourseCohortDiscussionController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/cohorts/discussions', 'GET', ['api'])]
+    #[Route('/cohorts/{cohort_id}/discussions/{discussion_id}/like', 'POST', ['api'])]
+    public function likeDiscussion(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'discussion_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+                'author_id' => 'required|integer',
+            ]
+        );
+
+        $this->discussionService->likeDiscussion($validated);
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Discussion liked successfully.',
+        ]);
+    }
+
+    #[Route('/cohorts/{cohort_id}/discussions/{discussion_id}/unlike', 'POST', ['api'])]
+    public function unlikeDiscussion(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'discussion_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+                'author_id' => 'required|integer',
+            ]
+        );
+
+        $this->discussionService->unlikeDiscussion($validated);
+
+        $this->respond([
+            'success' => true,
+            'message' => 'Discussion unliked successfully.',
+        ]);
+    }
+
+    #[Route('/cohorts/{cohort_id}/discussions', 'GET', ['api'])]
     public function getDiscussions(array $vars)
     {
         $validated = $this->validate(
             $vars,
             [
+                'cohort_id' => 'required|integer',
                 'page' => 'nullable|integer|min:1',
                 'limit' => 'nullable|integer|min:1|max:100',
             ]
         );
         $result = $this->discussionService
-            ->getDiscussions(
-                $validated['page'] ?? 1,
-                $validated['limit'] ?? 20
-            );
+            ->getDiscussions($validated);
         return $this->respond([
             'success' => true,
             'data' => $result
@@ -236,8 +273,7 @@ class CourseCohortDiscussionController extends ExploreBaseController
                 'discussion_id' => 'required|integer',
             ]
         );
-        $result = $this->discussionService
-            ->getDiscussionById($validated['discussion_id']);
+        $result = $this->discussionService->getDiscussionById($validated['discussion_id']);
         return $this->respond([
             'success' => true,
             'data' => $result
@@ -248,9 +284,10 @@ class CourseCohortDiscussionController extends ExploreBaseController
     public function getPosts(array $vars)
     {
         $validated = $this->validate(
-            $vars,
+            [...$this->getRequestData(), ...$vars],
             [
                 'discussion_id' => 'required|integer',
+                'author_id' => 'nullable|integer',
                 'page' => 'nullable|integer|min:1',
                 'limit' => 'nullable|integer|min:1|max:100',
             ]
@@ -259,7 +296,8 @@ class CourseCohortDiscussionController extends ExploreBaseController
             ->getDiscussionPosts(
                 $validated['discussion_id'],
                 $validated['page'] ?? 1,
-                $validated['limit'] ?? 20
+                $validated['limit'] ?? 20,
+                $validated['author_id'] ?? null
             );
         return $this->respond([
             'success' => true,
@@ -271,9 +309,10 @@ class CourseCohortDiscussionController extends ExploreBaseController
     public function getPostReplies(array $vars)
     {
         $validated = $this->validate(
-            $vars,
+            [...$this->getRequestData(), ...$vars],
             [
                 'post_id' => 'required|integer',
+                'author_id' => 'nullable|integer',
                 'page' => 'nullable|integer|min:1',
                 'limit' => 'nullable|integer|min:1|max:100',
             ]
@@ -281,7 +320,8 @@ class CourseCohortDiscussionController extends ExploreBaseController
         $result = $this->discussionService->getPostReplies(
             $validated['post_id'],
             $validated['page'] ?? 1,
-            $validated['limit'] ?? 20
+            $validated['limit'] ?? 20,
+            $validated['author_id'] ?? null
         );
 
         return $this->respond([

@@ -131,6 +131,7 @@ class Tables
         'course_cohort_payments',
         'course_cohort_payment_items',
         'discussions',
+        'discussion_likes',
         'discussion_posts',
         'discussion_post_likes',
     ];

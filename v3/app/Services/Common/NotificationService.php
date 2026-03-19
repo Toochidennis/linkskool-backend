@@ -162,6 +162,31 @@ class NotificationService
 
     private function buildMessagePayload(string $to, string $title, string $body, array $data): array
     {
+        $normalizedData = [];
+        foreach ($data as $key => $value) {
+            if (!is_string($key) || $key === '' || $value === null) {
+                continue;
+            }
+
+            if (is_bool($value)) {
+                $normalizedData[$key] = $value ? '1' : '0';
+                continue;
+            }
+
+            if (is_int($value) || is_float($value) || is_string($value)) {
+                $normalizedData[$key] = (string) $value;
+            }
+        }
+
+        $baseData = [
+            'lesson_id' => '',
+            'type' => '',
+            'cohort_id' => '',
+            'profile_id' => '',
+            'course_id' => '',
+            'program_id' => '',
+        ];
+
         return [
             'message' => [
                 'token' => $to,
@@ -169,14 +194,7 @@ class NotificationService
                     'title' => $title,
                     'body' => $body,
                 ],
-                'data' => [
-                    'lesson_id' => $data['lesson_id'] ?? '',
-                    'type' => $data['type'] ?? '',
-                    'cohort_id' => $data['cohort_id'] ?? '',
-                    'profile_id' => $data['profile_id'] ?? '',
-                    'course_id' => $data['course_id'] ?? '',
-                    'program_id' => $data['program_id'] ?? '',
-                ]
+                'data' => array_merge($baseData, $normalizedData)
             ],
         ];
     }
