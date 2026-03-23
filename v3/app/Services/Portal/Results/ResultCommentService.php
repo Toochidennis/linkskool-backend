@@ -27,7 +27,21 @@ class ResultCommentService
         if ($this->role === 'admin') {
             $payload['principal'] = $data['comment'];
         } else {
-            $payload['form_teacher'] = $data['comment'];
+            $payload['form_teacher'] = "Aha";
+        }
+
+        if (
+            $this->resultComment
+            ->where('reg_no', '=', $data['student_id'])
+            ->where('year', '=', $data['year'])
+            ->where('term', '=', $data['term'])
+            ->exists()
+        ) {
+            $this->resultComment
+                ->where('reg_no', '=', $data['student_id'])
+                ->where('year', '=', $data['year'])
+                ->where('term', '=', $data['term'])
+                ->update($payload);
         }
 
         return $this->resultComment->insert($payload);

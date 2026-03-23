@@ -142,6 +142,8 @@ class AuthService
 
             'settings' => $this->getSchoolSetting(),
 
+            'num_of_form_classes' => $this->getFormClassCount($id),
+
             'form_classes' => $this->getLevelsAndClasses($id),
 
             'courses' => $this->getStaffAssignedCourses($id)
@@ -184,6 +186,7 @@ class AuthService
             ->select([
                 'class_table.id AS class_id',
                 'class_table.class_name',
+                'class_table.level AS level_id',
                 'course_table.id AS course_id',
                 'course_table.course_name',
                 "COUNT(DISTINCT result_table.reg_no) AS num_of_students"
@@ -203,7 +206,7 @@ class AuthService
             ->where('staff_course_table.ref_no', $teacherId)
             ->where('staff_course_table.term', $setting['term'])
             ->where('staff_course_table.year', $setting['year'])
-            ->groupBy(['class_id', 'class_name', 'course_id', 'course_name'])
+            ->groupBy(['class_id', 'class_name', 'level_id', 'course_id', 'course_name'])
             ->orderBy(['class_name' => 'ASC', 'course_name' => 'ASC'])
             ->get();
 
@@ -216,6 +219,7 @@ class AuthService
                 $grouped[$classId] = [
                     'class_id' => $row['class_id'],
                     'class_name' => $row['class_name'],
+                    'level_id' => $row['level_id'],
                     'courses' => []
                 ];
             }
@@ -229,7 +233,7 @@ class AuthService
 
         return array_values($grouped);
     }
-    private function getLevelsAndClasses($teacherId): array
+    private function getLevelsAndClasses(int $teacherId): array
     {
         $rows = $this->level
             ->select([
@@ -239,7 +243,7 @@ class AuthService
                 'class_table.class_name'
             ])
             ->join('class_table', 'level_table.id = class_table.level')
-            ->where('class_table.form_teacher', $teacherId)
+            ->whereRaw('FIND_IN_SET(?, class_table.form_teacher) > 0', [(string) $teacherId])
             ->get();
 
         $grouped = [];
@@ -262,6 +266,13 @@ class AuthService
         }
 
         return array_values($grouped);
+    }
+
+    private function getFormClassCount(int $teacherId): int
+    {
+        return $this->classModel
+            ->whereRaw('FIND_IN_SET(?, class_table.form_teacher) > 0', [(string) $teacherId])
+            ->count();
     }
 
     private function verifyPassword(string $userPassword, string $password): bool

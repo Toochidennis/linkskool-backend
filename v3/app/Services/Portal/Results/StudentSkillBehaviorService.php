@@ -61,7 +61,7 @@ class StudentSkillBehaviorService
             }
         }
 
-        return $count === count($data['skills']);
+        return $count === \count($data['skills']);
     }
 
     private function getStudents(array $filters)
