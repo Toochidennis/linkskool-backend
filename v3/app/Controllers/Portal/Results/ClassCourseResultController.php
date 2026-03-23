@@ -47,7 +47,7 @@ class ClassCourseResultController extends BaseController
             ]
         );
 
-        return $this->respond([
+        $this->respond([
             'success' => true,
             'response' => $this->service->fetchTermCourseResult($data)
         ]);
@@ -70,7 +70,7 @@ class ClassCourseResultController extends BaseController
             ]
         );
 
-        return $this->respond([
+        $this->respond([
             'success' => true,
             'response' => $this->service->fetchStudentsTermResultWithComments($data)
         ]);
@@ -93,7 +93,7 @@ class ClassCourseResultController extends BaseController
             ]
         );
 
-        return $this->respond([
+        $this->respond([
             'success' => true,
             'response' => $this->service->fetchTermCompositeResult($data)
         ]);
@@ -114,7 +114,7 @@ class ClassCourseResultController extends BaseController
             ]
         );
 
-        return $this->respond([
+        $this->respond([
             'success' => true,
             'response' => $this->service->fetchLevelsPerformance($data)
         ]);

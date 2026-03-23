@@ -30,12 +30,16 @@ class ResultService
      *
      * @return bool Returns true if all the records were updated successfully, false otherwise.
      */
-    public function updateRecord($results)
+    public function updateRecord(array $results)
     {
         $count = 0;
 
         foreach ($results as $res) {
             $assessments = json_encode($res['assessments']);
+            $legacyScores = implode(':', array_map(
+                static fn($assessment) => $assessment['score'] ?? '',
+                $res['assessments']
+            ));
             $totalScore = $res['total_score'];
             $comment = $this->getComment($totalScore);
             $remark = $this->getRemark($totalScore);
@@ -43,6 +47,7 @@ class ResultService
             $updated = $this->result
                 ->where('id', '=', $res['result_id'])
                 ->update(data: [
+                    'result' => $legacyScores,
                     'total' => $totalScore,
                     'grade' => $remark['grade'],
                     'remark' => $remark['remark'],
@@ -58,7 +63,7 @@ class ResultService
             }
         }
 
-        return $count === count($results);
+        return $count === \count($results);
     }
 
     /**
@@ -80,7 +85,7 @@ class ResultService
      * @param float|int|null $score The total score.
      * @return string|null Returns a performance comment or null if score is not provided.
      */
-    private function getComment($score)
+    private function getComment(?int $score): ?string
     {
         if (!is_numeric($score)) {
             return '';
@@ -105,7 +110,7 @@ class ResultService
      * @param float|int $score The total score.
      * @return array Returns an array with keys:
      */
-    private function getRemark($score)
+    private function getRemark(int $score)
     {
         if (!is_numeric($score)) {
             return [

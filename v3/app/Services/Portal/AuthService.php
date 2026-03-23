@@ -186,15 +186,17 @@ class AuthService
                 'class_table.class_name',
                 'course_table.id AS course_id',
                 'course_table.course_name',
-                "COUNT(result_table.id) AS num_of_students"
+                "COUNT(DISTINCT result_table.reg_no) AS num_of_students"
             ])
             ->join('staff_course_table', 'class_table.id = staff_course_table.class')
             ->join('course_table', 'course_table.id = staff_course_table.course')
             ->join(
                 'result_table',
-                function ($join) {
+                function ($join) use ($setting) {
                     $join->on('result_table.class', '=', 'class_table.id')
-                        ->on('result_table.course', '=', 'course_table.id');
+                        ->on('result_table.course', '=', 'course_table.id')
+                        ->on('result_table.term', '=', $setting['term'])
+                        ->on('result_table.year', '=', $setting['year']);
                 },
                 'LEFT'
             )
