@@ -70,6 +70,7 @@ class BillingController extends ExploreBaseController
         ], $isSuccess ? HttpStatus::OK : HttpStatus::BAD_REQUEST);
     }
 
+    #[Route('/billing/{reference}/status', 'GET', ['api'])]
     public function paymentStatus(array $vars)
     {
         $reference = $this->validate(
