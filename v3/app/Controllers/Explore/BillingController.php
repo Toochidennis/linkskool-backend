@@ -57,8 +57,6 @@ class BillingController extends ExploreBaseController
                 'first_name' => 'required|string',
                 'last_name' => 'required|string',
                 'email' => 'required|email',
-                'callback_url' => 'nullable|url',
-                'reference' => 'nullable|string',
             ]
         );
 
@@ -70,5 +68,26 @@ class BillingController extends ExploreBaseController
             'message' => $res['message'] ?? 'Payment initialization completed.',
             'data' => $res
         ], $isSuccess ? HttpStatus::OK : HttpStatus::BAD_REQUEST);
+    }
+
+    public function paymentStatus(array $vars)
+    {
+        $reference = $this->validate(
+            $vars,
+            [
+                'reference' => 'required|string'
+            ]
+        )['reference'];
+
+
+        $res = $this->service->checkPaymentStatus($reference);
+
+        $isSuccess = ($res['status'] ?? '') === 'success';
+
+        $this->respond([
+            'success' => $isSuccess,
+            'message' => $res['message'] ?? 'Payment status retrieved.',
+            'data' => $res
+        ], HttpStatus::OK);
     }
 }

@@ -103,7 +103,7 @@ class BillingService
     private function initiatePaymentOnline(array $data): array
     {
         $paystack = new PaystackService();
-        $reference = $data['reference'] ?? ('BILL-' . date('YmdHis') . '-' . bin2hex(random_bytes(5)));
+        $reference = 'CBT-' . date('YmdHis') . '-' . bin2hex(random_bytes(5));
         $amount = $this->computePrice((int) $data['plan_id']);
         $payload = [
             'email' => $data['email'],
@@ -115,6 +115,7 @@ class BillingService
                 'platform' => (string) $data['platform'],
                 'first_name' => (string) $data['first_name'],
                 'last_name' => (string) $data['last_name'],
+                'payment_type' => 'cbt',
             ],
         ];
 
@@ -161,7 +162,6 @@ class BillingService
                 'status' => 'pending',
                 'message' => 'Payment initialized successfully.',
                 'payment_url' => $initialized['authorization_url'],
-                'access_code' => $initialized['access_code'],
                 'reference' => $resolvedReference,
             ];
         } catch (\Throwable $e) {
@@ -204,14 +204,18 @@ class BillingService
         if ($amountPaid !== $expected) {
             return [
                 'status' => 'failed',
-                'message' => 'Payment amount mismatch: expected ' . $expected . ', got ' . $amountPaid,
+                'message' => "Payment amount mismatch: expected $expected, got $amountPaid",
             ];
         }
 
         $existingPayment = $this->payment
             ->where('reference', $data['reference'])
             ->first();
-        if (!empty($existingPayment) && \in_array($existingPayment['status'] ?? '', ['success'], true)) {
+
+        if (
+            !empty($existingPayment) &&
+            \in_array($existingPayment['status'] ?? '', ['success'], true)
+        ) {
             return [
                 'status' => 'success',
                 'message' => 'Payment already recorded'
@@ -231,13 +235,9 @@ class BillingService
             'last_name' => $data['last_name'],
         ];
 
-        if (!empty($existingPayment)) {
-            $paymentId = $this->payment
-                ->where('reference', $data['reference'])
-                ->update($successPayload);
-        } else {
-            $paymentId = $this->payment->insert($successPayload);
-        }
+        $paymentId = (!empty($existingPayment)) ? $this->payment
+            ->where('reference', $data['reference'])
+            ->update($successPayload) : $this->payment->insert($successPayload);
 
         if ($paymentId) {
             return [
@@ -343,5 +343,24 @@ class BillingService
         }
 
         return $price * 100; // convert to kobo
+    }
+
+    public function checkPaymentStatus(string $reference): array
+    {
+        $payment = $this->payment
+            ->where('reference', $reference)
+            ->first();
+
+        if (empty($payment)) {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment not found',
+            ];
+        }
+
+        return [
+            'status' => $payment['status'],
+            'message' => 'Payment status retrieved successfully',
+        ];
     }
 }
