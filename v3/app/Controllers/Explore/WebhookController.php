@@ -9,6 +9,7 @@ use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\Explore\ExploreBaseController;
 use V3\App\Database\DatabaseConnector;
 use V3\App\Services\Explore\BillingService;
+use V3\App\Services\Explore\CbtPaymentFulfillmentService;
 use V3\App\Services\Explore\CourseCohortEnrollmentService;
 
 #[Group('/public')]
@@ -16,6 +17,7 @@ class WebhookController extends ExploreBaseController
 {
     private BillingService $billingService;
     private CourseCohortEnrollmentService $courseEnrollment;
+    private CbtPaymentFulfillmentService $cbtPaymentFulfillmentService;
 
     public function __construct()
     {
@@ -23,6 +25,7 @@ class WebhookController extends ExploreBaseController
         $this->pdo = DatabaseConnector::connect();
         $this->billingService = new BillingService($this->pdo);
         $this->courseEnrollment = new CourseCohortEnrollmentService($this->pdo);
+        $this->cbtPaymentFulfillmentService = new CbtPaymentFulfillmentService($this->pdo);
     }
 
     #[Route('/webhooks/paystack', 'POST')]
@@ -84,6 +87,25 @@ class WebhookController extends ExploreBaseController
             case 'cbt':
                 $res = $this->billingService
                     ->handlePaystackWebhook($payload, $signature, $rawBody);
+                if (($res['status'] ?? '') === 'success') {
+                    $fulfillment = $this->cbtPaymentFulfillmentService->handleSuccessfulWebhook([
+                        'status' => $res['status'],
+                        'method' => $res['method'],
+                        'platform' => $res['platform'],
+                        'user_id' => $res['user_id'],
+                    ]);
+
+                    $res['fulfillment'] = $fulfillment;
+
+                    if (($fulfillment['status'] ?? '') === 'failed') {
+                        $res = [
+                            'status' => 'failed',
+                            'message' => $fulfillment['message'] ?? 'Payment fulfillment failed.',
+                            'payment' => $res,
+                            'fulfillment' => $fulfillment,
+                        ];
+                    }
+                }
                 break;
             default:
                 $res = [

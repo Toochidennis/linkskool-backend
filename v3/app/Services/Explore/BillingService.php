@@ -65,39 +65,15 @@ class BillingService
         }
 
         $reference = trim((string) ($payload['data']['reference'] ?? ''));
-        $metadata = $payload['data']['metadata'] ?? [];
 
-        if ($reference === '' || !\is_array($metadata)) {
+        if ($reference === '') {
             return [
                 'status' => 'failed',
-                'message' => 'Missing reference or metadata.',
+                'message' => 'Missing payment reference.',
             ];
         }
 
-        $verificationData = [
-            'user_id' => (int) ($metadata['user_id'] ?? 0),
-            'plan_id' => (int) ($metadata['plan_id'] ?? 0),
-            'method' => 'online',
-            'platform' => (string) ($metadata['platform'] ?? ''),
-            'first_name' => (string) ($metadata['first_name'] ?? ''),
-            'last_name' => (string) ($metadata['last_name'] ?? ''),
-            'reference' => $reference,
-        ];
-
-        if (
-            $verificationData['user_id'] <= 0 ||
-            $verificationData['plan_id'] <= 0 ||
-            $verificationData['platform'] === '' ||
-            $verificationData['first_name'] === '' ||
-            $verificationData['last_name'] === ''
-        ) {
-            return [
-                'status' => 'failed',
-                'message' => 'Invalid metadata payload.',
-            ];
-        }
-
-        return $this->verifyPaymentOnline($verificationData);
+        return $this->verifyPaymentByReference($reference);
     }
 
     private function initiatePaymentOnline(array $data): array
@@ -250,6 +226,101 @@ class BillingService
         return [
             'status' => 'failed',
             'message' => 'Failed to record payment'
+        ];
+    }
+
+    public function verifyPaymentByReference(string $reference): array
+    {
+        $existingPayment = $this->payment
+            ->where('reference', $reference)
+            ->first();
+
+        if (empty($existingPayment)) {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment not found.',
+            ];
+        }
+
+        if (($existingPayment['status'] ?? '') === 'success') {
+            return [
+                'status' => 'success',
+                'message' => 'Payment already recorded',
+                'user_id' => (int) $existingPayment['user_id'],
+                'plan_id' => (int) $existingPayment['plan_id'],
+                'platform' => (string) $existingPayment['platform'],
+                'method' => (string) $existingPayment['method'],
+                'reference' => (string) $existingPayment['reference'],
+            ];
+        }
+
+        $paystack = new PaystackService();
+
+        try {
+            $verification = $paystack->verify($reference);
+        } catch (\Throwable $e) {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment verification failed: ' . $e->getMessage(),
+            ];
+        }
+
+        if (!$verification['success']) {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment verification failed: ' . $verification['message'],
+            ];
+        }
+
+        if (($verification['status'] ?? '') !== 'success') {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment is not successful: ' . ($verification['status'] ?? 'unknown'),
+            ];
+        }
+
+        $expected = $this->computePrice((int) $existingPayment['plan_id']);
+        $amountPaid = (int) ($verification['amount_kobo'] ?? ((float) $verification['amount'] * 100));
+
+        if ($amountPaid !== $expected) {
+            return [
+                'status' => 'failed',
+                'message' => "Payment amount mismatch: expected $expected, got $amountPaid",
+            ];
+        }
+
+        $successPayload = [
+            'user_id' => (int) $existingPayment['user_id'],
+            'amount' => $amountPaid,
+            'plan_id' => (int) $existingPayment['plan_id'],
+            'reference' => $reference,
+            'status' => 'success',
+            'message' => 'Payment verified successfully',
+            'method' => (string) $existingPayment['method'],
+            'platform' => (string) $existingPayment['platform'],
+            'first_name' => (string) ($existingPayment['first_name']),
+            'last_name' => (string) ($existingPayment['last_name']),
+        ];
+
+        $saved = $this->payment
+            ->where('reference', $reference)
+            ->update($successPayload);
+
+        if (!$saved) {
+            return [
+                'status' => 'failed',
+                'message' => 'Failed to record payment'
+            ];
+        }
+
+        return [
+            'status' => 'success',
+            'message' => 'Payment verified successfully',
+            'user_id' => (int) $existingPayment['user_id'],
+            'plan_id' => (int) $existingPayment['plan_id'],
+            'platform' => (string) $existingPayment['platform'],
+            'method' => (string) $existingPayment['method'],
+            'reference' => $reference,
         ];
     }
 

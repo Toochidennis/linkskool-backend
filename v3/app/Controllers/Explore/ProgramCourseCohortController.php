@@ -58,7 +58,7 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'image.name' => 'required_with:image|string',
                 'image.tmp_name' => 'required_with:image|string',
                 'image.error' => 'required_with:image|integer',
-                'image.size' => 'required_with:image|integer|max:2097152' // 2 MB
+                'image.size' => 'required_with:image|integer|max:5097152' // 2 MB
             ]
         );
 
@@ -119,7 +119,7 @@ class ProgramCourseCohortController extends ExploreBaseController
                 'image.name' => 'required_with:image|string',
                 'image.tmp_name' => 'required_with:image|string',
                 'image.error' => 'required_with:image|integer',
-                'image.size' => 'required_with:image|integer|max:2097152' // 2 MB
+                'image.size' => 'required_with:image|integer|max:5097152' // 2 MB
             ]
         );
 
