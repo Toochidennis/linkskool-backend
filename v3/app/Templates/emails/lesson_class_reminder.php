@@ -3,7 +3,7 @@ $recipientName = htmlspecialchars(trim((string)(($data['first_name'] ?? '') . ' 
 $lessonTitle = htmlspecialchars((string)($data['title'] ?? 'Live Class'), ENT_QUOTES, 'UTF-8');
 $courseName = htmlspecialchars((string)($data['course_name'] ?? 'Your Course'), ENT_QUOTES, 'UTF-8');
 $description = htmlspecialchars((string)($data['description'] ?? ''), ENT_QUOTES, 'UTF-8');
-$authorName = htmlspecialchars((string)($data['author_name'] ?? 'Your Instructor'), ENT_QUOTES, 'UTF-8');
+$authorName = htmlspecialchars((string)($data['author_name'] ?? ''), ENT_QUOTES, 'UTF-8');
 
 // Time formatting
 $lessonDate = isset($data['lesson_date']) ? date('F d, Y', strtotime($data['lesson_date'])) : 'N/A';
@@ -28,15 +28,49 @@ $youtubeUrl = $hasYouTube ? htmlspecialchars($data['video_url'], ENT_QUOTES, 'UT
 $hasRecordedVideo = !empty($data['recorded_video_url']);
 $recordedVideoUrl = $hasRecordedVideo ? htmlspecialchars($data['recorded_video_url'], ENT_QUOTES, 'UTF-8') : '';
 
-$assetUrl = getenv('ASSET_URL') ?: 'https://linkskool.net';
+$assetUrl = rtrim((string) (getenv('ASSET_URL') ?? 'https://linkskool.com/assets'), '/');
+$appBaseUrl = rtrim((string) (getenv('APP_URL') ?: 'https://linkskool.com'), '/');
+$liveClassUrl = $appBaseUrl . '/learn/live-class';
+$liveClassQuery = array_filter([
+    'lesson_id' => $data['id'] ?? null,
+    'course_id' => $data['course_id'] ?? null,
+    'cohort_id' => $data['cohort_id'] ?? null,
+    'program_id' => $data['program_id'] ?? null,
+]);
+if (!empty($liveClassQuery)) {
+    $liveClassUrl .= '?' . http_build_query($liveClassQuery);
+}
+$safeLiveClassUrl = htmlspecialchars($liveClassUrl, ENT_QUOTES, 'UTF-8');
 $logoUrl = $assetUrl . '/assets/logo.png';
-$facebookIcon = 'https://img.icons8.com/color/48/facebook-new.png';
-$xIcon = 'https://img.icons8.com/color/48/twitterx--v1.png';
-$youtubeIcon = 'https://img.icons8.com/color/48/youtube-play.png';
-$instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
 $zoomIconUrl = 'https://img.icons8.com/color/48/zoom.png';
 $yIcon = 'https://img.icons8.com/color/48/youtube.png';
 $playIcon = 'https://img.icons8.com/color/32/play-button.png';
+
+if (!function_exists('normalizeReminderCardContent')) {
+    function normalizeReminderCardContent(string $content): string
+    {
+        $content = trim($content);
+        if ($content === '') {
+            return '';
+        }
+
+        $content = preg_replace('/<br\s*\/?>/i', "\n", $content);
+        $content = html_entity_decode((string) $content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $content = strip_tags((string) $content);
+
+        $lines = preg_split('/\r\n|\r|\n/', (string) $content) ?: [];
+        $lines = array_map(static function (string $line): string {
+            return trim($line);
+        }, $lines);
+        $lines = array_values(array_filter($lines, static function (string $line): bool {
+            return $line !== '';
+        }));
+
+        return htmlspecialchars(implode("\n\n", $lines), ENT_QUOTES, 'UTF-8');
+    }
+}
+
+$sessionDescription = normalizeReminderCardContent((string) ($data['description'] ?? ''));
 ?>
 <!DOCTYPE html>
 <html>
@@ -49,27 +83,30 @@ $playIcon = 'https://img.icons8.com/color/32/play-button.png';
 <table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 0;background:#f5f7fa;">
     <tr>
         <td align="center">
-            <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.12);">
+            <table width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(15,23,42,0.06);">
                 <!-- Header with Logo -->
                 <tr>
-                    <td align="center" style="background:#f8f9fa;padding:16px 24px;border-bottom:1px solid #e5e5e5;">
-                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="50" style="display:block;margin:0;height:auto;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,0.08);">
+                    <td align="center" style="background:#f8fafc;padding:18px 24px;border-bottom:1px solid #e2e8f0;">
+                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="42" style="display:block;margin:0;height:auto;border-radius:8px;">
                     </td>
                 </tr>
 
                 <!-- Main Content -->
                 <tr>
-                    <td style="padding:32px 28px;">
+                    <td style="padding:30px 28px 28px 28px;">
                         <!-- Greeting -->
-                        <h1 style="margin:0 0 6px 0;font-size:28px;color:#0f172a;font-weight:600;">🎬 Live Class Starting Soon!</h1>
-                        <p style="margin:0 0 28px 0;font-size:15px;color:#64748b;">Hello <strong><?= $recipientName ?></strong>,</p>
+                        <h1 style="margin:0 0 8px 0;font-size:28px;line-height:1.25;color:#0f172a;font-weight:700;">Live Class Starting Soon</h1>
+                        <p style="margin:0 0 8px 0;font-size:14px;color:#334155;">Hello <strong><?= $recipientName ?></strong>,</p>
+                        <p style="margin:0 0 24px 0;font-size:14px;line-height:1.7;color:#64748b;">
+                            Your live class is coming up shortly. Here are the details and the quickest ways to join.
+                        </p>
 
                         <!-- Lesson Card -->
-                        <div style="margin:0 0 28px 0;padding:20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
-                            <h2 style="margin:0 0 6px 0;font-size:20px;color:#0f172a;font-weight:600;"><?= $lessonTitle ?></h2>
-                            <p style="margin:0 0 16px 0;font-size:14px;color:#64748b;">Part of <strong><?= $courseName ?></strong></p>
+                        <div style="margin:0 0 20px 0;padding:20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;">
+                            <h2 style="margin:0 0 6px 0;font-size:20px;line-height:1.35;color:#0f172a;font-weight:700;"><?= $lessonTitle ?></h2>
+                            <p style="margin:0 0 14px 0;font-size:14px;color:#64748b;">Part of <strong style="color:#334155;"><?= $courseName ?></strong></p>
                             <div style="padding:12px 0 0 0;border-top:1px solid #e2e8f0;">
-                                <p style="margin:0 0 6px 0;font-size:14px;color:#475569;">
+                                <p style="margin:0 0 8px 0;font-size:14px;color:#475569;">
                                     <strong style="color:#0f172a;">Instructor:</strong> <?= $authorName ?>
                                 </p>
                                 <p style="margin:0;font-size:14px;color:#475569;">
@@ -79,27 +116,25 @@ $playIcon = 'https://img.icons8.com/color/32/play-button.png';
                         </div>
 
                         <!-- Description -->
-                        <?php if ($description): ?>
-                        <div style="margin:0 0 28px 0;padding:18px;background:#f8fafc;border-left:3px solid #3b82f6;border-radius:4px;">
-                            <h3 style="margin:0 0 8px 0;font-size:15px;color:#0f172a;font-weight:600;">About This Session</h3>
-                            <p style="margin:0;font-size:14px;line-height:1.6;color:#475569;white-space:pre-wrap;">
-                                <?= htmlspecialchars_decode($description) ?>
-                            </p>
+                        <?php if ($sessionDescription !== ''): ?>
+                        <div style="margin:0 0 20px 0;padding:18px;background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #3b82f6;border-radius:12px;">
+                            <h3 style="margin:0 0 8px 0;font-size:15px;color:#0f172a;font-weight:700;">About This Session</h3>
+                            <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;"><?= $sessionDescription ?></p>
                         </div>
                         <?php endif; ?>
 
                         <!-- Join Options -->
-                        <div style="margin:0 0 28px 0;">
-                            <h3 style="margin:0 0 16px 0;font-size:16px;color:#0f172a;font-weight:600;">Join Your Class</h3>
+                        <div style="margin:0 0 20px 0;">
+                            <h3 style="margin:0 0 14px 0;font-size:16px;color:#0f172a;font-weight:700;">Join Your Class</h3>
                             
                             <!-- Zoom Option -->
                             <?php if ($hasZoom): ?>
-                            <div style="margin:0 0 16px 0;padding:18px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
+                            <div style="margin:0 0 14px 0;padding:18px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;">
                                 <div style="margin:0 0 12px 0;">
                                     <img src="<?= $zoomIconUrl ?>" alt="Zoom" width="24" height="24" style="display:inline-block;vertical-align:middle;margin-right:8px;">
-                                    <h4 style="display:inline-block;vertical-align:middle;margin:0;font-size:15px;color:#0f172a;font-weight:600;">Join on Zoom</h4>
+                                    <h4 style="display:inline-block;vertical-align:middle;margin:0;font-size:15px;color:#0f172a;font-weight:700;">Join on Zoom</h4>
                                 </div>
-                                <p style="margin:0 0 14px 0;font-size:13px;color:#475569;">
+                                <p style="margin:0 0 14px 0;font-size:13px;line-height:1.6;color:#475569;">
                                     <strong>Time:</strong> 
                                     <?php if ($zoomStartTime): ?>
                                         <?= $zoomStartTime ?>
@@ -116,12 +151,12 @@ $playIcon = 'https://img.icons8.com/color/32/play-button.png';
 
                             <!-- YouTube Option -->
                             <?php if ($hasYouTube): ?>
-                            <div style="margin:0 0 16px 0;padding:18px;background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;">
+                            <div style="margin:0 0 14px 0;padding:18px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;">
                                 <div style="margin:0 0 12px 0;">
                                     <img src="<?= $yIcon ?>" alt="YouTube" width="24" height="24" style="display:inline-block;vertical-align:middle;margin-right:8px;">
-                                    <h4 style="display:inline-block;vertical-align:middle;margin:0;font-size:15px;color:#0f172a;font-weight:600;">Join via YouTube Live</h4>
+                                    <h4 style="display:inline-block;vertical-align:middle;margin:0;font-size:15px;color:#0f172a;font-weight:700;">Join via YouTube Live</h4>
                                 </div>
-                                <p style="margin:0 0 14px 0;font-size:13px;color:#475569;">
+                                <p style="margin:0 0 14px 0;font-size:13px;line-height:1.6;color:#475569;">
                                     <strong>Time:</strong> 
                                     <?php if ($zoomStartTime): ?>
                                         <?= $zoomStartTime ?>
@@ -139,9 +174,9 @@ $playIcon = 'https://img.icons8.com/color/32/play-button.png';
 
                         <!-- Recorded Session -->
                         <?php if ($hasRecordedVideo): ?>
-                        <div style="margin:0 0 28px 0;padding:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
-                            <h4 style="margin:0 0 8px 0;font-size:14px;color:#0f172a;font-weight:600;">📹 Missed the Live Session?</h4>
-                            <p style="margin:0 0 14px 0;font-size:13px;color:#475569;">
+                        <div style="margin:0 0 20px 0;padding:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;">
+                            <h4 style="margin:0 0 8px 0;font-size:14px;color:#0f172a;font-weight:700;">Missed the Live Session?</h4>
+                            <p style="margin:0 0 14px 0;font-size:13px;line-height:1.6;color:#475569;">
                                 You can watch the recorded version anytime.
                             </p>
                             <a href="<?= $recordedVideoUrl ?>" style="display:inline-block;padding:10px 20px;background:#64748b;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;font-size:13px;">
@@ -150,9 +185,15 @@ $playIcon = 'https://img.icons8.com/color/32/play-button.png';
                         </div>
                         <?php endif; ?>
 
+                        <div style="margin:0 0 24px 0;text-align:center;">
+                            <a href="<?= $safeLiveClassUrl ?>" style="display:inline-block;padding:14px 32px;background:#0f766e;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">
+                                Open Live Class in App
+                            </a>
+                        </div>
+
                         <!-- Preparation Tips -->
-                        <div style="margin:0 0 24px 0;padding:18px;background:#f8fafc;border-radius:6px;">
-                            <h4 style="margin:0 0 12px 0;font-size:14px;color:#0f172a;font-weight:600;">Before You Join</h4>
+                        <div style="margin:0;padding:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;">
+                            <h4 style="margin:0 0 12px 0;font-size:14px;color:#0f172a;font-weight:700;">Before You Join</h4>
                             <ul style="margin:0;padding-left:20px;font-size:13px;color:#64748b;line-height:1.8;">
                                 <li style="margin:4px 0;">Ensure your internet connection is stable</li>
                                 <li style="margin:4px 0;">Test your camera and microphone if required</li>
@@ -160,41 +201,17 @@ $playIcon = 'https://img.icons8.com/color/32/play-button.png';
                                 <li style="margin:4px 0;">Have your materials ready</li>
                             </ul>
                         </div>
-
-                        <!-- Support Message -->
-                        <p style="margin:0;font-size:13px;color:#64748b;text-align:center;line-height:1.5;">
-                            <strong style="color:#475569;">Need help?</strong><br>
-                            Contact our support team if you experience any issues.
-                        </p>
                     </td>
                 </tr>
 
-                <!-- Social Links Footer -->
-                <tr>
-                    <td style="background:#f8fafc;padding:24px 20px;text-align:center;border-top:1px solid #e2e8f0;">
-                        <p style="margin:0 0 14px 0;font-size:13px;font-weight:600;color:#334155;letter-spacing:0.01em;">CONNECT WITH US</p>
-                        <a href="https://www.facebook.com/share/1Dwd5kQsgM/" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $facebookIcon ?>" alt="Facebook" width="22" height="22" style="display:block;">
-                        </a>
-                        <a href="https://x.com/DigitalDreamsNG" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $xIcon ?>" alt="X (Twitter)" width="22" height="22" style="display:block;">
-                        </a>
-                        <a href="https://www.youtube.com/@digitaldreamsictacademy1353" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $youtubeIcon ?>" alt="YouTube" width="22" height="22" style="display:block;">
-                        </a>
-                        <a href="https://www.instagram.com/digitaldreamslimited/?hl=en" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $instagramIcon ?>" alt="Instagram" width="22" height="22" style="display:block;">
-                        </a>
-                    </td>
-                </tr>
-
-                <!-- Copyright Footer -->
-                <tr>
-                    <td style="background:#f8fafc;padding:16px 20px 24px 20px;text-align:center;font-size:12px;color:#94a3b8;border-top:1px solid #e2e8f0;">
-                        <span style="font-weight:500;">© <?= date('Y') ?> Linkskool.</span> All rights reserved.<br>
-                        <span style="font-size:11px;margin-top:8px;display:block;">See you in class!</span>
-                    </td>
-                </tr>
+                <?php
+                $footerData = [
+                    'support_title' => 'Need help?',
+                    'support_message' => 'Contact our support team if you experience any issues.',
+                    'footer_note' => 'See you in class!',
+                ];
+                include __DIR__ . '/partials/footer.php';
+                ?>
             </table>
         </td>
     </tr>

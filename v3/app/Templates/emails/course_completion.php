@@ -3,12 +3,22 @@ $studentName = htmlspecialchars($data['student_name'], ENT_QUOTES, 'UTF-8');
 $courseName = htmlspecialchars($data['course_name'], ENT_QUOTES, 'UTF-8');
 $certificateName = htmlspecialchars($data['certificate_name'] ?? $studentName, ENT_QUOTES, 'UTF-8');
 $certificateUrl = htmlspecialchars($data['certificate_url'] ?? '', ENT_QUOTES, 'UTF-8');
-$assetUrl = getenv('ASSET_URL') ?? 'https://linkskool.net';
-$logoUrl = $assetUrl . '/assets/logo.png';
-$facebookIcon = 'https://img.icons8.com/color/48/facebook-new.png';
-$xIcon = 'https://img.icons8.com/color/48/twitterx--v1.png';
-$youtubeIcon = 'https://img.icons8.com/color/48/youtube-play.png';
-$instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
+$assetUrl = rtrim((string) (getenv('ASSET_URL') ?? 'https://linkskool.com/assets'), '/');
+$appBaseUrl = rtrim((string) (getenv('APP_URL') ?: 'https://linkskool.com'), '/');
+$completionUrl = $appBaseUrl . '/learn/course-completion';
+$completionQuery = array_filter([
+    'lessonId' => $data['lesson_id'] ?? null,
+    'courseId' => $data['course_id'] ?? null,
+    'cohortId' => $data['cohort_id'] ?? null,
+    'programId' => $data['program_id'] ?? null,
+]);
+if (!empty($completionQuery)) {
+    $completionUrl .= '?' . http_build_query($completionQuery);
+} else {
+    $completionUrl = $appBaseUrl . '/dashboard';
+}
+$safeCompletionUrl = htmlspecialchars($completionUrl, ENT_QUOTES, 'UTF-8');
+$logoUrl = $assetUrl . '/logo.png';
 ?>
 <!DOCTYPE html>
 <html>
@@ -38,6 +48,9 @@ $instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
                                 <a href="<?= $certificateUrl ?>" style="display:inline-block;background:#3b82f6;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-weight:600;font-size:14px;">Download Certificate</a>
                             </p>
                         <?php endif; ?>
+                        <p style="margin:0 0 28px 0;">
+                            <a href="<?= $safeCompletionUrl ?>" style="display:inline-block;background:#059669;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-weight:600;font-size:14px;">View Completion</a>
+                        </p>
 
                         <p style="margin:0;font-size:13px;color:#64748b;text-align:center;line-height:1.5;">
                             <strong style="font-weight:600;color:#475569;">Have questions?</strong><br>
@@ -45,28 +58,15 @@ $instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
                         </p>
                     </td>
                 </tr>
-                <tr>
-                    <td style="background:#f8fafc;padding:24px 20px;text-align:center;border-top:1px solid #e2e8f0;">
-                        <p style="margin:0 0 14px 0;font-size:13px;font-weight:600;color:#334155;letter-spacing:0.01em;">Follow Us</p>
-                        <a href="https://www.facebook.com/share/1Dwd5kQsgM/" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $facebookIcon ?>" alt="Facebook" width="22" height="22" style="display:block;">
-                        </a>
-                        <a href="https://x.com/DigitalDreamsNG" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $xIcon ?>" alt="X (Twitter)" width="22" height="22" style="display:block;">
-                        </a>
-                        <a href="https://www.youtube.com/@digitaldreamsictacademy1353" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $youtubeIcon ?>" alt="YouTube" width="22" height="22" style="display:block;">
-                        </a>
-                        <a href="https://www.instagram.com/digitaldreamslimited/?hl=en" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $instagramIcon ?>" alt="Instagram" width="22" height="22" style="display:block;">
-                        </a>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="background:#f8fafc;padding:16px 20px 24px 20px;text-align:center;font-size:13px;color:#94a3b8;border-top:1px solid #e2e8f0;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                        <span style="font-weight:500;">© <?= date('Y') ?> Linkskool.</span> All rights reserved.
-                    </td>
-                </tr>
+                <?php
+                $footerData = [
+                    'support_title' => 'Have questions?',
+                    'support_message' => 'Our support team is available to help you.',
+                    'social_label' => 'Follow Us',
+                    'footer_note' => null,
+                ];
+                include __DIR__ . '/partials/footer.php';
+                ?>
             </table>
         </td>
     </tr>

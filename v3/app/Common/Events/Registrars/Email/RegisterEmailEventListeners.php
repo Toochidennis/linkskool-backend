@@ -4,6 +4,7 @@ namespace V3\App\Common\Events\Registrars\Email;
 
 use V3\App\Common\Events\EventDispatcher;
 use V3\App\Events\Auth\UserRegisteredFirstTime;
+use V3\App\Events\Email\AbandonedCart;
 use V3\App\Events\Email\CohortCourseEnrolled;
 use V3\App\Events\Email\CohortCoursesEnrolled;
 use V3\App\Events\Email\SubmissionGraded;
@@ -13,6 +14,7 @@ use V3\App\Events\Lesson\LessonPublished;
 use V3\App\Events\Lesson\LiveClassReminderDue;
 use V3\App\Events\News\NewsPosted;
 use V3\App\Listeners\Email\SendAssignmentDueReminderEmail;
+use V3\App\Listeners\Email\SendAbandonedCartEmail;
 use V3\App\Listeners\Email\SendClassReminderEmail;
 use V3\App\Listeners\Email\SendCohortCourseEnrolledEmail;
 use V3\App\Listeners\Email\SendCohortCoursesEnrolledEmail;
@@ -26,6 +28,11 @@ class RegisterEmailEventListeners
 {
     public static function register(): void
     {
+        EventDispatcher::listen(
+            AbandonedCart::class,
+            new SendAbandonedCartEmail()
+        );
+
         EventDispatcher::listen(
             SubmissionGraded::class,
             new SendSubmissionGradedEmail()

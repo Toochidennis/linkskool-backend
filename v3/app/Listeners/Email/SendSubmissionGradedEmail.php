@@ -30,7 +30,7 @@ class SendSubmissionGradedEmail
             }
 
             $name = trim(($profile['first_name'] ?? '') . ' ' . ($profile['last_name'] ?? ''));
-            $student['name'] = !empty($name) ? $name : 'Student';
+            $student['name'] = $name;
 
             $v3root = realpath(__DIR__ . '/../../');
             if ($v3root === false) {
@@ -41,10 +41,15 @@ class SendSubmissionGradedEmail
                 $v3root . '/Templates/emails/submission_graded.php',
                 [
                     'student_name' => $student['name'],
+                    'lesson_id' => $event->lessonId,
+                    'profile_id' => $event->profileId,
+                    'course_id' => $lesson['course_id'],
+                    'cohort_id' => $lesson['cohort_id'],
+                    'program_id' => $lesson['program_id'],
                     'assigned_score' => $event->assignedScore,
                     'remark' => $event->remark,
                     'comment' => $event->comment,
-                    'lesson_title' => $lesson['title'] ?? 'Lesson',
+                    'lesson_title' => $lesson['title'],
                 ]
             );
 

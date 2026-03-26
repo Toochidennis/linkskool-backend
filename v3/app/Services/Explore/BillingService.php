@@ -9,6 +9,8 @@ use V3\App\Models\Explore\Plan;
 
 class BillingService
 {
+    private const PAYMENT_EXPIRY_MINUTES = 10;
+
     private Payment $payment;
     private Voucher $voucher;
     private Plan $plan;
@@ -113,6 +115,7 @@ class BillingService
                 'platform' => $data['platform'],
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
+                'expires_at' => $this->computePendingPaymentExpiryAt(),
             ];
 
             $existing = $this->payment
@@ -433,5 +436,84 @@ class BillingService
             'status' => $payment['status'],
             'message' => 'Payment status retrieved successfully',
         ];
+    }
+
+    public function abandonExpiredPendingPayments(): int
+    {
+        $cutoff = date('Y-m-d H:i:s');
+
+        return $this->payment->rawExecute(
+            "
+            UPDATE payments
+            SET status = :status,
+                message = :message
+            WHERE status = :pending_status
+              AND expires_at IS NOT NULL
+              AND expires_at <= :cutoff
+            ",
+            [
+                'status' => 'abandoned',
+                'message' => 'Payment abandoned after exceeding the pending window.',
+                'pending_status' => 'pending',
+                'cutoff' => $cutoff,
+            ]
+        );
+    }
+
+    public function getAbandonedCartReminderCandidates(int $limit = 200): array
+    {
+        $limit = max(1, $limit);
+
+        return $this->payment->rawQuery(
+            sprintf(
+                "
+                SELECT id
+                FROM payments
+                WHERE status = 'abandoned'
+                  AND method = 'online'
+                ORDER BY created_at ASC
+                LIMIT %d
+                ",
+                $limit
+            )
+        );
+    }
+
+    public function getAbandonedCartDetails(int $paymentId): array
+    {
+        $rows = $this->payment->rawQuery(
+            "
+            SELECT
+                p.id,
+                p.user_id,
+                p.plan_id,
+                p.reference,
+                p.amount,
+                p.status,
+                p.platform,
+                p.method,
+                p.first_name,
+                p.last_name,
+                p.expires_at,
+                p.created_at,
+                u.email,
+                pl.name AS plan_name
+            FROM payments p
+            LEFT JOIN cbt_users u ON u.id = p.user_id
+            LEFT JOIN plans pl ON pl.id = p.plan_id
+            WHERE p.id = :payment_id
+            LIMIT 1
+            ",
+            [
+                'payment_id' => $paymentId,
+            ]
+        );
+
+        return $rows[0] ?? [];
+    }
+
+    private function computePendingPaymentExpiryAt(): string
+    {
+        return date('Y-m-d H:i:s', strtotime('+' . self::PAYMENT_EXPIRY_MINUTES . ' minutes'));
     }
 }

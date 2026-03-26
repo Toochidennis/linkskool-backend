@@ -20,6 +20,7 @@ class NewsNotificationTargetService
     private UserDeviceToken $userDeviceToken;
     private MailService $mailService;
     private NotificationService $notificationService;
+    private ?bool $emailLogSupportsEventKey = null;
 
     public function __construct(\PDO $pdo)
     {
@@ -46,7 +47,11 @@ class NewsNotificationTargetService
             ->get();
 
         return array_values(array_filter($rows, function (array $row): bool {
-            return !empty($row['user_id']);
+            $email = trim((string) ($row['email'] ?? ''));
+
+            return !empty($row['user_id'])
+                && $email !== ''
+                && filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
         }));
     }
 
@@ -54,16 +59,18 @@ class NewsNotificationTargetService
         string $email,
         string $name,
         string $subject,
-        string $html
+        string $html,
+        ?string $eventKey = null
     ): void {
-        if ($this->hasEmailBeenSent($email, $subject)) {
+        if ($this->hasEmailBeenSent($email, $subject, $eventKey)) {
             return;
         }
 
         $this->mailService->send(
             "{$name} <{$email}>",
             $subject,
-            $html
+            $html,
+            $eventKey
         );
     }
 
@@ -97,6 +104,7 @@ class NewsNotificationTargetService
         array $recipients,
         array $news,
         string $subject,
+        ?string $eventKey = null,
         ?int $batchSize = null
     ): void {
         $batchSize = $this->resolveBatchSize(
@@ -113,7 +121,11 @@ class NewsNotificationTargetService
                 continue;
             }
 
-            if ($this->hasEmailBeenSent($email, $subject)) {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                continue;
+            }
+
+            if ($this->hasEmailBeenSent($email, $subject, $eventKey)) {
                 continue;
             }
 
@@ -131,7 +143,7 @@ class NewsNotificationTargetService
         ]);
 
         foreach (array_chunk($batchRecipients, $batchSize) as $chunk) {
-            $this->mailService->sendBatch($chunk, $subject, $html);
+            $this->mailService->sendBatch($chunk, $subject, $html, $eventKey);
         }
     }
 
@@ -222,8 +234,26 @@ class NewsNotificationTargetService
         );
     }
 
-    private function hasEmailBeenSent(string $email, string $subject): bool
+    private function hasEmailBeenSent(string $email, string $subject, ?string $eventKey = null): bool
     {
+        if ($eventKey !== null && $this->emailLogSupportsEventKey()) {
+            $rows = $this->emailLog->rawQuery(
+                "
+                SELECT 1
+                FROM email_logs
+                WHERE event_key = :event_key
+                  AND recipient LIKE :recipient
+                LIMIT 1
+                ",
+                [
+                    'event_key' => $eventKey,
+                    'recipient' => '%<' . $email . '>%',
+                ]
+            );
+
+            return !empty($rows);
+        }
+
         $rows = $this->emailLog->rawQuery(
             "
             SELECT 1
@@ -239,6 +269,18 @@ class NewsNotificationTargetService
         );
 
         return !empty($rows);
+    }
+
+    private function emailLogSupportsEventKey(): bool
+    {
+        if ($this->emailLogSupportsEventKey !== null) {
+            return $this->emailLogSupportsEventKey;
+        }
+
+        $rows = $this->emailLog->rawQuery("SHOW COLUMNS FROM email_logs LIKE 'event_key'");
+        $this->emailLogSupportsEventKey = !empty($rows);
+
+        return $this->emailLogSupportsEventKey;
     }
 
     private function hasPushBeenSent(string $token, string $title, string $body): bool
