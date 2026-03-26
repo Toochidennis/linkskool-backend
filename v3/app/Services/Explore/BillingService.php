@@ -59,12 +59,7 @@ class BillingService
             ];
         }
 
-        if (!\in_array(($payload['event'] ?? ''), ['transaction.success', 'charge.success'], true)) {
-            return [
-                'status' => 'ignored',
-                'message' => 'Event ignored.',
-            ];
-        }
+        $eventName = (string) ($payload['event'] ?? '');
 
         $reference = trim((string) ($payload['data']['reference'] ?? ''));
 
@@ -75,7 +70,23 @@ class BillingService
             ];
         }
 
-        return $this->verifyPaymentByReference($reference);
+        if (\in_array($eventName, ['transaction.success', 'charge.success'], true)) {
+            return $this->verifyPaymentByReference($reference);
+        }
+
+        if (\in_array($eventName, ['charge.failed', 'transaction.failed'], true)) {
+            $gatewayMessage = trim((string) ($payload['data']['gateway_response'] ?? $payload['data']['message'] ?? ''));
+
+            return $this->markPaymentFailedByReference(
+                $reference,
+                $gatewayMessage !== '' ? $gatewayMessage : 'Payment was not successful.'
+            );
+        }
+
+        return [
+            'status' => 'ignored',
+            'message' => 'Event ignored.',
+        ];
     }
 
     private function initiatePaymentOnline(array $data): array
@@ -171,10 +182,10 @@ class BillingService
         }
 
         if (($verification['status'] ?? '') !== 'success') {
-            return [
-                'status' => 'failed',
-                'message' => 'Payment is not successful: ' . ($verification['status'] ?? 'unknown'),
-            ];
+            return $this->markPaymentFailedByReference(
+                $reference,
+                'Payment is not successful: ' . ($verification['status'] ?? 'unknown')
+            );
         }
 
         $expected = $this->computePrice($data['plan_id']);
@@ -319,6 +330,7 @@ class BillingService
         return [
             'status' => 'success',
             'message' => 'Payment verified successfully',
+            'payment_id' => (int) ($existingPayment['id'] ?? 0),
             'user_id' => (int) $existingPayment['user_id'],
             'plan_id' => (int) $existingPayment['plan_id'],
             'platform' => (string) $existingPayment['platform'],
@@ -510,6 +522,101 @@ class BillingService
         );
 
         return $rows[0] ?? [];
+    }
+
+    public function getPaymentReceiptDetails(int $paymentId): array
+    {
+        $rows = $this->payment->rawQuery(
+            "
+            SELECT
+                p.id,
+                p.user_id,
+                p.plan_id,
+                p.reference,
+                p.amount,
+                p.status,
+                p.message,
+                p.method,
+                p.platform,
+                p.first_name,
+                p.last_name,
+                p.created_at,
+                p.updated_at,
+                u.email,
+                pl.name AS plan_name
+            FROM payments p
+            LEFT JOIN cbt_users u ON u.id = p.user_id
+            LEFT JOIN plans pl ON pl.id = p.plan_id
+            WHERE p.id = :payment_id
+            LIMIT 1
+            ",
+            [
+                'payment_id' => $paymentId,
+            ]
+        );
+
+        $payment = $rows[0] ?? [];
+        if (empty($payment)) {
+            return [];
+        }
+
+        $payment['paid_at'] = (string) ($payment['updated_at'] ?? $payment['created_at'] ?? '');
+
+        return $payment;
+    }
+
+    private function markPaymentFailedByReference(string $reference, string $message): array
+    {
+        $existingPayment = $this->payment
+            ->where('reference', $reference)
+            ->first();
+
+        if (empty($existingPayment)) {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment not found.',
+            ];
+        }
+
+        if (($existingPayment['status'] ?? '') === 'success') {
+            return [
+                'status' => 'success',
+                'message' => 'Payment already recorded',
+                'payment_id' => (int) $existingPayment['id'],
+                'user_id' => (int) $existingPayment['user_id'],
+                'plan_id' => (int) $existingPayment['plan_id'],
+                'platform' => (string) $existingPayment['platform'],
+                'method' => (string) $existingPayment['method'],
+                'reference' => (string) $existingPayment['reference'],
+            ];
+        }
+
+        $payload = [
+            'status' => 'failed',
+            'message' => $message,
+        ];
+
+        $saved = $this->payment
+            ->where('reference', $reference)
+            ->update($payload);
+
+        if (!$saved) {
+            return [
+                'status' => 'failed',
+                'message' => 'Failed to record payment failure.',
+            ];
+        }
+
+        return [
+            'status' => 'failed',
+            'message' => $message,
+            'payment_id' => (int) $existingPayment['id'],
+            'user_id' => (int) $existingPayment['user_id'],
+            'plan_id' => (int) $existingPayment['plan_id'],
+            'platform' => (string) $existingPayment['platform'],
+            'method' => (string) $existingPayment['method'],
+            'reference' => (string) $existingPayment['reference'],
+        ];
     }
 
     private function computePendingPaymentExpiryAt(): string

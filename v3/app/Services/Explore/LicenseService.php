@@ -2,6 +2,8 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Common\Events\EventDispatcher;
+use V3\App\Events\Email\LicenseActivated;
 use V3\App\Models\Explore\Device;
 use V3\App\Models\Explore\License;
 use V3\App\Models\Explore\Plan;
@@ -111,6 +113,8 @@ class LicenseService
             'status' => 'active',
         ]);
 
+        EventDispatcher::dispatch(new LicenseActivated((int) $licenseId));
+
         return [
             'status' => 'activated',
             'license' => [
@@ -203,6 +207,8 @@ class LicenseService
             'expires_at' => $expiresAt,
             'status' => 'active',
         ]);
+
+        EventDispatcher::dispatch(new LicenseActivated((int) $licenseId));
 
         return [
             'status' => 'activated',
@@ -303,6 +309,40 @@ class LicenseService
         }
 
         return null;
+    }
+
+    public function getActivationReceiptDetails(int $licenseId): array
+    {
+        $rows = $this->license->rawQuery(
+            "
+            SELECT
+                l.id,
+                l.user_id,
+                l.platform,
+                l.type,
+                l.payment_id,
+                l.expires_at,
+                l.status,
+                l.created_at AS issued_at,
+                p.reference,
+                p.first_name,
+                p.last_name,
+                u.email,
+                pl.name AS plan_name,
+                pl.duration_days
+            FROM licenses l
+            LEFT JOIN payments p ON p.id = l.payment_id
+            LEFT JOIN cbt_users u ON u.id = l.user_id
+            LEFT JOIN plans pl ON pl.id = p.plan_id
+            WHERE l.id = :license_id
+            LIMIT 1
+            ",
+            [
+                'license_id' => $licenseId,
+            ]
+        );
+
+        return $rows[0] ?? [];
     }
 
     public function revokeLicense(int $licenseId): bool

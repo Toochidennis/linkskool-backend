@@ -2,12 +2,14 @@
 
 namespace V3\App\Controllers\Explore;
 
+use V3\App\Common\Events\EventDispatcher;
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\DataExtractor;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\Explore\ExploreBaseController;
 use V3\App\Database\DatabaseConnector;
+use V3\App\Events\Email\PaymentReceipt;
 use V3\App\Services\Explore\BillingService;
 use V3\App\Services\Explore\CbtPaymentFulfillmentService;
 use V3\App\Services\Explore\CourseCohortEnrollmentService;
@@ -87,6 +89,9 @@ class WebhookController extends ExploreBaseController
             case 'cbt':
                 $res = $this->billingService
                     ->handlePaystackWebhook($payload, $signature, $rawBody);
+                if (\in_array(($res['status'] ?? ''), ['success', 'failed'], true) && !empty($res['payment_id'])) {
+                    EventDispatcher::dispatch(new PaymentReceipt((int) $res['payment_id']));
+                }
                 if (($res['status'] ?? '') === 'success') {
                     $fulfillment = $this->cbtPaymentFulfillmentService->handleSuccessfulWebhook([
                         'status' => $res['status'],

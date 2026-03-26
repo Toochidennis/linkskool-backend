@@ -23,6 +23,32 @@ if (!empty($classQuery)) {
 }
 $safeClassUrl = htmlspecialchars($classUrl, ENT_QUOTES, 'UTF-8');
 $logoUrl = $assetUrl . '/assets/logo.png';
+
+if (!function_exists('normalizeClassReminderContent')) {
+    function normalizeClassReminderContent(string $content): string
+    {
+        $content = trim($content);
+        if ($content === '') {
+            return '';
+        }
+
+        $content = preg_replace('/<br\s*\/?>/i', "\n", $content);
+        $content = html_entity_decode((string) $content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $content = strip_tags((string) $content);
+
+        $lines = preg_split('/\r\n|\r|\n/', (string) $content) ?: [];
+        $lines = array_map(static function (string $line): string {
+            return trim($line);
+        }, $lines);
+        $lines = array_values(array_filter($lines, static function (string $line): bool {
+            return $line !== '';
+        }));
+
+        return htmlspecialchars(implode("\n\n", $lines), ENT_QUOTES, 'UTF-8');
+    }
+}
+
+$objectivesContent = normalizeClassReminderContent((string) ($data['objectives'] ?? ''));
 ?>
 <!DOCTYPE html>
 <html>
@@ -67,12 +93,10 @@ $logoUrl = $assetUrl . '/assets/logo.png';
                         </div>
 
                         <!-- What You'll Learn -->
-                        <?php if ($objectives): ?>
+                        <?php if ($objectivesContent !== ''): ?>
                         <div style="margin:0 0 28px 0;padding:18px;background:#f8fafc;border-left:3px solid #3b82f6;border-radius:4px;">
                             <h3 style="margin:0 0 10px 0;font-size:15px;color:#0f172a;font-weight:600;">What You'll Learn</h3>
-                            <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;">
-                                <?= htmlspecialchars_decode($objectives) ?>
-                            </p>
+                            <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;"><?= $objectivesContent ?></p>
                         </div>
                         <?php endif; ?>
 
@@ -92,11 +116,6 @@ $logoUrl = $assetUrl . '/assets/logo.png';
                             </a>
                         </div>
 
-                        <!-- Support Message -->
-                        <p style="margin:0;font-size:13px;color:#64748b;text-align:center;line-height:1.5;">
-                            <strong style="color:#475569;">See you in class!</strong><br>
-                            Contact us if you have any questions.
-                        </p>
                     </td>
                 </tr>
 
