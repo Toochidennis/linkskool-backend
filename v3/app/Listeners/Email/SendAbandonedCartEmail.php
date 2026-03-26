@@ -17,7 +17,11 @@ class SendAbandonedCartEmail
             $billingService = new BillingService($pdo);
             $payment = $billingService->getAbandonedCartDetails($event->paymentId);
 
-            if (empty($payment) || ($payment['status'] ?? '') !== 'abandoned') {
+            if (
+                empty($payment)
+                || ($payment['status'] ?? '') !== 'abandoned'
+                || !$billingService->shouldSendAbandonedCartReminder($event->paymentId)
+            ) {
                 return;
             }
 

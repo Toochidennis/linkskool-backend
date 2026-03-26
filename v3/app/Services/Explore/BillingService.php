@@ -479,11 +479,34 @@ class BillingService
         return $this->payment->rawQuery(
             sprintf(
                 "
-                SELECT id
-                FROM payments
-                WHERE status = 'abandoned'
-                  AND method = 'online'
-                ORDER BY created_at ASC
+                SELECT p.id
+                FROM payments p
+                WHERE p.status = 'abandoned'
+                  AND p.method = 'online'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM payments newer
+                      WHERE newer.user_id = p.user_id
+                        AND newer.plan_id = p.plan_id
+                        AND newer.platform = p.platform
+                        AND (
+                            newer.created_at > p.created_at
+                            OR (newer.created_at = p.created_at AND newer.id > p.id)
+                        )
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM licenses l
+                      INNER JOIN payments sp
+                        ON sp.id = l.payment_id
+                      WHERE l.user_id = p.user_id
+                        AND l.platform = p.platform
+                        AND l.status = 'active'
+                        AND l.revoked_at IS NULL
+                        AND (l.expires_at IS NULL OR l.expires_at > NOW())
+                        AND sp.plan_id = p.plan_id
+                  )
+                ORDER BY p.created_at ASC
                 LIMIT %d
                 ",
                 $limit
@@ -522,6 +545,48 @@ class BillingService
         );
 
         return $rows[0] ?? [];
+    }
+
+    public function shouldSendAbandonedCartReminder(int $paymentId): bool
+    {
+        $rows = $this->payment->rawQuery(
+            "
+            SELECT 1
+            FROM payments p
+            WHERE p.id = :payment_id
+              AND p.status = 'abandoned'
+              AND p.method = 'online'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM payments newer
+                  WHERE newer.user_id = p.user_id
+                    AND newer.plan_id = p.plan_id
+                    AND newer.platform = p.platform
+                    AND (
+                        newer.created_at > p.created_at
+                        OR (newer.created_at = p.created_at AND newer.id > p.id)
+                    )
+              )
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM licenses l
+                  INNER JOIN payments sp
+                    ON sp.id = l.payment_id
+                  WHERE l.user_id = p.user_id
+                    AND l.platform = p.platform
+                    AND l.status = 'active'
+                    AND l.revoked_at IS NULL
+                    AND (l.expires_at IS NULL OR l.expires_at > NOW())
+                    AND sp.plan_id = p.plan_id
+              )
+            LIMIT 1
+            ",
+            [
+                'payment_id' => $paymentId,
+            ]
+        );
+
+        return !empty($rows);
     }
 
     public function getPaymentReceiptDetails(int $paymentId): array
