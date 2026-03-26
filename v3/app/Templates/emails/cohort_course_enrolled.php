@@ -10,9 +10,9 @@ $assetUrl = rtrim((string) (getenv('ASSET_URL') ?? 'https://linkskool.com/assets
 $appBaseUrl = rtrim((string) (getenv('APP_URL') ?: 'https://linkskool.com'), '/');
 $courseUrl = $appBaseUrl . '/learn/course';
 $courseQuery = array_filter([
-    'courseId' => $data['course_id'] ?? null,
-    'cohortId' => $data['cohort_id'] ?? null,
-    'programId' => $data['program_id'] ?? null,
+    'course_id' => $data['course_id'] ?? null,
+    'cohort_id' => $data['cohort_id'] ?? null,
+    'program_id' => $data['program_id'] ?? null,
 ]);
 if (!empty($courseQuery)) {
     $courseUrl .= '?' . http_build_query($courseQuery);
@@ -27,6 +27,32 @@ $startDate = !empty($data['cohort_start_date']) ? date('F d, Y', strtotime($data
 $endDate = !empty($data['cohort_end_date']) ? date('F d, Y', strtotime($data['cohort_end_date'])) : null;
 
 $checkIcon = 'https://img.icons8.com/color/32/ok.png';
+
+if (!function_exists('normalizeEnrollmentCardContent')) {
+    function normalizeEnrollmentCardContent(string $content): string
+    {
+        $content = trim($content);
+        if ($content === '') {
+            return '';
+        }
+
+        $content = preg_replace('/<br\s*\/?>/i', "\n", $content);
+        $content = html_entity_decode((string) $content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $content = strip_tags((string) $content);
+
+        $lines = preg_split('/\r\n|\r|\n/', (string) $content) ?: [];
+        $lines = array_map(static function (string $line): string {
+            return trim($line);
+        }, $lines);
+        $lines = array_values(array_filter($lines, static function (string $line): bool {
+            return $line !== '';
+        }));
+
+        return htmlspecialchars(implode("\n\n", $lines), ENT_QUOTES, 'UTF-8');
+    }
+}
+
+$aboutCourseContent = normalizeEnrollmentCardContent((string) ($data['cohort_description'] ?? ''));
 ?>
 <!DOCTYPE html>
 <html>
@@ -88,12 +114,10 @@ $checkIcon = 'https://img.icons8.com/color/32/ok.png';
                         </div>
 
                         <!-- Course Description -->
-                        <?php if ($cohortDescription): ?>
+                        <?php if ($aboutCourseContent !== ''): ?>
                         <div style="margin:24px 0;padding:20px;background:#f0f9ff;border-left:4px solid #16a34a;border-radius:0 8px 8px 0;">
                             <h3 style="margin:0 0 12px 0;font-size:15px;color:#1e293b;font-weight:600;">About This Course</h3>
-                            <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;">
-                                <?= htmlspecialchars_decode($cohortDescription) ?>
-                            </p>
+                            <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;"><?= $aboutCourseContent ?></p>
                         </div>
                         <?php endif; ?>
 
@@ -125,11 +149,6 @@ $checkIcon = 'https://img.icons8.com/color/32/ok.png';
                             </a>
                         </div>
 
-                        <!-- Support Message -->
-                        <p style="margin:28px 0 0 0;font-size:13px;color:#64748b;text-align:center;line-height:1.6;">
-                            <strong style="font-weight:600;color:#475569;">Need Help?</strong><br>
-                            Our support team is available to assist you with any questions.
-                        </p>
                     </td>
                 </tr>
 
