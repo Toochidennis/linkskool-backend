@@ -6,7 +6,7 @@ $platform = htmlspecialchars(ucfirst((string) ($data['platform'] ?? '')), ENT_QU
 $expiresAt = htmlspecialchars($data['expires_at'] ?? '', ENT_QUOTES, 'UTF-8');
 $amountKobo = (float) ($data['amount'] ?? 0);
 $amountNaira = number_format($amountKobo / 100, 2);
-$assetUrl = getenv('ASSET_URL') ?? 'https://linkskool.net';
+$assetUrl = getenv('ASSET_URL') ?? 'https://linkskool.com/assets';
 $webBaseUrl = rtrim((string) (getenv('APP_URL') ?? 'https://linkskool.com'), '/');
 $paymentPath = '/cbt/payment';
 $paymentUrl = $webBaseUrl . $paymentPath;
@@ -15,7 +15,7 @@ if (($data['reference'] ?? '') !== '') {
     $paymentUrl .= '?reference=' . rawurlencode((string) $data['reference']);
 }
 
-$logoUrl = $assetUrl . '/assets/logo.png';
+$logoUrl = $assetUrl . '/logo.png';
 ?>
 <!DOCTYPE html>
 <html>

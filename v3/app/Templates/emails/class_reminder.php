@@ -9,20 +9,20 @@ $authorName = htmlspecialchars((string)($data['author_name'] ?? 'Your Instructor
 $lessonDate = isset($data['lesson_date']) ? date('F d, Y', strtotime($data['lesson_date'])) : 'N/A';
 $dayOfWeek = isset($data['lesson_date']) ? date('l', strtotime($data['lesson_date'])) : '';
 
-$assetUrl = getenv('ASSET_URL') ?: 'https://linkskool.net';
-$appBaseUrl = rtrim((string) (getenv('APP_URL2') ?: 'https://linkschoolonline.com/cbt-app'), '/');
+$assetUrl = getenv('ASSET_URL') ?: 'https://linkskool.com/assets';
+$appBaseUrl = rtrim((string) (getenv('APP_URL') ?: 'https://linkskool.com'), '/');
 $classUrl = $appBaseUrl . '/learn/class-reminder';
 $classQuery = array_filter([
-    'lessonId' => $data['id'] ?? null,
-    'courseId' => $data['course_id'] ?? null,
-    'cohortId' => $data['cohort_id'] ?? null,
-    'programId' => $data['program_id'] ?? null,
+    'lesson_id' => $data['id'] ?? null,
+    'course_id' => $data['course_id'] ?? null,
+    'cohort_id' => $data['cohort_id'] ?? null,
+    'program_id' => $data['program_id'] ?? null,
 ]);
 if (!empty($classQuery)) {
     $classUrl .= '?' . http_build_query($classQuery);
 }
 $safeClassUrl = htmlspecialchars($classUrl, ENT_QUOTES, 'UTF-8');
-$logoUrl = $assetUrl . '/assets/logo.png';
+$logoUrl = $assetUrl . '/logo.png';
 
 if (!function_exists('normalizeClassReminderContent')) {
     function normalizeClassReminderContent(string $content): string

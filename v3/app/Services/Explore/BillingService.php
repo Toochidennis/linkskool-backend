@@ -183,7 +183,7 @@ class BillingService
 
         if (($verification['status'] ?? '') !== 'success') {
             return $this->markPaymentFailedByReference(
-                $reference,
+                $data['reference'],
                 'Payment is not successful: ' . ($verification['status'] ?? 'unknown')
             );
         }
@@ -474,7 +474,14 @@ class BillingService
 
     public function getAbandonedCartReminderCandidates(int $limit = 200): array
     {
+        return $this->getAbandonedCartReminderCandidatesAfterMinutes(0, $limit);
+    }
+
+    public function getAbandonedCartReminderCandidatesAfterMinutes(int $minutes, int $limit = 200): array
+    {
+        $minutes = max(0, $minutes);
         $limit = max(1, $limit);
+        $cutoff = date('Y-m-d H:i:s', strtotime('-' . $minutes . ' minutes'));
 
         return $this->payment->rawQuery(
             sprintf(
@@ -483,6 +490,7 @@ class BillingService
                 FROM payments p
                 WHERE p.status = 'abandoned'
                   AND p.method = 'online'
+                  AND p.created_at <= :cutoff
                   AND NOT EXISTS (
                       SELECT 1
                       FROM payments newer
@@ -510,7 +518,10 @@ class BillingService
                 LIMIT %d
                 ",
                 $limit
-            )
+            ),
+            [
+                'cutoff' => $cutoff,
+            ]
         );
     }
 
