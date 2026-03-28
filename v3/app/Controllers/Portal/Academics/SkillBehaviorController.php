@@ -26,7 +26,7 @@ class SkillBehaviorController extends BaseController
             rules: [
                 'skill_name' => 'required|string|filled',
                 'level_id' => 'required|integer',
-                'type' => 'required|integer'
+                'type' => 'required|integer|in:0,1'
             ]
         );
 
@@ -53,9 +53,9 @@ class SkillBehaviorController extends BaseController
             array_merge($this->post, $vars),
             rules: [
                 'id' => 'required|integer',
-                'skill_name' => 'required|string',
+                'skill_name' => 'required|string|filled',
                 'level_id' => 'required|integer',
-                'type' => 'required|integer'
+                'type' => 'required|integer|in:0,1'
             ]
         );
 
