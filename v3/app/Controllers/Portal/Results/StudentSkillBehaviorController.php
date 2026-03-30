@@ -36,6 +36,7 @@ class StudentSkillBehaviorController extends BaseController
                 'skills.*.student_skills.*.value'  => 'required|integer',
                 'term'  => 'required|integer',
                 'year'  => 'required|integer',
+                'type' => 'nullable|integer|in:0,1'
             ]
         );
 
@@ -62,7 +63,7 @@ class StudentSkillBehaviorController extends BaseController
         'GET',
         ['auth', 'role:admin', 'role:staff']
     )]
-    public function getStudentsSkillBehavior(array $vars)
+    public function getStudentsSkillsBehaviors(array $vars)
     {
         $data = $this->validate(
             $vars,
@@ -70,13 +71,14 @@ class StudentSkillBehaviorController extends BaseController
                 'class_id' => 'required|integer',
                 'level_id' => 'required|integer',
                 'year' => 'required|integer',
-                'term' => 'required|integer'
+                'term' => 'required|integer',
+                'type' => 'nullable|integer|in:0,1'
             ]
         );
 
         return $this->respond([
             'success' => true,
-            'response' => $this->service->getStudentsSkillBehavior($data)
+            'response' => $this->service->getStudentsSkillsAndBehaviors($data)
         ]);
     }
 }

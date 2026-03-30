@@ -4,8 +4,11 @@ namespace V3\App\Common\Events\Registrars\Email;
 
 use V3\App\Common\Events\EventDispatcher;
 use V3\App\Events\Auth\UserRegisteredFirstTime;
+use V3\App\Events\Email\AbandonedCart;
 use V3\App\Events\Email\CohortCourseEnrolled;
 use V3\App\Events\Email\CohortCoursesEnrolled;
+use V3\App\Events\Email\LicenseActivated;
+use V3\App\Events\Email\PaymentReceipt;
 use V3\App\Events\Email\SubmissionGraded;
 use V3\App\Events\Lesson\AssignmentDueReminderDue;
 use V3\App\Events\Lesson\ClassReminderDue;
@@ -13,11 +16,14 @@ use V3\App\Events\Lesson\LessonPublished;
 use V3\App\Events\Lesson\LiveClassReminderDue;
 use V3\App\Events\News\NewsPosted;
 use V3\App\Listeners\Email\SendAssignmentDueReminderEmail;
+use V3\App\Listeners\Email\SendAbandonedCartEmail;
 use V3\App\Listeners\Email\SendClassReminderEmail;
 use V3\App\Listeners\Email\SendCohortCourseEnrolledEmail;
 use V3\App\Listeners\Email\SendCohortCoursesEnrolledEmail;
+use V3\App\Listeners\Email\SendLicenseActivatedEmail;
 use V3\App\Listeners\Email\SendLessonPublishedEmail;
 use V3\App\Listeners\Email\SendNewsPostedEmail;
+use V3\App\Listeners\Email\SendPaymentReceiptEmail;
 use V3\App\Listeners\Email\SendSubmissionGradedEmail;
 use V3\App\Listeners\Email\SendLiveClassReminderEmail;
 use V3\App\Listeners\Email\SendWelcomeEmail;
@@ -26,6 +32,11 @@ class RegisterEmailEventListeners
 {
     public static function register(): void
     {
+        EventDispatcher::listen(
+            AbandonedCart::class,
+            new SendAbandonedCartEmail()
+        );
+
         EventDispatcher::listen(
             SubmissionGraded::class,
             new SendSubmissionGradedEmail()
@@ -39,6 +50,16 @@ class RegisterEmailEventListeners
         EventDispatcher::listen(
             CohortCoursesEnrolled::class,
             new SendCohortCoursesEnrolledEmail()
+        );
+
+        EventDispatcher::listen(
+            PaymentReceipt::class,
+            new SendPaymentReceiptEmail()
+        );
+
+        EventDispatcher::listen(
+            LicenseActivated::class,
+            new SendLicenseActivatedEmail()
         );
 
         EventDispatcher::listen(

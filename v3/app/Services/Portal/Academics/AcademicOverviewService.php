@@ -268,9 +268,11 @@ class AcademicOverviewService
             ->join('course_table', 'course_table.id = staff_course_table.course')
             ->join(
                 'result_table',
-                function ($join) {
+                function ($join) use ($filters) {
                     $join->on('result_table.class', '=', 'class_table.id')
-                        ->on('result_table.course', '=', 'course_table.id');
+                        ->on('result_table.course', '=', 'course_table.id')
+                        ->on('result_table.term', '=', $filters['term'])
+                        ->on('result_table.year', '=', $filters['year']);
                 },
                 'LEFT'
             )

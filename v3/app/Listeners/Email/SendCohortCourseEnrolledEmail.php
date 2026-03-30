@@ -62,8 +62,11 @@ class SendCohortCourseEnrolledEmail
                 $v3root . '/Templates/emails/cohort_course_enrolled.php',
                 [
                     'student_name' => $studentName,
+                    'program_id' => $event->programId,
                     'program_name' => $programName,
+                    'course_id' => $event->courseId,
                     'course_name' => $courseName,
+                    'cohort_id' => $event->cohortId,
                     'cohort_description' => (string) ($cohort['description'] ?? ''),
                     'cohort_benefits' => (string) ($cohort['benefits'] ?? ''),
                     'cohort_image_url' => (string) ($cohort['image_url'] ?? ''),

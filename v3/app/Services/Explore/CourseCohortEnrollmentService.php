@@ -174,7 +174,7 @@ class CourseCohortEnrollmentService
             ];
         }
 
-        $reference = 'WEB-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
+        $reference = 'COURSE-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
 
         $this->pdo->beginTransaction();
 

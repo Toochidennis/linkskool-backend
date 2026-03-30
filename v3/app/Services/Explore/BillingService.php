@@ -9,6 +9,8 @@ use V3\App\Models\Explore\Plan;
 
 class BillingService
 {
+    private const PAYMENT_EXPIRY_MINUTES = 10;
+
     private Payment $payment;
     private Voucher $voucher;
     private Plan $plan;
@@ -57,53 +59,40 @@ class BillingService
             ];
         }
 
-        if (!\in_array(($payload['event'] ?? ''), ['transaction.success', 'charge.success'], true)) {
-            return [
-                'status' => 'ignored',
-                'message' => 'Event ignored.',
-            ];
-        }
+        $eventName = (string) ($payload['event'] ?? '');
 
         $reference = trim((string) ($payload['data']['reference'] ?? ''));
-        $metadata = $payload['data']['metadata'] ?? [];
 
-        if ($reference === '' || !\is_array($metadata)) {
+        if ($reference === '') {
             return [
                 'status' => 'failed',
-                'message' => 'Missing reference or metadata.',
+                'message' => 'Missing payment reference.',
             ];
         }
 
-        $verificationData = [
-            'user_id' => (int) ($metadata['user_id'] ?? 0),
-            'plan_id' => (int) ($metadata['plan_id'] ?? 0),
-            'method' => 'online',
-            'platform' => (string) ($metadata['platform'] ?? ''),
-            'first_name' => (string) ($metadata['first_name'] ?? ''),
-            'last_name' => (string) ($metadata['last_name'] ?? ''),
-            'reference' => $reference,
+        if (\in_array($eventName, ['transaction.success', 'charge.success'], true)) {
+            return $this->verifyPaymentByReference($reference);
+        }
+
+        if (\in_array($eventName, ['charge.failed', 'transaction.failed'], true)) {
+            $gatewayMessage = trim((string) ($payload['data']['gateway_response'] ?? $payload['data']['message'] ?? ''));
+
+            return $this->markPaymentFailedByReference(
+                $reference,
+                $gatewayMessage !== '' ? $gatewayMessage : 'Payment was not successful.'
+            );
+        }
+
+        return [
+            'status' => 'ignored',
+            'message' => 'Event ignored.',
         ];
-
-        if (
-            $verificationData['user_id'] <= 0 ||
-            $verificationData['plan_id'] <= 0 ||
-            $verificationData['platform'] === '' ||
-            $verificationData['first_name'] === '' ||
-            $verificationData['last_name'] === ''
-        ) {
-            return [
-                'status' => 'failed',
-                'message' => 'Invalid metadata payload.',
-            ];
-        }
-
-        return $this->verifyPaymentOnline($verificationData);
     }
 
     private function initiatePaymentOnline(array $data): array
     {
         $paystack = new PaystackService();
-        $reference = $data['reference'] ?? ('BILL-' . date('YmdHis') . '-' . bin2hex(random_bytes(5)));
+        $reference = 'CBT-' . date('YmdHis') . '-' . bin2hex(random_bytes(5));
         $amount = $this->computePrice((int) $data['plan_id']);
         $payload = [
             'email' => $data['email'],
@@ -115,6 +104,7 @@ class BillingService
                 'platform' => (string) $data['platform'],
                 'first_name' => (string) $data['first_name'],
                 'last_name' => (string) $data['last_name'],
+                'payment_type' => 'cbt',
             ],
         ];
 
@@ -136,6 +126,7 @@ class BillingService
                 'platform' => $data['platform'],
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
+                'expires_at' => $this->computePendingPaymentExpiryAt(),
             ];
 
             $existing = $this->payment
@@ -161,7 +152,6 @@ class BillingService
                 'status' => 'pending',
                 'message' => 'Payment initialized successfully.',
                 'payment_url' => $initialized['authorization_url'],
-                'access_code' => $initialized['access_code'],
                 'reference' => $resolvedReference,
             ];
         } catch (\Throwable $e) {
@@ -192,10 +182,10 @@ class BillingService
         }
 
         if (($verification['status'] ?? '') !== 'success') {
-            return [
-                'status' => 'failed',
-                'message' => 'Payment is not successful: ' . ($verification['status'] ?? 'unknown'),
-            ];
+            return $this->markPaymentFailedByReference(
+                $data['reference'],
+                'Payment is not successful: ' . ($verification['status'] ?? 'unknown')
+            );
         }
 
         $expected = $this->computePrice($data['plan_id']);
@@ -204,14 +194,18 @@ class BillingService
         if ($amountPaid !== $expected) {
             return [
                 'status' => 'failed',
-                'message' => 'Payment amount mismatch: expected ' . $expected . ', got ' . $amountPaid,
+                'message' => "Payment amount mismatch: expected $expected, got $amountPaid",
             ];
         }
 
         $existingPayment = $this->payment
             ->where('reference', $data['reference'])
             ->first();
-        if (!empty($existingPayment) && \in_array($existingPayment['status'] ?? '', ['success'], true)) {
+
+        if (
+            !empty($existingPayment) &&
+            \in_array($existingPayment['status'] ?? '', ['success'], true)
+        ) {
             return [
                 'status' => 'success',
                 'message' => 'Payment already recorded'
@@ -231,13 +225,9 @@ class BillingService
             'last_name' => $data['last_name'],
         ];
 
-        if (!empty($existingPayment)) {
-            $paymentId = $this->payment
-                ->where('reference', $data['reference'])
-                ->update($successPayload);
-        } else {
-            $paymentId = $this->payment->insert($successPayload);
-        }
+        $paymentId = (!empty($existingPayment)) ? $this->payment
+            ->where('reference', $data['reference'])
+            ->update($successPayload) : $this->payment->insert($successPayload);
 
         if ($paymentId) {
             return [
@@ -250,6 +240,102 @@ class BillingService
         return [
             'status' => 'failed',
             'message' => 'Failed to record payment'
+        ];
+    }
+
+    public function verifyPaymentByReference(string $reference): array
+    {
+        $existingPayment = $this->payment
+            ->where('reference', $reference)
+            ->first();
+
+        if (empty($existingPayment)) {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment not found.',
+            ];
+        }
+
+        if (($existingPayment['status'] ?? '') === 'success') {
+            return [
+                'status' => 'success',
+                'message' => 'Payment already recorded',
+                'user_id' => (int) $existingPayment['user_id'],
+                'plan_id' => (int) $existingPayment['plan_id'],
+                'platform' => (string) $existingPayment['platform'],
+                'method' => (string) $existingPayment['method'],
+                'reference' => (string) $existingPayment['reference'],
+            ];
+        }
+
+        $paystack = new PaystackService();
+
+        try {
+            $verification = $paystack->verify($reference);
+        } catch (\Throwable $e) {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment verification failed: ' . $e->getMessage(),
+            ];
+        }
+
+        if (!$verification['success']) {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment verification failed: ' . $verification['message'],
+            ];
+        }
+
+        if (($verification['status'] ?? '') !== 'success') {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment is not successful: ' . ($verification['status'] ?? 'unknown'),
+            ];
+        }
+
+        $expected = $this->computePrice((int) $existingPayment['plan_id']);
+        $amountPaid = (int) ($verification['amount_kobo'] ?? ((float) $verification['amount'] * 100));
+
+        if ($amountPaid !== $expected) {
+            return [
+                'status' => 'failed',
+                'message' => "Payment amount mismatch: expected $expected, got $amountPaid",
+            ];
+        }
+
+        $successPayload = [
+            'user_id' => (int) $existingPayment['user_id'],
+            'amount' => $amountPaid,
+            'plan_id' => (int) $existingPayment['plan_id'],
+            'reference' => $reference,
+            'status' => 'success',
+            'message' => 'Payment verified successfully',
+            'method' => (string) $existingPayment['method'],
+            'platform' => (string) $existingPayment['platform'],
+            'first_name' => (string) ($existingPayment['first_name']),
+            'last_name' => (string) ($existingPayment['last_name']),
+        ];
+
+        $saved = $this->payment
+            ->where('reference', $reference)
+            ->update($successPayload);
+
+        if (!$saved) {
+            return [
+                'status' => 'failed',
+                'message' => 'Failed to record payment'
+            ];
+        }
+
+        return [
+            'status' => 'success',
+            'message' => 'Payment verified successfully',
+            'payment_id' => (int) ($existingPayment['id'] ?? 0),
+            'user_id' => (int) $existingPayment['user_id'],
+            'plan_id' => (int) $existingPayment['plan_id'],
+            'platform' => (string) $existingPayment['platform'],
+            'method' => (string) $existingPayment['method'],
+            'reference' => $reference,
         ];
     }
 
@@ -343,5 +429,274 @@ class BillingService
         }
 
         return $price * 100; // convert to kobo
+    }
+
+    public function checkPaymentStatus(string $reference): array
+    {
+        $payment = $this->payment
+            ->where('reference', $reference)
+            ->first();
+
+        if (empty($payment)) {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment not found',
+            ];
+        }
+
+        return [
+            'status' => $payment['status'],
+            'message' => 'Payment status retrieved successfully',
+        ];
+    }
+
+    public function abandonExpiredPendingPayments(): int
+    {
+        $cutoff = date('Y-m-d H:i:s');
+
+        return $this->payment->rawExecute(
+            "
+            UPDATE payments
+            SET status = :status,
+                message = :message
+            WHERE status = :pending_status
+              AND expires_at IS NOT NULL
+              AND expires_at <= :cutoff
+            ",
+            [
+                'status' => 'abandoned',
+                'message' => 'Payment abandoned after exceeding the pending window.',
+                'pending_status' => 'pending',
+                'cutoff' => $cutoff,
+            ]
+        );
+    }
+
+    public function getAbandonedCartReminderCandidates(int $limit = 200): array
+    {
+        return $this->getAbandonedCartReminderCandidatesAfterMinutes(0, $limit);
+    }
+
+    public function getAbandonedCartReminderCandidatesAfterMinutes(int $minutes, int $limit = 200): array
+    {
+        $minutes = max(0, $minutes);
+        $limit = max(1, $limit);
+        $cutoff = date('Y-m-d H:i:s', strtotime('-' . $minutes . ' minutes'));
+
+        return $this->payment->rawQuery(
+            sprintf(
+                "
+                SELECT p.id
+                FROM payments p
+                WHERE p.status = 'abandoned'
+                  AND p.method = 'online'
+                  AND p.created_at <= :cutoff
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM payments newer
+                      WHERE newer.user_id = p.user_id
+                        AND newer.plan_id = p.plan_id
+                        AND newer.platform = p.platform
+                        AND (
+                            newer.created_at > p.created_at
+                            OR (newer.created_at = p.created_at AND newer.id > p.id)
+                        )
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM licenses l
+                      INNER JOIN payments sp
+                        ON sp.id = l.payment_id
+                      WHERE l.user_id = p.user_id
+                        AND l.platform = p.platform
+                        AND l.status = 'active'
+                        AND l.revoked_at IS NULL
+                        AND (l.expires_at IS NULL OR l.expires_at > NOW())
+                        AND sp.plan_id = p.plan_id
+                  )
+                ORDER BY p.created_at ASC
+                LIMIT %d
+                ",
+                $limit
+            ),
+            [
+                'cutoff' => $cutoff,
+            ]
+        );
+    }
+
+    public function getAbandonedCartDetails(int $paymentId): array
+    {
+        $rows = $this->payment->rawQuery(
+            "
+            SELECT
+                p.id,
+                p.user_id,
+                p.plan_id,
+                p.reference,
+                p.amount,
+                p.status,
+                p.platform,
+                p.method,
+                p.first_name,
+                p.last_name,
+                p.expires_at,
+                p.created_at,
+                u.email,
+                pl.name AS plan_name
+            FROM payments p
+            LEFT JOIN cbt_users u ON u.id = p.user_id
+            LEFT JOIN plans pl ON pl.id = p.plan_id
+            WHERE p.id = :payment_id
+            LIMIT 1
+            ",
+            [
+                'payment_id' => $paymentId,
+            ]
+        );
+
+        return $rows[0] ?? [];
+    }
+
+    public function shouldSendAbandonedCartReminder(int $paymentId): bool
+    {
+        $rows = $this->payment->rawQuery(
+            "
+            SELECT 1
+            FROM payments p
+            WHERE p.id = :payment_id
+              AND p.status = 'abandoned'
+              AND p.method = 'online'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM payments newer
+                  WHERE newer.user_id = p.user_id
+                    AND newer.plan_id = p.plan_id
+                    AND newer.platform = p.platform
+                    AND (
+                        newer.created_at > p.created_at
+                        OR (newer.created_at = p.created_at AND newer.id > p.id)
+                    )
+              )
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM licenses l
+                  INNER JOIN payments sp
+                    ON sp.id = l.payment_id
+                  WHERE l.user_id = p.user_id
+                    AND l.platform = p.platform
+                    AND l.status = 'active'
+                    AND l.revoked_at IS NULL
+                    AND (l.expires_at IS NULL OR l.expires_at > NOW())
+                    AND sp.plan_id = p.plan_id
+              )
+            LIMIT 1
+            ",
+            [
+                'payment_id' => $paymentId,
+            ]
+        );
+
+        return !empty($rows);
+    }
+
+    public function getPaymentReceiptDetails(int $paymentId): array
+    {
+        $rows = $this->payment->rawQuery(
+            "
+            SELECT
+                p.id,
+                p.user_id,
+                p.plan_id,
+                p.reference,
+                p.amount,
+                p.status,
+                p.message,
+                p.method,
+                p.platform,
+                p.first_name,
+                p.last_name,
+                p.created_at,
+                p.updated_at,
+                u.email,
+                pl.name AS plan_name
+            FROM payments p
+            LEFT JOIN cbt_users u ON u.id = p.user_id
+            LEFT JOIN plans pl ON pl.id = p.plan_id
+            WHERE p.id = :payment_id
+            LIMIT 1
+            ",
+            [
+                'payment_id' => $paymentId,
+            ]
+        );
+
+        $payment = $rows[0] ?? [];
+        if (empty($payment)) {
+            return [];
+        }
+
+        $payment['paid_at'] = (string) ($payment['updated_at'] ?? $payment['created_at'] ?? '');
+
+        return $payment;
+    }
+
+    private function markPaymentFailedByReference(string $reference, string $message): array
+    {
+        $existingPayment = $this->payment
+            ->where('reference', $reference)
+            ->first();
+
+        if (empty($existingPayment)) {
+            return [
+                'status' => 'failed',
+                'message' => 'Payment not found.',
+            ];
+        }
+
+        if (($existingPayment['status'] ?? '') === 'success') {
+            return [
+                'status' => 'success',
+                'message' => 'Payment already recorded',
+                'payment_id' => (int) $existingPayment['id'],
+                'user_id' => (int) $existingPayment['user_id'],
+                'plan_id' => (int) $existingPayment['plan_id'],
+                'platform' => (string) $existingPayment['platform'],
+                'method' => (string) $existingPayment['method'],
+                'reference' => (string) $existingPayment['reference'],
+            ];
+        }
+
+        $payload = [
+            'status' => 'failed',
+            'message' => $message,
+        ];
+
+        $saved = $this->payment
+            ->where('reference', $reference)
+            ->update($payload);
+
+        if (!$saved) {
+            return [
+                'status' => 'failed',
+                'message' => 'Failed to record payment failure.',
+            ];
+        }
+
+        return [
+            'status' => 'failed',
+            'message' => $message,
+            'payment_id' => (int) $existingPayment['id'],
+            'user_id' => (int) $existingPayment['user_id'],
+            'plan_id' => (int) $existingPayment['plan_id'],
+            'platform' => (string) $existingPayment['platform'],
+            'method' => (string) $existingPayment['method'],
+            'reference' => (string) $existingPayment['reference'],
+        ];
+    }
+
+    private function computePendingPaymentExpiryAt(): string
+    {
+        return date('Y-m-d H:i:s', strtotime('+' . self::PAYMENT_EXPIRY_MINUTES . ' minutes'));
     }
 }

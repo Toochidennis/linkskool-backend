@@ -40,10 +40,12 @@ class AuthService
      */
     public function login(string $username, string $password): array
     {
+        $username = trim($username);
+
         // Attempt login as staff
         $staff = $this->staffModel
             ->select(columns: ['id', 'staff_no', 'surname', 'access_level', 'password'])
-            ->where('staff_no', '=', $username)
+            ->whereTrimmed('staff_no', '=', $username)
             ->where('password', '=', $password)
             ->first();
 
@@ -140,6 +142,8 @@ class AuthService
 
             'settings' => $this->getSchoolSetting(),
 
+            'num_of_form_classes' => $this->getFormClassCount($id),
+
             'form_classes' => $this->getLevelsAndClasses($id),
 
             'courses' => $this->getStaffAssignedCourses($id)
@@ -182,24 +186,27 @@ class AuthService
             ->select([
                 'class_table.id AS class_id',
                 'class_table.class_name',
+                'class_table.level AS level_id',
                 'course_table.id AS course_id',
                 'course_table.course_name',
-                "COUNT(result_table.id) AS num_of_students"
+                "COUNT(DISTINCT result_table.reg_no) AS num_of_students"
             ])
             ->join('staff_course_table', 'class_table.id = staff_course_table.class')
             ->join('course_table', 'course_table.id = staff_course_table.course')
             ->join(
                 'result_table',
-                function ($join) {
+                function ($join) use ($setting) {
                     $join->on('result_table.class', '=', 'class_table.id')
-                        ->on('result_table.course', '=', 'course_table.id');
+                        ->on('result_table.course', '=', 'course_table.id')
+                        ->on('result_table.term', '=', $setting['term'])
+                        ->on('result_table.year', '=', $setting['year']);
                 },
                 'LEFT'
             )
             ->where('staff_course_table.ref_no', $teacherId)
             ->where('staff_course_table.term', $setting['term'])
             ->where('staff_course_table.year', $setting['year'])
-            ->groupBy(['class_id', 'class_name', 'course_id', 'course_name'])
+            ->groupBy(['class_id', 'class_name', 'level_id', 'course_id', 'course_name'])
             ->orderBy(['class_name' => 'ASC', 'course_name' => 'ASC'])
             ->get();
 
@@ -212,6 +219,7 @@ class AuthService
                 $grouped[$classId] = [
                     'class_id' => $row['class_id'],
                     'class_name' => $row['class_name'],
+                    'level_id' => $row['level_id'],
                     'courses' => []
                 ];
             }
@@ -225,7 +233,7 @@ class AuthService
 
         return array_values($grouped);
     }
-    private function getLevelsAndClasses($teacherId): array
+    private function getLevelsAndClasses(int $teacherId): array
     {
         $rows = $this->level
             ->select([
@@ -235,7 +243,7 @@ class AuthService
                 'class_table.class_name'
             ])
             ->join('class_table', 'level_table.id = class_table.level')
-            ->where('class_table.form_teacher', $teacherId)
+            ->whereRaw('FIND_IN_SET(?, class_table.form_teacher) > 0', [(string) $teacherId])
             ->get();
 
         $grouped = [];
@@ -258,6 +266,13 @@ class AuthService
         }
 
         return array_values($grouped);
+    }
+
+    private function getFormClassCount(int $teacherId): int
+    {
+        return $this->classModel
+            ->whereRaw('FIND_IN_SET(?, class_table.form_teacher) > 0', [(string) $teacherId])
+            ->count();
     }
 
     private function verifyPassword(string $userPassword, string $password): bool

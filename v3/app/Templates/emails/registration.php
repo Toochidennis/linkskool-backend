@@ -1,12 +1,8 @@
 <?php
-$studentName = htmlspecialchars($data['student_name'], ENT_QUOTES, 'UTF-8');
-$assetUrl = getenv('ASSET_URL') ?? 'https://linkskool.net';
-$appUrl = getenv('APP_URL2') ?? 'https://linkschoolonline.com/cbt-app';
-$logoUrl = $assetUrl . '/assets/logo.png';
-$facebookIcon = 'https://img.icons8.com/color/48/facebook-new.png';
-$xIcon = 'https://img.icons8.com/color/48/twitterx--v1.png';
-$youtubeIcon = 'https://img.icons8.com/color/48/youtube-play.png';
-$instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
+$studentName = htmlspecialchars((string) ($data['student_name']), ENT_QUOTES, 'UTF-8');
+$assetUrl = rtrim((string) (getenv('ASSET_URL') ?? 'https://linkskool.com/assets'), '/');
+$dashboardUrl = rtrim((string) (getenv('APP_URL') ?: 'https://linkskool.com'), '/') . '/dashboard';
+$logoUrl = $assetUrl . '/logo.png';
 ?>
 <!DOCTYPE html>
 <html>
@@ -16,140 +12,106 @@ $instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
     <title>Welcome to Linkskool</title>
 </head>
 <body style="margin:0;padding:0;background:#f5f7fa;font-family:Arial,Helvetica,sans-serif;color:#1e293b;">
-<table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 0;background:#f5f7fa;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f7fa;padding:24px 0;">
     <tr>
         <td align="center">
-            <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
-                <!-- Header -->
+            <table width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(15,23,42,0.06);">
                 <tr>
-                    <td align="center" style="background:#f8f9fa;padding:16px 24px;border-bottom:1px solid #e5e5e5;">
-                        <img src="<?= $logoUrl ?>" alt="Linkskool" width="50" style="display:block;height:auto;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,0.08);">
+                    <td align="center" style="background:#f8fafc;padding:18px 24px;border-bottom:1px solid #e2e8f0;">
+                        <img src="<?= htmlspecialchars($logoUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Linkskool" width="42" style="display:block;height:auto;border-radius:8px;">
                     </td>
                 </tr>
 
-                <!-- Welcome Message -->
                 <tr>
-                    <td style="padding:32px 28px;">
-                        <h1 style="margin:0 0 6px 0;font-size:28px;font-weight:600;color:#0f172a;">Welcome, <?= $studentName ?>!</h1>
-                        <p style="margin:0 0 28px 0;font-size:15px;color:#64748b;line-height:1.6;">
+                    <td style="padding:30px 28px 18px 28px;">
+                        <h1 style="margin:0 0 10px 0;font-size:28px;font-weight:700;line-height:1.25;color:#0f172a;">Welcome, <?= $studentName ?>!</h1>
+                        <p style="margin:0;font-size:14px;line-height:1.7;color:#64748b;">
                             We're excited to have you join the Linkskool learning community. Your account is now active and ready to use.
                         </p>
                     </td>
                 </tr>
 
-                <!-- About Linkskool -->
                 <tr>
-                    <td style="padding:0 28px;">
-                        <div style="background:#f8fafc;border-left:3px solid#3b82f6;padding:18px;border-radius:4px;margin-bottom:24px;">
-                            <h3 style="margin:0 0 10px 0;font-size:15px;font-weight:600;color:#0f172a;">About Linkskool</h3>
-                            <p style="margin:0;font-size:14px;color:#475569;line-height:1.6;">
-                                Linkskool is a modern online learning platform designed to empower students with quality education. 
+                    <td style="padding:0 28px 18px 28px;">
+                        <div style="background:#f8fafc;border-left:4px solid #2563eb;padding:18px 18px 18px 20px;border-radius:10px;">
+                            <h3 style="margin:0 0 10px 0;font-size:15px;font-weight:700;color:#0f172a;">About Linkskool</h3>
+                            <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;">
+                                Linkskool is a modern online learning platform designed to empower students with quality education.
                                 Learn at your own pace, access expert instructors, and achieve your educational goals.
                             </p>
                         </div>
                     </td>
                 </tr>
 
-                <!-- Key Features -->
                 <tr>
-                    <td style="padding:0 28px;">
-                        <h3 style="margin:0 0 16px 0;font-size:15px;font-weight:600;color:#0f172a;">What You Can Do Now</h3>
-                        <div style="margin-bottom:24px;">
-                            <div style="padding:14px 0;border-bottom:1px solid #e2e8f0;">
-                                <p style="margin:0 0 4px 0;font-size:14px;color:#0f172a;font-weight:600;">📚 Explore Courses</p>
-                                <p style="margin:0;font-size:13px;color:#64748b;">Browse and enroll in courses from world-class instructors.</p>
-                            </div>
-                            <div style="padding:14px 0;border-bottom:1px solid #e2e8f0;">
-                                <p style="margin:0 0 4px 0;font-size:14px;color:#0f172a;font-weight:600;">🎓 Learn at Your Pace</p>
-                                <p style="margin:0;font-size:13px;color:#64748b;">Access lessons, assignments, and exams whenever it suits your schedule.</p>
-                            </div>
-                            <div style="padding:14px 0;">
-                                <p style="margin:0 0 4px 0;font-size:14px;color:#0f172a;font-weight:600;">🏆 Track Your Progress</p>
-                                <p style="margin:0;font-size:13px;color:#64748b;">Monitor your learning journey and earn certificates.</p>
-                            </div>
+                    <td style="padding:0 28px 18px 28px;">
+                        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 18px 8px 18px;">
+                            <h3 style="margin:0 0 14px 0;font-size:15px;font-weight:700;color:#0f172a;">What You Can Do Now</h3>
+                            <ul style="margin:0;padding:0 0 0 18px;font-size:13px;line-height:1.9;color:#475569;">
+                                <li style="margin-bottom:10px;">
+                                    <strong style="color:#0f172a;">Explore Courses:</strong>
+                                    Browse and enroll in courses from world-class instructors.
+                                </li>
+                                <li style="margin-bottom:10px;">
+                                    <strong style="color:#0f172a;">Learn at Your Pace:</strong>
+                                    Access lessons, assignments, and exams whenever it suits your schedule.
+                                </li>
+                                <li style="margin-bottom:10px;">
+                                    <strong style="color:#0f172a;">Track Progress:</strong>
+                                    Monitor your learning progress with detailed reports and feedback.
+                                </li>
+                                <li style="margin-bottom:10px;">
+                                    <strong style="color:#0f172a;">Manage School Results:</strong>
+                                    Keep your academic records organized and manage your school results in one place.
+                                </li>
+                                <li style="margin-bottom:10px;">
+                                    <strong style="color:#0f172a;">Practice CBT Questions:</strong>
+                                    Prepare for JAMB, WAEC, and other exams with CBT practice questions and timed tests.
+                                </li>
+                                <li style="margin-bottom:0;">
+                                    <strong style="color:#0f172a;">Earn Certificates:</strong>
+                                    Receive certificates upon course completion to showcase your achievements.
+                                </li>
+                            </ul>
                         </div>
                     </td>
                 </tr>
-                                <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;">
-                                    <p style="margin:0;font-size:14px;color:#475569;font-weight:600;">📊 Track Progress</p>
-                                    <p style="margin:4px 0 0 0;font-size:13px;color:#64748b;">Monitor your learning progress with detailed reports and feedback.</p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:12px 0;">
-                                    <p style="margin:0;font-size:14px;color:#475569;font-weight:600;">🏆 Earn Certificates</p>
-                                    <p style="margin:4px 0 0 0;font-size:13px;color:#64748b;">Receive certificates upon course completion to showcase your achievements.</p>
-                                </td>
-                            </tr>
-                        </table>
+
+                <tr>
+                    <td style="padding:0 28px 20px 28px;">
+                        <div style="background:#fefce8;border:1px solid #fde68a;border-radius:12px;padding:18px;">
+                            <h3 style="margin:0 0 12px 0;font-size:15px;font-weight:700;color:#854d0e;">Getting Started</h3>
+                            <ol style="margin:0;padding-left:20px;font-size:14px;line-height:1.9;color:#713f12;">
+                                <li style="margin-bottom:6px;">Open your learning dashboard and complete your profile.</li>
+                                <li style="margin-bottom:6px;">Browse available courses related to your interests.</li>
+                                <li style="margin-bottom:6px;">Enroll in courses that match your learning goals.</li>
+                                <li>Start learning and track your progress.</li>
+                            </ol>
+                        </div>
                     </td>
                 </tr>
 
-                <!-- Getting Started -->
                 <tr>
-                    <td style="padding:0 32px 24px 32px;">
-                        <h3 style="margin:0 0 16px 0;font-size:16px;font-weight:700;color:#0f172a;">Getting Started</h3>
-                        <ol style="margin:0;padding-left:20px;font-size:14px;color:#475569;line-height:1.8;">
-                            <li style="margin-bottom:8px;">Open your learning dashboard and complete your profile</li>
-                            <li style="margin-bottom:8px;">Browse available courses related to your interests</li>
-                            <li style="margin-bottom:8px;">Enroll in courses that match your learning goals</li>
-                            <li>Start learning and track your progress</li>
-                        </ol>
-                    </td>
-                </tr>
-
-                <!-- CTA Button -->
-                <tr>
-                    <td style="padding:24px 32px;text-align:center;">
-                        <a href="<?= $appUrl ?>" style="display:inline-block;background:linear-gradient(135deg,#059669 0%,#047857 100%);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:15px;letter-spacing:0.3px;">
+                    <td style="padding:0 28px 28px 28px;text-align:center;">
+                        <a href="<?= htmlspecialchars($dashboardUrl, ENT_QUOTES, 'UTF-8') ?>" style="display:inline-block;padding:13px 28px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:700;">
                             Open Learning Dashboard
                         </a>
                     </td>
                 </tr>
 
-                <!-- Support Section -->
-                <tr>
-                    <td style="padding:28px 32px;background:#f8fafc;border-top:1px solid #e2e8f0;">
-                        <h4 style="margin:0 0 12px 0;font-size:14px;font-weight:700;color:#0f172a;">Need Help?</h4>
-                        <p style="margin:0;font-size:13px;color:#64748b;line-height:1.6;">
-                            Our support team is here to help! If you have any questions or encounter any issues, 
-                            don't hesitate to reach out. We're committed to making your learning experience smooth and enjoyable.
-                        </p>
-                    </td>
-                </tr>
-
-                <!-- Social Links -->
-                <tr>
-                    <td style="background:#f8fafc;padding:20px 32px;text-align:center;border-top:1px solid #e2e8f0;">
-                        <p style="margin:0 0 12px 0;font-size:13px;font-weight:700;color:#334155;letter-spacing:0.01em;">Follow Us</p>
-                        <div style="margin:0;">
-                            <a href="https://www.facebook.com/share/1Dwd5kQsgM/" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                                <img src="<?= $facebookIcon ?>" alt="Facebook" width="24" height="24" style="display:block;">
-                            </a>
-                            <a href="https://x.com/DigitalDreamsNG" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                                <img src="<?= $xIcon ?>" alt="X (Twitter)" width="24" height="24" style="display:block;">
-                            </a>
-                            <a href="https://www.youtube.com/@digitaldreamsictacademy1353" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                                <img src="<?= $youtubeIcon ?>" alt="YouTube" width="24" height="24" style="display:block;">
-                            </a>
-                            <a href="https://www.instagram.com/digitaldreamslimited/?hl=en" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                                <img src="<?= $instagramIcon ?>" alt="Instagram" width="24" height="24" style="display:block;">
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-
-                <!-- Footer -->
-                <tr>
-                    <td style="background:#f8fafc;padding:20px 32px;text-align:center;font-size:12px;color:#94a3b8;border-top:1px solid #e2e8f0;">
-                        <p style="margin:0 0 8px 0;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                            <span style="font-weight:500;">© <?= date('Y') ?> Linkskool.</span> All rights reserved.
-                        </p>
-                        <p style="margin:0;font-size:11px;color:#cbd5e1;">
-                            You received this email because you just registered on Linkskool.
-                        </p>
-                    </td>
-                </tr>
+                <?php
+                $footerData = [
+                    'support_title' => 'Need Help?',
+                    'support_message' => "Our support team is here to help! If you have any questions or encounter any issues, don't hesitate to reach out. We're committed to making your learning experience smooth and enjoyable.",
+                    'support_padding' => '28px 32px',
+                    'social_label' => 'Follow Us',
+                    'social_padding' => '20px 32px',
+                    'footer_padding' => '20px 32px',
+                    'social_icon_size' => 24,
+                    'footer_note' => 'You received this email because you just registered on Linkskool.',
+                ];
+                include __DIR__ . '/partials/footer.php';
+                ?>
             </table>
         </td>
     </tr>

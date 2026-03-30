@@ -5,20 +5,54 @@ $courseName = htmlspecialchars($data['course_name'], ENT_QUOTES, 'UTF-8');
 $cohortDescription = htmlspecialchars($data['cohort_description'] ?? '', ENT_QUOTES, 'UTF-8');
 $cohortBenefits = htmlspecialchars($data['cohort_benefits'] ?? '', ENT_QUOTES, 'UTF-8');
 $cohortImageUrl = !empty($data['cohort_image_url']) ? htmlspecialchars($data['cohort_image_url'], ENT_QUOTES, 'UTF-8') : '';
-$instructorName = htmlspecialchars($data['instructor_name'] ?? 'Your Instructor', ENT_QUOTES, 'UTF-8');
-$assetUrl = getenv('ASSET_URL') ?: 'https://linkskool.net';
-$appUrl = htmlspecialchars(getenv('APP_URL2') ?: 'https://linkschoolonline.com/cbt-app', ENT_QUOTES, 'UTF-8');
-$logoUrl = $assetUrl . '/assets/logo.png';
+$instructorName = htmlspecialchars($data['instructor_name'] ?? '', ENT_QUOTES, 'UTF-8');
+$assetUrl = rtrim((string) (getenv('ASSET_URL') ?? 'https://linkskool.com/assets'), '/');
+$appBaseUrl = rtrim((string) (getenv('APP_URL') ?: 'https://linkskool.com'), '/');
+$courseUrl = $appBaseUrl . '/learn/course';
+$courseQuery = array_filter([
+    'course_id' => $data['course_id'] ?? null,
+    'cohort_id' => $data['cohort_id'] ?? null,
+    'program_id' => $data['program_id'] ?? null,
+]);
+if (!empty($courseQuery)) {
+    $courseUrl .= '?' . http_build_query($courseQuery);
+} else {
+    $courseUrl = $appBaseUrl . '/dashboard';
+}
+$safeCourseUrl = htmlspecialchars($courseUrl, ENT_QUOTES, 'UTF-8');
+$logoUrl = $assetUrl . '/logo.png';
 
 // Format dates if they exist
 $startDate = !empty($data['cohort_start_date']) ? date('F d, Y', strtotime($data['cohort_start_date'])) : null;
 $endDate = !empty($data['cohort_end_date']) ? date('F d, Y', strtotime($data['cohort_end_date'])) : null;
 
-$facebookIcon = 'https://img.icons8.com/color/48/facebook-new.png';
-$xIcon = 'https://img.icons8.com/color/48/twitterx--v1.png';
-$youtubeIcon = 'https://img.icons8.com/color/48/youtube-play.png';
-$instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
 $checkIcon = 'https://img.icons8.com/color/32/ok.png';
+
+if (!function_exists('normalizeEnrollmentCardContent')) {
+    function normalizeEnrollmentCardContent(string $content): string
+    {
+        $content = trim($content);
+        if ($content === '') {
+            return '';
+        }
+
+        $content = preg_replace('/<br\s*\/?>/i', "\n", $content);
+        $content = html_entity_decode((string) $content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $content = strip_tags((string) $content);
+
+        $lines = preg_split('/\r\n|\r|\n/', (string) $content) ?: [];
+        $lines = array_map(static function (string $line): string {
+            return trim($line);
+        }, $lines);
+        $lines = array_values(array_filter($lines, static function (string $line): bool {
+            return $line !== '';
+        }));
+
+        return htmlspecialchars(implode("\n\n", $lines), ENT_QUOTES, 'UTF-8');
+    }
+}
+
+$aboutCourseContent = normalizeEnrollmentCardContent((string) ($data['cohort_description'] ?? ''));
 ?>
 <!DOCTYPE html>
 <html>
@@ -80,12 +114,10 @@ $checkIcon = 'https://img.icons8.com/color/32/ok.png';
                         </div>
 
                         <!-- Course Description -->
-                        <?php if ($cohortDescription): ?>
+                        <?php if ($aboutCourseContent !== ''): ?>
                         <div style="margin:24px 0;padding:20px;background:#f0f9ff;border-left:4px solid #16a34a;border-radius:0 8px 8px 0;">
                             <h3 style="margin:0 0 12px 0;font-size:15px;color:#1e293b;font-weight:600;">About This Course</h3>
-                            <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;">
-                                <?= htmlspecialchars_decode($cohortDescription) ?>
-                            </p>
+                            <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;"><?= $aboutCourseContent ?></p>
                         </div>
                         <?php endif; ?>
 
@@ -112,45 +144,22 @@ $checkIcon = 'https://img.icons8.com/color/32/ok.png';
 
                         <!-- CTA Button -->
                         <div style="margin:32px 0;text-align:center;">
-                            <a href="<?= $appUrl ?>" style="display:inline-block;padding:14px 36px;background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                                Go to Dashboard →
+                            <a href="<?= $safeCourseUrl ?>" style="display:inline-block;padding:14px 36px;background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+                                Open Course →
                             </a>
                         </div>
 
-                        <!-- Support Message -->
-                        <p style="margin:28px 0 0 0;font-size:13px;color:#64748b;text-align:center;line-height:1.6;">
-                            <strong style="font-weight:600;color:#475569;">Need Help?</strong><br>
-                            Our support team is available to assist you with any questions.
-                        </p>
                     </td>
                 </tr>
 
-                <!-- Social Links Footer -->
-                <tr>
-                    <td style="background:#f8fafc;padding:24px 20px;text-align:center;border-top:1px solid #e2e8f0;">
-                        <p style="margin:0 0 14px 0;font-size:13px;font-weight:600;color:#334155;letter-spacing:0.01em;">CONNECT WITH US</p>
-                        <a href="https://www.facebook.com/share/1Dwd5kQsgM/" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $facebookIcon ?>" alt="Facebook" width="22" height="22" style="display:block;">
-                        </a>
-                        <a href="https://x.com/DigitalDreamsNG" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $xIcon ?>" alt="X (Twitter)" width="22" height="22" style="display:block;">
-                        </a>
-                        <a href="https://www.youtube.com/@digitaldreamsictacademy1353" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $youtubeIcon ?>" alt="YouTube" width="22" height="22" style="display:block;">
-                        </a>
-                        <a href="https://www.instagram.com/digitaldreamslimited/?hl=en" style="text-decoration:none;display:inline-block;margin:0 8px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $instagramIcon ?>" alt="Instagram" width="22" height="22" style="display:block;">
-                        </a>
-                    </td>
-                </tr>
-
-                <!-- Copyright Footer -->
-                <tr>
-                    <td style="background:#f8fafc;padding:16px 20px 24px 20px;text-align:center;font-size:12px;color:#94a3b8;border-top:1px solid #e2e8f0;">
-                        <span style="font-weight:500;">© <?= date('Y') ?> Linkskool.</span> All rights reserved.<br>
-                        <span style="font-size:11px;margin-top:8px;display:block;">Welcome to your learning journey!</span>
-                    </td>
-                </tr>
+                <?php
+                $footerData = [
+                    'support_title' => 'Need Help?',
+                    'support_message' => 'Our support team is available to assist you with any questions.',
+                    'footer_note' => 'Welcome to your learning journey!',
+                ];
+                include __DIR__ . '/partials/footer.php';
+                ?>
             </table>
         </td>
     </tr>

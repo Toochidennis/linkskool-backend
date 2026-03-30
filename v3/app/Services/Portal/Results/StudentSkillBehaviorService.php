@@ -35,7 +35,8 @@ class StudentSkillBehaviorService
                 'year'  => $data['year'],
                 'term'  => $data['term'],
                 'reg_no' => $skill['student_id'],
-                'skill' => json_encode($skill['student_skills'])
+                'skill' => json_encode($skill['student_skills']),
+                'type' => $data['type'] ?? 0
             ];
 
             // Check if record exists for this student in the same year/term
@@ -44,6 +45,7 @@ class StudentSkillBehaviorService
                 ->where('reg_no', $skill['student_id'])
                 ->where('year', $data['year'])
                 ->where('term', $data['term'])
+                ->where('type', $data['type'] ?? 0)
                 ->first();
 
             if ($existing) {
@@ -61,7 +63,7 @@ class StudentSkillBehaviorService
             }
         }
 
-        return $count === count($data['skills']);
+        return $count === \count($data['skills']);
     }
 
     private function getStudents(array $filters)
@@ -85,23 +87,23 @@ class StudentSkillBehaviorService
             ->get();
     }
 
-    private function getSkillBehavior($levelId)
+    private function getSkillsAndBehaviors(int $levelId, ?int $type = 0): array
     {
-        $skills = $this->skillBehavior
-            ->select(columns: ['id', 'skill_name'])
+        $rows = $this->skillBehavior
+            ->select(columns: ['id', 'skill_name', 'type'])
             ->where('level', '=', $levelId)
-            ->where('type', '=', 0)
+            ->where('type', '=', $type)
             ->get();
 
-        if (empty($skills)) {
-            $skills = $this->skillBehavior
-                ->select(columns: ['id', 'skill_name'])
+        if (empty($rows)) {
+            $rows = $this->skillBehavior
+                ->select(columns: ['id', 'skill_name', 'type'])
                 ->where('level', 'IS', null)
-                ->where('type', '=', 0)
+                ->where('type', '=', $type)
                 ->get();
         }
 
-        return $skills;
+        return $rows;
     }
 
     /**
@@ -110,10 +112,10 @@ class StudentSkillBehaviorService
      * @param array $filters Must include 'year', 'term', and 'level_id'.
      * @return array Contains 'skills' (defined skill behaviors) and 'students' (with attached skill data).
      */
-    public function getStudentsSkillBehavior(array $filters)
+    public function getStudentsSkillsAndBehaviors(array $filters)
     {
         $students = $this->getStudents($filters);
-        $skills = $this->getSkillBehavior($filters['level_id']);
+        $skills = $this->getSkillsAndBehaviors($filters['level_id'], $filters['type'] ?? 0);
 
         foreach ($students as &$student) {
             $studentSkills = $this->studentSkillBehavior
@@ -121,13 +123,14 @@ class StudentSkillBehaviorService
                 ->where('year', '=', $filters['year'])
                 ->where('term', '=', $filters['term'])
                 ->where('reg_no', '=', $student['student_id'])
+                ->where('type', '=', $filters['type'] ?? 0)
                 ->get();
 
             if (!empty($studentSkills)) {
                 $rawSkillData = json_decode($studentSkills[0]['skill'], true);
 
                 // Detect if it's the old format (associative with skill_id as key)
-                if (!isset($rawSkillData[0]) && is_array($rawSkillData)) {
+                if (!isset($rawSkillData[0]) && \is_array($rawSkillData)) {
                     // Convert to new format
                     $converted = [];
                     foreach ($rawSkillData as $skillId => $data) {

@@ -19,10 +19,11 @@ class SendNewsPostedEmail
                 return;
             }
 
-            $subject = 'News Update: ' . htmlspecialchars((string) ($news['title'] ?? 'New post'), ENT_QUOTES, 'UTF-8');
+            $subject = 'News Update: ' . (string) ($news['title'] ?? 'New post');
+            $eventKey = sprintf('news_posted:news:%d', $event->newsId);
 
             $recipients = $service->getRecipients();
-            $service->sendEmailInBatches($recipients, $news, $subject);
+            $service->sendEmailInBatches($recipients, $news, $subject, $eventKey);
         } catch (\Throwable) {
             return;
         }

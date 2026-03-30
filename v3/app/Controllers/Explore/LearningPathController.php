@@ -248,4 +248,29 @@ class LearningPathController extends ExploreBaseController
             ]
         );
     }
+
+    #[Route('/profiles/{profile_id}/upcoming-cohorts/{slug}', 'GET', ['api'])]
+    public function upcomingCohorts(array $vars): void
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'profile_id' => 'required|integer',
+                'slug' => 'required|string',
+            ]
+        );
+
+        $data = $this->learningPathService->getUpcomingCohorts(
+            $validated['slug'],
+            (int) $validated['profile_id'],
+        );
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Upcoming cohorts retrieved successfully.',
+                'data' => $data,
+            ]
+        );
+    }
 }

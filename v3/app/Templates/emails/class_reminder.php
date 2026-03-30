@@ -9,12 +9,46 @@ $authorName = htmlspecialchars((string)($data['author_name'] ?? 'Your Instructor
 $lessonDate = isset($data['lesson_date']) ? date('F d, Y', strtotime($data['lesson_date'])) : 'N/A';
 $dayOfWeek = isset($data['lesson_date']) ? date('l', strtotime($data['lesson_date'])) : '';
 
-$assetUrl = getenv('ASSET_URL') ?: 'https://linkskool.net';
-$logoUrl = $assetUrl . '/assets/logo.png';
-$facebookIcon = 'https://img.icons8.com/color/48/facebook-new.png';
-$xIcon = 'https://img.icons8.com/color/48/twitterx--v1.png';
-$youtubeIcon = 'https://img.icons8.com/color/48/youtube-play.png';
-$instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
+$assetUrl = getenv('ASSET_URL') ?: 'https://linkskool.com/assets';
+$appBaseUrl = rtrim((string) (getenv('APP_URL') ?: 'https://linkskool.com'), '/');
+$classUrl = $appBaseUrl . '/learn/class-reminder';
+$classQuery = array_filter([
+    'lesson_id' => $data['id'] ?? null,
+    'course_id' => $data['course_id'] ?? null,
+    'cohort_id' => $data['cohort_id'] ?? null,
+    'program_id' => $data['program_id'] ?? null,
+]);
+if (!empty($classQuery)) {
+    $classUrl .= '?' . http_build_query($classQuery);
+}
+$safeClassUrl = htmlspecialchars($classUrl, ENT_QUOTES, 'UTF-8');
+$logoUrl = $assetUrl . '/logo.png';
+
+if (!function_exists('normalizeClassReminderContent')) {
+    function normalizeClassReminderContent(string $content): string
+    {
+        $content = trim($content);
+        if ($content === '') {
+            return '';
+        }
+
+        $content = preg_replace('/<br\s*\/?>/i', "\n", $content);
+        $content = html_entity_decode((string) $content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $content = strip_tags((string) $content);
+
+        $lines = preg_split('/\r\n|\r|\n/', (string) $content) ?: [];
+        $lines = array_map(static function (string $line): string {
+            return trim($line);
+        }, $lines);
+        $lines = array_values(array_filter($lines, static function (string $line): bool {
+            return $line !== '';
+        }));
+
+        return htmlspecialchars(implode("\n\n", $lines), ENT_QUOTES, 'UTF-8');
+    }
+}
+
+$objectivesContent = normalizeClassReminderContent((string) ($data['objectives'] ?? ''));
 ?>
 <!DOCTYPE html>
 <html>
@@ -59,12 +93,10 @@ $instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
                         </div>
 
                         <!-- What You'll Learn -->
-                        <?php if ($objectives): ?>
+                        <?php if ($objectivesContent !== ''): ?>
                         <div style="margin:0 0 28px 0;padding:18px;background:#f8fafc;border-left:3px solid #3b82f6;border-radius:4px;">
                             <h3 style="margin:0 0 10px 0;font-size:15px;color:#0f172a;font-weight:600;">What You'll Learn</h3>
-                            <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;">
-                                <?= htmlspecialchars_decode($objectives) ?>
-                            </p>
+                            <p style="margin:0;font-size:14px;line-height:1.7;color:#475569;white-space:pre-wrap;"><?= $objectivesContent ?></p>
                         </div>
                         <?php endif; ?>
 
@@ -78,39 +110,26 @@ $instagramIcon = 'https://img.icons8.com/color/48/instagram-new--v1.png';
                             </ul>
                         </div>
 
-                        <!-- Support Message -->
-                        <p style="margin:0;font-size:13px;color:#64748b;text-align:center;line-height:1.5;">
-                            <strong style="color:#475569;">See you in class!</strong><br>
-                            Contact us if you have any questions.
-                        </p>
+                        <div style="margin:0 0 24px 0;text-align:center;">
+                            <a href="<?= $safeClassUrl ?>" style="display:inline-block;padding:14px 32px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;">
+                                Open Class Reminder
+                            </a>
+                        </div>
+
                     </td>
                 </tr>
 
-                <!-- Social Links Footer -->
-                <tr>
-                    <td style="background:#f8fafc;padding:20px;text-align:center;border-top:1px solid #e2e8f0;">
-                        <p style="margin:0 0 12px 0;font-size:12px;font-weight:600;color:#334155;letter-spacing:0.01em;">CONNECT WITH US</p>
-                        <a href="https://www.facebook.com/share/1Dwd5kQsgM/" style="text-decoration:none;display:inline-block;margin:0 6px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $facebookIcon ?>" alt="Facebook" width="20" height="20" style="display:block;">
-                        </a>
-                        <a href="https://x.com/DigitalDreamsNG" style="text-decoration:none;display:inline-block;margin:0 6px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $xIcon ?>" alt="X (Twitter)" width="20" height="20" style="display:block;">
-                        </a>
-                        <a href="https://www.youtube.com/@digitaldreamsictacademy1353" style="text-decoration:none;display:inline-block;margin:0 6px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $youtubeIcon ?>" alt="YouTube" width="20" height="20" style="display:block;">
-                        </a>
-                        <a href="https://www.instagram.com/digitaldreamslimited/?hl=en" style="text-decoration:none;display:inline-block;margin:0 6px;opacity:0.8;transition:opacity 0.2s;">
-                            <img src="<?= $instagramIcon ?>" alt="Instagram" width="20" height="20" style="display:block;">
-                        </a>
-                    </td>
-                </tr>
-
-                <!-- Copyright Footer -->
-                <tr>
-                    <td style="background:#f8fafc;padding:12px 20px 16px 20px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;">
-                        <span style="font-weight:500;">© <?= date('Y') ?> Linkskool.</span> All rights reserved.
-                    </td>
-                </tr>
+                <?php
+                $footerData = [
+                    'support_title' => 'See you in class!',
+                    'support_message' => 'Contact us if you have any questions.',
+                    'social_padding' => '20px',
+                    'footer_padding' => '12px 20px 16px 20px',
+                    'social_icon_size' => 20,
+                    'footer_note' => null,
+                ];
+                include __DIR__ . '/partials/footer.php';
+                ?>
             </table>
         </td>
     </tr>

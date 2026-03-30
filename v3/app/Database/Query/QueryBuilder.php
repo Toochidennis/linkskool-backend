@@ -424,6 +424,21 @@ class QueryBuilder
         return $this;
     }
 
+    public function whereTrimmed(string $column, $operator = null, $value = null): self
+    {
+        if (\func_num_args() === 2) {
+            $value = $operator;
+            $operator = '=';
+        }
+
+        $this->validateColumn($column);
+        $quoted = $this->wrapIdentifier($column);
+        $this->whereConditions[] = "TRIM($quoted) $operator ?";
+        $this->whereBindings[] = \is_string($value) ? trim($value) : $value;
+
+        return $this;
+    }
+
     /**
      * Deletes records from the table.
      *
