@@ -2,9 +2,9 @@
 
 namespace V3\App\Models\Explore;
 
-class Challenge extends \V3\App\Models\BaseModel
+class ChallengeItem extends \V3\App\Models\BaseModel
 {
-    protected string $table = 'challenges';
+    protected string $table = 'challenge_items';
 
     public function __construct(\PDO $pdo)
     {

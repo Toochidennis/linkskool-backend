@@ -3,26 +3,31 @@
 namespace V3\App\Services\Explore;
 
 use DateTime;
-use V3\App\Models\Explore\Exam;
 use V3\App\Models\Explore\Challenge;
 use V3\App\Common\Enums\ChallengeStatus;
+use V3\App\Models\Explore\ChallengeItem;
 use V3\App\Models\Explore\ChallengeParticipants;
+use V3\App\Models\Portal\ELearning\Quiz;
 
 class ChallengeService
 {
     private Challenge $challenge;
-    private Exam $exam;
+    private ChallengeItem $challengeItem;
+    private Quiz $quiz;
     private QuestionService $questionService;
     private ChallengeParticipants $challengeParticipants;
+    private \PDO $pdo;
 
     private const ADMIN_USER = 'admin';
 
     public function __construct(\PDO $pdo)
     {
         $this->challenge = new Challenge($pdo);
-        $this->exam = new Exam($pdo);
+        $this->challengeItem = new ChallengeItem($pdo);
+        $this->quiz = new Quiz($pdo);
         $this->questionService = new QuestionService($pdo);
         $this->challengeParticipants = new ChallengeParticipants($pdo);
+        $this->pdo = $pdo;
     }
 
     /**
@@ -30,70 +35,136 @@ class ChallengeService
      * @param array $data
      * @return bool|int
      */
-    public function createChallenge(array $data): bool
+    public function createChallenge(array $data)
     {
-        $questionIds = $this->getQuestionIds(
-            array_column($data['details'], 'exam_id'),
-            $data['count_per_exam']
-        );
+        $this->pdo->beginTransaction();
+        try {
+            $payload = [
+                'title' => $data['title'],
+                'description' => $data['description'] ?? '',
+                'start_date' => $data['start_date'],
+                'end_date' => $data['end_date'],
+                'duration' => $data['duration'],
+                'exam_type_id' => $data['exam_type_id'],
+                'status' => ChallengeStatus::fromLabel($data['status'])->value,
+                'author_id' => $data['author_id'],
+                'author_name' => $data['author_name'],
+                'published_at' => $data['status'] === 'published' ? date('Y-m-d H:i:s') : null,
+            ];
 
-        if (empty($questionIds)) {
+            $challengeId = $this->challenge->insert($payload);
+
+            if (!$challengeId) {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            foreach ($data['items'] as $index => $item) {
+                $questionIds = $this->getQuestionIds(
+                    $data['exam_type_id'],
+                    $item['course_id'],
+                    $item['question_count'],
+                    $item['years']
+                );
+                if (empty($questionIds)) {
+                    $this->pdo->rollBack();
+                    return false;
+                }
+                $challengeItemPayload = [
+                    'challenge_id' => $challengeId,
+                    'course_id' => $item['course_id'],
+                    'course_name' => $item['course_name'],
+                    'question_count' => $item['question_count'],
+                    'years' => json_encode($item['years']),
+                    'question_ids' => json_encode($questionIds),
+                    'sort_order' => $index + 1,
+                ];
+
+                $inserted = $this->challengeItem->insert($challengeItemPayload);
+
+                if (!$inserted) {
+                    $this->pdo->rollBack();
+                    return false;
+                }
+            }
+
+            $this->pdo->commit();
+            return $challengeId;
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
             return false;
         }
-
-        $payload = [
-            'title' => $data['title'],
-            'description' => $data['description'] ?? '',
-            'start_date' => $data['start_date'],
-            'end_date' => $data['end_date'],
-            'time_limit' => $data['time_limit'],
-            'count_per_exam' => $data['count_per_exam'],
-            'details' => json_encode($data['details']),
-            'exam_type_id' => $data['exam_type_id'],
-            'status' => ChallengeStatus::fromLabel($data['status'])->value,
-            'author_id' => $data['author_id'],
-            'author_name' => $data['author_name'],
-            'score' => $data['score'],
-            'question_ids' => json_encode($questionIds),
-            'published_at' => $data['status'] === 'published' ? date('Y-m-d H:i:s') : null,
-        ];
-
-        return $this->challenge->insert($payload);
     }
 
     public function updateChallenge(array $data): bool
     {
-        $questionIds = $this->getQuestionIds(
-            array_column($data['details'], 'exam_id'),
-            $data['count_per_exam']
-        );
+        $this->pdo->beginTransaction();
+        try {
+            $payload = [
+                'title' => $data['title'],
+                'description' => $data['description'] ?? '',
+                'start_date' => $data['start_date'],
+                'end_date' => $data['end_date'],
+                'duration' => $data['duration'],
+                'exam_type_id' => $data['exam_type_id'],
+                'status' => ChallengeStatus::fromLabel($data['status'])->value,
+                'author_id' => $data['author_id'],
+                'author_name' => $data['author_name'],
+                'updated_at' => date('Y-m-d H:i:s'),
+                'is_active' => 1,
+                'published_at' => $data['status'] === 'published' ? date('Y-m-d H:i:s') : null,
+            ];
 
-        if (empty($questionIds)) {
+            $updated = $this->challenge
+                ->where('id', $data['challenge_id'])
+                ->update($payload);
+
+            if (!$updated) {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            // Delete existing items
+            $this->challengeItem
+                ->where('challenge_id', $data['challenge_id'])
+                ->delete();
+
+            // Insert new items
+            foreach ($data['items'] as $index => $item) {
+                $questionIds = $this->getQuestionIds(
+                    $data['exam_type_id'],
+                    $item['course_id'],
+                    $item['question_count'],
+                    $item['years']
+                );
+                if (empty($questionIds)) {
+                    $this->pdo->rollBack();
+                    return false;
+                }
+                $challengeItemPayload = [
+                    'challenge_id' => $data['challenge_id'],
+                    'course_id' => $item['course_id'],
+                    'course_name' => $item['course_name'],
+                    'question_count' => $item['question_count'],
+                    'years' => json_encode($item['years']),
+                    'question_ids' => json_encode($questionIds),
+                    'sort_order' => $index + 1,
+                ];
+
+                $inserted = $this->challengeItem->insert($challengeItemPayload);
+
+                if (!$inserted) {
+                    $this->pdo->rollBack();
+                    return false;
+                }
+            }
+
+            $this->pdo->commit();
+            return true;
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
             return false;
         }
-
-        $payload = [
-            'title' => $data['title'],
-            'description' => $data['description'] ?? '',
-            'start_date' => $data['start_date'],
-            'end_date' => $data['end_date'],
-            'time_limit' => $data['time_limit'],
-            'count_per_exam' => $data['count_per_exam'],
-            'details' => json_encode($data['details']),
-            'exam_type_id' => $data['exam_type_id'],
-            'status' => ChallengeStatus::fromLabel($data['status'])->value,
-            'author_id' => $data['author_id'],
-            'author_name' => $data['author_name'],
-            'score' => $data['score'],
-            'question_ids' => json_encode($questionIds),
-            'updated_at' => date('Y-m-d H:i:s'),
-            'is_active' => 1,
-            'published_at' => $data['status'] === 'published' ? date('Y-m-d H:i:s') : null,
-        ];
-
-        return $this->challenge
-            ->where('id', $data['challenge_id'])
-            ->update($payload);
     }
 
     public function updateStatus(int $challengeId, string $status): bool
@@ -111,82 +182,100 @@ class ChallengeService
 
     public function deleteChallenge(int $challengeId, int $authorId): bool
     {
-        return $this->challenge
-            ->where('id', '=', $challengeId)
-            ->where('author_id', '=', $authorId)
-            ->delete();
+        $this->pdo->beginTransaction();
+
+        try {
+            $deleted = $this->challenge
+                ->where('id', '=', $challengeId)
+                ->where('author_id', '=', $authorId)
+                ->delete();
+
+            if (!$deleted) {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            $this->challengeItem
+                ->where('challenge_id', '=', $challengeId)
+                ->delete();
+
+            $this->pdo->commit();
+
+            return true;
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            return false;
+        }
     }
 
-    private function getQuestionIds(array $examIds, int $countPerExam): array
+    private function getQuestionIds(int $examTypeId, int $courseId, int $questionCount, array $years): array
     {
-        $url = $this->exam
-            ->select(['id', 'url'])
-            ->in('id', $examIds)
+        $questionIds = $this->quiz
+            ->select(['question_id'])
+            ->where('exam_type', $examTypeId)
+            ->where('course_id', $courseId)
+            ->in('year', $years)
             ->get();
 
-        if (empty($url)) {
+        if (empty($questionIds)) {
             return [];
         }
 
-        $selectedQuestionIds = [];
+        $questionIds = array_column($questionIds, 'question_id');
+        shuffle($questionIds);
 
-        foreach ($url as $exam) {
-            $questionIds = json_decode($exam['url'], true);
-
-            shuffle($questionIds);
-            $selectedIds = \array_slice($questionIds, 0, $countPerExam);
-            $selectedQuestionIds[$exam['id']] = $selectedIds;
-        }
-        return $selectedQuestionIds;
+        return \array_slice($questionIds, 0, $questionCount);
     }
 
     /**
      * Summary of getChallenges
      * @param int $authorId
-     * @return array[]|array{active: array, personal: array, recommended: array, upcoming: array}
+     * @return array[]|array{active: array, personal: array, recommended: array, upcoming: array, completed: array}
      */
     public function getChallenges(array $filters): array
     {
-        $challenges = $this->challenge
-            ->select([
-                'challenge.id',
-                'challenge.title',
-                'challenge.description',
-                'challenge.start_date',
-                'challenge.end_date',
-                'challenge.time_limit',
-                'challenge.details',
-                'challenge.status',
-                'challenge.author_id',
-                'challenge.author_name',
-                'challenge.score',
-                'challenge.is_active',
-                'challenge.created_at',
-                'COUNT(challenge_participants.id) AS challengers'
-            ])
-            ->join(
-                'challenge_participants',
-                'challenge_participants.challenge_id = challenge.id',
-                'LEFT'
-            )
-            ->where('challenge.exam_type_id', $filters['exam_type_id'])
-            ->groupBy([
-                'challenge.id',
-                'challenge.title',
-                'challenge.description',
-                'challenge.start_date',
-                'challenge.end_date',
-                'challenge.time_limit',
-                'challenge.details',
-                'challenge.status',
-                'challenge.author_id',
-                'challenge.author_name',
-                'challenge.score',
-                'challenge.is_active',
-                'challenge.created_at'
-            ])
-            ->orderBy('challenge.created_at', 'DESC')
-            ->get();
+        $sql = "
+            SELECT
+                c.id,
+                c.title,
+                c.description,
+                c.start_date,
+                c.end_date,
+                c.duration,
+                c.exam_type_id,
+                c.status,
+                c.author_id,
+                c.author_name,
+                c.is_active,
+                c.created_at,
+                COUNT(cp.id) AS challengers
+            FROM challenge c
+            LEFT JOIN challenge_participants cp
+                ON cp.challenge_id = c.id
+            WHERE c.exam_type_id = :exam_type_id
+            GROUP BY
+                c.id,
+                c.title,
+                c.description,
+                c.start_date,
+                c.end_date,
+                c.duration,
+                c.exam_type_id,
+                c.status,
+                c.author_id,
+                c.author_name,
+                c.is_active,
+                c.created_at
+            ORDER BY c.created_at DESC
+        ";
+
+        $challenges = $this->challenge->rawQuery($sql, [
+            'exam_type_id' => $filters['exam_type_id'],
+        ]);
+
+        $challengeSubjects = $this->getChallengeSubjects(
+            array_column($challenges, 'id')
+        );
 
         $now = new DateTime();
         $grouped = [
@@ -200,12 +289,13 @@ class ChallengeService
         foreach ($challenges as &$challenge) {
             $start = new DateTime($challenge['start_date']);
             $end = new DateTime($challenge['end_date']);
-            //die($start <= $now && $end >= $now);
-            $challenge['details'] = json_decode($challenge['details'], true);
+            $challenge['exam_type_id'] = (int) $challenge['exam_type_id'];
+            $challenge['subjects'] = $challengeSubjects[(int) $challenge['id']] ?? [];
             $challenge['status'] = ChallengeStatus::fromValue(
                 (int)$challenge['status']
             )->label();
             $challenge['is_active'] = $challenge['is_active'] === 1 ? 'active' : 'inactive';
+            $challenge['challengers'] = (int) $challenge['challengers'];
 
             // Auto-update expired challenges
             if ($challenge['is_active'] === 'active' && $end < $now) {
@@ -245,6 +335,52 @@ class ChallengeService
         return $grouped;
     }
 
+    private function getChallengeSubjects(array $challengeIds): array
+    {
+        if (empty($challengeIds)) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = [];
+
+        foreach (array_values($challengeIds) as $index => $challengeId) {
+            $key = 'challenge_id_' . $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $challengeId;
+        }
+
+        $sql = "
+            SELECT
+                id,
+                challenge_id,
+                course_id,
+                course_name,
+                question_count,
+                years
+            FROM challenge_items
+            WHERE challenge_id IN (" . implode(', ', $placeholders) . ")
+            ORDER BY challenge_id ASC, sort_order ASC, id ASC
+        ";
+
+        $rows = $this->challengeItem->rawQuery($sql, $params);
+
+        $subjectsByChallenge = [];
+
+        foreach ($rows as $row) {
+            $challengeId = (int) $row['challenge_id'];
+
+            $subjectsByChallenge[$challengeId][] = [
+                'course_id' => (int) $row['course_id'],
+                'course_name' => $row['course_name'],
+                'years' => $this->decode($row['years']),
+                'question_count' => (int) $row['question_count'],
+            ];
+        }
+
+        return $subjectsByChallenge;
+    }
+
     private function checkIfUserParticipated(int $challengeId, int $userId): bool
     {
         return $this->challengeParticipants
@@ -260,21 +396,17 @@ class ChallengeService
      */
     public function getChallengeQuestions(array $filters): array
     {
-        $challenge = $this->challenge
-            ->select(['id', 'question_ids'])
-            ->where('id', $filters['challenge_id'])
+        $challengeItem = $this->challengeItem
+            ->select(['question_ids'])
+            ->where('challenge_id', $filters['challenge_id'])
+            ->where('course_id', $filters['course_id'])
             ->first();
 
-        if (!$challenge) {
+        if (!$challengeItem) {
             return [];
         }
 
-        $questionIdsData = $this->decode($challenge['question_ids']);
-        $questionIds = $questionIdsData[$filters['exam_id']] ?? [];
-
-        if (empty($questionIds)) {
-            return [];
-        }
+        $questionIds = $this->decode($challengeItem['question_ids']);
 
         return $this->questionService->fetchQuestions($questionIds, ['shuffle' => true]);
     }

@@ -171,6 +171,7 @@ class CourseCohortEnrollmentService
                 ),
                 'payment_url' => '',
                 'reference' => '',
+                'payment_type' => '',
             ];
         }
 

@@ -72,7 +72,9 @@ class CbtService
             ->where('exam.exam_type', '=', $examTypeId)
             ->orderBy([
                 'course_table.id' => 'ASC',
-                'exam.year' => 'DESC'
+                'exam.year' => 'DESC',
+                'course_table.course_name' => 'ASC',
+                'display_order' => 'ASC'
             ])
             ->get();
 
@@ -354,6 +356,7 @@ class CbtService
                 $result = $this->course
                     ->select(['id', 'course_name'])
                     ->in('id', $courseIds)
+                    ->orderBy(['display_order' => 'ASC', 'course_name' => 'ASC', ])
                     ->get();
 
                 $courses = array_map(function ($row) {

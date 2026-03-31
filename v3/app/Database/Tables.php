@@ -95,6 +95,8 @@ class Tables
         'audit_logs',
         'users',
         'challenge',
+        'challenges',
+        'challenge_items',
         'leaderboard',
         'challenge_participants',
         'cbt_leaderboard',
