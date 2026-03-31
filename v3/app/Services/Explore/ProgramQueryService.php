@@ -251,10 +251,10 @@ class ProgramQueryService
             c.learning_type,
             c.whatsapp_group_link AS cohort_whatsapp_group_link,
             CASE
-                WHEN :profile_id IS NOT NULL AND EXISTS (
+                WHEN :profile_id_check IS NOT NULL AND EXISTS (
                     SELECT 1
                     FROM program_course_cohort_enrollments e
-                    WHERE e.profile_id = :profile_id
+                    WHERE e.profile_id = :profile_id_match
                         AND e.cohort_id = c.id
                 ) THEN 1
                 ELSE 0
@@ -277,7 +277,8 @@ class ProgramQueryService
         $rows = $this->program->rawQuery($sql, [
             'slug' => $slug,
             'status' => 'published',
-            'profile_id' => $profileId,
+            'profile_id_check' => $profileId,
+            'profile_id_match' => $profileId,
         ]);
 
         if (empty($rows)) {

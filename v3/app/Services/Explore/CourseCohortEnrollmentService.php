@@ -15,6 +15,8 @@ use V3\App\Services\Paystack\PaystackService;
 
 class CourseCohortEnrollmentService
 {
+    private const PAYMENT_EXPIRY_MINUTES = 10;
+
     protected ProgramCohortCourseEnrollment $enrollmentModel;
     private ProgramCourseCohort $programCourseCohort;
     private Program $programModel;
@@ -114,7 +116,8 @@ class CourseCohortEnrollmentService
             'amount' => $amount,
             'status' => 'pending',
             'method' => 'paystack',
-            'platform' => 'mobile'
+            'platform' => 'mobile',
+            'expires_at' => $this->computePendingPaymentExpiryAt(),
         ]);
 
         $this->paymentItem->insert([
@@ -208,7 +211,8 @@ class CourseCohortEnrollmentService
                 'amount' => $total,
                 'status' => 'pending',
                 'method' => 'online',
-                'platform' => 'web'
+                'platform' => 'web',
+                'expires_at' => $this->computePendingPaymentExpiryAt(),
             ]);
 
             foreach ($payableItems as $item) {
@@ -568,6 +572,196 @@ class CourseCohortEnrollmentService
         }
 
         return (int) $amount;
+    }
+
+    public function abandonExpiredPendingPayments(): int
+    {
+        $cutoff = date('Y-m-d H:i:s');
+
+        return $this->payment->rawExecute(
+            "
+            UPDATE course_cohort_payments
+            SET status = :status
+            WHERE status = :pending_status
+              AND expires_at IS NOT NULL
+              AND expires_at <= :cutoff
+            ",
+            [
+                'status' => 'abandoned',
+                'pending_status' => 'pending',
+                'cutoff' => $cutoff,
+            ]
+        );
+    }
+
+    public function getAbandonedCartReminderCandidates(int $limit = 200): array
+    {
+        return $this->getAbandonedCartReminderCandidatesAfterMinutes(0, $limit);
+    }
+
+    public function getAbandonedCartReminderCandidatesAfterMinutes(int $minutes, int $limit = 200): array
+    {
+        $minutes = max(0, $minutes);
+        $limit = max(1, $limit);
+        $cutoff = date('Y-m-d H:i:s', strtotime('-' . $minutes . ' minutes'));
+
+        return $this->payment->rawQuery(
+            sprintf(
+                "
+                SELECT p.id
+                FROM course_cohort_payments p
+                WHERE p.status = 'abandoned'
+                  AND p.method IN ('online', 'paystack')
+                  AND p.created_at <= :cutoff
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM course_cohort_payments newer
+                      INNER JOIN course_cohort_payment_items newer_items
+                          ON newer_items.payment_id = newer.id
+                      INNER JOIN course_cohort_payment_items current_items
+                          ON current_items.payment_id = p.id
+                         AND current_items.cohort_id = newer_items.cohort_id
+                      WHERE newer.profile_id = p.profile_id
+                        AND newer.platform = p.platform
+                        AND (
+                            newer.created_at > p.created_at
+                            OR (newer.created_at = p.created_at AND newer.id > p.id)
+                        )
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM program_course_cohort_enrollments e
+                      INNER JOIN course_cohort_payment_items current_items
+                          ON current_items.payment_id = p.id
+                         AND current_items.cohort_id = e.cohort_id
+                      WHERE e.profile_id = p.profile_id
+                        AND COALESCE(e.payment_status, '') = 'success'
+                  )
+                ORDER BY p.created_at ASC
+                LIMIT %d
+                ",
+                $limit
+            ),
+            [
+                'cutoff' => $cutoff,
+            ]
+        );
+    }
+
+    public function getAbandonedCartDetails(int $paymentId): array
+    {
+        $rows = $this->payment->rawQuery(
+            "
+            SELECT
+                p.id,
+                p.profile_id,
+                p.reference,
+                p.amount,
+                p.status,
+                p.platform,
+                p.method,
+                p.expires_at,
+                p.created_at,
+                profile.first_name,
+                profile.last_name,
+                user.email,
+                (
+                    SELECT first_item.course_id
+                    FROM course_cohort_payment_items first_item
+                    WHERE first_item.payment_id = p.id
+                    ORDER BY first_item.id ASC
+                    LIMIT 1
+                ) AS primary_course_id,
+                (
+                    SELECT first_cohort.slug
+                    FROM course_cohort_payment_items first_item
+                    INNER JOIN program_course_cohorts first_cohort
+                        ON first_cohort.id = first_item.cohort_id
+                    WHERE first_item.payment_id = p.id
+                    ORDER BY first_item.id ASC
+                    LIMIT 1
+                ) AS primary_cohort_slug,
+                GROUP_CONCAT(
+                    DISTINCT CONCAT(course.title, ' - ', cohort.title)
+                    ORDER BY item.id ASC
+                    SEPARATOR ', '
+                ) AS checkout_items
+            FROM course_cohort_payments p
+            LEFT JOIN program_profiles profile
+                ON profile.id = p.profile_id
+            LEFT JOIN cbt_users user
+                ON user.id = profile.user_id
+            LEFT JOIN course_cohort_payment_items item
+                ON item.payment_id = p.id
+            LEFT JOIN learning_courses course
+                ON course.id = item.course_id
+            LEFT JOIN program_course_cohorts cohort
+                ON cohort.id = item.cohort_id
+            WHERE p.id = :payment_id
+            GROUP BY
+                p.id,
+                p.profile_id,
+                p.reference,
+                p.amount,
+                p.status,
+                p.platform,
+                p.method,
+                p.expires_at,
+                p.created_at,
+                profile.first_name,
+                profile.last_name,
+                user.email
+            LIMIT 1
+            ",
+            [
+                'payment_id' => $paymentId,
+            ]
+        );
+
+        return $rows[0] ?? [];
+    }
+
+    public function shouldSendAbandonedCartReminder(int $paymentId): bool
+    {
+        $rows = $this->payment->rawQuery(
+            "
+            SELECT 1
+            FROM course_cohort_payments p
+            WHERE p.id = :payment_id
+              AND p.status = 'abandoned'
+              AND p.method IN ('online', 'paystack')
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM course_cohort_payments newer
+                  INNER JOIN course_cohort_payment_items newer_items
+                      ON newer_items.payment_id = newer.id
+                  INNER JOIN course_cohort_payment_items current_items
+                      ON current_items.payment_id = p.id
+                     AND current_items.cohort_id = newer_items.cohort_id
+                  WHERE newer.profile_id = p.profile_id
+                    AND newer.platform = p.platform
+                    AND (
+                        newer.created_at > p.created_at
+                        OR (newer.created_at = p.created_at AND newer.id > p.id)
+                    )
+              )
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM program_course_cohort_enrollments e
+                  INNER JOIN course_cohort_payment_items current_items
+                      ON current_items.payment_id = p.id
+                     AND current_items.cohort_id = e.cohort_id
+                  WHERE e.profile_id = p.profile_id
+                    AND COALESCE(e.payment_status, '') = 'success'
+              )
+            LIMIT 1
+            ",
+            [
+                'payment_id' => $paymentId,
+            ]
+        );
+
+        return !empty($rows);
     }
 
     private function buildEnrollmentNotificationItem(array $item): array
@@ -948,5 +1142,13 @@ class CourseCohortEnrollmentService
         }
 
         return true;
+    }
+
+    private function computePendingPaymentExpiryAt(): string
+    {
+        return date(
+            'Y-m-d H:i:s',
+            strtotime('+' . self::PAYMENT_EXPIRY_MINUTES . ' minutes')
+        );
     }
 }

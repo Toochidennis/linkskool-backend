@@ -249,7 +249,7 @@ class ChallengeService
                 c.is_active,
                 c.created_at,
                 COUNT(cp.id) AS challengers
-            FROM challenge c
+            FROM challenges c
             LEFT JOIN challenge_participants cp
                 ON cp.challenge_id = c.id
             WHERE c.exam_type_id = :exam_type_id
