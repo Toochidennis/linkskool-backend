@@ -182,21 +182,21 @@ class NewsService
             ->first();
     }
 
-    public function getNewsAdmin(): array
+    public function getNewsAdmin(array $filters): array
     {
-        $result =  $this->newsModel
+        $news =  $this->newsModel
             ->orderBy(['date_posted' => 'DESC', 'created_at' => 'DESC'])
-            ->get();
+            ->paginate($filters['page'] ?? 1, $filters['limit'] ?? 15);
 
-        foreach ($result as &$news) {
-            $categories = json_decode($news['category_ids'], true);
-            $news['categories'] = $this->newsCategoryModel
+        foreach ($news['data'] as &$item) {
+            $categories = json_decode($item['category_ids'], true);
+            $item['categories'] = $this->newsCategoryModel
                 ->in('id', $categories)
                 ->get();
-            $news['images'] = json_decode($news['images'], true);
+            $item['images'] = json_decode($item['images'], true);
         }
 
-        return $result;
+        return $news;
     }
 
     public function deleteNews(int $newsId): bool

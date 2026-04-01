@@ -84,7 +84,7 @@ class CbtService
             if (!isset($formatted[$courseId])) {
                 $formatted[$courseId] = [
                     'course_id' => $courseId,
-                    'course_name' => $row['course_name'],
+                    'course_name' => ucwords(strtolower($row['course_name'])),
                     'years' => []
                 ];
 

@@ -243,7 +243,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
                 'items' => 'required|array|min:1',
                 'items.*.course_id' => 'required|integer',
                 'items.*.cohort_id' => 'required|integer',
-                'callback_url' => 'required|string'
+                'callback_url' => 'nullable|string'
             ]
         );
 

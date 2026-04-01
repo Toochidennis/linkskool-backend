@@ -174,9 +174,17 @@ class NewsController extends ExploreBaseController
     }
 
     #[Route('/news/admin', 'GET', ['api', 'auth'])]
-    public function getNewsAdmin(): void
+    public function getNewsAdmin(array $vars): void
     {
-        $newsItems = $this->newsService->getNewsAdmin();
+        $validated = $this->validate(
+            $vars,
+            [
+                'page' => 'nullable|integer',
+                'limit' => 'nullable|integer',
+            ]
+        );
+
+        $newsItems = $this->newsService->getNewsAdmin($validated);
 
         $this->respond(
             [
