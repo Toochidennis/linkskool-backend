@@ -18,8 +18,8 @@ class ProgramEnrollmentAnalysisController extends ExploreBaseController
         $this->analysisService = new ProgramEnrollmentAnalysisService($this->pdo);
     }
 
-    #[Route('/learn/programs/{program_id}/enrollment-analysis', 'GET', ['api', 'auth'])]
-    public function getProgramEnrollmentAnalysis(array $vars): void
+    #[Route('/learn/programs/{program_id}/enrollment-analysis/profiles', 'GET', ['api', 'auth'])]
+    public function getProgramProfilesAnalysis(array $vars): void
     {
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
@@ -28,7 +28,7 @@ class ProgramEnrollmentAnalysisController extends ExploreBaseController
             ]
         );
 
-        $data = $this->analysisService->getProgramEnrollmentAnalysis((int) $validated['program_id']);
+        $data = $this->analysisService->getProgramProfilesAnalysis((int) $validated['program_id']);
 
         if (empty($data)) {
             $this->respondError(
@@ -41,7 +41,55 @@ class ProgramEnrollmentAnalysisController extends ExploreBaseController
         $this->respond(
             [
                 'success' => true,
-                'message' => 'Program enrollment analysis retrieved successfully.',
+                'message' => 'Program profiles analysis retrieved successfully.',
+                'data' => $data,
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[
+        Route(
+            '/learn/programs/{program_id}/enrollment-analysis/profiles/{profile_id}/enrollments',
+            'GET',
+            ['api', 'auth']
+        )
+    ]
+    public function getProfileEnrollments(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'program_id' => 'required|integer',
+                'profile_id' => 'required|integer',
+            ]
+        );
+
+        $data = $this->analysisService->getProfileEnrollments(
+            (int) $validated['program_id'],
+            (int) $validated['profile_id']
+        );
+
+        if (empty($data)) {
+            $this->respondError(
+                'Program not found.',
+                HttpStatus::NOT_FOUND
+            );
+            return;
+        }
+
+        if (empty($data['profile'])) {
+            $this->respondError(
+                'Profile not found for this program.',
+                HttpStatus::NOT_FOUND
+            );
+            return;
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Profile enrollments retrieved successfully.',
                 'data' => $data,
             ],
             HttpStatus::OK
