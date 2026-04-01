@@ -25,10 +25,17 @@ class ProgramEnrollmentAnalysisController extends ExploreBaseController
             [...$this->getRequestData(), ...$vars],
             [
                 'program_id' => 'required|integer',
+                'page' => 'nullable|integer|min:1',
+                'limit' => 'nullable|integer|min:1|max:100',
+                'course_id' => 'nullable|integer|min:1',
+                'cohort_id' => 'nullable|integer|min:1',
+                'payment_status' => 'nullable|string',
+                'enrollment_status' => 'nullable|string',
+                'enrollment_type' => 'nullable|string',
             ]
         );
 
-        $data = $this->analysisService->getProgramProfilesAnalysis((int) $validated['program_id']);
+        $data = $this->analysisService->getProgramProfilesAnalysis((int) $validated['program_id'], $validated);
 
         if (empty($data)) {
             $this->respondError(
