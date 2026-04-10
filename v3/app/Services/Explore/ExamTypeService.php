@@ -43,7 +43,7 @@ class ExamTypeService
             ->update($payload);
     }
 
-    public function getAllExamTypes(int $active): array
+    public function getExamTypesWithCourses(int $active): array
     {
         $examTypes = $this->examType
             ->select(['id', 'title AS name', 'shortname', 'course_ids', 'is_active', 'display_order']);

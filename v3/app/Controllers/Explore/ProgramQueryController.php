@@ -60,10 +60,14 @@ class ProgramQueryController extends ExploreBaseController
             $vars,
             [
                 'slug' => 'required|string',
+                'profile_id' => 'optional|integer',
+                'profileId' => 'optional|integer',
             ]
         );
 
-        $data = $this->programQueryService->getCohortDetails($validated['slug']);
+        $profileId = $validated['profile_id'] ?? $validated['profileId'] ?? null;
+
+        $data = $this->programQueryService->getCohortDetails($validated['slug'], $profileId);
 
         if (!$data) {
             $this->respondError(

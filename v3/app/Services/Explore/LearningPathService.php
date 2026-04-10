@@ -37,6 +37,7 @@ class LearningPathService
             p.description   AS program_description,
             p.image_url    AS program_image_url,
             p.age_groups    AS program_age_groups,
+            p.slug AS program_slug,
 
             lc.id           AS course_id,
             lc.title        AS course_title,
@@ -110,6 +111,7 @@ class LearningPathService
                     'name' => $row['program_name'],
                     'description' => $row['program_description'],
                     'image_url' => $row['program_image_url'],
+                    'slug' => $row['program_slug'],
                     'courses' => [],
                     '_course_map' => [],
                     '_has_enrollment' => false,

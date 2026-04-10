@@ -212,7 +212,7 @@ class ProgramQueryService
         ];
     }
 
-    public function getCohortDetails(string $slug): array
+    public function getCohortDetails(string $slug, ?int $profileId = null): array
     {
         $sql = "
         SELECT
@@ -249,7 +249,16 @@ class ProgramQueryService
             c.is_free,
             c.enrollment_deadline,
             c.learning_type,
-            c.whatsapp_group_link AS cohort_whatsapp_group_link
+            c.whatsapp_group_link AS cohort_whatsapp_group_link,
+            CASE
+                WHEN :profile_id_check IS NOT NULL AND EXISTS (
+                    SELECT 1
+                    FROM program_course_cohort_enrollments e
+                    WHERE e.profile_id = :profile_id_match
+                        AND e.cohort_id = c.id
+                ) THEN 1
+                ELSE 0
+            END AS has_enrolled
         FROM program_course_cohorts c
         INNER JOIN programs p
             ON p.id = c.program_id
@@ -268,6 +277,8 @@ class ProgramQueryService
         $rows = $this->program->rawQuery($sql, [
             'slug' => $slug,
             'status' => 'published',
+            'profile_id_check' => $profileId,
+            'profile_id_match' => $profileId,
         ]);
 
         if (empty($rows)) {
@@ -318,6 +329,7 @@ class ProgramQueryService
                 'enrollment_deadline' => $row['enrollment_deadline'],
                 'learning_type' => $row['learning_type'],
                 'whatsapp_group_link' => $row['cohort_whatsapp_group_link'] ?? null,
+                'hasEnrolled' => (bool) $row['has_enrolled'],
             ],
         ];
     }

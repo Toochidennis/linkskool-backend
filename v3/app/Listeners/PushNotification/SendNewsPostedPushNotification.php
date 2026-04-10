@@ -20,8 +20,9 @@ class SendNewsPostedPushNotification
             }
 
             $newsTitle = trim((string) ($news['title'] ?? 'New post'));
-            $title = 'New News Posted';
-            $body = $newsTitle !== '' ? sprintf('%s is now available.', $newsTitle) : 'A new news post is now available.';
+            $title = 'News Update';
+            $body = $newsTitle !== '' ? \sprintf('%s is now available.', $newsTitle)
+                : 'A new news post is now available.';
 
             $data = [
                 'type' => 'news_posted',

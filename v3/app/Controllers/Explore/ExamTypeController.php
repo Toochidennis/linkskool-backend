@@ -70,23 +70,22 @@ class ExamTypeController extends ExploreBaseController
     }
 
     #[Route('/exam-types/active', 'GET', ['api', 'auth'])]
-    public function getActiveExamTypes(array $vars): void
+    public function getActiveExamTypesWithCourses(): void
     {
         $this->respond([
             'success' => true,
-            'data' => $this->examTypeService->getAllExamTypes(1)
+            'data' => $this->examTypeService->getExamTypesWithCourses(1)
         ]);
     }
 
     #[Route('/exam-types', 'GET', ['api', 'auth'])]
-    public function getAllExamTypes(): void
+    public function getExamTypesWithCourses(): void
     {
         $this->respond([
             'success' => true,
-            'data' => $this->examTypeService->getAllExamTypes(0)
+            'data' => $this->examTypeService->getExamTypesWithCourses(0)
         ]);
     }
-
 
     #[Route('/exam-types/{id:\d+}', 'DELETE', ['api', 'auth', 'role:admin'])]
     public function deleteExamType(array $vars): void

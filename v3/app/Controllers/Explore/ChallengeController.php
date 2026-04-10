@@ -30,21 +30,22 @@ class ChallengeController extends ExploreBaseController
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'start_date' => 'required|date',
-                'end_date' => 'required|date|after_or_equal:start_date',
-                'time_limit' => 'required|integer|min:0',
-                'count_per_exam' => 'required|integer|min:1',
-                'details' => 'required|array|min:1',
-                'details.*.exam_id' => 'required|integer|min:1',
-                'details.*.course_name' => 'required|string|filled',
-                'details.*.course_id' => 'required|integer|min:1',
-                'details.*.year' => 'required|integer|min:1',
+                'end_date' => 'required|date',
+                'duration' => 'required|integer|min:0',
                 'exam_type_id' => 'required|integer|min:1',
                 'status' => 'required|string|in:published,draft,archived',
                 'author_id' => 'required|integer|min:1',
                 'author_name' => 'required|string|max:255',
-                'score' => 'required|integer|min:0',
+                'items' => 'required|array|min:1',
+                'items.*.course_id' => 'required|integer|min:1',
+                'items.*.course_name' => 'required|string|filled',
+                'items.*.question_count' => 'required|integer|min:1',
+                'items.*.years' => 'required|array',
+                'items.*.years.*' => 'required|integer',
             ]
         );
+
+        $this->ensureValidDateRange($filters['start_date'], $filters['end_date']);
 
         $response = $this->challengeService->createChallenge($filters);
 
@@ -74,21 +75,22 @@ class ChallengeController extends ExploreBaseController
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'start_date' => 'required|date',
-                'end_date' => 'required|date|after_or_equal:start_date',
-                'time_limit' => 'required|integer|min:0',
-                'count_per_exam' => 'required|integer|min:1',
-                'details' => 'required|array|min:1',
-                'details.*.exam_id' => 'required|integer|min:1',
-                'details.*.course_name' => 'required|string|filled',
-                'details.*.course_id' => 'required|integer|min:1',
-                'details.*.year' => 'required|integer|min:1',
+                'end_date' => 'required|date',
+                'duration' => 'required|integer|min:0',
                 'exam_type_id' => 'required|integer|min:1',
                 'status' => 'required|string|in:published,draft,archived',
                 'author_id' => 'required|integer|min:1',
                 'author_name' => 'required|string|max:255',
-                'score' => 'required|integer|min:0',
+                'items' => 'required|array|min:1',
+                'items.*.course_id' => 'required|integer|min:1',
+                'items.*.course_name' => 'required|string|filled',
+                'items.*.question_count' => 'required|integer|min:1',
+                'items.*.years' => 'required|array',
+                'items.*.years.*' => 'required|integer',
             ]
         );
+
+        $this->ensureValidDateRange($filters['start_date'], $filters['end_date']);
 
         $response = $this->challengeService->updateChallenge($filters);
 
@@ -170,13 +172,13 @@ class ChallengeController extends ExploreBaseController
             $vars,
             [
                 'challenge_id' => 'required|integer|min:1',
-                'exam_id' => 'required|integer|min:1',
+                'course_id' => 'required|integer|min:1',
             ]
         );
 
         $questions = $this->challengeService->getChallengeQuestions($filters);
         $message = empty($questions) ?
-            'No questions found for the specified challenge and exam.'
+            'No questions found for the specified challenge and subject.'
             : 'Questions retrieved successfully.';
 
         $this->respond(
@@ -218,5 +220,19 @@ class ChallengeController extends ExploreBaseController
             ],
             HttpStatus::OK
         );
+    }
+
+    private function ensureValidDateRange(string $startDate, string $endDate): void
+    {
+        $start = strtotime($startDate);
+        $end = strtotime($endDate);
+
+        if ($start === false || $end === false || $end < $start) {
+            $this->respondError(
+                'The end_date must be a date after or equal to start_date.',
+                HttpStatus::BAD_REQUEST
+            );
+            exit;
+        }
     }
 }

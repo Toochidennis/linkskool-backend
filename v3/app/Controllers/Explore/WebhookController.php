@@ -7,6 +7,7 @@ use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\DataExtractor;
 use V3\App\Common\Utilities\HttpStatus;
+use V3\App\Common\Utilities\Logger;
 use V3\App\Controllers\Explore\ExploreBaseController;
 use V3\App\Database\DatabaseConnector;
 use V3\App\Events\Email\PaymentReceipt;
@@ -101,6 +102,18 @@ class WebhookController extends ExploreBaseController
                     ]);
 
                     $res['fulfillment'] = $fulfillment;
+
+                    if (!\in_array(($fulfillment['status'] ?? ''), ['activated', 'already_active', 'ignored'], true)) {
+                        Logger::info('CBT payment verified but fulfillment did not activate license.', [
+                            'reference' => $res['reference'] ?? null,
+                            'payment_id' => $res['payment_id'] ?? null,
+                            'user_id' => $res['user_id'] ?? null,
+                            'platform' => $res['platform'] ?? null,
+                            'method' => $res['method'] ?? null,
+                            'fulfillment_status' => $fulfillment['status'] ?? null,
+                            'fulfillment_message' => $fulfillment['message'] ?? null,
+                        ]);
+                    }
 
                     if (($fulfillment['status'] ?? '') === 'failed') {
                         $res = [

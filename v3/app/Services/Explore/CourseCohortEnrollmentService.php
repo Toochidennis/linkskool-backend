@@ -15,6 +15,8 @@ use V3\App\Services\Paystack\PaystackService;
 
 class CourseCohortEnrollmentService
 {
+    private const PAYMENT_EXPIRY_MINUTES = 10;
+
     protected ProgramCohortCourseEnrollment $enrollmentModel;
     private ProgramCourseCohort $programCourseCohort;
     private Program $programModel;
@@ -114,7 +116,8 @@ class CourseCohortEnrollmentService
             'amount' => $amount,
             'status' => 'pending',
             'method' => 'paystack',
-            'platform' => 'mobile'
+            'platform' => 'mobile',
+            'expires_at' => $this->computePendingPaymentExpiryAt(),
         ]);
 
         $this->paymentItem->insert([
@@ -146,85 +149,38 @@ class CourseCohortEnrollmentService
 
     public function initiateWebPayment(array $data): array
     {
-        $user = $this->registerUserIfNotExists($data);
+        $checkout = $this->prepareCheckout($data);
 
-        if (empty($user) || empty($user['profiles'])) {
-            return [
-                'status' => 'failed',
-                'message' => 'User registration failed'
-            ];
+        if (($checkout['status'] ?? '') !== 'ready') {
+            return $checkout;
         }
 
-        $data['profile_id'] = $user['profiles'][0]['id'];
-        $eligibility = $this->categorizeCheckoutItems(
-            (int) $data['profile_id'],
-            (int) $data['program_id'],
-            $data['items']
-        );
-
-        if (!empty($eligibility['blocked_items'])) {
-            return [
-                'status' => 'blocked',
-                'message' => $this->buildBlockedCheckoutMessage(
-                    $eligibility['blocked_items'],
-                    $eligibility['allowed_items']
-                ),
-                'payment_url' => '',
-                'reference' => '',
-            ];
-        }
-
-        $reference = 'COURSE-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
+        $reference = $this->generateCheckoutReference('COURSE');
 
         $this->pdo->beginTransaction();
 
         try {
-            $total = 0;
-            $payableItems = [];
-
-            foreach ($eligibility['allowed_items'] as $item) {
-                $price = $this->computePrice((int) $item['cohort_id']);
-
-                if ($price <= 0) {
-                    continue;
-                }
-
-                $item['amount'] = $price;
-                $payableItems[] = $item;
-                $total += $price;
-            }
-
-            if (empty($payableItems) || $total <= 0) {
-                return [
-                    'status' => 'failed',
-                    'message' => 'The selected courses are free and should not be added to payment.',
-                ];
-            }
-
             $paymentId = $this->payment->insert([
-                'profile_id' => $data['profile_id'],
+                'profile_id' => $checkout['profile_id'],
                 'reference' => $reference,
-                'amount' => $total,
+                'amount' => $checkout['total'],
                 'status' => 'pending',
                 'method' => 'online',
-                'platform' => 'web'
+                'platform' => 'web',
+                'expires_at' => $this->computePendingPaymentExpiryAt(),
             ]);
 
-            foreach ($payableItems as $item) {
-                $this->paymentItem->insert([
-                    'payment_id' => $paymentId,
-                    'program_id' => $data['program_id'],
-                    'course_id' => $item['course_id'],
-                    'cohort_id' => $item['cohort_id'],
-                    'amount' => $item['amount']
-                ]);
-            }
+            $this->insertCheckoutPaymentItems(
+                (int) $paymentId,
+                (int) $data['program_id'],
+                $checkout['payable_items']
+            );
 
             $paystack = new PaystackService();
 
             $payment = $paystack->initialize([
                 'email' => $data['email'],
-                'amount' => $total,
+                'amount' => $checkout['total'],
                 'reference' => $reference,
                 'callback_url' => $data['callback_url'],
                 'metadata' => [
@@ -247,6 +203,68 @@ class CourseCohortEnrollmentService
             return [
                 'status' => 'failed',
                 'message' => $e->getMessage()
+            ];
+        }
+    }
+
+    public function completeOfflinePayment(array $data): array
+    {
+        $checkout = $this->prepareCheckout($data);
+
+        if (($checkout['status'] ?? '') !== 'ready') {
+            return $checkout;
+        }
+
+        $reference = $this->generateCheckoutReference('OFFLINE');
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $paymentId = (int) $this->payment->insert([
+                'profile_id' => $checkout['profile_id'],
+                'reference' => $reference,
+                'amount' => $checkout['total'],
+                'status' => 'pending',
+                'method' => 'offline',
+                'platform' => 'web',
+                'message' => 'Offline payment recorded successfully.',
+            ]);
+
+            $this->insertCheckoutPaymentItems(
+                $paymentId,
+                (int) $data['program_id'],
+                $checkout['payable_items']
+            );
+
+            $res = $this->fulfillSuccessfulPayment(
+                [
+                    'id' => $paymentId,
+                    'profile_id' => $checkout['profile_id'],
+                    'reference' => $reference,
+                ],
+                $this->getPaymentItems($paymentId)
+            );
+
+            if (($res['status'] ?? '') !== 'success') {
+                throw new \RuntimeException($res['message'] ?? 'Offline payment fulfillment failed.');
+            }
+
+            $this->pdo->commit();
+
+            return [
+                'status' => 'success',
+                'reference' => $reference,
+                'payment_status' => 'success',
+                'message' => 'Offline payment completed successfully.',
+            ];
+        } catch (\Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            return [
+                'status' => 'failed',
+                'message' => $e->getMessage(),
             ];
         }
     }
@@ -286,51 +304,11 @@ class CourseCohortEnrollmentService
         $this->pdo->beginTransaction();
 
         try {
-            $this->payment
-                ->where('id', $payment['id'])
-                ->update(['status' => 'success']);
-
-            $enrolledItems = [];
-
-            foreach ($items as $item) {
-                $enrolled = $this->markEnrollmentAsPaidOrCreate([
-                    'profile_id' => (int) $payment['profile_id'],
-                    'program_id' => (int) $item['program_id'],
-                    'course_id' => (int) $item['course_id'],
-                    'cohort_id' => (int) $item['cohort_id'],
-                    'payment_reference' => $reference,
-                ]);
-
-                if ($enrolled) {
-                    $enrolledItems[] = $this->buildEnrollmentNotificationItem($item);
-                }
-            }
-
-            if (\count($enrolledItems) === 1) {
-                $item = $enrolledItems[0];
-
-                EventDispatcher::dispatch(
-                    new CohortCourseEnrolled(
-                        (int) $payment['profile_id'],
-                        (int) $item['program_id'],
-                        (int) $item['course_id'],
-                        (int) $item['cohort_id'],
-                        $item['course_name'],
-                        $item['cohort_name']
-                    )
-                );
-            } elseif (\count($enrolledItems) > 1) {
-                EventDispatcher::dispatch(
-                    new CohortCoursesEnrolled(
-                        (int) $payment['profile_id'],
-                        $enrolledItems
-                    )
-                );
-            }
+            $res = $this->fulfillSuccessfulPayment($payment, $items);
 
             $this->pdo->commit();
 
-            return ['status' => 'success'];
+            return $res;
         } catch (\Throwable $e) {
             $this->pdo->rollBack();
 
@@ -488,6 +466,92 @@ class CourseCohortEnrollmentService
         ];
     }
 
+    private function prepareCheckout(array $data): array
+    {
+        $user = $this->registerUserIfNotExists($data);
+
+        if (empty($user) || empty($user['profiles'])) {
+            return [
+                'status' => 'failed',
+                'message' => 'User registration failed'
+            ];
+        }
+
+        $profileId = (int) $user['profiles'][0]['id'];
+        $eligibility = $this->categorizeCheckoutItems(
+            $profileId,
+            (int) $data['program_id'],
+            $data['items']
+        );
+
+        if (!empty($eligibility['blocked_items'])) {
+            return [
+                'status' => 'blocked',
+                'message' => $this->buildBlockedCheckoutMessage(
+                    $eligibility['blocked_items'],
+                    $eligibility['allowed_items']
+                ),
+                'payment_url' => '',
+                'reference' => '',
+                'payment_type' => '',
+            ];
+        }
+
+        $total = 0;
+        $payableItems = [];
+
+        foreach ($eligibility['allowed_items'] as $item) {
+            $price = $this->computePrice((int) $item['cohort_id']);
+
+            if ($price <= 0) {
+                continue;
+            }
+
+            $item['amount'] = $price;
+            $payableItems[] = $item;
+            $total += $price;
+        }
+
+        if (empty($payableItems) || $total <= 0) {
+            return [
+                'status' => 'failed',
+                'message' => 'The selected courses are free and should not be added to payment.',
+            ];
+        }
+
+        return [
+            'status' => 'ready',
+            'profile_id' => $profileId,
+            'payable_items' => $payableItems,
+            'total' => $total,
+        ];
+    }
+
+    private function generateCheckoutReference(string $prefix): string
+    {
+        return $prefix . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
+    }
+
+    private function insertCheckoutPaymentItems(int $paymentId, int $programId, array $items): void
+    {
+        foreach ($items as $item) {
+            $this->paymentItem->insert([
+                'payment_id' => $paymentId,
+                'program_id' => $programId,
+                'course_id' => $item['course_id'],
+                'cohort_id' => $item['cohort_id'],
+                'amount' => $item['amount']
+            ]);
+        }
+    }
+
+    private function getPaymentItems(int $paymentId): array
+    {
+        return $this->paymentItem
+            ->where('payment_id', $paymentId)
+            ->get();
+    }
+
     private function categorizeCheckoutItems(int $profileId, int $programId, array $items): array
     {
         $blockedItems = [];
@@ -567,6 +631,196 @@ class CourseCohortEnrollmentService
         }
 
         return (int) $amount;
+    }
+
+    public function abandonExpiredPendingPayments(): int
+    {
+        $cutoff = date('Y-m-d H:i:s');
+
+        return $this->payment->rawExecute(
+            "
+            UPDATE course_cohort_payments
+            SET status = :status
+            WHERE status = :pending_status
+              AND expires_at IS NOT NULL
+              AND expires_at <= :cutoff
+            ",
+            [
+                'status' => 'abandoned',
+                'pending_status' => 'pending',
+                'cutoff' => $cutoff,
+            ]
+        );
+    }
+
+    public function getAbandonedCartReminderCandidates(int $limit = 200): array
+    {
+        return $this->getAbandonedCartReminderCandidatesAfterMinutes(0, $limit);
+    }
+
+    public function getAbandonedCartReminderCandidatesAfterMinutes(int $minutes, int $limit = 200): array
+    {
+        $minutes = max(0, $minutes);
+        $limit = max(1, $limit);
+        $cutoff = date('Y-m-d H:i:s', strtotime('-' . $minutes . ' minutes'));
+
+        return $this->payment->rawQuery(
+            sprintf(
+                "
+                SELECT p.id
+                FROM course_cohort_payments p
+                WHERE p.status = 'abandoned'
+                  AND p.method IN ('online', 'paystack')
+                  AND p.created_at <= :cutoff
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM course_cohort_payments newer
+                      INNER JOIN course_cohort_payment_items newer_items
+                          ON newer_items.payment_id = newer.id
+                      INNER JOIN course_cohort_payment_items current_items
+                          ON current_items.payment_id = p.id
+                         AND current_items.cohort_id = newer_items.cohort_id
+                      WHERE newer.profile_id = p.profile_id
+                        AND newer.platform = p.platform
+                        AND (
+                            newer.created_at > p.created_at
+                            OR (newer.created_at = p.created_at AND newer.id > p.id)
+                        )
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM program_course_cohort_enrollments e
+                      INNER JOIN course_cohort_payment_items current_items
+                          ON current_items.payment_id = p.id
+                         AND current_items.cohort_id = e.cohort_id
+                      WHERE e.profile_id = p.profile_id
+                        AND COALESCE(e.payment_status, '') = 'success'
+                  )
+                ORDER BY p.created_at ASC
+                LIMIT %d
+                ",
+                $limit
+            ),
+            [
+                'cutoff' => $cutoff,
+            ]
+        );
+    }
+
+    public function getAbandonedCartDetails(int $paymentId): array
+    {
+        $rows = $this->payment->rawQuery(
+            "
+            SELECT
+                p.id,
+                p.profile_id,
+                p.reference,
+                p.amount,
+                p.status,
+                p.platform,
+                p.method,
+                p.expires_at,
+                p.created_at,
+                profile.first_name,
+                profile.last_name,
+                user.email,
+                (
+                    SELECT first_item.course_id
+                    FROM course_cohort_payment_items first_item
+                    WHERE first_item.payment_id = p.id
+                    ORDER BY first_item.id ASC
+                    LIMIT 1
+                ) AS primary_course_id,
+                (
+                    SELECT first_cohort.slug
+                    FROM course_cohort_payment_items first_item
+                    INNER JOIN program_course_cohorts first_cohort
+                        ON first_cohort.id = first_item.cohort_id
+                    WHERE first_item.payment_id = p.id
+                    ORDER BY first_item.id ASC
+                    LIMIT 1
+                ) AS primary_cohort_slug,
+                GROUP_CONCAT(
+                    DISTINCT CONCAT(course.title, ' - ', cohort.title)
+                    ORDER BY item.id ASC
+                    SEPARATOR ', '
+                ) AS checkout_items
+            FROM course_cohort_payments p
+            LEFT JOIN program_profiles profile
+                ON profile.id = p.profile_id
+            LEFT JOIN cbt_users user
+                ON user.id = profile.user_id
+            LEFT JOIN course_cohort_payment_items item
+                ON item.payment_id = p.id
+            LEFT JOIN learning_courses course
+                ON course.id = item.course_id
+            LEFT JOIN program_course_cohorts cohort
+                ON cohort.id = item.cohort_id
+            WHERE p.id = :payment_id
+            GROUP BY
+                p.id,
+                p.profile_id,
+                p.reference,
+                p.amount,
+                p.status,
+                p.platform,
+                p.method,
+                p.expires_at,
+                p.created_at,
+                profile.first_name,
+                profile.last_name,
+                user.email
+            LIMIT 1
+            ",
+            [
+                'payment_id' => $paymentId,
+            ]
+        );
+
+        return $rows[0] ?? [];
+    }
+
+    public function shouldSendAbandonedCartReminder(int $paymentId): bool
+    {
+        $rows = $this->payment->rawQuery(
+            "
+            SELECT 1
+            FROM course_cohort_payments p
+            WHERE p.id = :payment_id
+              AND p.status = 'abandoned'
+              AND p.method IN ('online', 'paystack')
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM course_cohort_payments newer
+                  INNER JOIN course_cohort_payment_items newer_items
+                      ON newer_items.payment_id = newer.id
+                  INNER JOIN course_cohort_payment_items current_items
+                      ON current_items.payment_id = p.id
+                     AND current_items.cohort_id = newer_items.cohort_id
+                  WHERE newer.profile_id = p.profile_id
+                    AND newer.platform = p.platform
+                    AND (
+                        newer.created_at > p.created_at
+                        OR (newer.created_at = p.created_at AND newer.id > p.id)
+                    )
+              )
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM program_course_cohort_enrollments e
+                  INNER JOIN course_cohort_payment_items current_items
+                      ON current_items.payment_id = p.id
+                     AND current_items.cohort_id = e.cohort_id
+                  WHERE e.profile_id = p.profile_id
+                    AND COALESCE(e.payment_status, '') = 'success'
+              )
+            LIMIT 1
+            ",
+            [
+                'payment_id' => $paymentId,
+            ]
+        );
+
+        return !empty($rows);
     }
 
     private function buildEnrollmentNotificationItem(array $item): array
@@ -725,6 +979,45 @@ class CourseCohortEnrollmentService
             'enrollment_type' => 'paid',
             'send_notification' => false,
         ]);
+    }
+
+    private function fulfillSuccessfulPayment(array $payment, array $items): array
+    {
+        if (empty($payment['id']) || empty($payment['profile_id']) || empty($payment['reference'])) {
+            return [
+                'status' => 'failed',
+                'message' => 'Invalid payment payload.',
+            ];
+        }
+
+        $this->payment
+            ->where('id', (int) $payment['id'])
+            ->update(['status' => 'success']);
+
+        $enrolledItems = [];
+
+        foreach ($items as $item) {
+            $enrolled = $this->markEnrollmentAsPaidOrCreate([
+                'profile_id' => (int) $payment['profile_id'],
+                'program_id' => (int) $item['program_id'],
+                'course_id' => (int) $item['course_id'],
+                'cohort_id' => (int) $item['cohort_id'],
+                'payment_reference' => (string) $payment['reference'],
+            ]);
+
+            if ($enrolled) {
+                $enrolledItems[] = $this->buildEnrollmentNotificationItem($item);
+            }
+        }
+
+        if (!empty($enrolledItems)) {
+            $this->dispatchEnrollmentNotifications((int) $payment['profile_id'], $enrolledItems);
+        }
+
+        return [
+            'status' => 'success',
+            'message' => 'Payment fulfilled successfully.',
+        ];
     }
 
     private function dispatchEnrollmentNotifications(int $profileId, array $items): void
@@ -947,5 +1240,13 @@ class CourseCohortEnrollmentService
         }
 
         return true;
+    }
+
+    private function computePendingPaymentExpiryAt(): string
+    {
+        return date(
+            'Y-m-d H:i:s',
+            strtotime('+' . self::PAYMENT_EXPIRY_MINUTES . ' minutes')
+        );
     }
 }
