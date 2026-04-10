@@ -208,6 +208,10 @@ class LicenseService
             'status' => 'active',
         ]);
 
+        if (!$licenseId) {
+            throw new \RuntimeException('Error creating license');
+        }
+
         EventDispatcher::dispatch(new LicenseActivated((int) $licenseId));
 
         return [
@@ -363,6 +367,27 @@ class LicenseService
             ]) > 0;
     }
 
+    public function expireElapsedLicenses(): int
+    {
+        $cutoff = date('Y-m-d H:i:s');
+
+        return $this->license->rawExecute(
+            "
+            UPDATE licenses
+            SET status = :expired_status
+            WHERE status = :active_status
+              AND revoked_at IS NULL
+              AND expires_at IS NOT NULL
+              AND expires_at <= :cutoff
+            ",
+            [
+                'expired_status' => 'expired',
+                'active_status' => 'active',
+                'cutoff' => $cutoff,
+            ]
+        );
+    }
+
     public function checkDesktopStatus(int $userId, string $fingerprint): array
     {
         $device = $this->device
@@ -432,6 +457,7 @@ class LicenseService
             ->where('user_id', $userId)
             ->where('platform', 'mobile')
             ->where('status', 'active')
+            ->where('type', 'payment')
             ->whereNull('revoked_at')
             ->first();
 

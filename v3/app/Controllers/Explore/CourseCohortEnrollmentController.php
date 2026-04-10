@@ -277,6 +277,54 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         );
     }
 
+    #[Route('/enrollments/checkout/offline', 'POST', ['api'])]
+    public function offlineCheckout()
+    {
+        $validated = $this->validate(
+            $this->getRequestData(),
+            [
+                'first_name' => 'required|string',
+                'last_name' => 'required|string',
+                'phone' => 'required|string',
+                'email' => 'required|email',
+                'program_id' => 'required|integer',
+                'items' => 'required|array|min:1',
+                'items.*.course_id' => 'required|integer',
+                'items.*.cohort_id' => 'required|integer',
+                'callback_url' => 'nullable|string'
+            ]
+        );
+
+        $res = $this->enrollmentService->completeOfflinePayment($validated);
+
+        if ($res['status'] === 'blocked') {
+            $this->respond(
+                [
+                    'success' => false,
+                    'message' => $res['message'],
+                ],
+                HttpStatus::BAD_REQUEST
+            );
+            return;
+        }
+
+        if ($res['status'] === 'failed') {
+            $this->respondError(
+                $res['message'],
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Offline payment completed successfully.',
+                'data' => $res,
+            ],
+            HttpStatus::OK
+        );
+    }
+
     #[Route('/enrollments/checkout/{reference}/status', 'GET', ['api'])]
     public function checkPaymentStatus(array $vars)
     {
