@@ -100,6 +100,7 @@ class Tables
         'leaderboard',
         'challenge_participants',
         'cbt_leaderboard',
+        'cbt_updates',
         'topics',
         'syllabi',
         'level',

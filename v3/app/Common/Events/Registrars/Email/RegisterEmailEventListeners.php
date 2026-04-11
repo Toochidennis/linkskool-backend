@@ -4,6 +4,7 @@ namespace V3\App\Common\Events\Registrars\Email;
 
 use V3\App\Common\Events\EventDispatcher;
 use V3\App\Events\Auth\UserRegisteredFirstTime;
+use V3\App\Events\CbtUpdate\CbtUpdatePublished;
 use V3\App\Events\Email\AbandonedCart;
 use V3\App\Events\Email\AbandonedCourseCohortCart;
 use V3\App\Events\Email\CohortCourseEnrolled;
@@ -19,6 +20,7 @@ use V3\App\Events\News\NewsPosted;
 use V3\App\Listeners\Email\SendAssignmentDueReminderEmail;
 use V3\App\Listeners\Email\SendAbandonedCartEmail;
 use V3\App\Listeners\Email\SendAbandonedCourseCohortCartEmail;
+use V3\App\Listeners\Email\SendCbtUpdateEmail;
 use V3\App\Listeners\Email\SendClassReminderEmail;
 use V3\App\Listeners\Email\SendCohortCourseEnrolledEmail;
 use V3\App\Listeners\Email\SendCohortCoursesEnrolledEmail;
@@ -77,6 +79,11 @@ class RegisterEmailEventListeners
         EventDispatcher::listen(
             NewsPosted::class,
             new SendNewsPostedEmail()
+        );
+
+        EventDispatcher::listen(
+            CbtUpdatePublished::class,
+            new SendCbtUpdateEmail()
         );
 
         EventDispatcher::listen(
