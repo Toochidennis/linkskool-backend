@@ -28,13 +28,13 @@ class SendCbtUpdatePushNotification
 
             $data = [
                 'type' => 'cbt_update',
-                'update_id' => (string) $event->cbtUpdateId,
+                'cbt_update_id' => (string) $event->cbtUpdateId,
                 'lesson_id' => '',
                 'cohort_id' => '',
                 'profile_id' => '',
                 'course_id' => '',
                 'program_id' => '',
-                'event_key' => sprintf('cbt_update:push:update:%d', $event->cbtUpdateId),
+                'event_key' => \sprintf('cbt_update:push:update:%d', $event->cbtUpdateId),
             ];
 
             $recipients = $service->getRecipients();

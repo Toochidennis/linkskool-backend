@@ -137,5 +137,6 @@ class Tables
         'discussion_likes',
         'discussion_posts',
         'discussion_post_likes',
+        'cbt_updates',
     ];
 }

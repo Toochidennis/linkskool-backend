@@ -27,7 +27,7 @@ class CbtUpdateService
             'status' => $data['status'],
             'send_email' => $data['send_email'] ?? 1,
             'send_push' =>  $data['send_push'] ?? 1,
-            'tagline' => $data['tagline'],
+            'tag' => $data['tag'],
         ];
 
         $updateId = $this->cbtUpdateModel->insert($payload);
@@ -46,6 +46,58 @@ class CbtUpdateService
             'scheduled' => $this->isPublished($payload)
                 && !$dispatched
                 && !empty($payload['schedule_time']),
+        ];
+    }
+
+    public function updateUpdate(int $updateId, array $data): array|false|null
+    {
+        $existing = $this->getUpdateById($updateId);
+        if (empty($existing)) {
+            return null;
+        }
+
+        $payload = [
+            'title' => $data['title'],
+            'email_body' => $data['email_body'] ?? null,
+            'notification_body' => $data['notification_body'] ?? null,
+            'author_id' => $data['author_id'],
+            'author_name' => $data['author_name'],
+            'schedule_time' => $data['schedule_time'] ?? null,
+            'status' => $data['status'],
+            'send_email' => $data['send_email'] ?? 1,
+            'send_push' => $data['send_push'] ?? 1,
+            'tag' => $data['tag'],
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $updated = $this->cbtUpdateModel
+            ->where('id', $updateId)
+            ->update($payload);
+
+        if (!$updated) {
+            return false;
+        }
+
+        $latest = $this->getUpdateById($updateId);
+        $dispatched = false;
+
+        if (
+            !empty($latest)
+            && empty($latest['notified_at'])
+            && $this->shouldDispatchNow($latest)
+        ) {
+            $dispatched = $this->dispatchUpdate(
+                $updateId,
+                (int) ($data['author_id'] ?? ($latest['author_id'] ?? 0))
+            );
+        }
+
+        return [
+            'id' => $updateId,
+            'dispatched' => $dispatched,
+            'scheduled' => $this->isPublished($latest)
+                && !$dispatched
+                && !empty($latest['schedule_time']),
         ];
     }
 
@@ -148,14 +200,15 @@ class CbtUpdateService
     {
         $rows =  $this->cbtUpdateModel
             ->whereNotNull('notified_at')
+            ->whereNotNull('email_body')
             ->orderBy(['notified_at' => 'DESC', 'created_at' => 'DESC'])
             ->paginate($page, $limit);
 
         $data = array_map(fn($row) => [
             'id' => (int) $row['id'],
             'title' => $row['title'],
-            'tagline' => $row['tagline'],
-            'content' => $row['email_body'] ?? '',
+            'tag' => $row['tag'],
+            'content' => $row['email_body'],
             'notified_at' => $row['notified_at'] ?? null,
         ], $rows['data']);
 
@@ -165,29 +218,29 @@ class CbtUpdateService
         ];
     }
 
-    public function getAllCbtUpdates(int $page, int $limit = 10): array
+    public function getNotifiedCbtUpdateById(int $id): array
     {
-        $rows =  $this->cbtUpdateModel
-            ->orderBy(['created_at' => 'DESC'])
-            ->paginate($page, $limit);
+        $row =  $this->cbtUpdateModel
+            ->where('id', $id)
+            ->first();
 
-        $data = array_map(fn($row) => [
-            'id' => (int) $row['id'],
-            'title' => $row['title'],
-            'tagline' => $row['tagline'],
-            'email_body' => $row['email_body'] ?? '',
-            'notification_body' => $row['notification_body'] ?? '',
-            'status' => $row['status'] ?? '',
-            'schedule_time' => $row['schedule_time'] ?? null,
-            'notified_at' => $row['notified_at'] ?? null,
-            'author_id' => $row['author_id'],
-            'author_name' => $row['author_name'],
-            'created_at' => $row['created_at'] ?? null,
-        ], $rows['data']);
+        if (!$row) {
+            return [];
+        }
 
         return [
-            'data' => $data,
-            'pagination' => $rows['meta'],
+            'id' => (int) $row['id'],
+            'title' => $row['title'],
+            'tag' => $row['tag'],
+            'content' => $row['email_body'],
+            'notified_at' => $row['notified_at'] ?? null,
         ];
+    }
+
+    public function getAllCbtUpdates(int $page, int $limit = 10): array
+    {
+        return $this->cbtUpdateModel
+            ->orderBy(['created_at' => 'DESC'])
+            ->paginate($page, $limit);
     }
 }
