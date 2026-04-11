@@ -456,7 +456,6 @@ class LicenseService
         $license = $this->license
             ->where('user_id', $userId)
             ->where('platform', 'mobile')
-            ->where('status', 'active')
             ->where('type', 'payment')
             ->whereNull('revoked_at')
             ->first();
@@ -483,7 +482,6 @@ class LicenseService
             ->where('user_id', $userId)
             ->where('type', 'trial')
             ->where('platform', 'mobile')
-            ->where('status', 'active')
             ->whereNull('revoked_at')
             ->first();
 
