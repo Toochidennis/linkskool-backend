@@ -17,8 +17,6 @@ class CbtUpdateService
 
     public function storeUpdate(array $data): array|false
     {
-        $this->guardPayload($data);
-
         $payload = [
             'title' => $data['title'],
             'email_body' => $data['email_body'] ?? null,
@@ -27,8 +25,9 @@ class CbtUpdateService
             'author_name' => $data['author_name'],
             'schedule_time' => $data['schedule_time'] ?? null,
             'status' => $data['status'],
-            'send_email' => $this->normalizeBoolean($data['send_email'] ?? false) ? 1 : 0,
-            'send_push' => $this->normalizeBoolean($data['send_push'] ?? false) ? 1 : 0,
+            'send_email' => $data['send_email'] ?? 1,
+            'send_push' =>  $data['send_push'] ?? 1,
+            'tagline' => $data['tagline'],
         ];
 
         $updateId = $this->cbtUpdateModel->insert($payload);
@@ -64,8 +63,6 @@ class CbtUpdateService
         if (
             empty($update)
             || !$this->isPublished($update)
-            || !$this->hasSelectedChannel($update)
-            || !$this->isDue($update)
             || !empty($update['notified_at'])
         ) {
             return false;
@@ -92,14 +89,13 @@ class CbtUpdateService
 
         foreach ($updates as $update) {
             if (
-                !$this->hasSelectedChannel($update)
-                || !$this->isDue($update)
+                !$this->isDue($update)
                 || !empty($update['notified_at'])
             ) {
                 continue;
             }
 
-            if ($this->dispatchUpdate((int) $update['id'], (int) ($update['author_id'] ?? 0))) {
+            if ($this->dispatchUpdate((int) $update['id'], (int) ($update['author_id']))) {
                 $processed++;
             }
         }
@@ -107,35 +103,10 @@ class CbtUpdateService
         return $processed;
     }
 
-    private function guardPayload(array $data): void
-    {
-        $sendEmail = $this->normalizeBoolean($data['send_email'] ?? false);
-        $sendPush = $this->normalizeBoolean($data['send_push'] ?? false);
-
-        if (!$sendEmail && !$sendPush) {
-            throw new \InvalidArgumentException('Select at least one delivery channel.');
-        }
-
-        if ($sendEmail && trim((string) ($data['email_body'] ?? '')) === '') {
-            throw new \InvalidArgumentException('email_body is required when send_email is enabled.');
-        }
-
-        if ($sendPush && trim((string) ($data['notification_body'] ?? '')) === '') {
-            throw new \InvalidArgumentException('notification_body is required when send_push is enabled.');
-        }
-    }
-
     private function shouldDispatchNow(array $update): bool
     {
         return $this->isPublished($update)
-            && $this->hasSelectedChannel($update)
             && $this->isDue($update);
-    }
-
-    private function hasSelectedChannel(array $update): bool
-    {
-        return $this->normalizeBoolean($update['send_email'] ?? false)
-            || $this->normalizeBoolean($update['send_push'] ?? false);
     }
 
     private function isPublished(array $update): bool
@@ -157,20 +128,50 @@ class CbtUpdateService
         }
     }
 
-    private function normalizeBoolean(mixed $value): bool
+    public function getNotifiedCbtUpdates(int $page, int $limit = 10): array
     {
-        if (is_bool($value)) {
-            return $value;
-        }
+        $rows =  $this->cbtUpdateModel
+            ->whereNotNull('notified_at')
+            ->orderBy(['notified_at' => 'DESC', 'created_at' => 'DESC'])
+            ->paginate($page, $limit);
 
-        if (is_int($value)) {
-            return $value === 1;
-        }
+        $data = array_map(fn($row) => [
+            'id' => (int) $row['id'],
+            'title' => $row['title'],
+            'tagline' => $row['tagline'],
+            'content' => $row['email_body'] ?? '',
+            'notified_at' => $row['notified_at'] ?? null,
+        ], $rows['data']);
 
-        return in_array(
-            strtolower(trim((string) $value)),
-            ['1', 'true', 'yes', 'on'],
-            true
-        );
+        return [
+            'data' => $data,
+            'pagination' => $rows['meta'],
+        ];
+    }
+
+    public function getAllCbtUpdates(int $page, int $limit = 10): array
+    {
+        $rows =  $this->cbtUpdateModel
+            ->orderBy(['created_at' => 'DESC'])
+            ->paginate($page, $limit);
+
+        $data = array_map(fn($row) => [
+            'id' => (int) $row['id'],
+            'title' => $row['title'],
+            'tagline' => $row['tagline'],
+            'email_body' => $row['email_body'] ?? '',
+            'notification_body' => $row['notification_body'] ?? '',
+            'status' => $row['status'] ?? '',
+            'schedule_time' => $row['schedule_time'] ?? null,
+            'notified_at' => $row['notified_at'] ?? null,
+            'author_id' => $row['author_id'],
+            'author_name' => $row['author_name'],
+            'created_at' => $row['created_at'] ?? null,
+        ], $rows['data']);
+
+        return [
+            'data' => $data,
+            'pagination' => $rows['meta'],
+        ];
     }
 }

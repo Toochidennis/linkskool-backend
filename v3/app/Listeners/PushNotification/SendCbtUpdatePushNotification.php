@@ -28,7 +28,7 @@ class SendCbtUpdatePushNotification
 
             $data = [
                 'type' => 'cbt_update',
-                'cbt_update_id' => (string) $event->cbtUpdateId,
+                'update_id' => (string) $event->cbtUpdateId,
                 'lesson_id' => '',
                 'cohort_id' => '',
                 'profile_id' => '',

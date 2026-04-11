@@ -23,8 +23,8 @@ class SendCbtUpdateEmail
                 return;
             }
 
-            $subject = 'CBT Update: ' . trim((string) ($update['title'] ?? 'New update'));
-            $eventKey = sprintf('cbt_update:email:update:%d', $event->cbtUpdateId);
+            $subject = trim((string) ($update['title'] ?? 'New update')) ?: 'New update';
+            $eventKey = \sprintf('cbt_update:email:update:%d', $event->cbtUpdateId);
 
             $recipients = $service->getRecipients();
             $service->sendEmailInBatches($recipients, $update, $subject, $eventKey);

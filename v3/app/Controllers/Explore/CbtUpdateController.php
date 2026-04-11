@@ -33,19 +33,16 @@ class CbtUpdateController extends ExploreBaseController
                 'author_name' => 'required|string|max:255',
                 'send_email' => 'required|boolean',
                 'send_push' => 'required|boolean',
+                'tagline' => 'required|string|max:255',
             ]
         );
 
-        try {
-            $result = $this->service->storeUpdate($data);
-        } catch (\InvalidArgumentException $exception) {
-            $this->respondError($exception->getMessage(), HttpStatus::BAD_REQUEST);
-            return;
-        }
+        $result = $this->service->storeUpdate($data);
+
 
         if (!$result) {
             $this->respondError(
-                'Failed to create CBT update.',
+                'Failed to send CBT update.',
                 HttpStatus::BAD_REQUEST
             );
             return;
@@ -92,6 +89,49 @@ class CbtUpdateController extends ExploreBaseController
         $this->respond([
             'success' => true,
             'message' => 'CBT update dispatched successfully',
+        ]);
+    }
+
+    #[Route('/cbt-updates', 'GET', ['api', 'auth', 'role:admin'])]
+    public function listUpdates(array $vars): void
+    {
+        $filters = $this->validate(
+            $vars,
+            [
+                'page' => 'nullable|integer|min:1',
+                'limit' => 'nullable|integer|min:1|max:50',
+            ]
+        );
+
+        $page = $filters['page'] ?? 1;
+        $limit = $filters['limit'] ?? 25;
+
+        $updates = $this->service->getNotifiedCbtUpdates($page, $limit);
+
+        $this->respond([
+            'success' => true,
+            'data' => $updates,
+        ]);
+    }
+
+    public function listAllUpdates(array $vars)
+    {
+        $filters = $this->validate(
+            $vars,
+            [
+                'page' => 'nullable|integer|min:1',
+                'limit' => 'nullable|integer|min:1|max:50',
+            ]
+        );
+
+        $page = $filters['page'] ?? 1;
+        $limit = $filters['limit'] ?? 25;
+
+        $updates = $this->service->getAllCbtUpdates($page, $limit);
+
+        $this->respond([
+            'success' => true,
+            'data' => $updates,
         ]);
     }
 }
