@@ -45,7 +45,6 @@ class CbtUpdateController extends ExploreBaseController
                 'Failed to send CBT update.',
                 HttpStatus::BAD_REQUEST
             );
-            return;
         }
 
         $message = $result['dispatched']
@@ -92,7 +91,36 @@ class CbtUpdateController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/cbt-updates', 'GET', ['api', 'auth', 'role:admin'])]
+    #[Route('/cbt-updates/{id:\d+}/status', 'PUT', ['api', 'auth', 'role:admin'])]
+    public function updateStatus(array $vars): void
+    {
+        $data = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'id' => 'required|integer|min:1',
+                'status' => 'required|string|in:draft,published,archived',
+            ]
+        );
+
+        $updated = $this->service->updateStatus(
+            (int) $data['id'],
+            $data['status']
+        );
+
+        if (!$updated) {
+            $this->respondError(
+                'Failed to update CBT update status.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond([
+            'success' => true,
+            'message' => 'CBT update status updated successfully',
+        ]);
+    }
+
+    #[Route('/cbt-updates', 'GET', ['api'])]
     public function listUpdates(array $vars): void
     {
         $filters = $this->validate(
@@ -114,6 +142,7 @@ class CbtUpdateController extends ExploreBaseController
         ]);
     }
 
+    #[Route('/cbt-updates/all', 'GET', ['api', 'auth', 'role:admin'])]
     public function listAllUpdates(array $vars)
     {
         $filters = $this->validate(

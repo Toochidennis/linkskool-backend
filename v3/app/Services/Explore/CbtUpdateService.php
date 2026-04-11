@@ -103,6 +103,22 @@ class CbtUpdateService
         return $processed;
     }
 
+    public function updateStatus(int $updateId, string $status): bool
+    {
+        $updated =  $this->cbtUpdateModel
+            ->where('id', $updateId)
+            ->update(['status' => $status]);
+
+        if ($updated && $status === 'published') {
+            $update = $this->getUpdateById($updateId);
+            if ($this->shouldDispatchNow($update)) {
+                return $this->dispatchUpdate($updateId, (int) ($update['author_id'] ?? 0));
+            }
+        }
+
+        return $updated;
+    }
+
     private function shouldDispatchNow(array $update): bool
     {
         return $this->isPublished($update)
