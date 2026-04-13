@@ -13,11 +13,11 @@ class MailService
     private EmailLog $emailLog;
     private ?bool $supportsEventKey = null;
 
-    public function __construct(\PDO $pdo)
+    public function __construct(\PDO $pdo, ?string $from = null)
     {
         $this->mailgun = Mailgun::create(getenv('MAILGUN_API_KEY'));
         $this->domain = getenv('MAILGUN_DOMAIN');
-        $this->from = getenv('MAIL_FROM');
+        $this->from = $from ?? getenv('MAIL_FROM');
         $this->emailLog = new EmailLog($pdo);
     }
 
