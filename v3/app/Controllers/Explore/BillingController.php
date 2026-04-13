@@ -37,6 +37,14 @@ class BillingController extends ExploreBaseController
 
         $res =  $this->service->verify($validated);
 
+        if ($res['status'] !== 'success') {
+            $this->respond([
+                'success' => false,
+                'message' => $res['message'] ?? 'Payment verification failed.',
+                'data' => $res
+            ], HttpStatus::BAD_REQUEST);
+        }
+
         $this->respond([
             'success' => true,
             'message' => 'Payment successful',

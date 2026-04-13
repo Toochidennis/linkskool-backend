@@ -138,6 +138,7 @@ class Tables
         'discussion_posts',
         'discussion_post_likes',
         'cbt_updates',
+        'cbt_update_comments',
         'password_reset_tokens',
     ];
 }

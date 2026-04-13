@@ -3,16 +3,20 @@
 namespace V3\App\Services\Explore;
 
 use V3\App\Common\Events\EventDispatcher;
+use V3\App\Events\CbtUpdate\CbtUpdateCommentAdded;
 use V3\App\Events\CbtUpdate\CbtUpdatePublished;
+use V3\App\Models\Explore\CbtUpdateComment;
 use V3\App\Models\Explore\CbtUpdate;
 
 class CbtUpdateService
 {
     private CbtUpdate $cbtUpdateModel;
+    private CbtUpdateComment $cbtUpdateCommentModel;
 
     public function __construct(\PDO $pdo)
     {
         $this->cbtUpdateModel = new CbtUpdate($pdo);
+        $this->cbtUpdateCommentModel = new CbtUpdateComment($pdo);
     }
 
     public function storeUpdate(array $data): array|false
@@ -103,9 +107,15 @@ class CbtUpdateService
 
     public function getUpdateById(int $updateId): array
     {
-        return $this->cbtUpdateModel
+        $update = $this->cbtUpdateModel
             ->where('id', $updateId)
             ->first();
+
+        if (empty($update)) {
+            return [];
+        }
+
+        return $this->appendCommentCount($update);
     }
 
     public function dispatchUpdate(int $updateId, ?int $notifiedBy = null): bool
@@ -212,6 +222,8 @@ class CbtUpdateService
             'notified_at' => $row['notified_at'] ?? null,
         ], $rows['data']);
 
+        $data = $this->appendCommentCounts($data);
+
         return [
             'data' => $data,
             'pagination' => $rows['meta'],
@@ -221,6 +233,8 @@ class CbtUpdateService
     public function getNotifiedCbtUpdateById(int $id): array
     {
         $row =  $this->cbtUpdateModel
+            ->whereNotNull('notified_at')
+            ->whereNotNull('email_body')
             ->where('id', $id)
             ->first();
 
@@ -228,13 +242,13 @@ class CbtUpdateService
             return [];
         }
 
-        return [
+        return $this->appendCommentCount([
             'id' => (int) $row['id'],
             'title' => $row['title'],
             'tag' => $row['tag'],
             'content' => $row['email_body'],
             'notified_at' => $row['notified_at'] ?? null,
-        ];
+        ]);
     }
 
     public function getAllCbtUpdates(int $page, int $limit = 10): array
@@ -242,5 +256,132 @@ class CbtUpdateService
         return $this->cbtUpdateModel
             ->orderBy(['created_at' => 'DESC'])
             ->paginate($page, $limit);
+    }
+
+    public function addComment(array $data): array|false|null
+    {
+        $update = $this->getCommentableUpdateById((int) $data['update_id']);
+        if (empty($update)) {
+            return null;
+        }
+
+        $commentId = $this->cbtUpdateCommentModel->insert([
+            'update_id' => (int) $data['update_id'],
+            'user_id' => (int) $data['user_id'],
+            'user_name' => trim((string) $data['user_name']),
+            'body' => trim((string) $data['body']),
+            'depth' => 0,
+        ]);
+
+        if (!$commentId) {
+            return false;
+        }
+
+        EventDispatcher::dispatch(new CbtUpdateCommentAdded((int) $commentId));
+
+        return $this->getCommentById((int) $commentId);
+    }
+
+    public function getCommentsByUpdateId(int $updateId, int $page = 1, int $limit = 20): array|null
+    {
+        $update = $this->getCommentableUpdateById($updateId);
+        if (empty($update)) {
+            return null;
+        }
+
+        $rows = $this->cbtUpdateCommentModel
+            ->where('update_id', $updateId)
+            ->orderBy(['created_at' => 'DESC', 'id' => 'DESC'])
+            ->paginate($page, $limit);
+
+        return [
+            'data' => array_map(
+                fn(array $row) => $this->formatComment($row),
+                $rows['data']
+            ),
+            'pagination' => $rows['meta'],
+        ];
+    }
+
+    private function getCommentById(int $commentId): array
+    {
+        $comment = $this->cbtUpdateCommentModel
+            ->where('id', $commentId)
+            ->first();
+
+        return empty($comment) ? [] : $this->formatComment($comment);
+    }
+
+    private function getCommentableUpdateById(int $updateId): array
+    {
+        return $this->cbtUpdateModel
+            ->select(['id'])
+            ->where('id', $updateId)
+            ->whereNotNull('notified_at')
+            ->whereNotNull('email_body')
+            ->first();
+    }
+
+    private function formatComment(array $row): array
+    {
+        return [
+            'id' => (int) $row['id'],
+            'update_id' => (int) $row['update_id'],
+            'user_id' => (int) $row['user_id'],
+            'user_name' => $row['user_name'],
+            'body' => $row['body'],
+            'depth' => isset($row['depth']) ? (int) $row['depth'] : 0,
+            'created_at' => $row['created_at'] ?? null,
+            'updated_at' => $row['updated_at'] ?? null,
+        ];
+    }
+
+    private function appendCommentCount(array $update): array
+    {
+        $update['comments_count'] = $this->getCommentCountsByUpdateIds([(int) $update['id']])[(int) $update['id']] ?? 0;
+        return $update;
+    }
+
+    private function appendCommentCounts(array $updates): array
+    {
+        if (empty($updates)) {
+            return $updates;
+        }
+
+        $updateIds = array_values(array_unique(array_map(
+            fn(array $update) => (int) $update['id'],
+            $updates
+        )));
+
+        $counts = $this->getCommentCountsByUpdateIds($updateIds);
+
+        return array_map(function (array $update) use ($counts) {
+            $update['comments_count'] = $counts[(int) $update['id']] ?? 0;
+            return $update;
+        }, $updates);
+    }
+
+    private function getCommentCountsByUpdateIds(array $updateIds): array
+    {
+        $updateIds = array_values(array_filter(array_map('intval', $updateIds)));
+        if (empty($updateIds)) {
+            return [];
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($updateIds), '?'));
+        $rows = $this->cbtUpdateCommentModel->rawQuery(
+            "SELECT update_id, COUNT(*) AS total
+             FROM cbt_update_comments
+             WHERE update_id IN ($placeholders)
+             GROUP BY update_id",
+            $updateIds
+        );
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row['update_id']] = (int) $row['total'];
+        }
+
+        return $counts;
     }
 }

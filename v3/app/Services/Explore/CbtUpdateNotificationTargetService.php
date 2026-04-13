@@ -41,6 +41,51 @@ class CbtUpdateNotificationTargetService
             ->first();
     }
 
+    public function getCommentContext(int $commentId): array
+    {
+        $rows = $this->cbtUpdateModel->rawQuery(
+            "SELECT
+                c.id,
+                c.update_id,
+                c.user_id,
+                c.user_name,
+                c.body,
+                u.author_id,
+                u.title
+            FROM cbt_update_comments c
+            INNER JOIN cbt_updates u
+                ON u.id = c.update_id
+            WHERE c.id = :comment_id
+            LIMIT 1",
+            [
+                'comment_id' => $commentId,
+            ]
+        );
+
+        return $rows[0] ?? [];
+    }
+
+    public function getUpdateAuthorRecipientForComment(int $commentId): array
+    {
+        $rows = $this->cbtUpdateModel->rawQuery(
+            "SELECT
+                author.id AS user_id
+            FROM cbt_update_comments c
+            INNER JOIN cbt_updates u
+                ON u.id = c.update_id
+            INNER JOIN cbt_users author
+                ON author.id = u.author_id
+            WHERE c.id = :comment_id
+              AND u.author_id <> c.user_id
+            LIMIT 1",
+            [
+                'comment_id' => $commentId,
+            ]
+        );
+
+        return $rows[0] ?? [];
+    }
+
     public function getRecipients(): array
     {
         $rows = $this->userModel
@@ -148,6 +193,54 @@ class CbtUpdateNotificationTargetService
         foreach (array_chunk($pendingTokens, $batchSize) as $chunk) {
             $this->notificationService->sendBatch($chunk, $title, $body, $data);
         }
+    }
+
+    public function sendPushToRecipient(array $recipient, string $title, string $body, array $data): void
+    {
+        $userId = (int) ($recipient['user_id'] ?? 0);
+        if ($userId <= 0) {
+            return;
+        }
+
+        $tokens = $this->userDeviceToken
+            ->select(['fcm_token'])
+            ->where('user_id', $userId)
+            ->get();
+
+        $tokens = array_values(array_filter(array_unique(array_column($tokens, 'fcm_token'))));
+        if (empty($tokens)) {
+            return;
+        }
+
+        $eventKey = $data['event_key'] ?? null;
+        foreach ($tokens as $token) {
+            if ($this->hasPushBeenSent($token, $title, $body, $eventKey)) {
+                continue;
+            }
+
+            $this->notificationService->send($token, $title, $body, $data);
+        }
+    }
+
+    public function buildPushData(string $type, array $fields): array
+    {
+        $payload = array_filter(
+            array_merge(['type' => $type], $fields),
+            static fn(mixed $value): bool => $value !== null && $value !== ''
+        );
+
+        foreach ($payload as $key => $value) {
+            if (is_bool($value)) {
+                $payload[$key] = $value ? '1' : '0';
+                continue;
+            }
+
+            if (is_int($value) || is_float($value) || is_string($value)) {
+                $payload[$key] = (string) $value;
+            }
+        }
+
+        return $payload;
     }
 
     public function renderEmail(array $update): string

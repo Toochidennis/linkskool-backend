@@ -191,6 +191,89 @@ class CbtUpdateController extends ExploreBaseController
         ]);
     }
 
+    #[Route('/cbt-updates/{id:\d+}/comments', 'POST', ['api', 'auth'])]
+    public function addComment(array $vars): void
+    {
+        $requestData = [...$this->getRequestData(), ...$vars];
+        if (empty($requestData['body']) && !empty($requestData['comment'])) {
+            $requestData['body'] = $requestData['comment'];
+        }
+
+        $data = $this->validate(
+            $requestData,
+            [
+                'id' => 'required|integer|min:1',
+                'user_id' => 'required|integer|min:1',
+                'user_name' => 'required|string|max:255',
+                'body' => 'required|string|max:5000',
+            ]
+        );
+
+        $result = $this->service->addComment([
+            'update_id' => (int) $data['id'],
+            'user_id' => (int) $data['user_id'],
+            'user_name' => $data['user_name'],
+            'body' => $data['body'],
+        ]);
+
+        if ($result === null) {
+            $this->respondError(
+                'CBT update not found.',
+                HttpStatus::NOT_FOUND
+            );
+            return;
+        }
+
+        if ($result === false) {
+            $this->respondError(
+                'Failed to add comment.',
+                HttpStatus::BAD_REQUEST
+            );
+            return;
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Comment added successfully',
+                'data' => $result,
+            ],
+            HttpStatus::CREATED
+        );
+    }
+
+    #[Route('/cbt-updates/{id:\d+}/comments', 'GET', ['api'])]
+    public function getComments(array $vars): void
+    {
+        $data = $this->validate(
+            $vars,
+            [
+                'id' => 'required|integer|min:1',
+                'page' => 'nullable|integer|min:1',
+                'limit' => 'nullable|integer|min:1|max:100',
+            ]
+        );
+
+        $comments = $this->service->getCommentsByUpdateId(
+            (int) $data['id'],
+            (int) ($data['page'] ?? 1),
+            (int) ($data['limit'] ?? 20)
+        );
+
+        if ($comments === null) {
+            $this->respondError(
+                'CBT update not found.',
+                HttpStatus::NOT_FOUND
+            );
+            return;
+        }
+
+        $this->respond([
+            'success' => true,
+            'data' => $comments,
+        ]);
+    }
+
     #[Route('/cbt-updates/{id:\d+}', 'GET', ['api'])]
     public function getUpdateById(array $vars): void
     {
@@ -200,7 +283,7 @@ class CbtUpdateController extends ExploreBaseController
                 'id' => 'required|integer|min:1',
             ]
         );
-        $update = $this->service->getUpdateById((int) $data['id']);
+        $update = $this->service->getNotifiedCbtUpdateById((int) $data['id']);
 
         if (!$update) {
             $this->respondError(
