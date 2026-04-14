@@ -191,37 +191,26 @@ class CbtUpdateController extends ExploreBaseController
         ]);
     }
 
-    #[Route('/cbt-updates/{id:\d+}/comments', 'POST', ['api', 'auth'])]
+    #[Route('/cbt-updates/{id:\d+}/comments', 'POST', ['api'])]
     public function addComment(array $vars): void
     {
-        $requestData = [...$this->getRequestData(), ...$vars];
-        if (empty($requestData['body']) && !empty($requestData['comment'])) {
-            $requestData['body'] = $requestData['comment'];
-        }
-
         $data = $this->validate(
-            $requestData,
+            [...$this->getRequestData(), ...$vars],
             [
                 'id' => 'required|integer|min:1',
                 'user_id' => 'required|integer|min:1',
-                'user_name' => 'required|string|max:255',
+                'username' => 'required|string|max:255',
                 'body' => 'required|string|max:5000',
             ]
         );
 
-        $result = $this->service->addComment([
-            'update_id' => (int) $data['id'],
-            'user_id' => (int) $data['user_id'],
-            'user_name' => $data['user_name'],
-            'body' => $data['body'],
-        ]);
+        $result = $this->service->addComment($data);
 
         if ($result === null) {
             $this->respondError(
                 'CBT update not found.',
                 HttpStatus::NOT_FOUND
             );
-            return;
         }
 
         if ($result === false) {
@@ -229,7 +218,6 @@ class CbtUpdateController extends ExploreBaseController
                 'Failed to add comment.',
                 HttpStatus::BAD_REQUEST
             );
-            return;
         }
 
         $this->respond(
@@ -265,7 +253,6 @@ class CbtUpdateController extends ExploreBaseController
                 'CBT update not found.',
                 HttpStatus::NOT_FOUND
             );
-            return;
         }
 
         $this->respond([

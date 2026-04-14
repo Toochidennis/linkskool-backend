@@ -233,7 +233,7 @@ class CbtUpdateService
     public function getNotifiedCbtUpdateById(int $id): array
     {
         $row =  $this->cbtUpdateModel
-            ->whereNotNull('notified_at')
+            ->where('status', 'published')
             ->whereNotNull('email_body')
             ->where('id', $id)
             ->first();
@@ -260,17 +260,16 @@ class CbtUpdateService
 
     public function addComment(array $data): array|false|null
     {
-        $update = $this->getCommentableUpdateById((int) $data['update_id']);
+        $update = $this->getCommentableUpdateById((int) $data['id']);
         if (empty($update)) {
             return null;
         }
 
         $commentId = $this->cbtUpdateCommentModel->insert([
-            'update_id' => (int) $data['update_id'],
+            'update_id' => (int) $data['id'],
             'user_id' => (int) $data['user_id'],
-            'user_name' => trim((string) $data['user_name']),
+            'username' => trim((string) $data['username']),
             'body' => trim((string) $data['body']),
-            'depth' => 0,
         ]);
 
         if (!$commentId) {
@@ -328,9 +327,8 @@ class CbtUpdateService
             'id' => (int) $row['id'],
             'update_id' => (int) $row['update_id'],
             'user_id' => (int) $row['user_id'],
-            'user_name' => $row['user_name'],
+            'username' => $row['username'],
             'body' => $row['body'],
-            'depth' => isset($row['depth']) ? (int) $row['depth'] : 0,
             'created_at' => $row['created_at'] ?? null,
             'updated_at' => $row['updated_at'] ?? null,
         ];

@@ -433,8 +433,16 @@ class QueryBuilder
 
         $this->validateColumn($column);
         $quoted = $this->wrapIdentifier($column);
-        $this->whereConditions[] = "TRIM($quoted) $operator ?";
-        $this->whereBindings[] = \is_string($value) ? trim($value) : $value;
+        // Normalize whitespace on both sides so values like "AB C" and "ABC" can match.
+        $normalizedColumn = "REPLACE(REPLACE(REPLACE(" .
+            "REPLACE(TRIM($quoted), ' ', ''), '\\t', ''), '\\n', ''), '\\r', '')";
+        $this->whereConditions[] = "$normalizedColumn $operator ?";
+
+        if (\is_string($value)) {
+            $value = preg_replace('/\\s+/', '', trim($value));
+        }
+
+        $this->whereBindings[] = $value;
 
         return $this;
     }
