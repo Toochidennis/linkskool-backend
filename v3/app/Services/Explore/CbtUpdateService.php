@@ -209,7 +209,7 @@ class CbtUpdateService
     public function getNotifiedCbtUpdates(int $page, int $limit = 10): array
     {
         $rows =  $this->cbtUpdateModel
-            ->whereNotNull('notified_at')
+            ->where('status', 'published')
             ->whereNotNull('email_body')
             ->orderBy(['notified_at' => 'DESC', 'created_at' => 'DESC'])
             ->paginate($page, $limit);
