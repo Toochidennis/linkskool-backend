@@ -120,24 +120,30 @@ class CbtUpdateService
 
     public function dispatchUpdate(int $updateId, ?int $notifiedBy = null): bool
     {
-        $update = $this->getUpdateById($updateId);
+        $update = $this->cbtUpdateModel->where('id', $updateId)->first();
 
-        if (
-            empty($update)
-            || !$this->isPublished($update)
-            || !empty($update['notified_at'])
-        ) {
+        if (empty($update) || !$this->isPublished($update)) {
+            return false;
+        }
+
+        $notifiedBy = $notifiedBy ?: (int) ($update['author_id'] ?? 0);
+
+        // Stamp notified_at atomically before dispatching. This ensures the
+        // stamp is always written even if PHP times out during the synchronous
+        // dispatch, and prevents concurrent processes from double-sending.
+        // rawExecute returns rowCount(): 0 means another process already claimed it.
+        $claimed = $this->cbtUpdateModel->rawExecute(
+            'UPDATE cbt_updates SET notified_at = ?, notified_by = ? WHERE id = ? AND notified_at IS NULL',
+            [date('Y-m-d H:i:s'), $notifiedBy, $updateId]
+        );
+
+        if ($claimed === 0) {
             return false;
         }
 
         EventDispatcher::dispatch(new CbtUpdatePublished($updateId));
 
-        return $this->cbtUpdateModel
-            ->where('id', $updateId)
-            ->update([
-                'notified_at' => date('Y-m-d H:i:s'),
-                'notified_by' => $notifiedBy ?: (int) ($update['author_id'] ?? 0),
-            ]);
+        return true;
     }
 
     public function dispatchScheduledUpdates(): int
