@@ -141,5 +141,6 @@ class Tables
         'cbt_update_comments',
         'password_reset_tokens',
         'cbt_gamify_leaderboard',
+        'study_topics',
     ];
 }

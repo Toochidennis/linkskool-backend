@@ -4,9 +4,9 @@ namespace V3\App\Models\Explore;
 
 use V3\App\Models\BaseModel;
 
-class NewTopic extends BaseModel
+class StudyTopic extends BaseModel
 {
-    protected $table = 'new_topics';
+    protected $table = 'study_topics';
 
     public function __construct(\PDO $pdo)
     {

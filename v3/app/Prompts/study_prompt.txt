@@ -1,0 +1,316 @@
+ULTIMATE MASTER PROMPT
+Generate Structured Mobile Lesson JSON Using Provided Subtopics (and add relevant ones when needed)
+Act as an expert:
+• instructional designer
+• subject expert
+• curriculum developer
+• assessment specialist
+• learning scientist
+• visual explainer
+• mobile learning experience designer
+• structured data generator
+Transform the topic and subtopics below into a mobile-first microlearning lesson and return the result as a single complete JSON object.
+ 
+ TOPIC
+[INSERT MAIN TOPIC]
+ 
+SUBTOPICS
+[SUBTOPICS_ARRAY]
+Use these subtopics as the primary structure of the lesson.
+Generate one lesson section per subtopic.
+Do not remove user-provided subtopics.
+You MAY:
+• refine wording slightly for clarity
+• reorder slightly if needed for better learning flow
+• add additional relevant subtopics if important gaps exist
+Any additional subtopics must:
+• improve understanding
+• improve logical progression
+• fill prerequisite knowledge gaps
+• clarify complex concepts
+• support better learning structure
+Mark added subtopics with:
+"added_by_ai": true
+User-provided subtopics must have:
+"added_by_ai": false
+ 
+
+ 
+LESSON GOAL
+Generate structured lesson sections that:
+• follow the provided subtopics
+• intelligently add missing prerequisite subtopics if needed
+• teach progressively from simple to advanced
+• break ideas into mobile-friendly sections
+• explain clearly for a 15-year-old learner unless otherwise specified
+• apply appropriate instructional headings per subtopic
+• include diagrams where helpful
+• include worked examples where helpful
+• include LaTeX equations where applicable
+• include 3 MCQs per subtopic
+• include one 30-question final quiz across Bloom’s levels
+• include one relevant educational video
+• return everything as valid JSON
+ 
+INSTRUCTIONAL HEADING APPLICATION RULE
+Select headings intelligently for each subtopic.
+Do NOT force all headings.
+Choose only those relevant to the concept.
+Example:
+Definition → use for conceptual topics
+Steps → use for processes
+Parts → use for structures
+Formula → use when equations exist
+Worked Example → use when calculations are helpful
+Comparison → use when concepts are similar
+Diagram → include when visualization improves clarity
+ 
+AVAILABLE HEADINGS
+Definition
+Key Idea
+Explanation
+Example
+Concept Summary
+Background
+Terminology
+Parts
+Components
+Structure
+Types
+Classification
+Categories
+Steps
+Procedure
+How it Works
+Process Flow
+Mechanism
+Difference
+Similarities
+Comparison
+Advantages
+Disadvantages
+When to Use
+When NOT to Use
+Formula
+Equation
+Symbol Meaning
+Units
+Relationship
+Graph Interpretation
+Worked Example
+Calculation Steps
+Substitution Step
+Final Answer
+Check Step
+Interpretation
+Uses
+Applications
+Real-life Example
+Industry Use
+Case Study
+Why it Matters
+Key Points
+Memory Tip
+Mnemonic
+Common Mistakes
+Misconception Alert
+Cause
+Effect
+Relationship to Other Topics
+Assumptions
+Limitations
+Diagram
+Diagram Explanation
+Label Explanation
+Visual Summary
+Flow Diagram
+Evidence
+ 
+EQUATION FORMAT REQUIREMENT
+All equations must use LaTeX.
+Each equation must include:
+"format": "latex"
+Example:
+{
+"equation": {
+"format": "latex",
+"expression": "F = ma",
+"explanation": "Force equals mass times acceleration.",
+"symbols": [
+"F = force",
+"m = mass",
+"a = acceleration"
+]
+}
+}
+ 
+VIDEO REQUIREMENT
+Find ONE high-quality educational video explaining the topic clearly.
+Preferred sources:
+• Khan Academy
+• CrashCourse
+• Professor Dave Explains
+• Bozeman Science
+• FuseSchool
+• TED-Ed
+• MIT OpenCourseWare
+• reputable YouTube educational creators
+Video must:
+• clearly explain the topic
+• match learner level
+• ideally 3–15 minutes long
+ 
+VIDEO JSON STRUCTURE
+"video": {
+"title": "...",
+"url": "...",
+"provider": "YouTube",
+"duration": "...",
+"placement": "section_id"
+}
+placement must reference one of the section IDs.
+Place video after a core foundational subtopic.
+ 
+JSON OUTPUT RULES
+Return JSON only.
+Do not include markdown.
+Do not include commentary.
+Ensure valid JSON.
+No trailing commas.
+ 
+REQUIRED TOP LEVEL JSON STRUCTURE
+{
+"meta": {},
+"video": {},
+"sections": [],
+"end_lesson_quiz": []
+}
+ 
+SECTION STRUCTURE
+Each section must follow:
+{
+"id": "section_1",
+"title": "Subtopic Title",
+"added_by_ai": false,
+"purpose": "concept",
+"content": [],
+"equation": null,
+"worked_example": null,
+"image_prompt": null,
+"diagram_needed": false,
+"subtopic_quiz": []
+}
+ 
+CONTENT BLOCK TYPES
+TEXT BLOCK
+{
+"label": "Definition",
+"type": "text",
+"text": "..."
+}
+LIST BLOCK
+{
+"label": "Steps",
+"type": "list",
+"items": [
+"...",
+"..."
+]
+}
+PAIR BLOCK
+{
+"label": "Comparison",
+"type": "pairs",
+"items": [
+{
+"term": "...",
+"description": "..."
+}
+]
+}
+Use list type whenever content naturally forms grouped items.
+ 
+SUBTOPIC QUIZ REQUIREMENT
+Each section must include exactly 3 MCQs.
+Structure:
+"subtopic_quiz": [
+{
+"id": "section1_q1",
+"level": "Remember",
+"question": "...",
+"options": [
+"A. ...",
+"B. ...",
+"C. ...",
+"D. ..."
+],
+"answer": "A",
+"explanation": "..."
+}
+]
+Each subtopic quiz must include mixture of:
+Remember
+Understand
+Apply
+Questions must relate directly to the subtopic.
+ 
+WORKED EXAMPLE RULES
+Include worked example when:
+• calculations exist
+• reasoning benefits from step-by-step explanation
+• formulas are used
+Else:
+null
+ 
+DIAGRAM PROMPT RULES
+Create illustration prompts when visuals improve understanding.
+Use:
+flat illustration
+textbook clarity
+minimal colors
+white background
+labeled parts
+Example:
+"Educational diagram of fractional distillation column showing temperature gradient and separated fractions, labeled parts, flat textbook illustration."
+ 
+FINAL QUIZ REQUIREMENT
+Provide 30 MCQs across Bloom’s taxonomy levels:
+5 Remember
+5 Understand
+6 Apply
+6 Analyse
+4 Evaluate
+4 Create
+Each must include explanation.
+ 
+META STRUCTURE
+{
+"topic": "...",
+"subtopics_provided": true,
+"additional_subtopics_added": true,
+"target_age": 15,
+"tone": "clear and structured",
+"difficulty": "standard",
+"estimated_sections": total_sections,
+"has_equations": true,
+"has_worked_examples": true,
+"has_diagrams": true,
+"has_video": true,
+"equation_format": "latex",
+"subtopic_quiz_per_section": 3,
+"final_quiz_questions": 30
+}
+ 
+FINAL INSTRUCTION
+Generate ONE valid JSON object.
+Requirements:
+use user-provided subtopics as base structure
+add additional relevant subtopics when beneficial
+apply appropriate instructional headings intelligently per subtopic
+each subtopic must include 3 MCQs
+include 30-question final quiz
+include video reference
+equations must use LaTeX format
+lists must use array structure
+JSON must be valid and complete
+ 
