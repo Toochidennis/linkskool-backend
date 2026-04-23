@@ -15,21 +15,29 @@ class StudyExamTypeTopicsService
 
     public function linkTopicToExamType(array $data): bool
     {
-        $this->studyTopicExamType
-            ->where('topic_id', $data['topic_id'])
-            ->where('exam_type_id', $data['exam_type_id'])
-            ->delete();
+        $this->studyTopicExamType->beginTransaction();
 
-        foreach ($data['topic_ids'] as $index => $topicId) {
-            $this->studyTopicExamType->insert([
-                'topic_id' => $topicId,
-                'exam_type_id' => $data['exam_type_id'],
-                'course_id' => $data['course_id'],
-                'display_order' => $index + 1,
-            ]);
+        try {
+            $this->studyTopicExamType
+                ->where('exam_type_id', $data['exam_type_id'])
+                ->where('course_id', $data['course_id'])
+                ->delete();
+
+            foreach ($data['topic_ids'] as $index => $topicId) {
+                $this->studyTopicExamType->insert([
+                    'topic_id' => $topicId,
+                    'exam_type_id' => $data['exam_type_id'],
+                    'course_id' => $data['course_id'],
+                    'display_order' => $index + 1,
+                ]);
+            }
+
+            $this->studyTopicExamType->commit();
+            return true;
+        } catch (\Throwable $e) {
+            $this->studyTopicExamType->rollBack();
+            throw $e;
         }
-
-        return true;
     }
 
     public function getTopicsByExamType(int $examTypeId): array

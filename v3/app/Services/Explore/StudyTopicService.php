@@ -21,6 +21,7 @@ class StudyTopicService
             'course_id' => $data['course_id'],
             'course_name' => $data['course_name'],
             'category_id' => $data['category_id'] ?? null,
+            'category_name' => $data['category_name'] ?? null,
         ]);
     }
 
@@ -87,6 +88,7 @@ class StudyTopicService
                 'course_id',
                 'course_name',
                 'category_id',
+                'category_name',
             ])
             ->where('course_id', $courseId)
             ->get();
