@@ -37,6 +37,7 @@ class StudyExamTypeTopicController extends ExploreBaseController
         $this->respond([
             'success' => true,
             'message' => 'Topics linked to exam type successfully.',
+            'data' => $linked,
         ]);
     }
 

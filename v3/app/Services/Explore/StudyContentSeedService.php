@@ -2,20 +2,17 @@
 
 namespace V3\App\Services\Explore;
 
-use V3\App\Models\Explore\StudyCategoryTopic;
 use V3\App\Models\Explore\StudyTopic;
 use V3\App\Models\Explore\StudyCategory;
 
 class StudyContentSeedService
 {
     private StudyTopic $studyTopic;
-    private StudyCategoryTopic $studyCategoryTopic;
     private StudyCategory $studyCategory;
 
     public function __construct(\PDO $pdo)
     {
         $this->studyTopic = new StudyTopic($pdo);
-        $this->studyCategoryTopic = new StudyCategoryTopic($pdo);
         $this->studyCategory = new StudyCategory($pdo);
     }
 
