@@ -21,7 +21,8 @@ class StudyContentSeedService
 
     public function readContentFromJson(): array
     {
-        $jsonContent = file_get_contents('./LessonData/study_content.json');
+        $path = realpath(__DIR__ . '/LessonData/study_content.json');
+        $jsonContent = file_get_contents($path);
 
         if ($jsonContent === false) {
             throw new \Exception('Failed to read JSON file');
@@ -43,9 +44,9 @@ class StudyContentSeedService
 
             foreach ($categoryData['topics'] as $topicData) {
                 // Insert topic
-                $topicId = $this->studyTopic->insert([
+                $this->studyTopic->insert([
                     'title' => $topicData['topic'],
-                    'sub_topics' => json_encode($topicData['sub_topics']),
+                    'subtopics_json' => json_encode($topicData['subtopics']),
                     'course_id' => $contentData['courseId'],
                     'course_name' => $contentData['courseName'],
                     'category_id' => $categoryId,

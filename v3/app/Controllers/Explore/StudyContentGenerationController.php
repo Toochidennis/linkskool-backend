@@ -36,7 +36,7 @@ class StudyContentGenerationController extends ExploreBaseController
         $this->respond(['message' => 'Study content generation initiated']);
     }
 
-    #[Route('/seed', 'POST')]
+    #[Route('/seed', 'GET')]
     public function seed(): void
     {
         $this->studyContentSeedService->seedStudyContent();
