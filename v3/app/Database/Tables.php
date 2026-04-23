@@ -142,5 +142,8 @@ class Tables
         'password_reset_tokens',
         'cbt_gamify_leaderboard',
         'study_topics',
+        'study_categories',
+        'study_category_topics',
+        'study_topic_exam_types',
     ];
 }
