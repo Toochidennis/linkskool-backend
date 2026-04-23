@@ -5,19 +5,22 @@ namespace V3\App\Controllers\Explore;
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Services\Explore\StudyContentGenerationService;
+use V3\App\Services\Explore\StudyContentSeedService;
 
-#[Group('/public/study')]
+#[Group('/public/cbt/study')]
 class StudyContentGenerationController extends ExploreBaseController
 {
     private StudyContentGenerationService $service;
+    private StudyContentSeedService $studyContentSeedService;
 
     public function __construct()
     {
         parent::__construct();
         $this->service = new StudyContentGenerationService($this->pdo);
+        $this->studyContentSeedService = new StudyContentSeedService($this->pdo);
     }
 
-    #[Route('/generate', 'GET')]
+    #[Route('/generate-content', 'GET')]
     public function generate(): void
     {
         $script = realpath(__DIR__ . '/../../Common/Scripts/process_study_content.php');
@@ -33,7 +36,14 @@ class StudyContentGenerationController extends ExploreBaseController
         $this->respond(['message' => 'Study content generation initiated']);
     }
 
-    #[Route('/content', 'GET')]
+    #[Route('/seed', 'POST')]
+    public function seed(): void
+    {
+        $this->studyContentSeedService->seedStudyContent();
+        $this->respond(['message' => 'Study content seeding completed']);
+    }
+
+    #[Route('/contents', 'GET')]
     public function get()
     {
         $this->respond([
