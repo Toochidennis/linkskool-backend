@@ -17,7 +17,7 @@ class StudyTopicService
     {
         return $this->studyTopic->insert([
             'title' => $data['title'],
-            'sub_topics' => json_encode($data['sub_topics']),
+            'subtopics_json' => json_encode($data['sub_topics']),
             'course_id' => $data['course_id'],
             'course_name' => $data['course_name'],
             'category_id' => $data['category_id'] ?? null,
@@ -31,7 +31,7 @@ class StudyTopicService
             ->where('id', $topicId)
             ->update([
                 'title' => $data['title'],
-                'sub_topics' => json_encode($data['sub_topics']),
+                'subtopics_json' => json_encode($data['sub_topics']),
                 'course_id' => $data['course_id'],
                 'course_name' => $data['course_name'],
                 'category_id' => $data['category_id'] ?? null,
@@ -49,6 +49,7 @@ class StudyTopicService
                 'course_name',
                 'category_id',
                 'category_name',
+                'subtopics_json',
             ])
             ->orderBy('course_name')
             ->orderBy('title')
@@ -73,6 +74,7 @@ class StudyTopicService
                 'topic_name' => $row['topic_name'],
                 'category_id' => $row['category_id'],
                 'category_name' => $row['category_name'],
+                'sub_topics' => json_decode($row['subtopics_json'], true) ?? [],
             ];
         }
 
