@@ -34,18 +34,60 @@ class StudyTopicService
                 'course_id' => $data['course_id'],
                 'course_name' => $data['course_name'],
                 'category_id' => $data['category_id'] ?? null,
+                'category_name' => $data['category_name'] ?? null,
             ]);
     }
 
     public function getAllTopics(): array
     {
-        return $this->studyTopic
+        $rows = $this->studyTopic
+            ->select([
+                'id AS topic_id',
+                'title AS topic_name',
+                'course_id',
+                'course_name',
+                'category_id',
+                'category_name',
+            ])
+            ->orderBy('course_name')
+            ->orderBy('title')
             ->get();
+
+        $grouped = [];
+
+        foreach ($rows as $row) {
+            $courseId = $row['course_id'];
+            $courseName = $row['course_name'];
+
+            if (!isset($grouped[$courseId])) {
+                $grouped[$courseId] = [
+                    'course_id' => $courseId,
+                    'course_name' => $courseName,
+                    'topics' => [],
+                ];
+            }
+
+            $grouped[$courseId]['topics'][] = [
+                'topic_id' => $row['topic_id'],
+                'topic_name' => $row['topic_name'],
+                'category_id' => $row['category_id'],
+                'category_name' => $row['category_name'],
+            ];
+        }
+
+        return array_values($grouped);
     }
 
     public function getTopicsByCourseId(int $courseId): array
     {
         return $this->studyTopic
+            ->select([
+                'id AS topic_id',
+                'title AS topic_name',
+                'course_id',
+                'course_name',
+                'category_id',
+            ])
             ->where('course_id', $courseId)
             ->get();
     }
