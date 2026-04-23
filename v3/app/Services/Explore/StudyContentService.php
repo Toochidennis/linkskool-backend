@@ -13,7 +13,7 @@ class StudyContentService
         $this->studyTopicExamType = new StudyTopicExamType($pdo);
     }
 
-    public function getTopicByExamType(int $examTypeId, int $courseId): array
+    public function getStudyTopics(int $examTypeId, int $courseId): array
     {
         $topics = $this->studyTopicExamType->rawQuery(
             'SELECT

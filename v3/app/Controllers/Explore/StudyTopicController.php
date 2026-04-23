@@ -86,6 +86,7 @@ class StudyTopicController extends ExploreBaseController
 
         $this->respond([
             'success' => true,
+            'message' => 'Topics retrieved successfully.',
             'data' => $this->studyTopicService->getTopicsByCourseId($data['course_id']),
         ]);
     }
