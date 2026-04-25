@@ -73,6 +73,30 @@ class ExamTypeService
         return $examTypes;
     }
 
+    public function getExamTypeById(int $id): array
+    {
+        $examType = $this->examType
+            ->select(['id', 'title AS name', 'shortname', 'course_ids', 'is_active', 'display_order'])
+            ->where('id', '=', $id)
+            ->first();
+
+        $courseIds = json_decode($examType['course_ids'] ?? '[]', true) ?? [];
+        unset($examType['course_ids']);
+        if (empty($courseIds)) {
+            $examType['courses'] = [];
+        } else {
+            $courses = $this->course
+                ->select(['id', 'course_name'])
+                ->in('id', $courseIds)
+                ->orderBy('course_name')
+                ->get();
+
+            $examType['courses'] = $courses;
+        }
+
+        return $examType;
+    }
+
     public function deleteExamType(int $id): bool
     {
         return $this->examType

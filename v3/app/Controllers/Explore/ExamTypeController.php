@@ -87,6 +87,19 @@ class ExamTypeController extends ExploreBaseController
         ]);
     }
 
+        #[Route('/exam-types/{id:\d+}', 'GET', ['api', 'auth'])]
+    public function getExamTypeById(array $vars): void
+    {
+        $data = $this->validate($vars, [
+            'id' => 'required|integer',
+        ]);
+
+        $this->respond([
+            'success' => true,
+            'data' => $this->examTypeService->getExamTypeById($data['id'])
+        ]);
+    }
+
     #[Route('/exam-types/{id:\d+}', 'DELETE', ['api', 'auth', 'role:admin'])]
     public function deleteExamType(array $vars): void
     {

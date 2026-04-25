@@ -1,0 +1,679 @@
+{
+  "title": "Complete Chemistry Table of Contents",
+  "courseId": 6,
+  "courseName": "Chemistry",
+  "sections": [
+    {
+      "section": "General Chemistry",
+      "topics": [
+        {
+          "sn": "1",
+          "topic": "Introduction to Chemistry",
+          "subtopics": [
+            "Introduction",
+            "The scientific method",
+            "Chemistry in everyday activities",
+            "Applications of chemistry",
+            "Hazardous and adverse effects of chemical products",
+            "Career prospects in chemistry"
+          ]
+        },
+        {
+          "sn": "2",
+          "topic": "Nature of Matter",
+          "subtopics": [
+            "States and classes of matter",
+            "Elements",
+            "Compounds",
+            "Mixtures",
+            "Differences between mixtures and compounds",
+            "Solutions and suspensions",
+            "Liquid solvents",
+            "General physical properties of states of matter",
+            "Changes of states and entropy",
+            "Physical and chemical changes",
+            "Melting and dissolving"
+          ]
+        },
+        {
+          "sn": "3",
+          "topic": "Separation Techniques",
+          "subtopics": [
+            "Introduction",
+            "Common separation techniques",
+            "Procedures for the separation of mixtures",
+            "Pure and impure substances"
+          ]
+        },
+        {
+          "sn": "4",
+          "topic": "Particulate Nature of Matter • Atomic Structure",
+          "subtopics": [
+            "Concept of atoms",
+            "Atomic theory of Dalton",
+            "Composition of the atom",
+            "Nuclear particles",
+            "Isotopy and isotopes",
+            "Concept of relative atomic mass",
+            "Distribution of electrons in the atom",
+            "Valence shells"
+          ]
+        },
+        {
+          "sn": "5",
+          "topic": "The Periodic Table",
+          "subtopics": [
+            "Introduction",
+            "Basic features of the periodic table",
+            "Blocks of element in the periodic table",
+            "Relationship among the elements"
+          ]
+        },
+        {
+          "sn": "6",
+          "topic": "Chemical Combinations",
+          "subtopics": [
+            "Introduction",
+            "Valence electrons",
+            "Octet rule",
+            "Types of chemical combinations",
+            "Electrovalent or ionic bonding",
+            "Covalent bonding",
+            "Coordinate covalent or dative bonding",
+            "Uniqueness of ammonium chloride",
+            "Metallic bonding",
+            "Intermolecular forces"
+          ]
+        },
+        {
+          "sn": "7",
+          "topic": "Chemical Formulae • IUPAC Nomenclature",
+          "subtopics": [
+            "Introduction",
+            "Chemical formulae of elements",
+            "Atomicity",
+            "Formulae of binary compounds",
+            "Formulae containing radicals",
+            "Calculations involving chemical formulae",
+            "Molecular and empirical formulae",
+            "IUPAC nomenclature of inorganic compounds"
+          ]
+        },
+        {
+          "sn": "8",
+          "topic": "The Mole Concept",
+          "subtopics": [
+            "Introduction",
+            "Using grains to introduce the mole concept",
+            "Applications of the mole concept",
+            "Calculations using the mole concept"
+          ]
+        },
+        {
+          "sn": "9",
+          "topic": "Chemical Equations • Types of Chemical Reactions",
+          "subtopics": [
+            "Introduction",
+            "Balancing chemical equations",
+            "Types of chemical reactions",
+            "Laws of chemical combinations",
+            "Calculations from equations"
+          ]
+        },
+        {
+          "sn": "10",
+          "topic": "Behaviour of Gases • Gas Laws",
+          "subtopics": [
+            "Introduction",
+            "Kinetic theory of gases",
+            "General properties of gases",
+            "Definition of terms",
+            "Variation of gas volume with pressure",
+            "Variation of gas volume with temperature",
+            "Ideal gas equation",
+            "Variation of gas pressure with temperature",
+            "Dalton's law of partial pressure",
+            "Law of combining volumes of gases",
+            "Molar volume of a gas",
+            "General ideal gas equation",
+            "Mixture of ideal gases",
+            "Diffusion of gases",
+            "The Brownian motion",
+            "Maxwell distribution of molecular velocity of gases",
+            "Ideal and real gases",
+            "Calculations from equations"
+          ]
+        },
+        {
+          "sn": "11",
+          "topic": "Behaviour of Liquids and Solids",
+          "subtopics": [
+            "Introduction",
+            "General properties of liquids",
+            "Evaporation of a liquid",
+            "Equilibrium vapour pressure",
+            "Boiling points of liquids",
+            "Evaporation and boiling",
+            "Critical temperature and pressure",
+            "General properties of solids",
+            "Types of solids",
+            "Changes of state",
+            "Comparing attractive forces in solids"
+          ]
+        },
+        {
+          "sn": "12",
+          "topic": "Air and Air Pollution",
+          "subtopics": [
+            "Composition of air",
+            "Air as a mixture",
+            "Exposure of certain substances to ordinary air",
+            "Fractional distillation of liquid air",
+            "Air pollution"
+          ]
+        },
+        {
+          "sn": "13",
+          "topic": "Water • Hardness • Pollution",
+          "subtopics": [
+            "Sources of water",
+            "Types of water",
+            "Gases dissolved in water",
+            "Pure water",
+            "Physical properties of pure water",
+            "Importance of water",
+            "Water and Soil pollution",
+            "Bonding in water",
+            "Unique properties of water",
+            "Treatment of water for town supply",
+            "The water cycle",
+            "Formation of water",
+            "Composition of water",
+            "Chemical properties of water",
+            "Water as a universal solvent",
+            "Hardness of water",
+            "Detection of hardness",
+            "Removal of hardness",
+            "Advantages and disadvantages of hardness",
+            "Use of detergents",
+            "Degree of hardness in water"
+          ]
+        },
+        {
+          "sn": "14",
+          "topic": "Acids and Bases • pH",
+          "subtopics": [
+            "Introduction",
+            "Acids",
+            "Bases",
+            "Classes of oxides",
+            "Mass - mole relationships in acids and bases",
+            "Acid - base reactions",
+            "Concentrations of acids and bases",
+            "Water as a neutral solvent",
+            "pH of a solution",
+            "Acid - base indicators",
+            "pH titration curves"
+          ]
+        },
+        {
+          "sn": "15",
+          "topic": "Salts • Ionic Reactions",
+          "subtopics": [
+            "Occurrence",
+            "Definitions of a salt",
+            "Types of salts",
+            "Solubility of salts in water",
+            "Hydrated and anhydrous salts",
+            "Physical properties of salts",
+            "Gravimetric analysis of salts",
+            "Preparation of salts",
+            "Calculations involving salts",
+            "Hydrolysis of salts",
+            "Buffer solutions",
+            "Ionic reactions",
+            "Concentration of ions in a solution",
+            "Conductivity of electrolytes"
+          ]
+        },
+        {
+          "sn": "16",
+          "topic": "Volumetric Analysis",
+          "subtopics": [
+            "Introduction",
+            "Preparation of solutions",
+            "Acid - base titrations",
+            "Precipitation reactions",
+            "Displacement reactions",
+            "Redox titrations"
+          ]
+        },
+        {
+          "sn": "17",
+          "topic": "Solubility • Solubility Curves",
+          "subtopics": [
+            "Introduction",
+            "Solubility of solids in liquids",
+            "Solubility of salts in water",
+            "Solubility curves",
+            "Fractional crystallization",
+            "Concentrating in solution",
+            "Supersaturated solution",
+            "Solubility of gases in liquids",
+            "Determination of solubility by titration method"
+          ]
+        },
+        {
+          "sn": "18",
+          "topic": "Energy Effects – Energetics",
+          "subtopics": [
+            "Introduction",
+            "Energy effects in chemical reactions",
+            "Signs of enthalpy changes",
+            "Definition of terms",
+            "Determination of heat of reaction",
+            "The laws of thermochemistry",
+            "Origin of enthalpy changes",
+            "Entropy and entropy changes",
+            "The Gibb’s free energy"
+          ]
+        },
+        {
+          "sn": "19",
+          "topic": "Rates of Chemical Reactions",
+          "subtopics": [
+            "Introduction",
+            "Chemical kinetics",
+            "Rates of chemical reactions",
+            "The collision theory",
+            "Factors affecting rates of chemical reactions",
+            "Reaction mechanisms",
+            "Rate constants and rate laws"
+          ]
+        },
+        {
+          "sn": "20",
+          "topic": "Chemical Equilibrium",
+          "subtopics": [
+            "Introduction",
+            "Reversible reactions",
+            "Reactions at equilibrium",
+            "Equilibrium constants",
+            "Changes affecting the state of equilibrium",
+            "Industrial applications of the Le Chatelier’s principle"
+          ]
+        },
+        {
+          "sn": "21",
+          "topic": "Ionic Theory • Electrolysis",
+          "subtopics": [
+            "Introduction",
+            "Effect of electricity on matter",
+            "Arrhenius ionic theory",
+            "Electrochemical reactions",
+            "Faraday’s laws of electrolysis"
+          ]
+        },
+        {
+          "sn": "22",
+          "topic": "Redox Processes • Redox Potentials",
+          "subtopics": [
+            "Introduction",
+            "Oxidation and reduction",
+            "Electrochemical (Voltaic) cells",
+            "Standard electrode potentials",
+            "The electrochemical series",
+            "Cell notation",
+            "E . M. F. of a cell",
+            "predicting reactions",
+            "Operation of electrochemical cells",
+            "Complex redox reactions"
+          ]
+        },
+        {
+          "sn": "23",
+          "topic": "Wave-Particle Nature of Matter",
+          "subtopics": [
+            "Introduction",
+            "Electrical nature of the atom",
+            "Discovery of the nucleus",
+            "Bohr’s theory of the atom",
+            "Wave-particle character of an electron",
+            "Quantum numbers",
+            "Shapes of orbitals",
+            "Energy level diagrams",
+            "Position and spin of an electron",
+            "Quantum numbers of an electron"
+          ]
+        },
+        {
+          "sn": "24",
+          "topic": "Periodic Properties of the Atom • Periodicity",
+          "subtopics": [
+            "Introduction",
+            "Atomic radius",
+            "Ionic radius",
+            "Ionization energy",
+            "Electron affinity",
+            "Electronegativity",
+            "Polarity of chemical bonds"
+          ]
+        },
+        {
+          "sn": "25",
+          "topic": "Shapes of Molecules • Hybridization",
+          "subtopics": [
+            "Introduction",
+            "Shapes of molecules and ions",
+            "Concept of resonance",
+            "Structures and shapes of solids",
+            "Polarity of molecules"
+          ]
+        },
+        {
+          "sn": "26",
+          "topic": "Radioactivity and Nuclear Reactions",
+          "subtopics": [
+            "Introduction",
+            "Radioactivity",
+            "Radioactive radiations",
+            "Nuclear reactions",
+            "Types of nuclear reactions",
+            "Heat liberated during nuclear reactions",
+            "Half-life in nuclear processes",
+            "Nuclear reactor",
+            "Uses of radioactivity and nuclear reactions",
+            "Health hazards in radioactivity"
+          ]
+        }
+      ]
+    },
+    {
+      "section": "Inorganic Chemistry",
+      "topics": [
+        {
+          "sn": "27",
+          "topic": "Hydrogen • Hydrides",
+          "subtopics": [
+            "Introduction",
+            "Methods of preparation",
+            "Properties of hydrogen",
+            "Industrial production",
+            "Uses of hydrogen",
+            "Hydrides"
+          ]
+        },
+        {
+          "sn": "28",
+          "topic": "Oxygen • Oxides • Hydroxides",
+          "subtopics": [
+            "Introduction",
+            "Methods of preparation",
+            "Properties of oxygen",
+            "Industrial preparation",
+            "Uses of oxygen",
+            "Oxides of elements in periods 2 and 3",
+            "Oxides and hydroxides of metals",
+            "Ozone (Trioxygen)",
+            "Hydrogen peroxide"
+          ]
+        },
+        {
+          "sn": "29",
+          "topic": "Carbon and Its Oxides • Fuels",
+          "subtopics": [
+            "Introduction",
+            "Allotropes of carbon",
+            "Carbon(IV) oxide",
+            "Carbon(IV) oxide – oxygen cycle",
+            "Carbon(II) oxide",
+            "Calculation involving oxides of carbon",
+            "Trioxocarbonate(IV) acid",
+            "Trioxocarbonate(IV) salts",
+            "Hydrogentrioxocarbonate(IV) salts",
+            "Fuels",
+            "Gasification of coal",
+            "Combustion of carbon fuels",
+            "The flame",
+            "Silicon"
+          ]
+        },
+        {
+          "sn": "30",
+          "topic": "Nitrogen and Its Compounds • Phosphorus",
+          "subtopics": [
+            "Introduction",
+            "Nitrogen as an element",
+            "Ammonia",
+            "Ammonia solution",
+            "Ammonium salts",
+            "Trioxonitrate(V) salts",
+            "Oxides of Nitrogen",
+            "Nitrogen(I) oxide",
+            "Nitrogen(II) oxide",
+            "Nitrogen(IV) oxide",
+            "Oxidation states of nitrogen",
+            "The nitrogen cycle",
+            "Nitrogen fixation",
+            "Phosphorus",
+            "Compounds of phosphorus",
+            "Uses of phosphorus and its compounds"
+          ]
+        },
+        {
+          "sn": "31",
+          "topic": "Sulphur and Its Compounds",
+          "subtopics": [
+            "Introduction",
+            "Sulphur as an elements",
+            "Hydrogen sulphide gas",
+            "Sulphide salts",
+            "Sulphur(IV) oxide",
+            "Trioxosulphate(IV) acid",
+            "Trioxosulphate(IV) salts",
+            "Tetraoxosulphate(VI) acid",
+            "Tetraoxosulphate(VI) salts",
+            "Oxidation states of sulphur"
+          ]
+        },
+        {
+          "sn": "32",
+          "topic": "The Halogens • Chlorine and Its Compounds",
+          "subtopics": [
+            "The halogen family",
+            "Chlorine",
+            "Uses of chlorine",
+            "Hydrogen chloride gas",
+            "Hydrochloric acid",
+            "Chlorides and oxochlorides",
+            "Oxidation states of chlorine",
+            "Uses of chlorine and its compounds"
+          ]
+        },
+        {
+          "sn": "33",
+          "topic": "Representative Metals and Their Compounds",
+          "subtopics": [
+            "Introduction",
+            "General properties of metals",
+            "Activities series of metals",
+            "Reaction of metals and their compounds",
+            "Extraction of metals",
+            "The alkali metals",
+            "Sodium and its compounds",
+            "The alkali-earth metals",
+            "Calcium and its compounds",
+            "Aluminium and its compounds",
+            "Tin and lead and their compounds"
+          ]
+        },
+        {
+          "sn": "34",
+          "topic": "Transition Metals and Their Compounds",
+          "subtopics": [
+            "Introduction",
+            "The first transition series",
+            "Characteristic properties of transition elements",
+            "Transition and s-block elements",
+            "Iron and its compounds",
+            "Copper and its compounds",
+            "Silver and its compounds",
+            "Zinc and its compounds",
+            "Alloys",
+            "Differences between metals and non-metals"
+          ]
+        },
+        {
+          "sn": "35",
+          "topic": "Qualitative Inorganic Analysis",
+          "subtopics": [
+            "Introduction",
+            "Classes of inorganic compounds",
+            "Common laboratory reagents",
+            "Identification of cations",
+            "Identification of gases",
+            "Identification of anions",
+            "Common laboratory apparatus and set-ups"
+          ]
+        }
+      ]
+    },
+    {
+      "section": "Organic Chemistry",
+      "topics": [
+        {
+          "sn": "36",
+          "topic": "Introduction to Organic Compounds",
+          "subtopics": [
+            "General introduction",
+            "Classes of organic compounds",
+            "Functional groups",
+            "Homologous series",
+            "Characteristics of organic compounds",
+            "Detection of elements",
+            "Modified Dalton’s atomic theory"
+          ]
+        },
+        {
+          "sn": "37",
+          "topic": "The Hydrocarbons",
+          "subtopics": [
+            "General introduction",
+            "The alkanes",
+            "Haloalkanes",
+            "The alkenes",
+            "The alkynes",
+            "Cyclic aliphatic hydrocarbons",
+            "Aromatic hydrocarbons – Benzene",
+            "Polymerization",
+            "Plastics and Natural rubbers"
+          ]
+        },
+        {
+          "sn": "38",
+          "topic": "Petroleum – Crude Oil",
+          "subtopics": [
+            "Introduction",
+            "Refining of crude oil",
+            "Petroleum products (Fractions)",
+            "Cracking of petroleum products",
+            "Octane number or rating",
+            "Petrochemicals"
+          ]
+        },
+        {
+          "sn": "39",
+          "topic": "Hydroxy-Compounds – Alkanols • Alkanals • Alkanones",
+          "subtopics": [
+            "Introduction",
+            "IUPAC Nomenclature of alcohols",
+            "Isomerism in alkanols",
+            "Physical properties of alkanols",
+            "Ethanol: A typical alkanol",
+            "Other common alkanols",
+            "Phenols",
+            "Derivatives of alkanols",
+            "Oxidation number of carbon in simple organic compounds",
+            "Conversion of functional groups"
+          ]
+        },
+        {
+          "sn": "40",
+          "topic": "Alkanoic Acids",
+          "subtopics": [
+            "Introduction",
+            "Isomerism in alkanoic acids",
+            "Monocarboxylic acids",
+            "Chemistry of alkanoic acids",
+            "Aliphatic dicarboxylic acids",
+            "Aromatic carboxylic acids",
+            "Conversion of functional groups"
+          ]
+        },
+        {
+          "sn": "41",
+          "topic": "Alkanoates • Fats and Oils",
+          "subtopics": [
+            "Introduction",
+            "The Esters",
+            "Isomerism in alkanoates",
+            "Ethylethanoates",
+            "Fats and oils",
+            "Chemical reactions of fats and oils",
+            "Soaps",
+            "Detergents",
+            "Polymerization in Esters"
+          ]
+        },
+        {
+          "sn": "42",
+          "topic": "Organic Compounds of Nitrogen",
+          "subtopics": [
+            "General introduction",
+            "The amines",
+            "The amides",
+            "The aminoacids",
+            "Proteins and polypeptides",
+            "IUPAC names of bifunctional compounds"
+          ]
+        },
+        {
+          "sn": "43",
+          "topic": "The Carbohydrates",
+          "subtopics": [
+            "Introduction",
+            "Monosaccharides",
+            "Disaccharides",
+            "Polysaccharides"
+          ]
+        },
+        {
+          "sn": "44",
+          "topic": "Qualitative Organic Analysis",
+          "subtopics": [
+            "Introduction",
+            "Methods of organic analysis",
+            "Practical exercises in qualitative organic analysis"
+          ]
+        }
+      ]
+    },
+    {
+      "section": "Applied Chemistry",
+      "topics": [
+        {
+          "sn": "45",
+          "topic": "The Chemical Industry • Biotechnology",
+          "subtopics": [
+            "Introduction",
+            "Definition of terms",
+            "Industrial raw materials",
+            "Divisions in the industry",
+            "Biotechnology",
+            "Siting a chemical industry"
+          ]
+        }
+      ]
+    }
+  ]
+}

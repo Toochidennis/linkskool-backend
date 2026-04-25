@@ -100,6 +100,7 @@ class Tables
         'leaderboard',
         'challenge_participants',
         'cbt_leaderboard',
+        'cbt_updates',
         'topics',
         'syllabi',
         'level',
@@ -136,5 +137,13 @@ class Tables
         'discussion_likes',
         'discussion_posts',
         'discussion_post_likes',
+        'cbt_updates',
+        'cbt_update_comments',
+        'password_reset_tokens',
+        'cbt_gamify_leaderboard',
+        'study_topics',
+        'study_categories',
+        'study_category_topics',
+        'study_topic_exam_types',
     ];
 }

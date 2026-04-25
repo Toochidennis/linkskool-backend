@@ -8,18 +8,21 @@ use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\Explore\ExploreBaseController;
 use V3\App\Services\Explore\AuthBootstrapService;
 use V3\App\Services\Explore\CbtUserService;
+use V3\App\Services\Explore\PasswordResetService;
 
 #[Group('/public/cbt/users')]
 class CbtUserController extends ExploreBaseController
 {
     private CbtUserService $userService;
     private AuthBootstrapService $authBootstrapService;
+    private PasswordResetService $passwordResetService;
 
     public function __construct()
     {
         parent::__construct();
         $this->userService = new CbtUserService($this->pdo);
         $this->authBootstrapService = new AuthBootstrapService($this->pdo);
+        $this->passwordResetService = new PasswordResetService($this->pdo);
     }
 
     #[Route('', 'POST', ['api'])]
@@ -291,5 +294,54 @@ class CbtUserController extends ExploreBaseController
             ],
             HttpStatus::CREATED
         );
+    }
+
+    #[Route('/forgot-password', 'POST', ['api'])]
+    public function forgotPassword(): void
+    {
+        $data = $this->validate(
+            $this->getRequestData(),
+            [
+                    'email' => 'required|email|max:255',
+                ]
+        );
+
+        $result = $this->passwordResetService->generateResetToken($data['email']);
+
+        $this->respond([
+            'success' => true,
+            'message' => $result['message'],
+            'data' => [
+                'email' => $result['user_email'],
+            ]
+        ], HttpStatus::OK);
+    }
+
+    #[Route('/reset-password', 'POST', ['api'])]
+    public function resetPassword(): void
+    {
+        $data = $this->validate($this->getRequestData(), [
+            'token' => 'required|string|max:255',
+            'new_password' => 'required|string|min:8',
+            'confirm_password' => 'required|string|min:8',
+        ]);
+
+        // Validate passwords match
+        if ($data['new_password'] !== $data['confirm_password']) {
+            $this->respondError(
+                'Passwords do not match.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $result = $this->passwordResetService->resetPassword(
+            $data['token'],
+            $data['new_password']
+        );
+
+        $this->respond([
+            'success' => true,
+            'message' => $result['message'],
+        ], HttpStatus::OK);
     }
 }

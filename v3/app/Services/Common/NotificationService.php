@@ -4,17 +4,20 @@ namespace V3\App\Services\Common;
 
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use V3\App\Models\Common\Notification;
+use V3\App\Models\Common\UserDeviceToken;
 
 class NotificationService
 {
     private $projectUrl;
     private Notification $notification;
+    private UserDeviceToken $userDeviceToken;
     private ?bool $supportsEventKey = null;
 
     public function __construct(\PDO $pdo)
     {
         $this->projectUrl = getenv('FIREBASE_PROJECT_URL');
         $this->notification = new Notification($pdo);
+        $this->userDeviceToken = new UserDeviceToken($pdo);
     }
 
     public function send(string $to, string $title, string $body, array $data = []): void
@@ -48,10 +51,15 @@ class NotificationService
             curl_close($curl);
 
             if ($httpCode !== 200) {
-                throw new \RuntimeException("FCM failed with HTTP $httpCode. Response: $response");
+                if ($this->isTokenUnregistered((string) $response)) {
+                    $this->invalidateToken($to);
+                    $this->notification->insert([...$payload, 'error_message' => 'Token unregistered — removed.']);
+                } else {
+                    throw new \RuntimeException("FCM failed with HTTP $httpCode. Response: $response");
+                }
+            } else {
+                $this->notification->insert($payload);
             }
-
-            $this->notification->insert($payload);
         } catch (\Throwable $e) {
             $this->notification->insert([
                 ...$payload,
@@ -114,10 +122,15 @@ class NotificationService
                         'error_message' => 'Curl error: ' . $curlError,
                     ]);
                 } elseif ($httpCode !== 200) {
-                    $this->notification->insert([
-                        ...$payload,
-                        'error_message' => "FCM failed with HTTP {$httpCode}. Response: {$response}",
-                    ]);
+                    if ($this->isTokenUnregistered((string) $response)) {
+                        $this->invalidateToken($token);
+                        $this->notification->insert([...$payload, 'error_message' => 'Token unregistered — removed.']);
+                    } else {
+                        $this->notification->insert([
+                            ...$payload,
+                            'error_message' => "FCM failed with HTTP {$httpCode}. Response: {$response}",
+                        ]);
+                    }
                 } else {
                     $this->notification->insert($payload);
                 }
@@ -135,6 +148,28 @@ class NotificationService
                     'error_message' => $e->getMessage(),
                 ]);
             }
+        }
+    }
+
+    private function isTokenUnregistered(string $response): bool
+    {
+        $decoded = json_decode($response, true);
+        if (!is_array($decoded)) {
+            return false;
+        }
+        foreach ($decoded['error']['details'] ?? [] as $detail) {
+            if (($detail['errorCode'] ?? '') === 'UNREGISTERED') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function invalidateToken(string $token): void
+    {
+        try {
+            $this->userDeviceToken->where('fcm_token', $token)->delete();
+        } catch (\Throwable) {
         }
     }
 

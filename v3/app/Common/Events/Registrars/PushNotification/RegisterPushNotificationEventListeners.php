@@ -3,6 +3,8 @@
 namespace V3\App\Common\Events\Registrars\PushNotification;
 
 use V3\App\Common\Events\EventDispatcher;
+use V3\App\Events\CbtUpdate\CbtUpdatePublished;
+use V3\App\Events\CbtUpdate\CbtUpdateCommentAdded;
 use V3\App\Events\Discussion\DiscussionCommentAdded;
 use V3\App\Events\Discussion\DiscussionPostReplied;
 use V3\App\Events\Discussion\DiscussionReplyReplied;
@@ -22,6 +24,8 @@ use V3\App\Listeners\PushNotification\SendDiscussionStartedPushNotification;
 use V3\App\Listeners\PushNotification\SendAssignmentDueReminderPushNotification;
 use V3\App\Listeners\PushNotification\SendAbandonedCartPushNotification;
 use V3\App\Listeners\PushNotification\SendAbandonedCourseCohortCartPushNotification;
+use V3\App\Listeners\PushNotification\SendCbtUpdatePushNotification;
+use V3\App\Listeners\PushNotification\SendCbtUpdateCommentAddedPushNotification;
 use V3\App\Listeners\PushNotification\SendClassReminderPushNotification;
 use V3\App\Listeners\PushNotification\SendLessonPublishedPushNotification;
 use V3\App\Listeners\PushNotification\SendLiveClassReminderPushNotification;
@@ -75,6 +79,16 @@ class RegisterPushNotificationEventListeners
         EventDispatcher::listen(
             NewsPosted::class,
             new SendNewsPostedPushNotification()
+        );
+
+        EventDispatcher::listen(
+            CbtUpdatePublished::class,
+            new SendCbtUpdatePushNotification()
+        );
+
+        EventDispatcher::listen(
+            CbtUpdateCommentAdded::class,
+            new SendCbtUpdateCommentAddedPushNotification()
         );
 
         EventDispatcher::listen(
