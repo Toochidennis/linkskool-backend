@@ -1,0 +1,68 @@
+[
+  {
+    "category": "General Chemistry",
+    "topics": [
+      { "id": "1", "topic": "Introduction to Chemistry" },
+      { "id": "2", "topic": "Nature of Matter" },
+      { "id": "3", "topic": "Separation Techniques" },
+      { "id": "4", "topic": "Particulate Nature of Matter, Atomic Structure" },
+      { "id": "5", "topic": "The Periodic Table" },
+      { "id": "6", "topic": "Chemical Combinations" },
+      { "id": "7", "topic": "Chemical Formulae, IUPAC Nomenclature" },
+      { "id": "8", "topic": "The Mole Concept" },
+      { "id": "9", "topic": "Chemical Equations, Types of Chemical Reactions" },
+      { "id": "10", "topic": "Behaviour of Gases, Gas Laws" },
+      { "id": "11", "topic": "Behaviour of Liquids and Solids" },
+      { "id": "12", "topic": "Air and Air Pollution" },
+      { "id": "13", "topic": "Water, Hardness, Pollution" },
+      { "id": "14", "topic": "Acids and Bases, pH" },
+      { "id": "15", "topic": "Salts, Ionic Reactions" },
+      { "id": "16", "topic": "Volumetric Analysis" },
+      { "id": "17", "topic": "Solubility, Solubility Curves" },
+      { "id": "18", "topic": "Energy Effects, Energetics" },
+      { "id": "19", "topic": "Rates of Chemical Reactions" },
+      { "id": "20", "topic": "Chemical Equilibrium" },
+      { "id": "21", "topic": "Ionic Theory, Electrolysis" },
+      { "id": "22", "topic": "Redox Processes, Redox Potentials" },
+      { "id": "23", "topic": "Wave-Particle Nature of Matter" },
+      { "id": "24", "topic": "Periodic Properties of the Atom, Periodicity" },
+      { "id": "25", "topic": "Shapes of Molecules, Hybridization" },
+      { "id": "26", "topic": "Radioactivity and Nuclear Reactions" }
+    ]
+  },
+  {
+    "category": "Inorganic Chemistry",
+    "topics": [
+      { "id": "27", "topic": "Hydrogen, Hydrides" },
+      { "id": "28", "topic": "Oxygen, Oxides, Hydroxides" },
+      { "id": "29", "topic": "Carbon and Its Oxides, Fuels" },
+      { "id": "30", "topic": "Nitrogen and Its Compounds, Phosphorus" },
+      { "id": "31", "topic": "Sulphur and Its Compounds" },
+      { "id": "32", "topic": "The Halogens, Chlorine and Its Compounds" },
+      { "id": "33", "topic": "Representative Metals and Their Compounds" },
+      { "id": "34", "topic": "Transition Metals and Their Compounds" },
+      { "id": "35", "topic": "Qualitative Inorganic Analysis" }
+    ]
+  },
+  {
+    "category": "Organic Chemistry",
+    "topics": [
+      { "id": "36", "topic": "Introduction to Organic Compounds" },
+      { "id": "37", "topic": "The Hydrocarbons" },
+      { "id": "38", "topic": "Petroleum, Crude Oil" },
+      {
+        "id": "39",
+        "topic": "Hydroxy-Compounds, Alkanols, Alkanals, Alkanones"
+      },
+      { "id": "40", "topic": "Alkanoic Acids" },
+      { "id": "41", "topic": "Alkanoates, Fats and Oils" },
+      { "id": "42", "topic": "Organic Compounds of Nitrogen" },
+      { "id": "43", "topic": "The Carbohydrates" },
+      { "id": "44", "topic": "Qualitative Organic Analysis" }
+    ]
+  },
+  {
+    "category": "Applied Chemistry",
+    "topics": [{ "id": "45", "topic": "The Chemical Industry, Biotechnology" }]
+  }
+]

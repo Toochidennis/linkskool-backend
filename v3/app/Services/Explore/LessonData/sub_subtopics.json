@@ -1,0 +1,2360 @@
+[
+  {
+    "id": "1",
+    "subtopic": "Introduction",
+    "subtopic_id": "1",
+    "sub_subtopics": [
+      "What is matter",
+      "What is chemistry",
+      "What are chemicals",
+      "Why study chemistry",
+      "Content of chemistry"
+    ]
+  },
+  {
+    "id": "2",
+    "subtopic": "The scientific method",
+    "subtopic_id": "2",
+    "sub_subtopics": [
+      "Observation",
+      "Experiment",
+      "Measurement",
+      "Hypothesis",
+      "Theory",
+      "Law",
+      "Conclusion"
+    ]
+  },
+  {
+    "id": "3",
+    "subtopic": "Chemistry in everyday activities",
+    "subtopic_id": "3",
+    "sub_subtopics": [
+      "Chemistry Processes",
+      "Daily activities",
+      "Observations and Experiences",
+      "Kitchen-Chemistry",
+      "Products of Chemistry"
+    ]
+  },
+  {
+    "id": "4",
+    "subtopic": "Applications of chemistry",
+    "subtopic_id": "4",
+    "sub_subtopics": [
+      "Industry",
+      "Health",
+      "Agriculture",
+      "Environment",
+      "Technology",
+      "Transportation",
+      "Military",
+      "Teaching",
+      "Engineering",
+      "Space Science."
+    ]
+  },
+  {
+    "id": "5",
+    "subtopic": "Hazardous and adverse effects of chemical products",
+    "subtopic_id": "5",
+    "sub_subtopics": ["Environmental Pollution", "Corrosion", "Drug Abuse."]
+  },
+  {
+    "id": "6",
+    "subtopic": "Career prospects in chemistry",
+    "subtopic_id": "6",
+    "sub_subtopics": [
+      "Career Linked  in to Chemistry",
+      "Job Opportunities",
+      "Teaching Sector",
+      "Industrial Sector",
+      "An Enterprenuer."
+    ]
+  },
+  {
+    "id": "7",
+    "subtopic": "States and classes of matter",
+    "subtopic_id": "7",
+    "sub_subtopics": [
+      "Introduction",
+      "Physical Properties",
+      "Chemical Properties."
+    ]
+  },
+  {
+    "id": "8",
+    "subtopic": "Elements",
+    "subtopic_id": "8",
+    "sub_subtopics": [
+      "An Element",
+      "Chemical Symbols of Elements",
+      "Claseses of Elements"
+    ]
+  },
+  {
+    "id": "9",
+    "subtopic": "Compounds",
+    "subtopic_id": "9",
+    "sub_subtopics": ["Ionic compounds", "Covalent compounds"]
+  },
+  {
+    "id": "10",
+    "subtopic": "Mixtures",
+    "subtopic_id": "10",
+    "sub_subtopics": [
+      "Types of Mixtures",
+      "Experiments",
+      "Classes of Mixtures",
+      "Hemogeneous Mixtures and Hetrerogeneous Mixtures."
+    ]
+  },
+  {
+    "id": "11",
+    "subtopic": "Differences between mixtures and compounds",
+    "subtopic_id": "11",
+    "sub_subtopics": ["Composition", "Separation", "Properties"]
+  },
+  {
+    "id": "12",
+    "subtopic": "Solutions and suspensions",
+    "subtopic_id": "12",
+    "sub_subtopics": [
+      "Solutions",
+      "Saturated and Unsaturated Solutions",
+      "Dilute and concentrated Solutions",
+      "Properties of a liquid Solution",
+      "Suspension",
+      "Properties of a Suspension",
+      "Colloidal Dispersions",
+      "Membranes"
+    ]
+  },
+  {
+    "id": "13",
+    "subtopic": "Liquid solvents",
+    "subtopic_id": "13",
+    "sub_subtopics": ["Water", "Ethanol", "Benzene"]
+  },
+  {
+    "id": "14",
+    "subtopic": "Characteristics of states of matter",
+    "subtopic_id": "14",
+    "sub_subtopics": ["Solid State", "Liquid State", "Gaseous State"]
+  },
+  {
+    "id": "15",
+    "subtopic": "Changes of states and entropy",
+    "subtopic_id": "15",
+    "sub_subtopics": ["Heating", "Cooling", "Sublimation", "Entropy"]
+  },
+  {
+    "id": "16",
+    "subtopic": "Physical and chemical changes",
+    "subtopic_id": "16",
+    "sub_subtopics": ["Reversible", "Irreversible"]
+  },
+  {
+    "id": "17",
+    "subtopic": "Melting, Dissolving and Burning",
+    "subtopic_id": "17",
+    "sub_subtopics": ["Melting point", "Dissolving  and Burning"]
+  },
+  {
+    "id": "18",
+    "subtopic": "Introduction",
+    "subtopic_id": "18",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "19",
+    "subtopic": "Common separation techniques",
+    "subtopic_id": "19",
+    "sub_subtopics": ["Filtration", "Seperation of a Mixture of Solids"]
+  },
+  {
+    "id": "20",
+    "subtopic": "Procedures for the separation of mixtures",
+    "subtopic_id": "20",
+    "sub_subtopics": ["Procedures for the separation", "mixtures"]
+  },
+  {
+    "id": "21",
+    "subtopic": "Pure and impure substances",
+    "subtopic_id": "21",
+    "sub_subtopics": ["Pure", "impure substances"]
+  },
+  {
+    "id": "22",
+    "subtopic": "Concept of atoms",
+    "subtopic_id": "22",
+    "sub_subtopics": ["Concept", "atoms"]
+  },
+  {
+    "id": "23",
+    "subtopic": "Atomic theory of Dalton",
+    "subtopic_id": "23",
+    "sub_subtopics": ["Atomic theory", "Dalton"]
+  },
+  {
+    "id": "24",
+    "subtopic": "Composition of the atom",
+    "subtopic_id": "24",
+    "sub_subtopics": ["Stucture of an atom"]
+  },
+  {
+    "id": "25",
+    "subtopic": "Nuclear particles",
+    "subtopic_id": "25",
+    "sub_subtopics": [
+      "Atomic Number",
+      "Mass Number",
+      "Nuclear Elemental symbol."
+    ]
+  },
+  {
+    "id": "26",
+    "subtopic": "Isotopy and isotopes",
+    "subtopic_id": "26",
+    "sub_subtopics": ["Definitions", "Examples of Elements exhibiting Isotopy"]
+  },
+  {
+    "id": "27",
+    "subtopic": "Concept of relative atomic mass",
+    "subtopic_id": "27",
+    "sub_subtopics": [
+      "Definition",
+      "Relative atomic masses of isoopic elements"
+    ]
+  },
+  {
+    "id": "28",
+    "subtopic": "Distribution of electrons in the atom",
+    "subtopic_id": "28",
+    "sub_subtopics": ["Distribution", "electrons in the atom"]
+  },
+  {
+    "id": "29",
+    "subtopic": "Valence shells",
+    "subtopic_id": "29",
+    "sub_subtopics": ["Valence shells"]
+  },
+  {
+    "id": "30",
+    "subtopic": "Introduction",
+    "subtopic_id": "30",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "31",
+    "subtopic": "Basic features of the periodic table",
+    "subtopic_id": "31",
+    "sub_subtopics": ["Basic features", "the periodic table"]
+  },
+  {
+    "id": "32",
+    "subtopic": "Blocks of element in the periodic table",
+    "subtopic_id": "32",
+    "sub_subtopics": ["Blocks", "element in the periodic table"]
+  },
+  {
+    "id": "33",
+    "subtopic": "Relationship among the elements",
+    "subtopic_id": "33",
+    "sub_subtopics": ["Relationship among the elements"]
+  },
+  {
+    "id": "34",
+    "subtopic": "Introduction",
+    "subtopic_id": "34",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "35",
+    "subtopic": "Valence electrons",
+    "subtopic_id": "35",
+    "sub_subtopics": ["Valence electrons"]
+  },
+  {
+    "id": "36",
+    "subtopic": "Octet rule",
+    "subtopic_id": "36",
+    "sub_subtopics": ["Octet rule"]
+  },
+  {
+    "id": "37",
+    "subtopic": "Types of chemical combinations",
+    "subtopic_id": "37",
+    "sub_subtopics": ["Types", "chemical combinations"]
+  },
+  {
+    "id": "38",
+    "subtopic": "Electrovalent or ionic bonding",
+    "subtopic_id": "38",
+    "sub_subtopics": ["Electrovalent or ionic bonding"]
+  },
+  {
+    "id": "39",
+    "subtopic": "Covalent bonding",
+    "subtopic_id": "39",
+    "sub_subtopics": ["Covalent bonding"]
+  },
+  {
+    "id": "40",
+    "subtopic": "Coordinate covalent or dative bonding",
+    "subtopic_id": "40",
+    "sub_subtopics": ["Coordinate covalent or dative bonding"]
+  },
+  {
+    "id": "41",
+    "subtopic": "Uniqueness of ammonium chloride",
+    "subtopic_id": "41",
+    "sub_subtopics": ["Uniqueness", "ammonium chloride"]
+  },
+  {
+    "id": "42",
+    "subtopic": "Metallic bonding",
+    "subtopic_id": "42",
+    "sub_subtopics": ["Metallic bonding"]
+  },
+  {
+    "id": "43",
+    "subtopic": "Intermolecular forces",
+    "subtopic_id": "43",
+    "sub_subtopics": ["Intermolecular forces"]
+  },
+  {
+    "id": "44",
+    "subtopic": "Introduction",
+    "subtopic_id": "44",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "45",
+    "subtopic": "Chemical formulae of elements",
+    "subtopic_id": "45",
+    "sub_subtopics": ["Chemical formulae", "elements"]
+  },
+  {
+    "id": "46",
+    "subtopic": "Atomicity",
+    "subtopic_id": "46",
+    "sub_subtopics": ["Atomicity"]
+  },
+  {
+    "id": "47",
+    "subtopic": "Formulae of binary compounds",
+    "subtopic_id": "47",
+    "sub_subtopics": ["Formulae", "binary compounds"]
+  },
+  {
+    "id": "48",
+    "subtopic": "Formulae containing radicals",
+    "subtopic_id": "48",
+    "sub_subtopics": ["Formulae containing radicals"]
+  },
+  {
+    "id": "49",
+    "subtopic": "Calculations involving chemical formulae",
+    "subtopic_id": "49",
+    "sub_subtopics": ["Calculations involving chemical formulae"]
+  },
+  {
+    "id": "50",
+    "subtopic": "Molecular and empirical formulae",
+    "subtopic_id": "50",
+    "sub_subtopics": ["Molecular", "empirical formulae"]
+  },
+  {
+    "id": "51",
+    "subtopic": "IUPAC nomenclature of inorganic compounds",
+    "subtopic_id": "51",
+    "sub_subtopics": ["IUPAC nomenclature", "inorganic compounds"]
+  },
+  {
+    "id": "52",
+    "subtopic": "Introduction",
+    "subtopic_id": "52",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "53",
+    "subtopic": "Using grains to introduce the mole concept",
+    "subtopic_id": "53",
+    "sub_subtopics": ["Using grains to introduce the mole concept"]
+  },
+  {
+    "id": "54",
+    "subtopic": "Applications of the mole concept",
+    "subtopic_id": "54",
+    "sub_subtopics": ["Applications", "the mole concept"]
+  },
+  {
+    "id": "55",
+    "subtopic": "Calculations using the mole concept",
+    "subtopic_id": "55",
+    "sub_subtopics": ["Calculations using the mole concept"]
+  },
+  {
+    "id": "56",
+    "subtopic": "Introduction",
+    "subtopic_id": "56",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "57",
+    "subtopic": "Balancing chemical equations",
+    "subtopic_id": "57",
+    "sub_subtopics": ["Balancing chemical equations"]
+  },
+  {
+    "id": "58",
+    "subtopic": "Types of chemical reactions",
+    "subtopic_id": "58",
+    "sub_subtopics": ["Types", "chemical reactions"]
+  },
+  {
+    "id": "59",
+    "subtopic": "Laws of chemical combinations",
+    "subtopic_id": "59",
+    "sub_subtopics": ["Laws", "chemical combinations"]
+  },
+  {
+    "id": "60",
+    "subtopic": "Calculations from equations",
+    "subtopic_id": "60",
+    "sub_subtopics": ["Calculations from equations"]
+  },
+  {
+    "id": "61",
+    "subtopic": "Introduction",
+    "subtopic_id": "61",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "62",
+    "subtopic": "Kinetic theory of gases",
+    "subtopic_id": "62",
+    "sub_subtopics": ["Kinetic theory", "gases"]
+  },
+  {
+    "id": "63",
+    "subtopic": "General properties of gases",
+    "subtopic_id": "63",
+    "sub_subtopics": ["General properties", "gases"]
+  },
+  {
+    "id": "64",
+    "subtopic": "Definition of terms",
+    "subtopic_id": "64",
+    "sub_subtopics": ["Definition", "terms"]
+  },
+  {
+    "id": "65",
+    "subtopic": "Variation of gas volume with pressure",
+    "subtopic_id": "65",
+    "sub_subtopics": ["Variation", "gas volume", "pressure"]
+  },
+  {
+    "id": "66",
+    "subtopic": "Variation of gas volume with temperature",
+    "subtopic_id": "66",
+    "sub_subtopics": ["Variation", "gas volume", "temperature"]
+  },
+  {
+    "id": "67",
+    "subtopic": "Ideal gas equation",
+    "subtopic_id": "67",
+    "sub_subtopics": ["Ideal gas equation"]
+  },
+  {
+    "id": "68",
+    "subtopic": "Variation of gas pressure with temperature",
+    "subtopic_id": "68",
+    "sub_subtopics": ["Variation", "gas pressure", "temperature"]
+  },
+  {
+    "id": "69",
+    "subtopic": "Dalton’s law of partial pressure",
+    "subtopic_id": "69",
+    "sub_subtopics": ["Dalton’s law", "partial pressure"]
+  },
+  {
+    "id": "70",
+    "subtopic": "Law of combining volumes of gases",
+    "subtopic_id": "70",
+    "sub_subtopics": ["Law", "combining volumes", "gases"]
+  },
+  {
+    "id": "71",
+    "subtopic": "Molar volume of a gas",
+    "subtopic_id": "71",
+    "sub_subtopics": ["Molar volume", "a gas"]
+  },
+  {
+    "id": "72",
+    "subtopic": "General ideal gas equation",
+    "subtopic_id": "72",
+    "sub_subtopics": ["General ideal gas equation"]
+  },
+  {
+    "id": "73",
+    "subtopic": "Mixture of ideal gases",
+    "subtopic_id": "73",
+    "sub_subtopics": ["Mixture", "ideal gases"]
+  },
+  {
+    "id": "74",
+    "subtopic": "Diffusion of gases",
+    "subtopic_id": "74",
+    "sub_subtopics": ["Diffusion", "gases"]
+  },
+  {
+    "id": "75",
+    "subtopic": "The Brownian motion",
+    "subtopic_id": "75",
+    "sub_subtopics": ["The Brownian motion"]
+  },
+  {
+    "id": "76",
+    "subtopic": "Maxwell distribution of molecular velocity of gases",
+    "subtopic_id": "76",
+    "sub_subtopics": ["Maxwell distribution", "molecular velocity", "gases"]
+  },
+  {
+    "id": "77",
+    "subtopic": "Ideal and real gases",
+    "subtopic_id": "77",
+    "sub_subtopics": ["Ideal", "real gases"]
+  },
+  {
+    "id": "78",
+    "subtopic": "Calculations from equations",
+    "subtopic_id": "78",
+    "sub_subtopics": ["Calculations from equations"]
+  },
+  {
+    "id": "79",
+    "subtopic": "Introduction",
+    "subtopic_id": "79",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "80",
+    "subtopic": "General properties of liquids",
+    "subtopic_id": "80",
+    "sub_subtopics": ["General properties", "liquids"]
+  },
+  {
+    "id": "81",
+    "subtopic": "Evaporation of a liquid",
+    "subtopic_id": "81",
+    "sub_subtopics": ["Evaporation", "a liquid"]
+  },
+  {
+    "id": "82",
+    "subtopic": "Equilibrium vapour pressure",
+    "subtopic_id": "82",
+    "sub_subtopics": ["Equilibrium vapour pressure"]
+  },
+  {
+    "id": "83",
+    "subtopic": "Boiling points of liquids",
+    "subtopic_id": "83",
+    "sub_subtopics": ["Boiling points", "liquids"]
+  },
+  {
+    "id": "84",
+    "subtopic": "Evaporation and boiling",
+    "subtopic_id": "84",
+    "sub_subtopics": ["Evaporation", "boiling"]
+  },
+  {
+    "id": "85",
+    "subtopic": "Critical temperature and pressure",
+    "subtopic_id": "85",
+    "sub_subtopics": ["Critical temperature", "pressure"]
+  },
+  {
+    "id": "86",
+    "subtopic": "General properties of solids",
+    "subtopic_id": "86",
+    "sub_subtopics": ["General properties", "solids"]
+  },
+  {
+    "id": "87",
+    "subtopic": "Types of solids",
+    "subtopic_id": "87",
+    "sub_subtopics": ["Types", "solids"]
+  },
+  {
+    "id": "88",
+    "subtopic": "Changes of state",
+    "subtopic_id": "88",
+    "sub_subtopics": ["Changes", "state"]
+  },
+  {
+    "id": "89",
+    "subtopic": "Comparing attractive forces in solids",
+    "subtopic_id": "89",
+    "sub_subtopics": ["Comparing attractive forces in solids"]
+  },
+  {
+    "id": "90",
+    "subtopic": "Composition of air",
+    "subtopic_id": "90",
+    "sub_subtopics": ["Composition", "air"]
+  },
+  {
+    "id": "91",
+    "subtopic": "Air as a mixture",
+    "subtopic_id": "91",
+    "sub_subtopics": ["Air as a mixture"]
+  },
+  {
+    "id": "92",
+    "subtopic": "Exposure of certain substances to ordinary air",
+    "subtopic_id": "92",
+    "sub_subtopics": ["Exposure", "certain substances to ordinary air"]
+  },
+  {
+    "id": "93",
+    "subtopic": "Fractional distillation of liquid air",
+    "subtopic_id": "93",
+    "sub_subtopics": ["Fractional distillation", "liquid air"]
+  },
+  {
+    "id": "94",
+    "subtopic": "Air pollution",
+    "subtopic_id": "94",
+    "sub_subtopics": ["Air pollution"]
+  },
+  {
+    "id": "95",
+    "subtopic": "Sources of water",
+    "subtopic_id": "95",
+    "sub_subtopics": ["Sources", "water"]
+  },
+  {
+    "id": "96",
+    "subtopic": "Types of water",
+    "subtopic_id": "96",
+    "sub_subtopics": ["Types", "water"]
+  },
+  {
+    "id": "97",
+    "subtopic": "Gases dissolved in water",
+    "subtopic_id": "97",
+    "sub_subtopics": ["Gases dissolved in water"]
+  },
+  {
+    "id": "98",
+    "subtopic": "Pure water",
+    "subtopic_id": "98",
+    "sub_subtopics": ["Pure water"]
+  },
+  {
+    "id": "99",
+    "subtopic": "Physical properties of pure water",
+    "subtopic_id": "99",
+    "sub_subtopics": ["Physical properties", "pure water"]
+  },
+  {
+    "id": "100",
+    "subtopic": "Importance of water",
+    "subtopic_id": "100",
+    "sub_subtopics": ["Importance", "water"]
+  },
+  {
+    "id": "101",
+    "subtopic": "Water and Soil pollution",
+    "subtopic_id": "101",
+    "sub_subtopics": ["Water", "Soil pollution"]
+  },
+  {
+    "id": "102",
+    "subtopic": "Bonding in water",
+    "subtopic_id": "102",
+    "sub_subtopics": ["Bonding in water"]
+  },
+  {
+    "id": "103",
+    "subtopic": "Unique properties of water",
+    "subtopic_id": "103",
+    "sub_subtopics": ["Unique properties", "water"]
+  },
+  {
+    "id": "104",
+    "subtopic": "Treatment of water for town supply",
+    "subtopic_id": "104",
+    "sub_subtopics": ["Treatment", "water for town supply"]
+  },
+  {
+    "id": "105",
+    "subtopic": "The water cycle",
+    "subtopic_id": "105",
+    "sub_subtopics": ["The water cycle"]
+  },
+  {
+    "id": "106",
+    "subtopic": "Formation of water",
+    "subtopic_id": "106",
+    "sub_subtopics": ["Formation", "water"]
+  },
+  {
+    "id": "107",
+    "subtopic": "Composition of water",
+    "subtopic_id": "107",
+    "sub_subtopics": ["Composition", "water"]
+  },
+  {
+    "id": "108",
+    "subtopic": "Chemical properties of water",
+    "subtopic_id": "108",
+    "sub_subtopics": ["Chemical properties", "water"]
+  },
+  {
+    "id": "109",
+    "subtopic": "Water as a universal solvent",
+    "subtopic_id": "109",
+    "sub_subtopics": ["Water as a universal solvent"]
+  },
+  {
+    "id": "110",
+    "subtopic": "Hardness of water",
+    "subtopic_id": "110",
+    "sub_subtopics": ["Hardness", "water"]
+  },
+  {
+    "id": "111",
+    "subtopic": "Detection of hardness",
+    "subtopic_id": "111",
+    "sub_subtopics": ["Detection", "hardness"]
+  },
+  {
+    "id": "112",
+    "subtopic": "Removal of hardness",
+    "subtopic_id": "112",
+    "sub_subtopics": ["Removal", "hardness"]
+  },
+  {
+    "id": "113",
+    "subtopic": "Advantages and disadvantages of hardness",
+    "subtopic_id": "113",
+    "sub_subtopics": ["Advantages", "disadvantages", "hardness"]
+  },
+  {
+    "id": "114",
+    "subtopic": "Use of detergents",
+    "subtopic_id": "114",
+    "sub_subtopics": ["Use", "detergents"]
+  },
+  {
+    "id": "115",
+    "subtopic": "Degree of hardness in water",
+    "subtopic_id": "115",
+    "sub_subtopics": ["Degree", "hardness in water"]
+  },
+  {
+    "id": "116",
+    "subtopic": "Introduction",
+    "subtopic_id": "116",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "117",
+    "subtopic": "Acids",
+    "subtopic_id": "117",
+    "sub_subtopics": ["Acids"]
+  },
+  {
+    "id": "118",
+    "subtopic": "Bases",
+    "subtopic_id": "118",
+    "sub_subtopics": ["Bases"]
+  },
+  {
+    "id": "119",
+    "subtopic": "Classes of oxides",
+    "subtopic_id": "119",
+    "sub_subtopics": ["Classes", "oxides"]
+  },
+  {
+    "id": "120",
+    "subtopic": "Mass-mole relationships in acids and bases",
+    "subtopic_id": "120",
+    "sub_subtopics": ["Mass-mole relationships in acids", "bases"]
+  },
+  {
+    "id": "121",
+    "subtopic": "Acid-base reactions",
+    "subtopic_id": "121",
+    "sub_subtopics": ["Acid-base reactions"]
+  },
+  {
+    "id": "122",
+    "subtopic": "Concentrations of acids and bases",
+    "subtopic_id": "122",
+    "sub_subtopics": ["Concentrations", "acids", "bases"]
+  },
+  {
+    "id": "123",
+    "subtopic": "Water as a neutral solvent",
+    "subtopic_id": "123",
+    "sub_subtopics": ["Water as a neutral solvent"]
+  },
+  {
+    "id": "124",
+    "subtopic": "pH of a solution",
+    "subtopic_id": "124",
+    "sub_subtopics": ["pH", "a solution"]
+  },
+  {
+    "id": "125",
+    "subtopic": "Acid-base indicators",
+    "subtopic_id": "125",
+    "sub_subtopics": ["Acid-base indicators"]
+  },
+  {
+    "id": "126",
+    "subtopic": "pH titration curves",
+    "subtopic_id": "126",
+    "sub_subtopics": ["pH titration curves"]
+  },
+  {
+    "id": "127",
+    "subtopic": "Occurrence",
+    "subtopic_id": "127",
+    "sub_subtopics": ["Occurrence"]
+  },
+  {
+    "id": "128",
+    "subtopic": "Definitions of a salt",
+    "subtopic_id": "128",
+    "sub_subtopics": ["Definitions", "A salt"]
+  },
+  {
+    "id": "129",
+    "subtopic": "Types of salts",
+    "subtopic_id": "129",
+    "sub_subtopics": ["Types", "Salts"]
+  },
+  {
+    "id": "130",
+    "subtopic": "Solubility of salts in water",
+    "subtopic_id": "130",
+    "sub_subtopics": ["Solubility", "salts in water"]
+  },
+  {
+    "id": "131",
+    "subtopic": "Hydrated and anhydrous salts",
+    "subtopic_id": "131",
+    "sub_subtopics": ["Hydrated", "anhydrous salts"]
+  },
+  {
+    "id": "132",
+    "subtopic": "Physical properties of salts",
+    "subtopic_id": "132",
+    "sub_subtopics": ["Physical properties", "salts"]
+  },
+  {
+    "id": "133",
+    "subtopic": "Gravimetric analysis of salts",
+    "subtopic_id": "133",
+    "sub_subtopics": ["Gravimetric analysis", "salts"]
+  },
+  {
+    "id": "134",
+    "subtopic": "Preparation of salts",
+    "subtopic_id": "134",
+    "sub_subtopics": ["Preparation", "salts"]
+  },
+  {
+    "id": "135",
+    "subtopic": "Calculations involving salts",
+    "subtopic_id": "135",
+    "sub_subtopics": ["Calculations involving salts"]
+  },
+  {
+    "id": "136",
+    "subtopic": "Hydrolysis of salts",
+    "subtopic_id": "136",
+    "sub_subtopics": ["Hydrolysis", "salts"]
+  },
+  {
+    "id": "137",
+    "subtopic": "Buffer solutions",
+    "subtopic_id": "137",
+    "sub_subtopics": ["Buffer solutions"]
+  },
+  {
+    "id": "138",
+    "subtopic": "Ionic reactions",
+    "subtopic_id": "138",
+    "sub_subtopics": ["Ionic reactions"]
+  },
+  {
+    "id": "139",
+    "subtopic": "Concentration of ions in a solution",
+    "subtopic_id": "139",
+    "sub_subtopics": ["Concentration", "ions in a solution"]
+  },
+  {
+    "id": "140",
+    "subtopic": "Conductivity of electrolytes",
+    "subtopic_id": "140",
+    "sub_subtopics": ["Conductivity", "electrolytes"]
+  },
+  {
+    "id": "141",
+    "subtopic": "Introduction",
+    "subtopic_id": "141",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "142",
+    "subtopic": "Preparation of solutions",
+    "subtopic_id": "142",
+    "sub_subtopics": ["Preparation", "solutions"]
+  },
+  {
+    "id": "143",
+    "subtopic": "Acid-base titrations",
+    "subtopic_id": "143",
+    "sub_subtopics": ["Acid-base titrations"]
+  },
+  {
+    "id": "144",
+    "subtopic": "Precipitation reactions",
+    "subtopic_id": "144",
+    "sub_subtopics": ["Precipitation reactions"]
+  },
+  {
+    "id": "145",
+    "subtopic": "Displacement reactions",
+    "subtopic_id": "145",
+    "sub_subtopics": ["Displacement reactions"]
+  },
+  {
+    "id": "146",
+    "subtopic": "Redox titrations",
+    "subtopic_id": "146",
+    "sub_subtopics": ["Redox titrations"]
+  },
+  {
+    "id": "147",
+    "subtopic": "Introduction",
+    "subtopic_id": "147",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "148",
+    "subtopic": "Solubility of solids in liquids",
+    "subtopic_id": "148",
+    "sub_subtopics": ["Solubility", "solids in liquids"]
+  },
+  {
+    "id": "149",
+    "subtopic": "Solubility of salts in water",
+    "subtopic_id": "149",
+    "sub_subtopics": ["Solubility", "salts in water"]
+  },
+  {
+    "id": "150",
+    "subtopic": "Solubility curves",
+    "subtopic_id": "150",
+    "sub_subtopics": ["Solubility curves"]
+  },
+  {
+    "id": "151",
+    "subtopic": "Fractional crystallization",
+    "subtopic_id": "151",
+    "sub_subtopics": ["Fractional crystallization"]
+  },
+  {
+    "id": "152",
+    "subtopic": "Concentrating in solution",
+    "subtopic_id": "152",
+    "sub_subtopics": ["Concentrating in solution"]
+  },
+  {
+    "id": "153",
+    "subtopic": "Supersaturated solution",
+    "subtopic_id": "153",
+    "sub_subtopics": ["Supersaturated solution"]
+  },
+  {
+    "id": "154",
+    "subtopic": "Solubility of gases in liquids",
+    "subtopic_id": "154",
+    "sub_subtopics": ["Solubility", "gases in liquids"]
+  },
+  {
+    "id": "155",
+    "subtopic": "Determination of solubility by titration method",
+    "subtopic_id": "155",
+    "sub_subtopics": ["Determination", "solubility by titration method"]
+  },
+  {
+    "id": "156",
+    "subtopic": "Introduction",
+    "subtopic_id": "156",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "157",
+    "subtopic": "Energy effects in chemical reactions",
+    "subtopic_id": "157",
+    "sub_subtopics": ["Energy effects in chemical reactions"]
+  },
+  {
+    "id": "158",
+    "subtopic": "Signs of enthalpy changes",
+    "subtopic_id": "158",
+    "sub_subtopics": ["Signs", "enthalpy changes"]
+  },
+  {
+    "id": "159",
+    "subtopic": "Definition of terms",
+    "subtopic_id": "159",
+    "sub_subtopics": ["Definition", "terms"]
+  },
+  {
+    "id": "160",
+    "subtopic": "Determination of heat of reaction",
+    "subtopic_id": "160",
+    "sub_subtopics": ["Determination", "heat", "reaction"]
+  },
+  {
+    "id": "161",
+    "subtopic": "The laws of thermochemistry",
+    "subtopic_id": "161",
+    "sub_subtopics": ["The laws", "thermochemistry"]
+  },
+  {
+    "id": "162",
+    "subtopic": "Origin of enthalpy changes",
+    "subtopic_id": "162",
+    "sub_subtopics": ["Origin", "enthalpy changes"]
+  },
+  {
+    "id": "163",
+    "subtopic": "Entropy and entropy changes",
+    "subtopic_id": "163",
+    "sub_subtopics": ["Entropy", "entropy changes"]
+  },
+  {
+    "id": "164",
+    "subtopic": "The Gibbs free energy",
+    "subtopic_id": "164",
+    "sub_subtopics": ["The Gibbs free energy"]
+  },
+  {
+    "id": "165",
+    "subtopic": "Introduction",
+    "subtopic_id": "165",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "166",
+    "subtopic": "Chemical kinetics",
+    "subtopic_id": "166",
+    "sub_subtopics": ["Chemical kinetics"]
+  },
+  {
+    "id": "167",
+    "subtopic": "Rates of chemical reactions",
+    "subtopic_id": "167",
+    "sub_subtopics": ["Rates", "chemical reactions"]
+  },
+  {
+    "id": "168",
+    "subtopic": "The collision theory",
+    "subtopic_id": "168",
+    "sub_subtopics": ["The collision theory"]
+  },
+  {
+    "id": "169",
+    "subtopic": "Factors affecting rates of chemical reactions",
+    "subtopic_id": "169",
+    "sub_subtopics": ["Factors affecting rates", "chemical reactions"]
+  },
+  {
+    "id": "170",
+    "subtopic": "Reaction mechanisms",
+    "subtopic_id": "170",
+    "sub_subtopics": ["Reaction mechanisms"]
+  },
+  {
+    "id": "171",
+    "subtopic": "Rate constants and rate laws",
+    "subtopic_id": "171",
+    "sub_subtopics": ["Rate constants", "rate laws"]
+  },
+  {
+    "id": "172",
+    "subtopic": "Introduction",
+    "subtopic_id": "172",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "173",
+    "subtopic": "Reversible reactions",
+    "subtopic_id": "173",
+    "sub_subtopics": ["Reversible reactions"]
+  },
+  {
+    "id": "174",
+    "subtopic": "Reactions at equilibrium",
+    "subtopic_id": "174",
+    "sub_subtopics": ["Reactions at equilibrium"]
+  },
+  {
+    "id": "175",
+    "subtopic": "Equilibrium constants",
+    "subtopic_id": "175",
+    "sub_subtopics": ["Equilibrium constants"]
+  },
+  {
+    "id": "176",
+    "subtopic": "Changes affecting the state of equilibrium",
+    "subtopic_id": "176",
+    "sub_subtopics": ["Changes affecting the state", "equilibrium"]
+  },
+  {
+    "id": "177",
+    "subtopic": "Industrial applications of the Le Chatelier’s principle",
+    "subtopic_id": "177",
+    "sub_subtopics": ["Industrial applications", "the Le Chatelier’s principle"]
+  },
+  {
+    "id": "178",
+    "subtopic": "Introduction",
+    "subtopic_id": "178",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "179",
+    "subtopic": "Effect of electricity on matter",
+    "subtopic_id": "179",
+    "sub_subtopics": ["Effect", "electricity on matter"]
+  },
+  {
+    "id": "180",
+    "subtopic": "Arrhenius ionic theory",
+    "subtopic_id": "180",
+    "sub_subtopics": ["Arrhenius ionic theory"]
+  },
+  {
+    "id": "181",
+    "subtopic": "Electrochemical reactions",
+    "subtopic_id": "181",
+    "sub_subtopics": ["Electrochemical reactions"]
+  },
+  {
+    "id": "182",
+    "subtopic": "Faraday’s laws of electrolysis",
+    "subtopic_id": "182",
+    "sub_subtopics": ["Faraday’s laws", "electrolysis"]
+  },
+  {
+    "id": "183",
+    "subtopic": "Introduction",
+    "subtopic_id": "183",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "184",
+    "subtopic": "Oxidation and reduction",
+    "subtopic_id": "184",
+    "sub_subtopics": ["Oxidation", "reduction"]
+  },
+  {
+    "id": "185",
+    "subtopic": "Electrochemical (Voltaic) cells",
+    "subtopic_id": "185",
+    "sub_subtopics": ["Electrochemical (Voltaic) cells"]
+  },
+  {
+    "id": "186",
+    "subtopic": "Standard electrode potentials",
+    "subtopic_id": "186",
+    "sub_subtopics": ["Standard electrode potentials"]
+  },
+  {
+    "id": "187",
+    "subtopic": "The electrochemical series",
+    "subtopic_id": "187",
+    "sub_subtopics": ["The electrochemical series"]
+  },
+  {
+    "id": "188",
+    "subtopic": "Cell notation",
+    "subtopic_id": "188",
+    "sub_subtopics": ["Cell notation"]
+  },
+  {
+    "id": "189",
+    "subtopic": "E.M.F. of a cell",
+    "subtopic_id": "189",
+    "sub_subtopics": ["E.M.F.", "a cell"]
+  },
+  {
+    "id": "190",
+    "subtopic": "Predicting reactions",
+    "subtopic_id": "190",
+    "sub_subtopics": ["Predicting reactions"]
+  },
+  {
+    "id": "191",
+    "subtopic": "Operation of electrochemical cells",
+    "subtopic_id": "191",
+    "sub_subtopics": ["Operation", "electrochemical cells"]
+  },
+  {
+    "id": "192",
+    "subtopic": "Complex redox reactions",
+    "subtopic_id": "192",
+    "sub_subtopics": ["Complex redox reactions"]
+  },
+  {
+    "id": "193",
+    "subtopic": "Introduction",
+    "subtopic_id": "193",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "194",
+    "subtopic": "Electrical nature of the atom",
+    "subtopic_id": "194",
+    "sub_subtopics": ["Electrical nature", "the atom"]
+  },
+  {
+    "id": "195",
+    "subtopic": "Discovery of the nucleus",
+    "subtopic_id": "195",
+    "sub_subtopics": ["Discovery", "the nucleus"]
+  },
+  {
+    "id": "196",
+    "subtopic": "Bohr’s theory of the atom",
+    "subtopic_id": "196",
+    "sub_subtopics": ["Bohr’s theory", "the atom"]
+  },
+  {
+    "id": "197",
+    "subtopic": "Wave-particle character of an electron",
+    "subtopic_id": "197",
+    "sub_subtopics": ["Wave-particle character", "an electron"]
+  },
+  {
+    "id": "198",
+    "subtopic": "Quantum numbers",
+    "subtopic_id": "198",
+    "sub_subtopics": ["Quantum numbers"]
+  },
+  {
+    "id": "199",
+    "subtopic": "Shapes of orbitals",
+    "subtopic_id": "199",
+    "sub_subtopics": ["Shapes", "orbitals"]
+  },
+  {
+    "id": "200",
+    "subtopic": "Energy level diagrams",
+    "subtopic_id": "200",
+    "sub_subtopics": ["Energy level diagrams"]
+  },
+  {
+    "id": "201",
+    "subtopic": "Position and spin of an electron",
+    "subtopic_id": "201",
+    "sub_subtopics": ["Position", "spin", "an electron"]
+  },
+  {
+    "id": "202",
+    "subtopic": "Quantum numbers of an electron",
+    "subtopic_id": "202",
+    "sub_subtopics": ["Quantum numbers", "an electron"]
+  },
+  {
+    "id": "203",
+    "subtopic": "Introduction",
+    "subtopic_id": "203",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "204",
+    "subtopic": "Atomic radius",
+    "subtopic_id": "204",
+    "sub_subtopics": ["Atomic radius"]
+  },
+  {
+    "id": "205",
+    "subtopic": "Ionic radius",
+    "subtopic_id": "205",
+    "sub_subtopics": ["Ionic radius"]
+  },
+  {
+    "id": "206",
+    "subtopic": "Ionization energy",
+    "subtopic_id": "206",
+    "sub_subtopics": ["Ionization energy"]
+  },
+  {
+    "id": "207",
+    "subtopic": "Electron affinity",
+    "subtopic_id": "207",
+    "sub_subtopics": ["Electron affinity"]
+  },
+  {
+    "id": "208",
+    "subtopic": "Electronegativity",
+    "subtopic_id": "208",
+    "sub_subtopics": ["Electronegativity"]
+  },
+  {
+    "id": "209",
+    "subtopic": "Polarity of chemical bonds",
+    "subtopic_id": "209",
+    "sub_subtopics": ["Polarity", "chemical bonds"]
+  },
+  {
+    "id": "210",
+    "subtopic": "Introduction",
+    "subtopic_id": "210",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "211",
+    "subtopic": "Shapes of molecules and ions",
+    "subtopic_id": "211",
+    "sub_subtopics": ["Shapes", "molecules", "ions"]
+  },
+  {
+    "id": "212",
+    "subtopic": "Concept of resonance",
+    "subtopic_id": "212",
+    "sub_subtopics": ["Concept", "resonance"]
+  },
+  {
+    "id": "213",
+    "subtopic": "Structures and shapes of solids",
+    "subtopic_id": "213",
+    "sub_subtopics": ["Structures", "shapes", "solids"]
+  },
+  {
+    "id": "214",
+    "subtopic": "Polarity of molecules",
+    "subtopic_id": "214",
+    "sub_subtopics": ["Polarity", "molecules"]
+  },
+  {
+    "id": "215",
+    "subtopic": "Introduction",
+    "subtopic_id": "215",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "216",
+    "subtopic": "Radioactivity",
+    "subtopic_id": "216",
+    "sub_subtopics": ["Radioactivity"]
+  },
+  {
+    "id": "217",
+    "subtopic": "Radioactive radiations",
+    "subtopic_id": "217",
+    "sub_subtopics": ["Radioactive radiations"]
+  },
+  {
+    "id": "218",
+    "subtopic": "Nuclear reactions",
+    "subtopic_id": "218",
+    "sub_subtopics": ["Nuclear reactions"]
+  },
+  {
+    "id": "219",
+    "subtopic": "Types of nuclear reactions",
+    "subtopic_id": "219",
+    "sub_subtopics": ["Types", "nuclear reactions"]
+  },
+  {
+    "id": "220",
+    "subtopic": "Heat liberated during nuclear reactions",
+    "subtopic_id": "220",
+    "sub_subtopics": ["Heat liberated during nuclear reactions"]
+  },
+  {
+    "id": "221",
+    "subtopic": "Half-life in nuclear processes",
+    "subtopic_id": "221",
+    "sub_subtopics": ["Half-life in nuclear processes"]
+  },
+  {
+    "id": "222",
+    "subtopic": "Nuclear reactor",
+    "subtopic_id": "222",
+    "sub_subtopics": ["Nuclear reactor"]
+  },
+  {
+    "id": "223",
+    "subtopic": "Uses of radioactivity and nuclear reactions",
+    "subtopic_id": "223",
+    "sub_subtopics": ["Uses", "radioactivity", "nuclear reactions"]
+  },
+  {
+    "id": "224",
+    "subtopic": "Health hazards in radioactivity",
+    "subtopic_id": "224",
+    "sub_subtopics": ["Health hazards in radioactivity"]
+  },
+  {
+    "id": "225",
+    "subtopic": "Introduction",
+    "subtopic_id": "225",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "226",
+    "subtopic": "Methods of preparation",
+    "subtopic_id": "226",
+    "sub_subtopics": ["Methods", "preparation"]
+  },
+  {
+    "id": "227",
+    "subtopic": "Properties of hydrogen",
+    "subtopic_id": "227",
+    "sub_subtopics": ["Properties", "hydrogen"]
+  },
+  {
+    "id": "228",
+    "subtopic": "Industrial production",
+    "subtopic_id": "228",
+    "sub_subtopics": ["Industrial production"]
+  },
+  {
+    "id": "229",
+    "subtopic": "Uses of hydrogen",
+    "subtopic_id": "229",
+    "sub_subtopics": ["Uses", "hydrogen"]
+  },
+  {
+    "id": "230",
+    "subtopic": "Hydrides",
+    "subtopic_id": "230",
+    "sub_subtopics": ["Hydrides"]
+  },
+  {
+    "id": "231",
+    "subtopic": "Introduction",
+    "subtopic_id": "231",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "232",
+    "subtopic": "Methods of preparation",
+    "subtopic_id": "232",
+    "sub_subtopics": ["Methods", "preparation"]
+  },
+  {
+    "id": "233",
+    "subtopic": "Properties of oxygen",
+    "subtopic_id": "233",
+    "sub_subtopics": ["Properties", "oxygen"]
+  },
+  {
+    "id": "234",
+    "subtopic": "Industrial preparation",
+    "subtopic_id": "234",
+    "sub_subtopics": ["Industrial preparation"]
+  },
+  {
+    "id": "235",
+    "subtopic": "Uses of oxygen",
+    "subtopic_id": "235",
+    "sub_subtopics": ["Uses", "oxygen"]
+  },
+  {
+    "id": "236",
+    "subtopic": "Oxides of elements in periods 2 and 3",
+    "subtopic_id": "236",
+    "sub_subtopics": ["Oxides", "elements in periods 2", "3"]
+  },
+  {
+    "id": "237",
+    "subtopic": "Oxides and hydroxides of metals",
+    "subtopic_id": "237",
+    "sub_subtopics": ["Oxides", "hydroxides", "metals"]
+  },
+  {
+    "id": "238",
+    "subtopic": "Ozone (Trioxygen)",
+    "subtopic_id": "238",
+    "sub_subtopics": ["Ozone (Trioxygen)"]
+  },
+  {
+    "id": "239",
+    "subtopic": "Hydrogen peroxide",
+    "subtopic_id": "239",
+    "sub_subtopics": ["Hydrogen peroxide"]
+  },
+  {
+    "id": "240",
+    "subtopic": "Introduction",
+    "subtopic_id": "240",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "241",
+    "subtopic": "Allotropes of carbon",
+    "subtopic_id": "241",
+    "sub_subtopics": ["Allotropes", "carbon"]
+  },
+  {
+    "id": "242",
+    "subtopic": "Carbon(IV) oxide",
+    "subtopic_id": "242",
+    "sub_subtopics": ["Carbon(IV) oxide"]
+  },
+  {
+    "id": "243",
+    "subtopic": "Carbon(IV) oxide-oxygen cycle",
+    "subtopic_id": "243",
+    "sub_subtopics": ["Carbon(IV) oxide-oxygen cycle"]
+  },
+  {
+    "id": "244",
+    "subtopic": "Carbon(II) oxide",
+    "subtopic_id": "244",
+    "sub_subtopics": ["Carbon(II) oxide"]
+  },
+  {
+    "id": "245",
+    "subtopic": "Calculation involving oxides of carbon",
+    "subtopic_id": "245",
+    "sub_subtopics": ["Calculation involving oxides", "carbon"]
+  },
+  {
+    "id": "246",
+    "subtopic": "Trioxocarbonate(IV) acid",
+    "subtopic_id": "246",
+    "sub_subtopics": ["Trioxocarbonate(IV) acid"]
+  },
+  {
+    "id": "247",
+    "subtopic": "Trioxocarbonate(IV) salts",
+    "subtopic_id": "247",
+    "sub_subtopics": ["Trioxocarbonate(IV) salts"]
+  },
+  {
+    "id": "248",
+    "subtopic": "Hydrogentrioxocarbonate(IV) salts",
+    "subtopic_id": "248",
+    "sub_subtopics": ["Hydrogentrioxocarbonate(IV) salts"]
+  },
+  {
+    "id": "249",
+    "subtopic": "Fuels",
+    "subtopic_id": "249",
+    "sub_subtopics": ["Fuels"]
+  },
+  {
+    "id": "250",
+    "subtopic": "Gasification of coal",
+    "subtopic_id": "250",
+    "sub_subtopics": ["Gasification", "coal"]
+  },
+  {
+    "id": "251",
+    "subtopic": "Combustion of carbon fuels",
+    "subtopic_id": "251",
+    "sub_subtopics": ["Combustion", "carbon fuels"]
+  },
+  {
+    "id": "252",
+    "subtopic": "The flame",
+    "subtopic_id": "252",
+    "sub_subtopics": ["The flame"]
+  },
+  {
+    "id": "253",
+    "subtopic": "Silicon",
+    "subtopic_id": "253",
+    "sub_subtopics": ["Silicon"]
+  },
+  {
+    "id": "254",
+    "subtopic": "Introduction",
+    "subtopic_id": "254",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "255",
+    "subtopic": "Nitrogen as an element",
+    "subtopic_id": "255",
+    "sub_subtopics": ["Nitrogen as an element"]
+  },
+  {
+    "id": "256",
+    "subtopic": "Ammonia",
+    "subtopic_id": "256",
+    "sub_subtopics": ["Ammonia"]
+  },
+  {
+    "id": "257",
+    "subtopic": "Ammonia solution",
+    "subtopic_id": "257",
+    "sub_subtopics": ["Ammonia solution"]
+  },
+  {
+    "id": "258",
+    "subtopic": "Ammonium salts",
+    "subtopic_id": "258",
+    "sub_subtopics": ["Ammonium salts"]
+  },
+  {
+    "id": "259",
+    "subtopic": "Trioxonitrate(V) salts",
+    "subtopic_id": "259",
+    "sub_subtopics": ["Trioxonitrate(V) salts"]
+  },
+  {
+    "id": "260",
+    "subtopic": "Oxides of Nitrogen",
+    "subtopic_id": "260",
+    "sub_subtopics": ["Oxides", "Nitrogen"]
+  },
+  {
+    "id": "261",
+    "subtopic": "Nitrogen(I) oxide",
+    "subtopic_id": "261",
+    "sub_subtopics": ["Nitrogen(I) oxide"]
+  },
+  {
+    "id": "262",
+    "subtopic": "Nitrogen(II) oxide",
+    "subtopic_id": "262",
+    "sub_subtopics": ["Nitrogen(II) oxide"]
+  },
+  {
+    "id": "263",
+    "subtopic": "Nitrogen(IV) oxide",
+    "subtopic_id": "263",
+    "sub_subtopics": ["Nitrogen(IV) oxide"]
+  },
+  {
+    "id": "264",
+    "subtopic": "Oxidation states of nitrogen",
+    "subtopic_id": "264",
+    "sub_subtopics": ["Oxidation states", "nitrogen"]
+  },
+  {
+    "id": "265",
+    "subtopic": "The nitrogen cycle",
+    "subtopic_id": "265",
+    "sub_subtopics": ["The nitrogen cycle"]
+  },
+  {
+    "id": "266",
+    "subtopic": "Nitrogen fixation",
+    "subtopic_id": "266",
+    "sub_subtopics": ["Nitrogen fixation"]
+  },
+  {
+    "id": "267",
+    "subtopic": "Phosphorus",
+    "subtopic_id": "267",
+    "sub_subtopics": ["Phosphorus"]
+  },
+  {
+    "id": "268",
+    "subtopic": "Compounds of phosphorus",
+    "subtopic_id": "268",
+    "sub_subtopics": ["Compounds", "phosphorus"]
+  },
+  {
+    "id": "269",
+    "subtopic": "Uses of phosphorus and its compounds",
+    "subtopic_id": "269",
+    "sub_subtopics": ["Uses", "phosphorus", "its compounds"]
+  },
+  {
+    "id": "270",
+    "subtopic": "Introduction",
+    "subtopic_id": "270",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "271",
+    "subtopic": "Sulphur as an element",
+    "subtopic_id": "271",
+    "sub_subtopics": ["Sulphur as an element"]
+  },
+  {
+    "id": "272",
+    "subtopic": "Hydrogen sulphide gas",
+    "subtopic_id": "272",
+    "sub_subtopics": ["Hydrogen sulphide gas"]
+  },
+  {
+    "id": "273",
+    "subtopic": "Sulphide salts",
+    "subtopic_id": "273",
+    "sub_subtopics": ["Sulphide salts"]
+  },
+  {
+    "id": "274",
+    "subtopic": "Sulphur(IV) oxide",
+    "subtopic_id": "274",
+    "sub_subtopics": ["Sulphur(IV) oxide"]
+  },
+  {
+    "id": "275",
+    "subtopic": "Trioxosulphate(IV) acid",
+    "subtopic_id": "275",
+    "sub_subtopics": ["Trioxosulphate(IV) acid"]
+  },
+  {
+    "id": "276",
+    "subtopic": "Trioxosulphate(IV) salts",
+    "subtopic_id": "276",
+    "sub_subtopics": ["Trioxosulphate(IV) salts"]
+  },
+  {
+    "id": "277",
+    "subtopic": "Tetraoxosulphate(VI) acid",
+    "subtopic_id": "277",
+    "sub_subtopics": ["Tetraoxosulphate(VI) acid"]
+  },
+  {
+    "id": "278",
+    "subtopic": "Tetraoxosulphate(VI) salts",
+    "subtopic_id": "278",
+    "sub_subtopics": ["Tetraoxosulphate(VI) salts"]
+  },
+  {
+    "id": "279",
+    "subtopic": "Oxidation states of sulphur",
+    "subtopic_id": "279",
+    "sub_subtopics": ["Oxidation states", "sulphur"]
+  },
+  {
+    "id": "280",
+    "subtopic": "The halogen family",
+    "subtopic_id": "280",
+    "sub_subtopics": ["The halogen family"]
+  },
+  {
+    "id": "281",
+    "subtopic": "Chlorine",
+    "subtopic_id": "281",
+    "sub_subtopics": ["Chlorine"]
+  },
+  {
+    "id": "282",
+    "subtopic": "Uses of chlorine",
+    "subtopic_id": "282",
+    "sub_subtopics": ["Uses", "chlorine"]
+  },
+  {
+    "id": "283",
+    "subtopic": "Hydrogen chloride gas",
+    "subtopic_id": "283",
+    "sub_subtopics": ["Hydrogen chloride gas"]
+  },
+  {
+    "id": "284",
+    "subtopic": "Hydrochloric acid",
+    "subtopic_id": "284",
+    "sub_subtopics": ["Hydrochloric acid"]
+  },
+  {
+    "id": "285",
+    "subtopic": "Chlorides and oxochlorides",
+    "subtopic_id": "285",
+    "sub_subtopics": ["Chlorides", "oxochlorides"]
+  },
+  {
+    "id": "286",
+    "subtopic": "Oxidation states of chlorine",
+    "subtopic_id": "286",
+    "sub_subtopics": ["Oxidation states", "chlorine"]
+  },
+  {
+    "id": "287",
+    "subtopic": "Uses of chlorine and its compounds",
+    "subtopic_id": "287",
+    "sub_subtopics": ["Uses", "chlorine", "its compounds"]
+  },
+  {
+    "id": "288",
+    "subtopic": "Introduction",
+    "subtopic_id": "288",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "289",
+    "subtopic": "General properties of metals",
+    "subtopic_id": "289",
+    "sub_subtopics": ["General properties", "metals"]
+  },
+  {
+    "id": "290",
+    "subtopic": "Activities series of metals",
+    "subtopic_id": "290",
+    "sub_subtopics": ["Activities series", "metals"]
+  },
+  {
+    "id": "291",
+    "subtopic": "Reaction of metals and their compounds",
+    "subtopic_id": "291",
+    "sub_subtopics": ["Reaction", "metals", "their compounds"]
+  },
+  {
+    "id": "292",
+    "subtopic": "Extraction of metals",
+    "subtopic_id": "292",
+    "sub_subtopics": ["Extraction", "metals"]
+  },
+  {
+    "id": "293",
+    "subtopic": "The alkali metals",
+    "subtopic_id": "293",
+    "sub_subtopics": ["The alkali metals"]
+  },
+  {
+    "id": "294",
+    "subtopic": "Sodium and its compounds",
+    "subtopic_id": "294",
+    "sub_subtopics": ["Sodium", "its compounds"]
+  },
+  {
+    "id": "295",
+    "subtopic": "The alkali-earth metals",
+    "subtopic_id": "295",
+    "sub_subtopics": ["The alkali-earth metals"]
+  },
+  {
+    "id": "296",
+    "subtopic": "Calcium and its compounds",
+    "subtopic_id": "296",
+    "sub_subtopics": ["Calcium", "its compounds"]
+  },
+  {
+    "id": "297",
+    "subtopic": "Aluminium and its compounds",
+    "subtopic_id": "297",
+    "sub_subtopics": ["Aluminium", "its compounds"]
+  },
+  {
+    "id": "298",
+    "subtopic": "Tin and lead and their compounds",
+    "subtopic_id": "298",
+    "sub_subtopics": ["Tin", "lead", "their compounds"]
+  },
+  {
+    "id": "299",
+    "subtopic": "Introduction",
+    "subtopic_id": "299",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "300",
+    "subtopic": "The first transition series",
+    "subtopic_id": "300",
+    "sub_subtopics": ["The first transition series"]
+  },
+  {
+    "id": "301",
+    "subtopic": "Characteristic properties of transition elements",
+    "subtopic_id": "301",
+    "sub_subtopics": ["Characteristic properties", "transition elements"]
+  },
+  {
+    "id": "302",
+    "subtopic": "Transition and s-block elements",
+    "subtopic_id": "302",
+    "sub_subtopics": ["Transition", "s-block elements"]
+  },
+  {
+    "id": "303",
+    "subtopic": "Iron and its compounds",
+    "subtopic_id": "303",
+    "sub_subtopics": ["Iron", "its compounds"]
+  },
+  {
+    "id": "304",
+    "subtopic": "Copper and its compounds",
+    "subtopic_id": "304",
+    "sub_subtopics": ["Copper", "its compounds"]
+  },
+  {
+    "id": "305",
+    "subtopic": "Silver and its compounds",
+    "subtopic_id": "305",
+    "sub_subtopics": ["Silver", "its compounds"]
+  },
+  {
+    "id": "306",
+    "subtopic": "Zinc and its compounds",
+    "subtopic_id": "306",
+    "sub_subtopics": ["Zinc", "its compounds"]
+  },
+  {
+    "id": "307",
+    "subtopic": "Alloys",
+    "subtopic_id": "307",
+    "sub_subtopics": ["Alloys"]
+  },
+  {
+    "id": "308",
+    "subtopic": "Differences between metals and non-metals",
+    "subtopic_id": "308",
+    "sub_subtopics": ["Differences between metals", "non-metals"]
+  },
+  {
+    "id": "309",
+    "subtopic": "Introduction",
+    "subtopic_id": "309",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "310",
+    "subtopic": "Classes of inorganic compounds",
+    "subtopic_id": "310",
+    "sub_subtopics": ["Classes", "inorganic compounds"]
+  },
+  {
+    "id": "311",
+    "subtopic": "Common laboratory reagents",
+    "subtopic_id": "311",
+    "sub_subtopics": ["Common laboratory reagents"]
+  },
+  {
+    "id": "312",
+    "subtopic": "Identification of cations",
+    "subtopic_id": "312",
+    "sub_subtopics": ["Identification", "cations"]
+  },
+  {
+    "id": "313",
+    "subtopic": "Identification of gases",
+    "subtopic_id": "313",
+    "sub_subtopics": ["Identification", "gases"]
+  },
+  {
+    "id": "314",
+    "subtopic": "Identification of anions",
+    "subtopic_id": "314",
+    "sub_subtopics": ["Identification", "anions"]
+  },
+  {
+    "id": "315",
+    "subtopic": "Common laboratory apparatus and set-ups",
+    "subtopic_id": "315",
+    "sub_subtopics": ["Common laboratory apparatus", "set-ups"]
+  },
+  {
+    "id": "316",
+    "subtopic": "General introduction",
+    "subtopic_id": "316",
+    "sub_subtopics": ["General introduction"]
+  },
+  {
+    "id": "317",
+    "subtopic": "Classes of organic compounds",
+    "subtopic_id": "317",
+    "sub_subtopics": ["Classes", "organic compounds"]
+  },
+  {
+    "id": "318",
+    "subtopic": "Functional groups",
+    "subtopic_id": "318",
+    "sub_subtopics": ["Functional groups"]
+  },
+  {
+    "id": "319",
+    "subtopic": "Homologous series",
+    "subtopic_id": "319",
+    "sub_subtopics": ["Homologous series"]
+  },
+  {
+    "id": "320",
+    "subtopic": "Characteristics of organic compounds",
+    "subtopic_id": "320",
+    "sub_subtopics": ["Characteristics", "organic compounds"]
+  },
+  {
+    "id": "321",
+    "subtopic": "Detection of elements",
+    "subtopic_id": "321",
+    "sub_subtopics": ["Detection", "elements"]
+  },
+  {
+    "id": "322",
+    "subtopic": "Modified Dalton’s atomic theory",
+    "subtopic_id": "322",
+    "sub_subtopics": ["Modified Dalton’s atomic theory"]
+  },
+  {
+    "id": "323",
+    "subtopic": "General introduction",
+    "subtopic_id": "323",
+    "sub_subtopics": ["General introduction"]
+  },
+  {
+    "id": "324",
+    "subtopic": "The alkanes",
+    "subtopic_id": "324",
+    "sub_subtopics": ["The alkanes"]
+  },
+  {
+    "id": "325",
+    "subtopic": "Haloalkanes",
+    "subtopic_id": "325",
+    "sub_subtopics": ["Haloalkanes"]
+  },
+  {
+    "id": "326",
+    "subtopic": "The alkenes",
+    "subtopic_id": "326",
+    "sub_subtopics": ["The alkenes"]
+  },
+  {
+    "id": "327",
+    "subtopic": "The alkynes",
+    "subtopic_id": "327",
+    "sub_subtopics": ["The alkynes"]
+  },
+  {
+    "id": "328",
+    "subtopic": "Cyclic aliphatic hydrocarbons",
+    "subtopic_id": "328",
+    "sub_subtopics": ["Cyclic aliphatic hydrocarbons"]
+  },
+  {
+    "id": "329",
+    "subtopic": "Aromatic hydrocarbons, Benzene",
+    "subtopic_id": "329",
+    "sub_subtopics": ["Aromatic hydrocarbons", "Benzene"]
+  },
+  {
+    "id": "330",
+    "subtopic": "Polymerization",
+    "subtopic_id": "330",
+    "sub_subtopics": ["Polymerization"]
+  },
+  {
+    "id": "331",
+    "subtopic": "Plastics and Natural rubbers",
+    "subtopic_id": "331",
+    "sub_subtopics": ["Plastics", "Natural rubbers"]
+  },
+  {
+    "id": "332",
+    "subtopic": "Introduction",
+    "subtopic_id": "332",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "333",
+    "subtopic": "Refining of crude oil",
+    "subtopic_id": "333",
+    "sub_subtopics": ["Refining", "crude oil"]
+  },
+  {
+    "id": "334",
+    "subtopic": "Petroleum products (Fractions)",
+    "subtopic_id": "334",
+    "sub_subtopics": ["Petroleum products (Fractions)"]
+  },
+  {
+    "id": "335",
+    "subtopic": "Cracking of petroleum products",
+    "subtopic_id": "335",
+    "sub_subtopics": ["Cracking", "petroleum products"]
+  },
+  {
+    "id": "336",
+    "subtopic": "Octane number or rating",
+    "subtopic_id": "336",
+    "sub_subtopics": ["Octane number or rating"]
+  },
+  {
+    "id": "337",
+    "subtopic": "Petrochemicals",
+    "subtopic_id": "337",
+    "sub_subtopics": ["Petrochemicals"]
+  },
+  {
+    "id": "338",
+    "subtopic": "Introduction",
+    "subtopic_id": "338",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "339",
+    "subtopic": "IUPAC Nomenclature of alcohols",
+    "subtopic_id": "339",
+    "sub_subtopics": ["IUPAC Nomenclature", "alcohols"]
+  },
+  {
+    "id": "340",
+    "subtopic": "Isomerism in alkanols",
+    "subtopic_id": "340",
+    "sub_subtopics": ["Isomerism in alkanols"]
+  },
+  {
+    "id": "341",
+    "subtopic": "Physical properties of alkanols",
+    "subtopic_id": "341",
+    "sub_subtopics": ["Physical properties", "alkanols"]
+  },
+  {
+    "id": "342",
+    "subtopic": "Ethanol: A typical alkanol",
+    "subtopic_id": "342",
+    "sub_subtopics": ["Ethanol: A typical alkanol"]
+  },
+  {
+    "id": "343",
+    "subtopic": "Other common alkanols",
+    "subtopic_id": "343",
+    "sub_subtopics": ["Other common alkanols"]
+  },
+  {
+    "id": "344",
+    "subtopic": "Phenols",
+    "subtopic_id": "344",
+    "sub_subtopics": ["Phenols"]
+  },
+  {
+    "id": "345",
+    "subtopic": "Derivatives of alkanols",
+    "subtopic_id": "345",
+    "sub_subtopics": ["Derivatives", "alkanols"]
+  },
+  {
+    "id": "346",
+    "subtopic": "Oxidation number of carbon in simple organic compounds",
+    "subtopic_id": "346",
+    "sub_subtopics": ["Oxidation number", "carbon in simple organic compounds"]
+  },
+  {
+    "id": "347",
+    "subtopic": "Conversion of functional groups",
+    "subtopic_id": "347",
+    "sub_subtopics": ["Conversion", "functional groups"]
+  },
+  {
+    "id": "348",
+    "subtopic": "Introduction",
+    "subtopic_id": "348",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "349",
+    "subtopic": "Isomerism in alkanoic acids",
+    "subtopic_id": "349",
+    "sub_subtopics": ["Isomerism in alkanoic acids"]
+  },
+  {
+    "id": "350",
+    "subtopic": "Monocarboxylic acids",
+    "subtopic_id": "350",
+    "sub_subtopics": ["Monocarboxylic acids"]
+  },
+  {
+    "id": "351",
+    "subtopic": "Chemistry of alkanoic acids",
+    "subtopic_id": "351",
+    "sub_subtopics": ["Chemistry", "alkanoic acids"]
+  },
+  {
+    "id": "352",
+    "subtopic": "Aliphatic dicarboxylic acids",
+    "subtopic_id": "352",
+    "sub_subtopics": ["Aliphatic dicarboxylic acids"]
+  },
+  {
+    "id": "353",
+    "subtopic": "Aromatic carboxylic acids",
+    "subtopic_id": "353",
+    "sub_subtopics": ["Aromatic carboxylic acids"]
+  },
+  {
+    "id": "354",
+    "subtopic": "Conversion of functional groups",
+    "subtopic_id": "354",
+    "sub_subtopics": ["Conversion", "functional groups"]
+  },
+  {
+    "id": "355",
+    "subtopic": "Introduction",
+    "subtopic_id": "355",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "356",
+    "subtopic": "The Esters",
+    "subtopic_id": "356",
+    "sub_subtopics": ["The Esters"]
+  },
+  {
+    "id": "357",
+    "subtopic": "Isomerism in alkanoates",
+    "subtopic_id": "357",
+    "sub_subtopics": ["Isomerism in alkanoates"]
+  },
+  {
+    "id": "358",
+    "subtopic": "Ethylethanoates",
+    "subtopic_id": "358",
+    "sub_subtopics": ["Ethylethanoates"]
+  },
+  {
+    "id": "359",
+    "subtopic": "Fats and oils",
+    "subtopic_id": "359",
+    "sub_subtopics": ["Fats", "oils"]
+  },
+  {
+    "id": "360",
+    "subtopic": "Chemical reactions of fats and oils",
+    "subtopic_id": "360",
+    "sub_subtopics": ["Chemical reactions", "fats", "oils"]
+  },
+  {
+    "id": "361",
+    "subtopic": "Soaps",
+    "subtopic_id": "361",
+    "sub_subtopics": ["Soaps"]
+  },
+  {
+    "id": "362",
+    "subtopic": "Detergents",
+    "subtopic_id": "362",
+    "sub_subtopics": ["Detergents"]
+  },
+  {
+    "id": "363",
+    "subtopic": "Polymerization in Esters",
+    "subtopic_id": "363",
+    "sub_subtopics": ["Polymerization in Esters"]
+  },
+  {
+    "id": "364",
+    "subtopic": "General introduction",
+    "subtopic_id": "364",
+    "sub_subtopics": ["General introduction"]
+  },
+  {
+    "id": "365",
+    "subtopic": "The amines",
+    "subtopic_id": "365",
+    "sub_subtopics": ["The amines"]
+  },
+  {
+    "id": "366",
+    "subtopic": "The amides",
+    "subtopic_id": "366",
+    "sub_subtopics": ["The amides"]
+  },
+  {
+    "id": "367",
+    "subtopic": "The aminoacids",
+    "subtopic_id": "367",
+    "sub_subtopics": ["The aminoacids"]
+  },
+  {
+    "id": "368",
+    "subtopic": "Proteins and polypeptides",
+    "subtopic_id": "368",
+    "sub_subtopics": ["Proteins", "polypeptides"]
+  },
+  {
+    "id": "369",
+    "subtopic": "IUPAC names of bifunctional compounds",
+    "subtopic_id": "369",
+    "sub_subtopics": ["IUPAC names", "bifunctional compounds"]
+  },
+  {
+    "id": "370",
+    "subtopic": "Introduction",
+    "subtopic_id": "370",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "371",
+    "subtopic": "Monosaccharides",
+    "subtopic_id": "371",
+    "sub_subtopics": ["Monosaccharides"]
+  },
+  {
+    "id": "372",
+    "subtopic": "Disaccharides",
+    "subtopic_id": "372",
+    "sub_subtopics": ["Disaccharides"]
+  },
+  {
+    "id": "373",
+    "subtopic": "Polysaccharides",
+    "subtopic_id": "373",
+    "sub_subtopics": ["Polysaccharides"]
+  },
+  {
+    "id": "374",
+    "subtopic": "Introduction",
+    "subtopic_id": "374",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "375",
+    "subtopic": "Methods of organic analysis",
+    "subtopic_id": "375",
+    "sub_subtopics": ["Methods", "organic analysis"]
+  },
+  {
+    "id": "376",
+    "subtopic": "Practical exercises in qualitative organic analysis",
+    "subtopic_id": "376",
+    "sub_subtopics": ["Practical exercises in qualitative organic analysis"]
+  },
+  {
+    "id": "377",
+    "subtopic": "Introduction",
+    "subtopic_id": "377",
+    "sub_subtopics": ["Introduction"]
+  },
+  {
+    "id": "378",
+    "subtopic": "Definition of terms",
+    "subtopic_id": "378",
+    "sub_subtopics": ["Definition", "terms"]
+  },
+  {
+    "id": "379",
+    "subtopic": "Industrial raw materials",
+    "subtopic_id": "379",
+    "sub_subtopics": ["Industrial raw materials"]
+  },
+  {
+    "id": "380",
+    "subtopic": "Divisions in the industry",
+    "subtopic_id": "380",
+    "sub_subtopics": ["Divisions in the industry"]
+  },
+  {
+    "id": "381",
+    "subtopic": "Biotechnology",
+    "subtopic_id": "381",
+    "sub_subtopics": ["Biotechnology"]
+  },
+  {
+    "id": "382",
+    "subtopic": "Siting a chemical industry",
+    "subtopic_id": "382",
+    "sub_subtopics": ["Siting a chemical industry"]
+  }
+]

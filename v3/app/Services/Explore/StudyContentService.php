@@ -88,15 +88,13 @@ class StudyContentService
             'course_name' => $row['course_name'],
             'category_id' => $row['category_id'],
             'category_name' => $row['category_name'] ?? null,
-            'content' => $content,
+            'topic_content' => $content,
         ];
     }
 
     private function transformContent(array $content): array
     {
-        $out = [
-            'topic' => $content['meta']['topic'] ?? ($content['topic'] ?? ''),
-        ];
+        $out = [];
 
         if (!empty($content['video']) && \is_array($content['video'])) {
             $v = $content['video'];

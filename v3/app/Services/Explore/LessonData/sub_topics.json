@@ -1,0 +1,1751 @@
+[
+  {
+    "topic_id": "1",
+    "subtopics": [
+      {
+        "id": "1",
+        "name": "Introduction"
+      },
+      {
+        "id": "2",
+        "name": "The scientific method"
+      },
+      {
+        "id": "3",
+        "name": "Chemistry in everyday activities"
+      },
+      {
+        "id": "4",
+        "name": "Applications of chemistry"
+      },
+      {
+        "id": "5",
+        "name": "Hazardous and adverse effects of chemical products"
+      },
+      {
+        "id": "6",
+        "name": "Career prospects in chemistry"
+      }
+    ]
+  },
+  {
+    "topic_id": "2",
+    "subtopics": [
+      {
+        "id": "7",
+        "name": "States and classes of matter"
+      },
+      {
+        "id": "8",
+        "name": "Elements"
+      },
+      {
+        "id": "9",
+        "name": "Compounds"
+      },
+      {
+        "id": "10",
+        "name": "Mixtures"
+      },
+      {
+        "id": "11",
+        "name": "Differences between mixtures and compounds"
+      },
+      {
+        "id": "12",
+        "name": "Solutions and suspensions"
+      },
+      {
+        "id": "13",
+        "name": "Liquid solvents"
+      },
+      {
+        "id": "14",
+        "name": "General physical properties of states of matter"
+      },
+      {
+        "id": "15",
+        "name": "Changes of states and entropy"
+      },
+      {
+        "id": "16",
+        "name": "Physical and chemical changes"
+      },
+      {
+        "id": "17",
+        "name": "Melting and dissolving"
+      }
+    ]
+  },
+  {
+    "topic_id": "3",
+    "subtopics": [
+      {
+        "id": "18",
+        "name": "Introduction"
+      },
+      {
+        "id": "19",
+        "name": "Common separation techniques"
+      },
+      {
+        "id": "20",
+        "name": "Procedures for the separation of mixtures"
+      },
+      {
+        "id": "21",
+        "name": "Pure and impure substances"
+      }
+    ]
+  },
+  {
+    "topic_id": "4",
+    "subtopics": [
+      {
+        "id": "22",
+        "name": "Concept of atoms"
+      },
+      {
+        "id": "23",
+        "name": "Atomic theory of Dalton"
+      },
+      {
+        "id": "24",
+        "name": "Composition of the atom"
+      },
+      {
+        "id": "25",
+        "name": "Nuclear particles"
+      },
+      {
+        "id": "26",
+        "name": "Isotopy and isotopes"
+      },
+      {
+        "id": "27",
+        "name": "Concept of relative atomic mass"
+      },
+      {
+        "id": "28",
+        "name": "Distribution of electrons in the atom"
+      },
+      {
+        "id": "29",
+        "name": "Valence shells"
+      }
+    ]
+  },
+  {
+    "topic_id": "5",
+    "subtopics": [
+      {
+        "id": "30",
+        "name": "Introduction"
+      },
+      {
+        "id": "31",
+        "name": "Basic features of the periodic table"
+      },
+      {
+        "id": "32",
+        "name": "Blocks of element in the periodic table"
+      },
+      {
+        "id": "33",
+        "name": "Relationship among the elements"
+      }
+    ]
+  },
+  {
+    "topic_id": "6",
+    "subtopics": [
+      {
+        "id": "34",
+        "name": "Introduction"
+      },
+      {
+        "id": "35",
+        "name": "Valence electrons"
+      },
+      {
+        "id": "36",
+        "name": "Octet rule"
+      },
+      {
+        "id": "37",
+        "name": "Types of chemical combinations"
+      },
+      {
+        "id": "38",
+        "name": "Electrovalent or ionic bonding"
+      },
+      {
+        "id": "39",
+        "name": "Covalent bonding"
+      },
+      {
+        "id": "40",
+        "name": "Coordinate covalent or dative bonding"
+      },
+      {
+        "id": "41",
+        "name": "Uniqueness of ammonium chloride"
+      },
+      {
+        "id": "42",
+        "name": "Metallic bonding"
+      },
+      {
+        "id": "43",
+        "name": "Intermolecular forces"
+      }
+    ]
+  },
+  {
+    "topic_id": "7",
+    "subtopics": [
+      {
+        "id": "44",
+        "name": "Introduction"
+      },
+      {
+        "id": "45",
+        "name": "Chemical formulae of elements"
+      },
+      {
+        "id": "46",
+        "name": "Atomicity"
+      },
+      {
+        "id": "47",
+        "name": "Formulae of binary compounds"
+      },
+      {
+        "id": "48",
+        "name": "Formulae containing radicals"
+      },
+      {
+        "id": "49",
+        "name": "Calculations involving chemical formulae"
+      },
+      {
+        "id": "50",
+        "name": "Molecular and empirical formulae"
+      },
+      {
+        "id": "51",
+        "name": "IUPAC nomenclature of inorganic compounds"
+      }
+    ]
+  },
+  {
+    "topic_id": "8",
+    "subtopics": [
+      {
+        "id": "52",
+        "name": "Introduction"
+      },
+      {
+        "id": "53",
+        "name": "Using grains to introduce the mole concept"
+      },
+      {
+        "id": "54",
+        "name": "Applications of the mole concept"
+      },
+      {
+        "id": "55",
+        "name": "Calculations using the mole concept"
+      }
+    ]
+  },
+  {
+    "topic_id": "9",
+    "subtopics": [
+      {
+        "id": "56",
+        "name": "Introduction"
+      },
+      {
+        "id": "57",
+        "name": "Balancing chemical equations"
+      },
+      {
+        "id": "58",
+        "name": "Types of chemical reactions"
+      },
+      {
+        "id": "59",
+        "name": "Laws of chemical combinations"
+      },
+      {
+        "id": "60",
+        "name": "Calculations from equations"
+      }
+    ]
+  },
+  {
+    "topic_id": "10",
+    "subtopics": [
+      {
+        "id": "61",
+        "name": "Introduction"
+      },
+      {
+        "id": "62",
+        "name": "Kinetic theory of gases"
+      },
+      {
+        "id": "63",
+        "name": "General properties of gases"
+      },
+      {
+        "id": "64",
+        "name": "Definition of terms"
+      },
+      {
+        "id": "65",
+        "name": "Variation of gas volume with pressure"
+      },
+      {
+        "id": "66",
+        "name": "Variation of gas volume with temperature"
+      },
+      {
+        "id": "67",
+        "name": "Ideal gas equation"
+      },
+      {
+        "id": "68",
+        "name": "Variation of gas pressure with temperature"
+      },
+      {
+        "id": "69",
+        "name": "Dalton’s law of partial pressure"
+      },
+      {
+        "id": "70",
+        "name": "Law of combining volumes of gases"
+      },
+      {
+        "id": "71",
+        "name": "Molar volume of a gas"
+      },
+      {
+        "id": "72",
+        "name": "General ideal gas equation"
+      },
+      {
+        "id": "73",
+        "name": "Mixture of ideal gases"
+      },
+      {
+        "id": "74",
+        "name": "Diffusion of gases"
+      },
+      {
+        "id": "75",
+        "name": "The Brownian motion"
+      },
+      {
+        "id": "76",
+        "name": "Maxwell distribution of molecular velocity of gases"
+      },
+      {
+        "id": "77",
+        "name": "Ideal and real gases"
+      },
+      {
+        "id": "78",
+        "name": "Calculations from equations"
+      }
+    ]
+  },
+  {
+    "topic_id": "11",
+    "subtopics": [
+      {
+        "id": "79",
+        "name": "Introduction"
+      },
+      {
+        "id": "80",
+        "name": "General properties of liquids"
+      },
+      {
+        "id": "81",
+        "name": "Evaporation of a liquid"
+      },
+      {
+        "id": "82",
+        "name": "Equilibrium vapour pressure"
+      },
+      {
+        "id": "83",
+        "name": "Boiling points of liquids"
+      },
+      {
+        "id": "84",
+        "name": "Evaporation and boiling"
+      },
+      {
+        "id": "85",
+        "name": "Critical temperature and pressure"
+      },
+      {
+        "id": "86",
+        "name": "General properties of solids"
+      },
+      {
+        "id": "87",
+        "name": "Types of solids"
+      },
+      {
+        "id": "88",
+        "name": "Changes of state"
+      },
+      {
+        "id": "89",
+        "name": "Comparing attractive forces in solids"
+      }
+    ]
+  },
+  {
+    "topic_id": "12",
+    "subtopics": [
+      {
+        "id": "90",
+        "name": "Composition of air"
+      },
+      {
+        "id": "91",
+        "name": "Air as a mixture"
+      },
+      {
+        "id": "92",
+        "name": "Exposure of certain substances to ordinary air"
+      },
+      {
+        "id": "93",
+        "name": "Fractional distillation of liquid air"
+      },
+      {
+        "id": "94",
+        "name": "Air pollution"
+      }
+    ]
+  },
+  {
+    "topic_id": "13",
+    "subtopics": [
+      {
+        "id": "95",
+        "name": "Sources of water"
+      },
+      {
+        "id": "96",
+        "name": "Types of water"
+      },
+      {
+        "id": "97",
+        "name": "Gases dissolved in water"
+      },
+      {
+        "id": "98",
+        "name": "Pure water"
+      },
+      {
+        "id": "99",
+        "name": "Physical properties of pure water"
+      },
+      {
+        "id": "100",
+        "name": "Importance of water"
+      },
+      {
+        "id": "101",
+        "name": "Water and Soil pollution"
+      },
+      {
+        "id": "102",
+        "name": "Bonding in water"
+      },
+      {
+        "id": "103",
+        "name": "Unique properties of water"
+      },
+      {
+        "id": "104",
+        "name": "Treatment of water for town supply"
+      },
+      {
+        "id": "105",
+        "name": "The water cycle"
+      },
+      {
+        "id": "106",
+        "name": "Formation of water"
+      },
+      {
+        "id": "107",
+        "name": "Composition of water"
+      },
+      {
+        "id": "108",
+        "name": "Chemical properties of water"
+      },
+      {
+        "id": "109",
+        "name": "Water as a universal solvent"
+      },
+      {
+        "id": "110",
+        "name": "Hardness of water"
+      },
+      {
+        "id": "111",
+        "name": "Detection of hardness"
+      },
+      {
+        "id": "112",
+        "name": "Removal of hardness"
+      },
+      {
+        "id": "113",
+        "name": "Advantages and disadvantages of hardness"
+      },
+      {
+        "id": "114",
+        "name": "Use of detergents"
+      },
+      {
+        "id": "115",
+        "name": "Degree of hardness in water"
+      }
+    ]
+  },
+  {
+    "topic_id": "14",
+    "subtopics": [
+      {
+        "id": "116",
+        "name": "Introduction"
+      },
+      {
+        "id": "117",
+        "name": "Acids"
+      },
+      {
+        "id": "118",
+        "name": "Bases"
+      },
+      {
+        "id": "119",
+        "name": "Classes of oxides"
+      },
+      {
+        "id": "120",
+        "name": "Mass-mole relationships in acids and bases"
+      },
+      {
+        "id": "121",
+        "name": "Acid-base reactions"
+      },
+      {
+        "id": "122",
+        "name": "Concentrations of acids and bases"
+      },
+      {
+        "id": "123",
+        "name": "Water as a neutral solvent"
+      },
+      {
+        "id": "124",
+        "name": "pH of a solution"
+      },
+      {
+        "id": "125",
+        "name": "Acid-base indicators"
+      },
+      {
+        "id": "126",
+        "name": "pH titration curves"
+      }
+    ]
+  },
+  {
+    "topic_id": "15",
+    "subtopics": [
+      {
+        "id": "127",
+        "name": "Occurrence"
+      },
+      {
+        "id": "128",
+        "name": "Definitions of a salt"
+      },
+      {
+        "id": "129",
+        "name": "Types of salts"
+      },
+      {
+        "id": "130",
+        "name": "Solubility of salts in water"
+      },
+      {
+        "id": "131",
+        "name": "Hydrated and anhydrous salts"
+      },
+      {
+        "id": "132",
+        "name": "Physical properties of salts"
+      },
+      {
+        "id": "133",
+        "name": "Gravimetric analysis of salts"
+      },
+      {
+        "id": "134",
+        "name": "Preparation of salts"
+      },
+      {
+        "id": "135",
+        "name": "Calculations involving salts"
+      },
+      {
+        "id": "136",
+        "name": "Hydrolysis of salts"
+      },
+      {
+        "id": "137",
+        "name": "Buffer solutions"
+      },
+      {
+        "id": "138",
+        "name": "Ionic reactions"
+      },
+      {
+        "id": "139",
+        "name": "Concentration of ions in a solution"
+      },
+      {
+        "id": "140",
+        "name": "Conductivity of electrolytes"
+      }
+    ]
+  },
+  {
+    "topic_id": "16",
+    "subtopics": [
+      {
+        "id": "142",
+        "name": "Introduction"
+      },
+      {
+        "id": "143",
+        "name": "Preparation of solutions"
+      },
+      {
+        "id": "144",
+        "name": "Acid-base titrations"
+      },
+      {
+        "id": "145",
+        "name": "Precipitation reactions"
+      },
+      {
+        "id": "146",
+        "name": "Displacement reactions"
+      },
+      {
+        "id": "147",
+        "name": "Redox titrations"
+      }
+    ]
+  },
+  {
+    "topic_id": "17",
+    "subtopics": [
+      {
+        "id": "148",
+        "name": "Introduction"
+      },
+      {
+        "id": "149",
+        "name": "Solubility of solids in liquids"
+      },
+      {
+        "id": "150",
+        "name": "Solubility of salts in water"
+      },
+      {
+        "id": "151",
+        "name": "Solubility curves"
+      },
+      {
+        "id": "152",
+        "name": "Fractional crystallization"
+      },
+      {
+        "id": "153",
+        "name": "Concentrating in solution"
+      },
+      {
+        "id": "154",
+        "name": "Supersaturated solution"
+      },
+      {
+        "id": "155",
+        "name": "Solubility of gases in liquids"
+      },
+      {
+        "id": "156",
+        "name": "Determination of solubility by titration method"
+      }
+    ]
+  },
+  {
+    "topic_id": "18",
+    "subtopics": [
+      {
+        "id": "157",
+        "name": "Introduction"
+      },
+      {
+        "id": "158",
+        "name": "Energy effects in chemical reactions"
+      },
+      {
+        "id": "159",
+        "name": "Signs of enthalpy changes"
+      },
+      {
+        "id": "160",
+        "name": "Definition of terms"
+      },
+      {
+        "id": "161",
+        "name": "Determination of heat of reaction"
+      },
+      {
+        "id": "162",
+        "name": "The laws of thermochemistry"
+      },
+      {
+        "id": "163",
+        "name": "Origin of enthalpy changes"
+      },
+      {
+        "id": "164",
+        "name": "Entropy and entropy changes"
+      },
+      {
+        "id": "165",
+        "name": "The Gibbs free energy"
+      }
+    ]
+  },
+  {
+    "topic_id": "19",
+    "subtopics": [
+      {
+        "id": "166",
+        "name": "Introduction"
+      },
+      {
+        "id": "167",
+        "name": "Chemical kinetics"
+      },
+      {
+        "id": "168",
+        "name": "Rates of chemical reactions"
+      },
+      {
+        "id": "169",
+        "name": "The collision theory"
+      },
+      {
+        "id": "170",
+        "name": "Factors affecting rates of chemical reactions"
+      },
+      {
+        "id": "171",
+        "name": "Reaction mechanisms"
+      },
+      {
+        "id": "172",
+        "name": "Rate constants and rate laws"
+      }
+    ]
+  },
+  {
+    "topic_id": "20",
+    "subtopics": [
+      {
+        "id": "173",
+        "name": "Introduction"
+      },
+      {
+        "id": "174",
+        "name": "Reversible reactions"
+      },
+      {
+        "id": "175",
+        "name": "Reactions at equilibrium"
+      },
+      {
+        "id": "176",
+        "name": "Equilibrium constants"
+      },
+      {
+        "id": "177",
+        "name": "Changes affecting the state of equilibrium"
+      },
+      {
+        "id": "178",
+        "name": "Industrial applications of the Le Chatelier’s principle"
+      }
+    ]
+  },
+  {
+    "topic_id": "21",
+    "subtopics": [
+      {
+        "id": "179",
+        "name": "Introduction"
+      },
+      {
+        "id": "180",
+        "name": "Effect of electricity on matter"
+      },
+      {
+        "id": "181",
+        "name": "Arrhenius ionic theory"
+      },
+      {
+        "id": "182",
+        "name": "Electrochemical reactions"
+      },
+      {
+        "id": "183",
+        "name": "Faraday’s laws of electrolysis"
+      }
+    ]
+  },
+  {
+    "topic_id": "22",
+    "subtopics": [
+      {
+        "id": "184",
+        "name": "Introduction"
+      },
+      {
+        "id": "185",
+        "name": "Oxidation and reduction"
+      },
+      {
+        "id": "186",
+        "name": "Electrochemical (Voltaic) cells"
+      },
+      {
+        "id": "187",
+        "name": "Standard electrode potentials"
+      },
+      {
+        "id": "188",
+        "name": "The electrochemical series"
+      },
+      {
+        "id": "189",
+        "name": "Cell notation"
+      },
+      {
+        "id": "190",
+        "name": "E.M.F. of a cell"
+      },
+      {
+        "id": "191",
+        "name": "Predicting reactions"
+      },
+      {
+        "id": "192",
+        "name": "Operation of electrochemical cells"
+      },
+      {
+        "id": "193",
+        "name": "Complex redox reactions"
+      }
+    ]
+  },
+  {
+    "topic_id": "23",
+    "subtopics": [
+      {
+        "id": "194",
+        "name": "Introduction"
+      },
+      {
+        "id": "195",
+        "name": "Electrical nature of the atom"
+      },
+      {
+        "id": "196",
+        "name": "Discovery of the nucleus"
+      },
+      {
+        "id": "197",
+        "name": "Bohr’s theory of the atom"
+      },
+      {
+        "id": "198",
+        "name": "Wave-particle character of an electron"
+      },
+      {
+        "id": "199",
+        "name": "Quantum numbers"
+      },
+      {
+        "id": "200",
+        "name": "Shapes of orbitals"
+      },
+      {
+        "id": "201",
+        "name": "Energy level diagrams"
+      },
+      {
+        "id": "202",
+        "name": "Position and spin of an electron"
+      },
+      {
+        "id": "203",
+        "name": "Quantum numbers of an electron"
+      }
+    ]
+  },
+  {
+    "topic_id": "24",
+    "subtopics": [
+      {
+        "id": "204",
+        "name": "Introduction"
+      },
+      {
+        "id": "205",
+        "name": "Atomic radius"
+      },
+      {
+        "id": "206",
+        "name": "Ionic radius"
+      },
+      {
+        "id": "207",
+        "name": "Ionization energy"
+      },
+      {
+        "id": "208",
+        "name": "Electron affinity"
+      },
+      {
+        "id": "209",
+        "name": "Electronegativity"
+      },
+      {
+        "id": "210",
+        "name": "Polarity of chemical bonds"
+      }
+    ]
+  },
+  {
+    "topic_id": "25",
+    "subtopics": [
+      {
+        "id": "211",
+        "name": "Introduction"
+      },
+      {
+        "id": "212",
+        "name": "Shapes of molecules and ions"
+      },
+      {
+        "id": "213",
+        "name": "Concept of resonance"
+      },
+      {
+        "id": "214",
+        "name": "Structures and shapes of solids"
+      },
+      {
+        "id": "215",
+        "name": "Polarity of molecules"
+      }
+    ]
+  },
+  {
+    "topic_id": "26",
+    "subtopics": [
+      {
+        "id": "216",
+        "name": "Introduction"
+      },
+      {
+        "id": "217",
+        "name": "Radioactivity"
+      },
+      {
+        "id": "218",
+        "name": "Radioactive radiations"
+      },
+      {
+        "id": "219",
+        "name": "Nuclear reactions"
+      },
+      {
+        "id": "220",
+        "name": "Types of nuclear reactions"
+      },
+      {
+        "id": "221",
+        "name": "Heat liberated during nuclear reactions"
+      },
+      {
+        "id": "222",
+        "name": "Half-life in nuclear processes"
+      },
+      {
+        "id": "223",
+        "name": "Nuclear reactor"
+      },
+      {
+        "id": "224",
+        "name": "Uses of radioactivity and nuclear reactions"
+      },
+      {
+        "id": "225",
+        "name": "Health hazards in radioactivity"
+      }
+    ]
+  },
+  {
+    "topic_id": "27",
+    "subtopics": [
+      {
+        "id": "226",
+        "name": "Introduction"
+      },
+      {
+        "id": "227",
+        "name": "Methods of preparation"
+      },
+      {
+        "id": "228",
+        "name": "Properties of hydrogen"
+      },
+      {
+        "id": "229",
+        "name": "Industrial production"
+      },
+      {
+        "id": "230",
+        "name": "Uses of hydrogen"
+      },
+      {
+        "id": "231",
+        "name": "Hydrides"
+      }
+    ]
+  },
+  {
+    "topic_id": "28",
+    "subtopics": [
+      {
+        "id": "232",
+        "name": "Introduction"
+      },
+      {
+        "id": "233",
+        "name": "Methods of preparation"
+      },
+      {
+        "id": "234",
+        "name": "Properties of oxygen"
+      },
+      {
+        "id": "235",
+        "name": "Industrial preparation"
+      },
+      {
+        "id": "236",
+        "name": "Uses of oxygen"
+      },
+      {
+        "id": "237",
+        "name": "Oxides of elements in periods 2 and 3"
+      },
+      {
+        "id": "238",
+        "name": "Oxides and hydroxides of metals"
+      },
+      {
+        "id": "239",
+        "name": "Ozone (Trioxygen)"
+      }
+    ]
+  },
+  {
+    "topic_id": "29",
+    "subtopics": [
+      {
+        "id": "240",
+        "name": "Introduction"
+      },
+      {
+        "id": "241",
+        "name": "Allotropes of carbon"
+      },
+      {
+        "id": "242",
+        "name": "Carbon(IV) oxide"
+      },
+      {
+        "id": "243",
+        "name": "Carbon(IV) oxide-oxygen cycle"
+      },
+      {
+        "id": "244",
+        "name": "Carbon(II) oxide"
+      },
+      {
+        "id": "245",
+        "name": "Calculation involving oxides of carbon"
+      },
+      {
+        "id": "246",
+        "name": "Trioxocarbonate(IV) acid"
+      },
+      {
+        "id": "247",
+        "name": "Trioxocarbonate(IV) salts"
+      },
+      {
+        "id": "248",
+        "name": "Hydrogentrioxocarbonate(IV) salts"
+      },
+      {
+        "id": "249",
+        "name": "Fuels"
+      },
+      {
+        "id": "250",
+        "name": "Gasification of coal"
+      },
+      {
+        "id": "251",
+        "name": "Combustion of carbon fuels"
+      },
+      {
+        "id": "252",
+        "name": "The flame"
+      },
+      {
+        "id": "253",
+        "name": "Silicon"
+      }
+    ]
+  },
+  {
+    "topic_id": "30",
+    "subtopics": [
+      {
+        "id": "254",
+        "name": "Introduction"
+      },
+      {
+        "id": "255",
+        "name": "Nitrogen as an element"
+      },
+      {
+        "id": "256",
+        "name": "Ammonia"
+      },
+      {
+        "id": "257",
+        "name": "Ammonia solution"
+      },
+      {
+        "id": "258",
+        "name": "Ammonium salts"
+      },
+      {
+        "id": "259",
+        "name": "Trioxonitrate(V) salts"
+      },
+      {
+        "id": "260",
+        "name": "Oxides of Nitrogen"
+      },
+      {
+        "id": "261",
+        "name": "Nitrogen(I) oxide"
+      },
+      {
+        "id": "262",
+        "name": "Nitrogen(II) oxide"
+      },
+      {
+        "id": "263",
+        "name": "Nitrogen(IV) oxide"
+      },
+      {
+        "id": "264",
+        "name": "Oxidation states of nitrogen"
+      },
+      {
+        "id": "265",
+        "name": "The nitrogen cycle"
+      },
+      {
+        "id": "266",
+        "name": "Nitrogen fixation"
+      },
+      {
+        "id": "267",
+        "name": "Phosphorus"
+      },
+      {
+        "id": "268",
+        "name": "Compounds of phosphorus"
+      },
+      {
+        "id": "269",
+        "name": "Uses of phosphorus and its compounds"
+      }
+    ]
+  },
+  {
+    "topic_id": "31",
+    "subtopics": [
+      {
+        "id": "270",
+        "name": "Introduction"
+      },
+      {
+        "id": "271",
+        "name": "Sulphur as an element"
+      },
+      {
+        "id": "272",
+        "name": "Hydrogen sulphide gas"
+      },
+      {
+        "id": "273",
+        "name": "Sulphide salts"
+      },
+      {
+        "id": "274",
+        "name": "Sulphur(IV) oxide"
+      },
+      {
+        "id": "275",
+        "name": "Trioxosulphate(IV) acid"
+      },
+      {
+        "id": "276",
+        "name": "Trioxosulphate(IV) salts"
+      },
+      {
+        "id": "277",
+        "name": "Tetraoxosulphate(VI) acid"
+      },
+      {
+        "id": "278",
+        "name": "Tetraoxosulphate(VI) salts"
+      },
+      {
+        "id": "279",
+        "name": "Oxidation states of sulphur"
+      }
+    ]
+  },
+  {
+    "topic_id": "32",
+    "subtopics": [
+      {
+        "id": "280",
+        "name": "The halogen family"
+      },
+      {
+        "id": "281",
+        "name": "Chlorine"
+      },
+      {
+        "id": "282",
+        "name": "Uses of chlorine"
+      },
+      {
+        "id": "283",
+        "name": "Hydrogen chloride gas"
+      },
+      {
+        "id": "284",
+        "name": "Hydrochloric acid"
+      },
+      {
+        "id": "285",
+        "name": "Chlorides and oxochlorides"
+      },
+      {
+        "id": "286",
+        "name": "Oxidation states of chlorine"
+      },
+      {
+        "id": "287",
+        "name": "Uses of chlorine and its compounds"
+      }
+    ]
+  },
+  {
+    "topic_id": "33",
+    "subtopics": [
+      {
+        "id": "288",
+        "name": "Introduction"
+      },
+      {
+        "id": "289",
+        "name": "General properties of metals"
+      },
+      {
+        "id": "290",
+        "name": "Activities series of metals"
+      },
+      {
+        "id": "291",
+        "name": "Reaction of metals and their compounds"
+      },
+      {
+        "id": "292",
+        "name": "Extraction of metals"
+      },
+      {
+        "id": "293",
+        "name": "The alkali metals"
+      },
+      {
+        "id": "294",
+        "name": "Sodium and its compounds"
+      },
+      {
+        "id": "295",
+        "name": "The alkali-earth metals"
+      },
+      {
+        "id": "296",
+        "name": "Calcium and its compounds"
+      },
+      {
+        "id": "297",
+        "name": "Aluminium and its compounds"
+      },
+      {
+        "id": "298",
+        "name": "Tin and lead and their compounds"
+      }
+    ]
+  },
+  {
+    "topic_id": "34",
+    "subtopics": [
+      {
+        "id": "299",
+        "name": "Introduction"
+      },
+      {
+        "id": "300",
+        "name": "The first transition series"
+      },
+      {
+        "id": "301",
+        "name": "Characteristic properties of transition elements"
+      },
+      {
+        "id": "302",
+        "name": "Transition and s-block elements"
+      },
+      {
+        "id": "303",
+        "name": "Iron and its compounds"
+      },
+      {
+        "id": "304",
+        "name": "Copper and its compounds"
+      },
+      {
+        "id": "305",
+        "name": "Silver and its compounds"
+      },
+      {
+        "id": "306",
+        "name": "Zinc and its compounds"
+      },
+      {
+        "id": "307",
+        "name": "Alloys"
+      },
+      {
+        "id": "308",
+        "name": "Differences between metals and non-metals"
+      }
+    ]
+  },
+  {
+    "topic_id": "35",
+    "subtopics": [
+      {
+        "id": "309",
+        "name": "Introduction"
+      },
+      {
+        "id": "310",
+        "name": "Classes of inorganic compounds"
+      },
+      {
+        "id": "311",
+        "name": "Common laboratory reagents"
+      },
+      {
+        "id": "312",
+        "name": "Identification of cations"
+      },
+      {
+        "id": "313",
+        "name": "Identification of gases"
+      },
+      {
+        "id": "314",
+        "name": "Identification of anions"
+      },
+      {
+        "id": "315",
+        "name": "Common laboratory apparatus and set-ups"
+      }
+    ]
+  },
+  {
+    "topic_id": "36",
+    "subtopics": [
+      {
+        "id": "316",
+        "name": "General introduction"
+      },
+      {
+        "id": "317",
+        "name": "Classes of organic compounds"
+      },
+      {
+        "id": "318",
+        "name": "Functional groups"
+      },
+      {
+        "id": "319",
+        "name": "Homologous series"
+      },
+      {
+        "id": "320",
+        "name": "Characteristics of organic compounds"
+      },
+      {
+        "id": "321",
+        "name": "Detection of elements"
+      },
+      {
+        "id": "322",
+        "name": "Modified Dalton’s atomic theory"
+      }
+    ]
+  },
+  {
+    "topic_id": "37",
+    "subtopics": [
+      {
+        "id": "323",
+        "name": "General introduction"
+      },
+      {
+        "id": "324",
+        "name": "The alkanes"
+      },
+      {
+        "id": "325",
+        "name": "Haloalkanes"
+      },
+      {
+        "id": "326",
+        "name": "The alkenes"
+      },
+      {
+        "id": "327",
+        "name": "The alkynes"
+      },
+      {
+        "id": "328",
+        "name": "Cyclic aliphatic hydrocarbons"
+      },
+      {
+        "id": "329",
+        "name": "Aromatic hydrocarbons, Benzene"
+      },
+      {
+        "id": "330",
+        "name": "Polymerization"
+      },
+      {
+        "id": "331",
+        "name": "Plastics and Natural rubbers"
+      }
+    ]
+  },
+  {
+    "topic_id": "38",
+    "subtopics": [
+      {
+        "id": "332",
+        "name": "Introduction"
+      },
+      {
+        "id": "333",
+        "name": "Refining of crude oil"
+      },
+      {
+        "id": "334",
+        "name": "Petroleum products (Fractions)"
+      },
+      {
+        "id": "335",
+        "name": "Cracking of petroleum products"
+      },
+      {
+        "id": "336",
+        "name": "Octane number or rating"
+      },
+      {
+        "id": "337",
+        "name": "Petrochemicals"
+      }
+    ]
+  },
+  {
+    "topic_id": "39",
+    "subtopics": [
+      {
+        "id": "338",
+        "name": "Introduction"
+      },
+      {
+        "id": "339",
+        "name": "IUPAC Nomenclature of alcohols"
+      },
+      {
+        "id": "340",
+        "name": "Isomerism in alkanols"
+      },
+      {
+        "id": "341",
+        "name": "Physical properties of alkanols"
+      },
+      {
+        "id": "342",
+        "name": "Ethanol: A typical alkanol"
+      },
+      {
+        "id": "343",
+        "name": "Other common alkanols"
+      },
+      {
+        "id": "344",
+        "name": "Phenols"
+      },
+      {
+        "id": "345",
+        "name": "Derivatives of alkanols"
+      },
+      {
+        "id": "346",
+        "name": "Oxidation number of carbon in simple organic compounds"
+      },
+      {
+        "id": "347",
+        "name": "Conversion of functional groups"
+      }
+    ]
+  },
+  {
+    "topic_id": "40",
+    "subtopics": [
+      {
+        "id": "348",
+        "name": "Introduction"
+      },
+      {
+        "id": "349",
+        "name": "Isomerism in alkanoic acids"
+      },
+      {
+        "id": "350",
+        "name": "Monocarboxylic acids"
+      },
+      {
+        "id": "351",
+        "name": "Chemistry of alkanoic acids"
+      },
+      {
+        "id": "352",
+        "name": "Aliphatic dicarboxylic acids"
+      },
+      {
+        "id": "353",
+        "name": "Aromatic carboxylic acids"
+      },
+      {
+        "id": "354",
+        "name": "Conversion of functional groups"
+      }
+    ]
+  },
+  {
+    "topic_id": "41",
+    "subtopics": [
+      {
+        "id": "355",
+        "name": "Introduction"
+      },
+      {
+        "id": "356",
+        "name": "The Esters"
+      },
+      {
+        "id": "357",
+        "name": "Isomerism in alkanoates"
+      },
+      {
+        "id": "358",
+        "name": "Ethylethanoates"
+      },
+      {
+        "id": "359",
+        "name": "Fats and oils"
+      },
+      {
+        "id": "360",
+        "name": "Chemical reactions of fats and oils"
+      },
+      {
+        "id": "361",
+        "name": "Soaps"
+      },
+      {
+        "id": "362",
+        "name": "Detergents"
+      },
+      {
+        "id": "363",
+        "name": "Polymerization in Esters"
+      }
+    ]
+  },
+  {
+    "topic_id": "42",
+    "subtopics": [
+      {
+        "id": "364",
+        "name": "General introduction"
+      },
+      {
+        "id": "365",
+        "name": "The amines"
+      },
+      {
+        "id": "366",
+        "name": "The amides"
+      },
+      {
+        "id": "367",
+        "name": "The aminoacids"
+      },
+      {
+        "id": "368",
+        "name": "Proteins and polypeptides"
+      },
+      {
+        "id": "369",
+        "name": "IUPAC names of bifunctional compounds"
+      }
+    ]
+  },
+  {
+    "topic_id": "43",
+    "subtopics": [
+      {
+        "id": "370",
+        "name": "Introduction"
+      },
+      {
+        "id": "371",
+        "name": "Monosaccharides"
+      },
+      {
+        "id": "372",
+        "name": "Disaccharides"
+      },
+      {
+        "id": "373",
+        "name": "Polysaccharides"
+      }
+    ]
+  },
+  {
+    "topic_id": "44",
+    "subtopics": [
+      {
+        "id": "374",
+        "name": "Introduction"
+      },
+      {
+        "id": "375",
+        "name": "Methods of organic analysis"
+      },
+      {
+        "id": "376",
+        "name": "Practical exercises in qualitative organic analysis"
+      }
+    ]
+  },
+  {
+    "topic_id": "45",
+    "subtopics": [
+      {
+        "id": "377",
+        "name": "Introduction"
+      },
+      {
+        "id": "378",
+        "name": "Definition of terms"
+      },
+      {
+        "id": "379",
+        "name": "Industrial raw materials"
+      },
+      {
+        "id": "380",
+        "name": "Divisions in the industry"
+      },
+      {
+        "id": "381",
+        "name": "Biotechnology"
+      },
+      {
+        "id": "382",
+        "name": "Siting a chemical industry"
+      }
+    ]
+  }
+]
