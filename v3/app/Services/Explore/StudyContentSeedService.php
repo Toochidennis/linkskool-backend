@@ -50,23 +50,44 @@ class StudyContentSeedService
         $contentData = $this->readContentFromJson();
         $topicData = $contentData['topics'];
 
-        foreach ($contentData['sections'] as $categoryData) {
+        foreach ($topicData as $topic) {
             // Insert category
             $categoryId = $this->studyCategory->insert([
-                'title' => $categoryData['section'],
+                'title' => $topic['category'],
                 'course_id' => $courseId,
                 'course_name' => $courseName,
             ]);
 
-            foreach ($categoryData['topics'] as $topicData) {
+            foreach ($topic['topics'] as $topicData) {
                 // Insert topic
-                $this->studyTopic->insert([
+                $topicId = $this->studyTopic->insert([
                     'title' => $topicData['topic'],
-                    'subtopics_json' => json_encode($topicData['subtopics']),
                     'course_id' => $courseId,
                     'course_name' => $courseName,
                     'category_id' => $categoryId,
                 ]);
+
+                $subTopicData = array_filter(
+                    $contentData['subTopics'],
+                    fn($subTopic) => $subTopic['topic_id'] == $topicData['id']
+                );
+
+                foreach ($subTopicData['subtopics'] as $subTopic) {
+                    // Insert subtopic
+                    $subSubTopicData = array_filter(
+                        $contentData['subSubTopics'],
+                        fn($subSubTopic) => $subSubTopic['topic_id'] == $topicData['id']
+                    );
+
+                    $this->studySubTopic->insert([
+                        'title' => $subTopic['name'],
+                        'course_id' => $courseId,
+                        'course_name' => $courseName,
+                        'category_id' => $categoryId,
+                        'topic_id' => $topicId,
+                        'sub_subtopics' => json_encode($subSubTopicData['sub_subtopics'] ?? [])
+                    ]);
+                }
             }
         }
     }
