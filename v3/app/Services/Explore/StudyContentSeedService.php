@@ -8,12 +8,14 @@ use V3\App\Models\Explore\StudyCategory;
 
 class StudyContentSeedService
 {
+    private \PDO $pdo;
     private StudyTopic $studyTopic;
     private StudyCategory $studyCategory;
     private StudySubTopic $studySubTopic;
 
     public function __construct(\PDO $pdo)
     {
+        $this->pdo = $pdo;
         $this->studyTopic = new StudyTopic($pdo);
         $this->studyCategory = new StudyCategory($pdo);
         $this->studySubTopic = new StudySubTopic($pdo);
@@ -23,23 +25,14 @@ class StudyContentSeedService
     {
         $basePath = realpath(__DIR__ . '/LessonData');
 
-        $topicsPath = realpath($basePath . '/topics.json');
-        $topicsContent = file_get_contents($topicsPath);
-
-        $subTopicsPath = realpath($basePath . '/sub_subtopics.json');
-        $subTopicsContent = file_get_contents($subTopicsPath);
-
-        $subSubTopicsPath = realpath($basePath . '/sub_sub_subtopics.json');
-        $subSubTopicsContent = file_get_contents($subSubTopicsPath);
-
-        if ($topicsContent === false || $subTopicsContent === false || $subSubTopicsContent === false) {
-            throw new \Exception('Failed to read JSON file');
+        if ($basePath === false) {
+            throw new \RuntimeException('LessonData directory not found');
         }
 
         return [
-            'topics' => json_decode($topicsContent, true),
-            'subTopics' => json_decode($subTopicsContent, true),
-            'subSubTopics' => json_decode($subSubTopicsContent, true),
+            'topics' => $this->readJsonFile($basePath . '/topics.json'),
+            'subTopics' => $this->readJsonFile($basePath . '/sub_topics.json'),
+            'subSubTopics' => $this->readJsonFile($basePath . '/sub_subtopics.json'),
         ];
     }
 
@@ -48,47 +41,117 @@ class StudyContentSeedService
         $courseName = 'Chemistry';
         $courseId = 7;
         $contentData = $this->readContentFromJson();
-        $topicData = $contentData['topics'];
 
-        foreach ($topicData as $topic) {
-            // Insert category
-            $categoryId = $this->studyCategory->insert([
-                'title' => $topic['category'],
-                'course_id' => $courseId,
-                'course_name' => $courseName,
-            ]);
+        $subTopicsByTopicId = $this->indexBy($contentData['subTopics'], 'topic_id');
+        $subSubTopicsBySubTopicId = $this->indexBy($contentData['subSubTopics'], 'subtopic_id');
 
-            foreach ($topic['topics'] as $topicData) {
-                // Insert topic
-                $topicId = $this->studyTopic->insert([
-                    'title' => $topicData['topic'],
+        $this->pdo->beginTransaction();
+
+        try {
+            foreach ($contentData['topics'] as $categoryData) {
+                $categoryName = $categoryData['category'];
+
+                $categoryId = $this->studyCategory->insert([
+                    'title' => $categoryName,
                     'course_id' => $courseId,
                     'course_name' => $courseName,
-                    'category_id' => $categoryId,
                 ]);
 
-                $subTopicData = array_filter(
-                    $contentData['subTopics'],
-                    fn($subTopic) => $subTopic['topic_id'] == $topicData['id']
-                );
+                if ($categoryId === false) {
+                    throw new \RuntimeException("Failed to insert study category: {$categoryName}");
+                }
 
-                foreach ($subTopicData['subtopics'] as $subTopic) {
-                    // Insert subtopic
-                    $subSubTopicData = array_filter(
-                        $contentData['subSubTopics'],
-                        fn($subSubTopic) => $subSubTopic['topic_id'] == $topicData['id']
-                    );
+                foreach ($categoryData['topics'] as $topicData) {
+                    $sourceTopicId = (string) $topicData['id'];
+                    $subTopics = $subTopicsByTopicId[$sourceTopicId]['subtopics'] ?? [];
 
-                    $this->studySubTopic->insert([
-                        'title' => $subTopic['name'],
+                    $topicId = $this->studyTopic->insert([
+                        'title' => $topicData['topic'],
+                        'subtopics_json' => $this->toJson($this->buildTopicSubtopics($subTopics, $subSubTopicsBySubTopicId)),
                         'course_id' => $courseId,
                         'course_name' => $courseName,
                         'category_id' => $categoryId,
-                        'topic_id' => $topicId,
-                        'sub_subtopics' => json_encode($subSubTopicData['sub_subtopics'] ?? [])
+                        'category_name' => $categoryName,
                     ]);
+
+                    if ($topicId === false) {
+                        throw new \RuntimeException("Failed to insert study topic: {$topicData['topic']}");
+                    }
+
+                    foreach ($subTopics as $subTopic) {
+                        $sourceSubTopicId = (string) $subTopic['id'];
+                        $subSubTopics = $subSubTopicsBySubTopicId[$sourceSubTopicId]['sub_subtopics'] ?? [];
+
+                        $subTopicId = $this->studySubTopic->insert([
+                            'title' => $subTopic['name'],
+                            'course_id' => $courseId,
+                            'course_name' => $courseName,
+                            'category_id' => $categoryId,
+                            'topic_id' => $topicId,
+                            'sub_subtopics' => $this->toJson($subSubTopics),
+                        ]);
+
+                        if ($subTopicId === false) {
+                            throw new \RuntimeException("Failed to insert study subtopic: {$subTopic['name']}");
+                        }
+                    }
                 }
             }
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
         }
+    }
+
+    private function readJsonFile(string $path): array
+    {
+        $content = file_get_contents($path);
+
+        if ($content === false) {
+            throw new \RuntimeException("Failed to read JSON file: {$path}");
+        }
+
+        $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+
+        if (!is_array($decoded)) {
+            throw new \RuntimeException("JSON file must contain an array: {$path}");
+        }
+
+        return $decoded;
+    }
+
+    private function indexBy(array $rows, string $key): array
+    {
+        $indexed = [];
+
+        foreach ($rows as $row) {
+            if (!isset($row[$key])) {
+                continue;
+            }
+
+            $indexed[(string) $row[$key]] = $row;
+        }
+
+        return $indexed;
+    }
+
+    private function buildTopicSubtopics(array $subTopics, array $subSubTopicsBySubTopicId): array
+    {
+        return array_map(function (array $subTopic) use ($subSubTopicsBySubTopicId): array {
+            $sourceSubTopicId = (string) $subTopic['id'];
+
+            return [
+                'id' => $subTopic['id'],
+                'name' => $subTopic['name'],
+                'sub_subtopics' => $subSubTopicsBySubTopicId[$sourceSubTopicId]['sub_subtopics'] ?? [],
+            ];
+        }, $subTopics);
+    }
+
+    private function toJson(array $data): string
+    {
+        return json_encode($data, JSON_THROW_ON_ERROR);
     }
 }
