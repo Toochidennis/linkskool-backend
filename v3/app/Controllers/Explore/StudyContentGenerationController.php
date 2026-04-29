@@ -30,7 +30,7 @@ class StudyContentGenerationController extends ExploreBaseController
             return;
         }
 
-        $limit = 4;
+        $limit = 1;
         exec(\sprintf('php %s %d > /dev/null 2>&1 &', escapeshellarg($script), $limit));
 
         $this->respond(['message' => 'Study content generation initiated']);
