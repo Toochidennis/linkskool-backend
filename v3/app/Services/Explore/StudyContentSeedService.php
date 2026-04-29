@@ -67,7 +67,6 @@ class StudyContentSeedService
 
                     $topicId = $this->studyTopic->insert([
                         'title' => $topicData['topic'],
-                        'subtopics_json' => $this->toJson($this->buildTopicSubtopics($subTopics, $subSubTopicsBySubTopicId)),
                         'course_id' => $courseId,
                         'course_name' => $courseName,
                         'category_id' => $categoryId,
@@ -115,7 +114,7 @@ class StudyContentSeedService
 
         $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
-        if (!is_array($decoded)) {
+        if (!\is_array($decoded)) {
             throw new \RuntimeException("JSON file must contain an array: {$path}");
         }
 

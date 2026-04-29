@@ -4,20 +4,23 @@ namespace V3\App\Services\Explore;
 
 use V3\App\Common\Utilities\Logger;
 use V3\App\Models\Explore\StudyTopic;
+use V3\App\Models\Explore\StudySubTopic;
 
 class StudyContentGenerationService
 {
     private StudyTopic $model;
+    private StudySubTopic $subTopicModel;
 
-    private const BATCH_SIZE  = 10;
-    private const MAX_RETRIES = 3;
+    private const BATCH_SIZE   = 10;
+    private const MAX_RETRIES  = 3;
     private const API_DELAY_MS = 800;
 
     private float $lastCall = 0;
 
     public function __construct(\PDO $pdo)
     {
-        $this->model = new StudyTopic($pdo);
+        $this->model  = new StudyTopic($pdo);
+        $this->subTopicModel  = new StudySubTopic($pdo);
     }
 
     public function process(int $limit = 50): void
@@ -41,16 +44,30 @@ class StudyContentGenerationService
     private function fetchBatch(int $limit): array
     {
         $rows = $this->model
-            ->select(['id', 'title', 'subtopics_json'])
+            ->select(['id', 'title'])
             ->where('content_status', '=', 'pending')
             ->limit($limit)
             ->get();
 
-        return array_map(fn($row) => [
-            'id'       => (int) $row['id'],
-            'title'    => $row['title'],
-            'subtopics' => json_decode($row['subtopics_json'], true) ?? []
-        ], $rows);
+        return array_map(function ($row) {
+            $topicId   = (int) $row['id'];
+            $subTopics = $this->subTopicModel
+                ->select(['id', 'title', 'sub_subtopics'])
+                ->where('topic_id', '=', $topicId)
+                ->get();
+
+            $subtopics = array_map(fn($st) => [
+                'id'            => (int) $st['id'],
+                'title'         => $st['title'],
+                'sub_subtopics' => json_decode($st['sub_subtopics'], true) ?? []
+            ], $subTopics);
+
+            return [
+                'id'        => $topicId,
+                'title'     => $row['title'],
+                'subtopics' => $subtopics
+            ];
+        }, $rows);
     }
 
     private function processSingle(array $topic): void
@@ -70,11 +87,11 @@ class StudyContentGenerationService
             }
 
             Logger::info("[study:{$id}] Stage 1 — building structure");
-            $structure = $this->runStage1($topic);
+            $structure    = $this->runStage1($topic);
             $sectionCount = count($structure['sections']);
             Logger::info("[study:{$id}] Stage 1 complete", ['sections' => $sectionCount]);
 
-            Logger::info("[study:{$id}] Stage 2 — generating content for {$sectionCount} sections");
+            Logger::info("[study:{$id}] Stage 2 — generating subsection content for {$sectionCount} sections");
             $sections = $this->runStage2($topic['title'], $structure['sections']);
             Logger::info("[study:{$id}] Stage 2 complete");
 
@@ -96,7 +113,15 @@ class StudyContentGenerationService
 
     private function runStage1(array $topic): array
     {
-        $subtopics = json_encode($topic['subtopics'], JSON_PRETTY_PRINT);
+        $subtopicTitles = array_map(fn($st) => $st['title'], $topic['subtopics']);
+
+        $subSubtopics = [];
+        foreach ($topic['subtopics'] as $st) {
+            $subSubtopics[$st['title']] = $st['sub_subtopics'];
+        }
+
+        $subtopicsJson    = json_encode($subtopicTitles, JSON_PRETTY_PRINT);
+        $subSubtopicsJson = json_encode($subSubtopics, JSON_PRETTY_PRINT);
 
         $prompt = <<<PROMPT
         You are a lesson structure generator.
@@ -104,36 +129,35 @@ class StudyContentGenerationService
         TOPIC: {$topic['title']}
 
         SUBTOPICS:
-        {$subtopics}
+        {$subtopicsJson}
+
+        SUB-SUBTOPICS (keyed by subtopic title):
+        {$subSubtopicsJson}
 
         TASK:
-        Generate ONLY the lesson structure. No content. No quizzes.
+        Generate ONLY the lesson skeleton. No content. No quizzes.
 
         Rules:
-        - Keep user-provided subtopics (mark "added_by_ai": false)
-        - Add missing prerequisite subtopics if needed (mark "added_by_ai": true)
+        - Each SUBTOPIC becomes a section (mark "added_by_ai": false)
+        - Each SUB-SUBTOPIC becomes a subsection stub under its parent section
         - Assign sequential section IDs: section_1, section_2, ...
-        - Assign a purpose per section: "concept", "process", "formula", "example", or "application"
-        - Include one video from a reputable source (Khan Academy, CrashCourse, TED-Ed, MIT OpenCourseWare, etc.)
+        - Assign subsection IDs as: 1.1, 1.2, 2.1, 2.2, ... (section_number.subsection_number)
+        - Include one educational video from a reputable source (Khan Academy, CrashCourse, TED-Ed, MIT OpenCourseWare, etc.)
         - Video "placement" must reference one of the section IDs
 
         Return ONLY valid JSON matching this schema:
         {
           "meta": {
             "topic": "...",
-            "subtopics_provided": true,
-            "additional_subtopics_added": true,
+            "structure": "topic → subtopic → sub-subtopic",
             "target_age": 15,
             "tone": "clear and structured",
             "difficulty": "standard",
-            "estimated_sections": 0,
             "has_equations": true,
             "has_worked_examples": true,
             "has_diagrams": true,
             "has_video": true,
-            "equation_format": "latex",
-            "subtopic_quiz_per_section": 3,
-            "final_quiz_questions": 30
+            "sections_count": 0
           },
           "video": {
             "title": "...",
@@ -147,7 +171,10 @@ class StudyContentGenerationService
               "id": "section_1",
               "title": "...",
               "added_by_ai": false,
-              "purpose": "concept"
+              "subsections": [
+                {"id": "1.1", "title": "..."},
+                {"id": "1.2", "title": "..."}
+              ]
             }
           ]
         }
@@ -169,44 +196,38 @@ class StudyContentGenerationService
 
     private function runStage2(string $topicTitle, array $sectionList): array
     {
-        $fullSectionList = json_encode($sectionList, JSON_PRETTY_PRINT);
         $results = [];
 
         foreach ($sectionList as $section) {
             Logger::info("[study] Section content — {$section['id']}: {$section['title']}");
-            $results[$section['id']] = $this->generateSectionContent(
-                $topicTitle,
-                $fullSectionList,
-                $section
-            );
+            $results[$section['id']] = $this->generateSectionContent($topicTitle, $section);
         }
 
         return $results;
     }
 
-    private function generateSectionContent(string $topicTitle, string $fullSectionList, array $section): array
+    private function generateSectionContent(string $topicTitle, array $section): array
     {
-        $sectionId    = $section['id'];
-        $sectionTitle = $section['title'];
+        $sectionId       = $section['id'];
+        $sectionTitle    = $section['title'];
+        $subsectionsJson = json_encode($section['subsections'], JSON_PRETTY_PRINT);
 
         $prompt = <<<PROMPT
-        You are generating content for ONE section of a mobile microlesson.
+        You are generating full content for ONE section of a mobile microlesson.
 
         TOPIC: {$topicTitle}
+        SECTION ID: {$sectionId}
+        SECTION TITLE: {$sectionTitle}
 
-        FULL LESSON STRUCTURE (for terminology and concept consistency — do NOT generate content for other sections):
-        {$fullSectionList}
-
-        CURRENT SECTION:
-        ID: {$sectionId}
-        Title: {$sectionTitle}
+        SUBSECTIONS TO FILL:
+        {$subsectionsJson}
 
         TASK:
-        Generate ONLY the content fields for this section. No quizzes.
+        Generate complete content for every subsection listed above. No quizzes.
 
-        CONTENT BLOCK TYPES (use whichever apply):
+        CONTENT BLOCK TYPES (use whichever apply per subsection):
         - Text:  {"label": "Definition", "type": "text", "text": "..."}
-        - List:  {"label": "Steps", "type": "list", "items": ["...", "..."]}
+        - List:  {"label": "Key Points", "type": "list", "items": ["...", "..."]}
         - Pairs: {"label": "Comparison", "type": "pairs", "items": [{"term": "...", "description": "..."}]}
 
         AVAILABLE HEADINGS (choose only relevant ones):
@@ -224,23 +245,26 @@ class StudyContentGenerationService
 
         WORKED EXAMPLE: Include step-by-step when calculations are involved, else null.
 
-        IMAGE PROMPT: Write a flat-illustration prompt when a diagram improves understanding, else null.
-        Example: "Educational diagram of fractional distillation column, labeled parts, flat textbook illustration, white background."
-
         RULES:
         - Target: 15-year-old learner
-        - Do NOT redefine concepts already covered in earlier sections
-        - Use consistent terminology across all sections
-        - Keep explanations mobile-friendly and concise
+        - Each subsection focuses on ONE concept only
+        - Use consistent terminology across subsections
+        - Keep explanations concise and mobile-friendly
+        - Use lists wherever possible for readability
 
         Return ONLY valid JSON:
         {
-          "id": "{$sectionId}",
-          "content": [...],
-          "equation": null,
-          "worked_example": null,
-          "image_prompt": null,
-          "diagram_needed": false
+          "section_id": "{$sectionId}",
+          "subsections": [
+            {
+              "id": "...",
+              "title": "...",
+              "content": [...],
+              "equation": null,
+              "worked_example": null,
+              "diagram_needed": false
+            }
+          ]
         }
 
         Return JSON only. No markdown. No commentary. No trailing commas.
@@ -249,8 +273,8 @@ class StudyContentGenerationService
         $this->rateLimit();
 
         return $this->callAI([
-            'model' => 'deepseek-chat',
-            'messages' => [['role' => 'user', 'content' => $prompt, 'response_format' => ['type' => 'json']]],
+            'model'       => 'deepseek-chat',
+            'messages'    => [['role' => 'user', 'content' => $prompt, 'response_format' => ['type' => 'json']]],
             'temperature' => 0.3,
             'max_tokens'  => 8000
         ]);
@@ -261,15 +285,15 @@ class StudyContentGenerationService
     private function runStage3(string $topicTitle, array $sections): array
     {
         $sectionQuizzes = [];
-        $total = \count($sections);
-        $i = 0;
+        $total = count($sections);
+        $i     = 0;
 
         foreach ($sections as $sectionId => $sectionContent) {
             $i++;
-            Logger::info("[study] Subtopic quiz {$i}/{$total} — {$sectionId}");
+            Logger::info("[study] Section quiz {$i}/{$total} — {$sectionId}");
             $sectionQuizzes[] = [
                 'section_id' => $sectionId,
-                'questions'  => $this->generateSubtopicQuiz($topicTitle, $sectionId, $sectionContent)
+                'questions'  => $this->generateSectionQuiz($topicTitle, $sectionId, $sectionContent)
             ];
         }
 
@@ -282,7 +306,7 @@ class StudyContentGenerationService
         ];
     }
 
-    private function generateSubtopicQuiz(string $topicTitle, string $sectionId, array $section): array
+    private function generateSectionQuiz(string $topicTitle, string $sectionId, array $section): array
     {
         $sectionJson = json_encode($section, JSON_PRETTY_PRINT);
 
@@ -292,11 +316,11 @@ class StudyContentGenerationService
         TOPIC: {$topicTitle}
         SECTION ID: {$sectionId}
 
-        SECTION CONTENT:
+        SECTION CONTENT (all subsections):
         {$sectionJson}
 
         TASK:
-        Generate exactly 3 MCQs based ONLY on the content above.
+        Generate exactly 3 MCQs covering concepts across the subsections above.
         Distribution: 1 Remember + 1 Understand + 1 Apply
 
         MCQ FORMAT:
@@ -325,10 +349,10 @@ class StudyContentGenerationService
         $this->rateLimit();
 
         $result = $this->callAI([
-            'model' => 'deepseek-chat',
-            'messages' => [['role' => 'user', 'content' => $prompt, 'response_format' => ['type' => 'json']]],
+            'model'       => 'deepseek-chat',
+            'messages'    => [['role' => 'user', 'content' => $prompt, 'response_format' => ['type' => 'json']]],
             'temperature' => 0.3,
-            'max_tokens' => 1500
+            'max_tokens'  => 1500
         ]);
 
         return $result['questions'] ?? [];
@@ -339,7 +363,7 @@ class StudyContentGenerationService
         $summary = $this->buildContentSummary($sections);
 
         $prompt = <<<PROMPT
-        You are generating a 12-question final quiz for a complete mobile lesson.
+        You are generating a 30-question final quiz for a complete mobile lesson.
 
         TOPIC: {$topicTitle}
 
@@ -347,10 +371,10 @@ class StudyContentGenerationService
         {$summary}
 
         TASK:
-        Generate exactly 12 MCQs covering the full lesson.
+        Generate exactly 30 MCQs covering the full lesson.
 
-        BLOOM'S TAXONOMY DISTRIBUTION (must total exactly 12 questions):
-        2 Remember, 2 Understand, 2 Apply, 2 Analyse, 2 Evaluate, 2 Create
+        BLOOM'S TAXONOMY DISTRIBUTION (must total exactly 30):
+        5 Remember, 5 Understand, 5 Apply, 5 Analyse, 5 Evaluate, 5 Create
 
         MCQ FORMAT:
         {
@@ -379,10 +403,10 @@ class StudyContentGenerationService
         $this->rateLimit();
 
         $result = $this->callAI([
-            'model' => 'deepseek-chat',
-            'messages' => [['role' => 'user', 'content' => $prompt, 'response_format' => ['type' => 'json']]],
+            'model'  => 'deepseek-chat',
+            'messages'    => [['role' => 'user', 'content' => $prompt, 'response_format' => ['type' => 'json']]],
             'temperature' => 0.3,
-            'max_tokens' => 5000
+            'max_tokens'  => 8000
         ]);
 
         return $result['final_quiz'] ?? [];
@@ -395,11 +419,13 @@ class StudyContentGenerationService
         foreach ($sections as $sectionId => $section) {
             $points = [];
 
-            foreach ($section['content'] ?? [] as $block) {
-                if ($block['type'] === 'text') {
-                    $points[] = $block['label'] . ': ' . $block['text'];
-                } elseif ($block['type'] === 'list') {
-                    $points[] = $block['label'] . ': ' . implode(', ', \array_slice($block['items'], 0, 3));
+            foreach ($section['subsections'] ?? [] as $subsection) {
+                foreach ($subsection['content'] ?? [] as $block) {
+                    if ($block['type'] === 'text') {
+                        $points[] = $subsection['title'] . ' — ' . $block['label'] . ': ' . $block['text'];
+                    } elseif ($block['type'] === 'list') {
+                        $points[] = $subsection['title'] . ' — ' . $block['label'] . ': ' . implode(', ', array_slice($block['items'], 0, 3));
+                    }
                 }
             }
 
@@ -420,28 +446,23 @@ class StudyContentGenerationService
 
         $mergedSections = [];
         foreach ($structure['sections'] as $sectionMeta) {
-            $id = $sectionMeta['id'];
+            $id      = $sectionMeta['id'];
             $content = $sections[$id] ?? [];
 
             $mergedSections[] = [
-                'id' => $id,
-                'title' => $sectionMeta['title'],
-                'added_by_ai' => $sectionMeta['added_by_ai'],
-                'purpose' => $sectionMeta['purpose'] ?? 'concept',
-                'content' => $content['content'] ?? [],
-                'equation' => $content['equation'] ?? null,
-                'worked_example' => $content['worked_example'] ?? null,
-                'image_prompt'   => $content['image_prompt'] ?? null,
-                'diagram_needed' => $content['diagram_needed'] ?? false,
-                'subtopic_quiz'  => $sectionQuizMap[$id] ?? []
+                'id'  => $id,
+                'title'  => $sectionMeta['title'],
+                'added_by_ai'  => $sectionMeta['added_by_ai'],
+                'subsections'  => $content['subsections'] ?? [],
+                'quiz'  => $sectionQuizMap[$id] ?? []
             ];
         }
 
         return [
-            'meta' => $structure['meta'],
-            'video' => $structure['video'] ?? null,
-            'sections' => $mergedSections,
-            'end_lesson_quiz' => $quizData['final_quiz']
+            'meta'  => $structure['meta'],
+            'video'  => $structure['video'] ?? null,
+            'sections'  => $mergedSections,
+            'end_lesson_quiz'  => $quizData['final_quiz']
         ];
     }
 
@@ -465,13 +486,13 @@ class StudyContentGenerationService
 
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST => true,
-                CURLOPT_HTTPHEADER => [
+                CURLOPT_POST           => true,
+                CURLOPT_HTTPHEADER     => [
                     'Authorization: Bearer ' . getenv('DEEP_SEEK_API_KEY'),
                     'Content-Type: application/json'
                 ],
                 CURLOPT_POSTFIELDS => json_encode($payload),
-                CURLOPT_TIMEOUT => 120
+                CURLOPT_TIMEOUT    => 120
             ]);
 
             $response = curl_exec($ch);
@@ -572,14 +593,13 @@ class StudyContentGenerationService
 
     public function getGeneratedContent(): array
     {
-        $row =  $this->model
-            ->first();
+        $row = $this->model->first();
+
         return [
-            'id' => $row['id'],
-            'title' => $row['title'],
-            'subtopics' => json_decode($row['subtopics_json'], true),
+            'id'  => $row['id'],
+            'title'  => $row['title'],
             'content_status' => $row['content_status'],
-            'content_json' => json_decode($row['content_json'], true)
+            'content_json'   => json_decode($row['content_json'], true)
         ];
     }
 }
