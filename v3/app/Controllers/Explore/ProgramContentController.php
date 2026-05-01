@@ -48,7 +48,7 @@ class ProgramContentController extends ExploreBaseController
         );
     }
 
-    #[Route('/programs/content', 'GET', ['api'])]
+    #[Route('/programs/content', 'GET', )]
     public function getProgramsWithCoursesContent(array $vars): void
     {
         $validated = $this->validate(
