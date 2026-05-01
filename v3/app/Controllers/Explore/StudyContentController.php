@@ -17,7 +17,7 @@ class StudyContentController extends ExploreBaseController
         $this->service = new StudyContentService($this->pdo);
     }
 
-    #[Route('/exams/{exam_type_id:\d+}/courses/{course_id:\d+}/topics', 'GET', ['api'])]
+    #[Route('/exam-types/{exam_type_id:\d+}/courses/{course_id:\d+}/topics', 'GET', ['api'])]
     public function getStudyTopics(array $vars)
     {
         $data = $this->validate($vars, [

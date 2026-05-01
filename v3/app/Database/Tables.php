@@ -145,5 +145,7 @@ class Tables
         'study_categories',
         'study_category_topics',
         'study_topic_exam_types',
+        'study_sub_topics',
+        'study_sub_sub_topics',
     ];
 }
