@@ -46,20 +46,19 @@ class LearningPathService
 
             c.id            AS active_cohort_id,
             c.is_free       AS is_free,
-            c.trial_type    AS trial_type,
-            c.trial_value   AS trial_value,
             c.cost          AS cost,
             c.discount      AS discount,
             c.learning_type  AS learning_type,
             c.video_url       AS video_url,
+            c.status          AS cohort_status,
             c.slug            AS cohort_slug,
             c.enrollment_deadline AS enrollment_deadline,
             c.start_date       AS cohort_start_date,
             c.end_date         AS cohort_end_date,
 
-            e.status        AS enrollment_status,
+            e.id            AS enrollment_id,
             e.payment_status AS payment_status,
-            e.lessons_taken  AS lessons_taken,
+            e.enrollment_type AS enrollment_type,
             e.trial_expiry_date AS trial_expiry_date
 
         FROM programs p
@@ -79,6 +78,7 @@ class LearningPathService
         LEFT JOIN program_course_cohort_enrollments e
             ON e.program_id = p.id
             AND e.course_id = lc.id
+            AND e.cohort_id = c.id
             AND e.profile_id = :profile_id
 
         WHERE p.status = 'published'
@@ -113,15 +113,19 @@ class LearningPathService
                     'image_url' => $row['program_image_url'],
                     'slug' => $row['program_slug'],
                     'courses' => [],
+                    'enrolled_courses' => [],
                     '_course_map' => [],
                     '_has_enrollment' => false,
                     '_age_groups' => json_decode($row['program_age_groups'] ?? '[]', true) ?? []
                 ];
             }
 
+            $course = $this->buildProgramCourseResponse($row);
+
             // Track enrollment per program
-            if ($row['enrollment_status'] !== null) {
+            if ($row['enrollment_id'] !== null) {
                 $programs[$pid]['_has_enrollment'] = true;
+                $programs[$pid]['enrolled_courses'][] = $course;
             }
 
             // Deduplicate courses
@@ -130,57 +134,7 @@ class LearningPathService
             }
 
             $programs[$pid]['_course_map'][$row['course_id']] = true;
-
-            $programs[$pid]['courses'][] = [
-                'course_id' => (int) $row['course_id'],
-                'course_name' => $row['course_title'],
-                'description' => $row['course_description'],
-                'image_url' => $row['course_image_url'],
-
-                'has_active_cohort' => $row['active_cohort_id'] !== null,
-                'cohort_id' => $row['active_cohort_id'],
-                'slug' => $row['active_cohort_id'] !== null ? $row['cohort_slug'] : null,
-
-                'discount' => $row['active_cohort_id'] !== null
-                    ? (int) $row['discount']
-                    : null,
-
-                'learning_type' => $row['active_cohort_id'] !== null
-                    ? $row['learning_type']
-                    : null,
-
-                'video_url' => $row['active_cohort_id'] !== null
-                    ? $row['video_url']
-                    : null,
-
-                'is_free' => $row['active_cohort_id'] !== null
-                    ? (bool) $row['is_free']
-                    : null,
-
-                'trial_type' => $row['active_cohort_id'] !== null
-                    ? $row['trial_type']
-                    : null,
-
-                'trial_value' => $row['active_cohort_id'] !== null
-                    ? (int) $row['trial_value']
-                    : null,
-
-                'cost' => $row['active_cohort_id'] !== null
-                    ? (float) $row['cost']
-                    : null,
-
-                'is_enrolled' => $row['enrollment_status'] !== null,
-                'is_completed' => $row['enrollment_status'] === 'completed',
-                'enrollment_status' => $row['enrollment_status'],
-                'payment_status' => $row['payment_status'],
-                'lessons_taken' => $row['lessons_taken'] !== null
-                    ? (int) $row['lessons_taken']
-                    : null,
-                'trial_expiry_date' => $row['trial_expiry_date'] ?? null,
-                'enrollment_deadline' => $row['enrollment_deadline'] ?? null,
-                'cohort_start_date' => $row['cohort_start_date'] ?? null,
-                'cohort_end_date' => $row['cohort_end_date'] ?? null,
-            ];
+            $programs[$pid]['courses'][] = $course;
         }
 
         // Apply age filter AFTER aggregation
@@ -206,6 +160,101 @@ class LearningPathService
         }
 
         return array_values($programs);
+    }
+
+    private function buildProgramCourseResponse(array $row): array
+    {
+        $hasActiveCohort = $row['active_cohort_id'] !== null;
+        $access = $this->resolveCourseAccess($row);
+
+        return [
+            'course_id' => (int) $row['course_id'],
+            'course_name' => $row['course_title'],
+            'description' => $row['course_description'],
+            'image_url' => $row['course_image_url'],
+
+            'has_active_cohort' => $hasActiveCohort,
+            'cohort_id' => $hasActiveCohort ? (int) $row['active_cohort_id'] : null,
+            'slug' => $hasActiveCohort ? $row['cohort_slug'] : null,
+
+            'discount' => $hasActiveCohort && $row['discount'] !== null
+                ? (int) $row['discount']
+                : null,
+
+            'learning_type' => $hasActiveCohort
+                ? $row['learning_type']
+                : null,
+
+            'video_url' => $hasActiveCohort
+                ? $row['video_url']
+                : null,
+
+            'is_free' => $hasActiveCohort
+                ? (bool) $row['is_free']
+                : null,
+
+            'cost' => $hasActiveCohort && $row['cost'] !== null
+                ? (float) $row['cost']
+                : null,
+
+            'nextAction' => $access['nextAction'],
+            'trialExpiresAt' => $access['trialExpiresAt'],
+            'lockedUntil' => $access['lockedUntil'],
+            'enrollment_deadline' => $row['enrollment_deadline'] ?? null,
+            'cohort_start_date' => $row['cohort_start_date'] ?? null,
+            'cohort_end_date' => $row['cohort_end_date'] ?? null,
+        ];
+    }
+
+    private function resolveCourseAccess(array $row): array
+    {
+        $hasEnrollment = $row['enrollment_id'] !== null;
+        $trialExpiresAt = $row['trial_expiry_date'] ?? null;
+        $isUpcoming = ($row['cohort_status'] ?? null) === 'upcoming';
+        $isReserved = ($row['enrollment_type'] ?? null) === 'reserved'
+            || ($row['payment_status'] ?? null) === 'reserved';
+        $isPaidAccess = \in_array($row['enrollment_type'] ?? null, ['paid', 'free'], true)
+            || ($row['payment_status'] ?? null) === 'success';
+        $isTrialAccess = ($row['enrollment_type'] ?? null) === 'trial'
+            && !$this->isTrialExpired($trialExpiresAt);
+
+        if (!$hasEnrollment) {
+            return $this->courseAccess('description', null, null);
+        }
+
+        if ($isReserved || (($row['enrollment_type'] ?? null) === 'trial' && $this->isTrialExpired($trialExpiresAt))) {
+            return $this->courseAccess('payment', $trialExpiresAt, null);
+        }
+
+        if ($isUpcoming && ($isPaidAccess || $isTrialAccess)) {
+            return $this->courseAccess('waiting', $trialExpiresAt, $row['cohort_start_date'] ?? null);
+        }
+
+        if ($isPaidAccess || $isTrialAccess) {
+            return $this->courseAccess('content', $trialExpiresAt, null);
+        }
+
+        return $this->courseAccess('payment', $trialExpiresAt, null);
+    }
+
+    private function courseAccess(string $nextAction, ?string $trialExpiresAt, ?string $lockedUntil): array
+    {
+        return [
+            'nextAction' => $nextAction,
+            'trialExpiresAt' => $trialExpiresAt,
+            'lockedUntil' => $lockedUntil,
+        ];
+    }
+
+    private function isTrialExpired(?string $trialExpiresAt): bool
+    {
+        if ($trialExpiresAt === null || trim($trialExpiresAt) === '') {
+            return false;
+        }
+
+        $expiryTimestamp = strtotime($trialExpiresAt);
+
+        return $expiryTimestamp !== false && $expiryTimestamp < time();
     }
 
     private function matchesAgeGroup(array $ageGroups, int $age): bool
