@@ -149,7 +149,7 @@ class CourseCohortEnrollmentService
         return [
             'created' => false,
             'message' => 'Payment required.',
-            'data' => $this->buildEnrollmentActionData($data, $cohort, null, 'payment'),
+            'data' => $this->buildEnrollmentActionData($data, 'payment'),
         ];
     }
 
@@ -226,8 +226,6 @@ class CourseCohortEnrollmentService
             'message' => $message,
             'data' => $this->buildEnrollmentActionData(
                 $data,
-                $cohort,
-                $enrollment,
                 $this->resolveEnrollmentNextAction($cohort, $enrollment)
             ),
         ];
@@ -235,21 +233,11 @@ class CourseCohortEnrollmentService
 
     private function buildEnrollmentActionData(
         array $data,
-        array $cohort,
-        ?array $enrollment,
         string $nextAction
     ): array {
         return [
             'nextAction' => $nextAction,
-            'enrollment_id' => isset($enrollment['id']) ? (int) $enrollment['id'] : null,
-            'program_id' => (int) $data['program_id'],
-            'course_id' => (int) $data['course_id'],
-            'cohort_id' => (int) $data['cohort_id'],
-            'is_free' => (bool) $cohort['is_free'],
-            'enrollment_type' => $enrollment['enrollment_type'] ?? null,
-            'amount_kobo' => $nextAction === 'payment' ? $this->computePrice((int) $data['cohort_id']) : null,
-            'payment_endpoint' => $nextAction === 'payment' ? '/public/learning/cohorts/enrollments/checkout' : null,
-            'mobile_payment_endpoint' => $nextAction === 'payment'
+            'payment_endpoint' => $nextAction === 'payment'
                 ? '/public/learning/cohorts/' . (int) $data['cohort_id'] . '/enrollments/mobile-payment'
                 : null,
         ];
@@ -1373,8 +1361,6 @@ class CourseCohortEnrollmentService
 
         if (empty($payment)) {
             return [
-                'exists' => false,
-                'payment_status' => null,
                 'nextAction' => 'payment',
                 'message' => 'Payment reference not found.',
             ];
@@ -1385,11 +1371,8 @@ class CourseCohortEnrollmentService
 
         if (empty($firstItem)) {
             return [
-                'exists' => true,
-                'payment_status' => $payment['status'] ?? null,
                 'nextAction' => 'payment',
                 'message' => 'Payment has no checkout item.',
-                'reference' => $payment['reference'],
             ];
         }
 
@@ -1400,14 +1383,8 @@ class CourseCohortEnrollmentService
 
         if (($payment['status'] ?? null) !== 'success') {
             return [
-                'exists' => true,
-                'payment_status' => $payment['status'] ?? null,
                 'nextAction' => 'payment',
                 'message' => 'Payment is not successful yet.',
-                'reference' => $payment['reference'],
-                'program_id' => (int) $firstItem['program_id'],
-                'course_id' => (int) $firstItem['course_id'],
-                'cohort_id' => (int) $firstItem['cohort_id'],
             ];
         }
 
@@ -1417,19 +1394,12 @@ class CourseCohortEnrollmentService
             ->first();
 
         return [
-            'exists' => true,
-            'payment_status' => $payment['status'],
             'nextAction' => !empty($cohort) && !empty($enrollment)
                 ? $this->resolveEnrollmentNextAction($cohort, $enrollment)
                 : 'payment',
             'message' => !empty($enrollment)
                 ? 'Payment completed.'
                 : 'Payment completed but enrollment is not ready yet.',
-            'reference' => $payment['reference'],
-            'program_id' => (int) $firstItem['program_id'],
-            'course_id' => (int) $firstItem['course_id'],
-            'cohort_id' => (int) $firstItem['cohort_id'],
-            'enrollment_id' => isset($enrollment['id']) ? (int) $enrollment['id'] : null,
         ];
     }
 

@@ -34,14 +34,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
             ],
         );
 
-        try {
-            $result = $this->enrollmentService->enrollOrResolveNextAction($validated);
-        } catch (\InvalidArgumentException $e) {
-            $this->respondError(
-                $e->getMessage(),
-                HttpStatus::BAD_REQUEST
-            );
-        }
+        $result = $this->enrollmentService->enrollOrResolveNextAction($validated);
 
         $this->respond(
             [
@@ -52,32 +45,6 @@ class CourseCohortEnrollmentController extends ExploreBaseController
             ($result['created'] ?? false) ? HttpStatus::CREATED : HttpStatus::OK
         );
     }
-
-    // #[Route('', 'DELETE', ['api'])]
-    // public function unEnrollUser(array $vars): void
-    // {
-    //     $validated = $this->validate(
-    //         [...$this->getRequestData(), ...$vars],
-    //         [
-    //             'profile_id' => 'required|integer',
-    //             'cohort_id' => 'required|integer',
-    //         ],
-    //     );
-
-    //     $success = $this->enrollmentService->unEnrollUser($validated);
-
-    //     if (!$success) {
-    //         $this->respondError('Unenrollment failed.', HttpStatus::BAD_REQUEST);
-    //     }
-
-    //     $this->respond(
-    //         [
-    //             'status' => true,
-    //             'message' => 'User unenrolled successfully.',
-    //         ],
-    //         HttpStatus::OK
-    //     );
-    // }
 
     #[Route('/{cohort_id}/enrollments/is-enrolled', 'GET', ['api'])]
     public function isUserEnrolled(array $vars): void
@@ -157,14 +124,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
             ],
         );
 
-        try {
-            $result = $this->enrollmentService->verifyAndRecordPayment($validated);
-        } catch (\InvalidArgumentException $e) {
-            $this->respondError(
-                $e->getMessage(),
-                HttpStatus::BAD_REQUEST
-            );
-        }
+        $result = $this->enrollmentService->verifyAndRecordPayment($validated);
 
         if (!$result['success'] && $result['status'] === 'failed') {
             $this->respondError(
