@@ -79,12 +79,16 @@ class ProgramContentController extends ExploreBaseController
         $validated = $this->validate(
             $vars,
             [
-                'cohort_id' => 'required|integer',
+                'cohort_id' => 'required|string',
+                'profile_id' => 'nullable|integer',
             ]
         );
 
         $result = $this->programContentService
-            ->getActiveCohortByCourse($validated['cohort_id']);
+            ->getActiveCohortByCourse(
+                $validated['cohort_id'],
+                isset($validated['profile_id']) ? (int) $validated['profile_id'] : null
+            );
 
         return $this->respond([
             'success' => true,

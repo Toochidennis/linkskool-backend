@@ -454,27 +454,136 @@ class ProgramContentService
         return false;
     }
 
-    public function getActiveCohortByCourse(int $cohortId): array
+    public function getActiveCohortByCourse(int|string $cohortIdentifier, ?int $profileId = null): array
     {
+        $cohortIdentifier = trim((string) $cohortIdentifier);
+        $isCohortId = ctype_digit($cohortIdentifier);
+        $whereClause = $isCohortId ? 'c.id = :cohort_id' : 'c.slug = :slug';
+
         $query = "
             SELECT
-                p.*,
-                lc.title AS course_title
-            FROM program_course_cohorts p
+                p.id AS program_id,
+                p.slug AS program_slug,
+                p.name AS program_name,
+                p.description AS program_description,
+                p.image_url AS program_image_url,
+                p.sponsor AS program_sponsor,
+                p.start_date AS program_start_date,
+                p.video_url AS program_video_url,
+                p.onboarding_steps AS program_onboarding_steps,
+                p.whatsapp_group_link AS program_whatsapp_group_link,
+                lc.id AS course_id,
+                lc.slug AS course_slug,
+                lc.title AS course_name,
+                lc.description AS course_description,
+                lc.image_url AS course_image_url,
+                c.id AS cohort_id,
+                c.slug AS cohort_slug,
+                c.title AS cohort_title,
+                c.description AS cohort_description,
+                c.benefits AS cohort_benefits,
+                c.start_date,
+                c.end_date,
+                c.instructor_name,
+                c.discount,
+                c.cost,
+                c.trial_type,
+                c.trial_value,
+                c.delivery_mode,
+                c.video_url,
+                c.image_url AS cohort_image_url,
+                c.is_free,
+                c.enrollment_deadline,
+                c.learning_type,
+                c.whatsapp_group_link AS cohort_whatsapp_group_link,
+                CASE
+                    WHEN :profile_id_check IS NOT NULL AND EXISTS (
+                        SELECT 1
+                        FROM program_course_cohort_enrollments e
+                        WHERE e.profile_id = :profile_id_match
+                            AND e.cohort_id = c.id
+                    ) THEN 1
+                    ELSE 0
+                END AS has_enrolled
+            FROM program_course_cohorts c
+            INNER JOIN programs p
+                ON p.id = c.program_id
+            INNER JOIN program_courses pc
+                ON pc.program_id = p.id
+                AND pc.course_id = c.course_id
+                AND pc.is_active = 1
             INNER JOIN learning_courses lc
-                ON lc.id = p.course_id
-            WHERE p.id = :cohort_id
-            ORDER BY p.start_date ASC
+                ON lc.id = c.course_id
+            WHERE {$whereClause}
+                AND p.status = :status
+                AND c.status IN ('ongoing', 'upcoming')
             LIMIT 1
         ";
 
-        $rows = $this->programCourseCohortModel->rawQuery($query, [
-            'cohort_id' => $cohortId
-        ]);
+        $params = [
+            'status' => 'published',
+            'profile_id_check' => $profileId,
+            'profile_id_match' => $profileId,
+        ];
+        if ($isCohortId) {
+            $params['cohort_id'] = (int) $cohortIdentifier;
+        } else {
+            $params['slug'] = $cohortIdentifier;
+        }
 
-        $rows[0]['course_name'] = $rows[0]['course_title'];
+        $rows = $this->programCourseCohortModel->rawQuery($query, $params);
 
-        return $rows[0] ?? [];
+        if (empty($rows)) {
+            return [];
+        }
+
+        $row = $rows[0];
+
+        return [
+            'program' => [
+                'id' => (int) $row['program_id'],
+                'slug' => $row['program_slug'],
+                'name' => $row['program_name'],
+                'description' => $row['program_description'],
+                'image_url' => $row['program_image_url'],
+                'sponsor' => $row['program_sponsor'],
+                'start_date' => $row['program_start_date'] ?? null,
+                'video_url' => $row['program_video_url'] ?? null,
+                'onboarding_steps' => isset($row['program_onboarding_steps']) ?
+                    json_decode($row['program_onboarding_steps'], true)
+                    : null,
+                'whatsapp_group_link' => $row['program_whatsapp_group_link'] ?? null,
+            ],
+            'course' => [
+                'courseId' => (int) $row['course_id'],
+                'slug' => $row['course_slug'],
+                'courseName' => $row['course_name'],
+                'description' => $row['course_description'],
+                'image_url' => $row['course_image_url'],
+            ],
+            'cohort' => [
+                'cohortId' => (int) $row['cohort_id'],
+                'slug' => $row['cohort_slug'],
+                'title' => $row['cohort_title'],
+                'description' => $row['cohort_description'],
+                'benefits' => $row['cohort_benefits'],
+                'start_date' => $row['start_date'],
+                'end_date' => $row['end_date'],
+                'instructor_name' => $row['instructor_name'],
+                'discount' => $row['discount'] !== null ? (int) $row['discount'] : null,
+                'cost' => $row['cost'] !== null ? (float) $row['cost'] : null,
+                'trial_type' => $row['trial_type'],
+                'trial_value' => $row['trial_value'] !== null ? (int) $row['trial_value'] : null,
+                'delivery_mode' => $row['delivery_mode'],
+                'video_url' => $row['video_url'],
+                'is_free' => (bool) $row['is_free'],
+                'image_url' => $row['cohort_image_url'],
+                'enrollment_deadline' => $row['enrollment_deadline'],
+                'learning_type' => $row['learning_type'],
+                'whatsapp_group_link' => $row['cohort_whatsapp_group_link'] ?? null,
+                'hasEnrolled' => (bool) $row['has_enrolled'],
+            ],
+        ];
     }
 
     public function getLessonsByCohort(int $cohortId): array
