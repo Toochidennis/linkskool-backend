@@ -2,6 +2,7 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Common\Utilities\AssetUrl;
 use V3\App\Models\Explore\Program;
 use V3\App\Models\Explore\ProgramCourseCohort;
 use V3\App\Models\Explore\ProgramCourseCohortLesson;
@@ -101,8 +102,6 @@ class ProgramContentService
         SELECT
             p.id            AS program_id,
             p.name          AS program_name,
-            p.description   AS program_description,
-            p.image_url    AS program_image_url,
             p.age_groups    AS program_age_groups,
             p.slug AS program_slug,
 
@@ -110,23 +109,20 @@ class ProgramContentService
             lc.title        AS course_title,
             lc.description  AS course_description,
             lc.image_url    AS course_image_url,
+            lc.slug         AS course_slug,
 
             c.id            AS active_cohort_id,
             c.is_free       AS is_free,
-            c.cost          AS cost,
-            c.discount      AS discount,
-            c.learning_type  AS learning_type,
-            c.video_url       AS video_url,
             c.status          AS cohort_status,
-            c.slug            AS cohort_slug,
-            c.enrollment_deadline AS enrollment_deadline,
             c.start_date       AS cohort_start_date,
-            c.end_date         AS cohort_end_date,
+            c.trial_type       AS trial_type,
+            c.trial_value      AS trial_value,
 
             e.id            AS enrollment_id,
             e.payment_status AS payment_status,
             e.enrollment_type AS enrollment_type,
-            e.trial_expiry_date AS trial_expiry_date
+            e.trial_expiry_date AS trial_expiry_date,
+            e.lessons_taken  AS lessons_taken
 
         FROM programs p
 
@@ -177,7 +173,7 @@ class ProgramContentService
                     'program_id' => $pid,
                     'name' => $row['program_name'],
                     'description' => $row['program_description'],
-                    'image_url' => $row['program_image_url'],
+                    'image_url' => AssetUrl::fromAppUrl($row['program_image_url']),
                     'slug' => $row['program_slug'],
                     'courses' => [],
                     '_course_map' => [],
@@ -202,7 +198,7 @@ class ProgramContentService
                 'course_id' => (int) $row['course_id'],
                 'course_name' => $row['course_title'],
                 'description' => $row['course_description'],
-                'image_url' => $row['course_image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['course_image_url']),
 
                 'has_active_cohort' => $row['active_cohort_id'] !== null,
                 'cohort_id' => $row['active_cohort_id'],
@@ -292,11 +288,8 @@ class ProgramContentService
                 $programs[$pid] = [
                     'program_id' => $pid,
                     'name' => $row['program_name'],
-                    'description' => $row['program_description'],
-                    'image_url' => $row['program_image_url'],
                     'slug' => $row['program_slug'],
                     'courses' => [],
-                    'enrolled_courses' => [],
                     '_course_map' => [],
                     '_has_enrollment' => false,
                     '_age_groups' => json_decode($row['program_age_groups'] ?? '[]', true) ?? []
@@ -308,7 +301,6 @@ class ProgramContentService
             // Track enrollment per program
             if ($row['enrollment_id'] !== null) {
                 $programs[$pid]['_has_enrollment'] = true;
-                $programs[$pid]['enrolled_courses'][] = $course;
             }
 
             // Deduplicate courses
@@ -354,38 +346,11 @@ class ProgramContentService
             'course_id' => (int) $row['course_id'],
             'course_name' => $row['course_title'],
             'description' => $row['course_description'],
-            'image_url' => $row['course_image_url'],
-
-            'has_active_cohort' => $hasActiveCohort,
+            'image_url' => AssetUrl::fromAppUrl($row['course_image_url']),
+            'slug' => $row['course_slug'],
             'cohort_id' => $hasActiveCohort ? (int) $row['active_cohort_id'] : null,
-            'slug' => $hasActiveCohort ? $row['cohort_slug'] : null,
-
-            'discount' => $hasActiveCohort && $row['discount'] !== null
-                ? (int) $row['discount']
-                : null,
-
-            'learning_type' => $hasActiveCohort
-                ? $row['learning_type']
-                : null,
-
-            'video_url' => $hasActiveCohort
-                ? $row['video_url']
-                : null,
-
-            'is_free' => $hasActiveCohort
-                ? (bool) $row['is_free']
-                : null,
-
-            'cost' => $hasActiveCohort && $row['cost'] !== null
-                ? (float) $row['cost']
-                : null,
-
+            'is_free' => (bool) ($row['is_free'] ?? false),
             'nextAction' => $access['nextAction'],
-            'trialExpiresAt' => $access['trialExpiresAt'],
-            'lockedUntil' => $access['lockedUntil'],
-            'enrollment_deadline' => $row['enrollment_deadline'] ?? null,
-            'cohort_start_date' => $row['cohort_start_date'] ?? null,
-            'cohort_end_date' => $row['cohort_end_date'] ?? null,
         ];
     }
 
@@ -398,14 +363,13 @@ class ProgramContentService
             || ($row['payment_status'] ?? null) === 'reserved';
         $isPaidAccess = \in_array($row['enrollment_type'] ?? null, ['paid', 'free'], true)
             || ($row['payment_status'] ?? null) === 'success';
-        $isTrialAccess = ($row['enrollment_type'] ?? null) === 'trial'
-            && !$this->isTrialExpired($trialExpiresAt);
+        $isTrialAccess = $this->hasActiveTrialAccess($row);
 
         if (!$hasEnrollment) {
             return $this->courseAccess('description', null, null);
         }
 
-        if ($isReserved || (($row['enrollment_type'] ?? null) === 'trial' && $this->isTrialExpired($trialExpiresAt))) {
+        if ($isReserved || (($row['enrollment_type'] ?? null) === 'trial' && !$isTrialAccess)) {
             return $this->courseAccess('payment', $trialExpiresAt, null);
         }
 
@@ -418,6 +382,26 @@ class ProgramContentService
         }
 
         return $this->courseAccess('payment', $trialExpiresAt, null);
+    }
+
+    private function hasActiveTrialAccess(array $row): bool
+    {
+        if (($row['enrollment_type'] ?? null) !== 'trial') {
+            return false;
+        }
+
+        $trialType = $row['trial_type'] ?? null;
+        $trialValue = (int) ($row['trial_value'] ?? 0);
+
+        if ($trialType === 'days') {
+            return $trialValue > 0 && !$this->isTrialExpired($row['trial_expiry_date'] ?? null);
+        }
+
+        if ($trialType === 'views') {
+            return $trialValue > 0 && (int) ($row['lessons_taken'] ?? 0) < $trialValue;
+        }
+
+        return false;
     }
 
     private function courseAccess(string $nextAction, ?string $trialExpiresAt, ?string $lockedUntil): array
@@ -545,7 +529,7 @@ class ProgramContentService
                 'slug' => $row['program_slug'],
                 'name' => $row['program_name'],
                 'description' => $row['program_description'],
-                'image_url' => $row['program_image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['program_image_url']),
                 'sponsor' => $row['program_sponsor'],
                 'start_date' => $row['program_start_date'] ?? null,
                 'video_url' => $row['program_video_url'] ?? null,
@@ -559,7 +543,7 @@ class ProgramContentService
                 'slug' => $row['course_slug'],
                 'courseName' => $row['course_name'],
                 'description' => $row['course_description'],
-                'image_url' => $row['course_image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['course_image_url']),
             ],
             'cohort' => [
                 'cohortId' => (int) $row['cohort_id'],
@@ -577,7 +561,7 @@ class ProgramContentService
                 'delivery_mode' => $row['delivery_mode'],
                 'video_url' => $row['video_url'],
                 'is_free' => (bool) $row['is_free'],
-                'image_url' => $row['cohort_image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['cohort_image_url']),
                 'enrollment_deadline' => $row['enrollment_deadline'],
                 'learning_type' => $row['learning_type'],
                 'whatsapp_group_link' => $row['cohort_whatsapp_group_link'] ?? null,
@@ -656,7 +640,7 @@ class ProgramContentService
                     'course_name' => html_entity_decode($row['course_name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                     'description' => $row['course_description'],
                     'course_id' => (int) $row['course_id'],
-                    'image' => $row['image_url'],
+                    'image' => AssetUrl::fromAppUrl($row['image_url']),
                     'is_enrolled' => (bool) $row['is_enrolled'],
                 ] : null,
         ];
@@ -933,7 +917,7 @@ class ProgramContentService
                 'slug' => $row['course_slug'],
                 'courseName' => $row['course_name'],
                 'description' => $row['course_description'],
-                'image_url' => $row['course_image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['course_image_url']),
             ],
             'cohort' => [
                 'cohortId' => (int) $row['cohort_id'],
@@ -945,7 +929,7 @@ class ProgramContentService
                 'instructor_name' => $row['instructor_name'],
                 'delivery_mode' => $row['delivery_mode'],
                 'video_url' => $row['video_url'],
-                'image_url' => $row['cohort_image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['cohort_image_url']),
                 'learning_type' => $row['learning_type'],
                 'whatsapp_group_link' => $row['cohort_whatsapp_group_link'] ?? null,
                 'is_enrolled' => (bool) $row['is_enrolled'],

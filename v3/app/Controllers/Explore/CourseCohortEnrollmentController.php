@@ -30,16 +30,15 @@ class CourseCohortEnrollmentController extends ExploreBaseController
                 'cohort_name' => 'required|string',
                 'program_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
-                'enrollment_type' => 'required|string|in:free,paid,trial',
-                'trial_expiry_date' => 'nullable|date',
+                'enrollment_type' => 'nullable|string|in:free,paid,trial',
             ],
         );
 
-        $enrollmentId = $this->enrollmentService->enrollUser($validated);
-
-        if (!$enrollmentId) {
+        try {
+            $result = $this->enrollmentService->enrollOrResolveNextAction($validated);
+        } catch (\InvalidArgumentException $e) {
             $this->respondError(
-                'Enrollment failed.',
+                $e->getMessage(),
                 HttpStatus::BAD_REQUEST
             );
         }
@@ -47,10 +46,10 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         $this->respond(
             [
                 'status' => true,
-                'message' => 'User enrolled successfully.',
-                'data' => $enrollmentId
+                'message' => $result['message'],
+                'data' => $result['data'],
             ],
-            HttpStatus::CREATED
+            ($result['created'] ?? false) ? HttpStatus::CREATED : HttpStatus::OK
         );
     }
 
@@ -155,11 +154,17 @@ class CourseCohortEnrollmentController extends ExploreBaseController
                 'first_name' => 'nullable|string',
                 'last_name' => 'nullable|string',
                 'enrollment_type' => 'required|string|in:free,paid,trial',
-                'trial_expiry_date' => 'nullable|date',
             ],
         );
 
-        $result = $this->enrollmentService->verifyAndRecordPayment($validated);
+        try {
+            $result = $this->enrollmentService->verifyAndRecordPayment($validated);
+        } catch (\InvalidArgumentException $e) {
+            $this->respondError(
+                $e->getMessage(),
+                HttpStatus::BAD_REQUEST
+            );
+        }
 
         if (!$result['success'] && $result['status'] === 'failed') {
             $this->respondError(
@@ -224,6 +229,50 @@ class CourseCohortEnrollmentController extends ExploreBaseController
             [
                 'status' => true,
                 'message' => 'Lessons taken updated successfully.',
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/{cohort_id}/enrollments/mobile-payment', 'POST', ['api'])]
+    public function initiateMobilePayment(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'profile_id' => 'required|integer',
+                'email' => 'required|email',
+                'program_id' => 'required|integer',
+                'course_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+            ]
+        );
+
+        $res = $this->enrollmentService->initiateMobilePayment($validated);
+
+        if ($res['status'] === 'blocked') {
+            $this->respond(
+                [
+                    'success' => false,
+                    'message' => $res['message'],
+                ],
+                HttpStatus::BAD_REQUEST
+            );
+            return;
+        }
+
+        if ($res['status'] === 'failed') {
+            $this->respondError(
+                $res['message'],
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Mobile payment initiated successfully.',
+                'data' => $res,
             ],
             HttpStatus::OK
         );
@@ -338,7 +387,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         $this->respond(
             [
                 'success' => true,
-                'message' => 'Payment verification',
+                'message' => 'Payment status retrieved successfully.',
                 'data' => $this->enrollmentService->checkPaymentStatus($validated['reference'])
             ]
         );

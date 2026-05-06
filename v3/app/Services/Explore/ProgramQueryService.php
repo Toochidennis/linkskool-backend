@@ -2,6 +2,7 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Common\Utilities\AssetUrl;
 use V3\App\Models\Explore\Program;
 
 class ProgramQueryService
@@ -57,7 +58,7 @@ class ProgramQueryService
                 'slug' => $row['slug'],
                 'name' => $row['name'],
                 'description' => $row['description'],
-                'image_url' => $row['image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['image_url']),
                 'shortname' => $row['shortname'],
                 'sponsor' => $row['sponsor'],
                 'status' => $row['status'],
@@ -165,7 +166,7 @@ class ProgramQueryService
                     'course_id' => $courseId,
                     'course_name' => $row['course_name'],
                     'description' => $row['course_description'],
-                    'image_url' => $row['course_image_url'],
+                    'image_url' => AssetUrl::fromAppUrl($row['course_image_url']),
                     'start_date' => $row['start_date'] ?? null,
                     'video_url' => $row['video_url'] ?? null,
                     'cohort' => null,
@@ -197,7 +198,7 @@ class ProgramQueryService
                 'slug' => $program['slug'],
                 'name' => $program['name'],
                 'description' => $program['description'],
-                'image_url' => $program['image_url'],
+                'image_url' => AssetUrl::fromAppUrl($program['image_url']),
                 'shortname' => $program['shortname'],
                 'sponsor' => $program['sponsor'],
                 'start_date' => $program['start_date'] ?? null,
@@ -293,7 +294,7 @@ class ProgramQueryService
                 'slug' => $row['program_slug'],
                 'name' => $row['program_name'],
                 'description' => $row['program_description'],
-                'image_url' => $row['program_image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['program_image_url']),
                 'sponsor' => $row['program_sponsor'],
                 'start_date' => $row['program_start_date'] ?? null,
                 'video_url' => $row['program_video_url'] ?? null,
@@ -307,7 +308,7 @@ class ProgramQueryService
                 'slug' => $row['course_slug'],
                 'courseName' => $row['course_name'],
                 'description' => $row['course_description'],
-                'image_url' => $row['course_image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['course_image_url']),
             ],
             'cohort' => [
                 'cohortId' => (int) $row['cohort_id'],
@@ -325,7 +326,7 @@ class ProgramQueryService
                 'delivery_mode' => $row['delivery_mode'],
                 'video_url' => $row['video_url'],
                 'is_free' => (bool) $row['is_free'],
-                'image_url' => $row['cohort_image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['cohort_image_url']),
                 'enrollment_deadline' => $row['enrollment_deadline'],
                 'learning_type' => $row['learning_type'],
                 'whatsapp_group_link' => $row['cohort_whatsapp_group_link'] ?? null,

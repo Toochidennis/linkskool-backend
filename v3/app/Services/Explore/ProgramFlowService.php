@@ -2,6 +2,7 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Common\Utilities\AssetUrl;
 use V3\App\Models\Explore\ProgramCourseCohort;
 use V3\App\Models\Explore\ProgramFlow;
 
@@ -91,7 +92,7 @@ class ProgramFlowService
         if (empty($flow)) {
             return [
                 'program_flow' => [],
-                'available_cohorts' => $allCohorts
+                'available_cohorts' => $this->formatCohortImageUrls($allCohorts)
             ];
         }
 
@@ -102,8 +103,21 @@ class ProgramFlowService
         });
 
         return [
-            'program_flow' => $flow,
-            'available_cohorts' => array_values($available),
+            'program_flow' => $this->formatCohortImageUrls($flow),
+            'available_cohorts' => $this->formatCohortImageUrls(array_values($available)),
         ];
+    }
+
+    private function formatCohortImageUrls(array $cohorts): array
+    {
+        foreach ($cohorts as &$cohort) {
+            if (array_key_exists('image_url', $cohort)) {
+                $cohort['image_url'] = AssetUrl::fromAppUrl($cohort['image_url']);
+            }
+        }
+
+        unset($cohort);
+
+        return $cohorts;
     }
 }

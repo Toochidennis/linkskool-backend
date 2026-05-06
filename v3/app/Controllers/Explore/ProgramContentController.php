@@ -73,7 +73,7 @@ class ProgramContentController extends ExploreBaseController
         );
     }
 
-    #[Route('/cohorts/{cohort_id}', 'GET', ['api'])]
+    #[Route('/cohorts/{cohort_id}', 'GET',)]
     public function getActiveCohortByCourse(array $vars)
     {
         $validated = $this->validate(

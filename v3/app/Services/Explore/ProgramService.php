@@ -2,6 +2,7 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Common\Utilities\AssetUrl;
 use V3\App\Models\Explore\Program;
 use V3\App\Models\Explore\ProgramCourse;
 
@@ -195,7 +196,7 @@ class ProgramService
                     'slug' => $row['slug'],
                     'name' => $row['name'],
                     'description' => $row['description'],
-                    'image_url' => $row['image_url'],
+                    'image_url' => AssetUrl::fromAppUrl($row['image_url']),
                     'shortname' => $row['shortname'],
                     'status' => $row['status'],
                     'sponsor' => $row['sponsor'],

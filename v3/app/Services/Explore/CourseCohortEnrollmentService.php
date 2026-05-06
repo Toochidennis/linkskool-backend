@@ -54,6 +54,13 @@ class CourseCohortEnrollmentService
             'enrollment_type' => $data['enrollment_type'],
         ];
 
+        if (($data['enrollment_type'] ?? null) === 'trial') {
+            $payload = [
+                ...$payload,
+                ...$this->buildTrialEnrollmentPayload($data),
+            ];
+        }
+
         $enrollmentId = $this->enrollmentModel->insert($payload);
 
         if ($enrollmentId && ($data['send_notification'] ?? true)) {
@@ -72,6 +79,278 @@ class CourseCohortEnrollmentService
         return (bool)$enrollmentId;
     }
 
+    public function enrollOrResolveNextAction(array $data): array
+    {
+        $cohort = $this->getEnrollmentCohort($data);
+
+        if (empty($cohort)) {
+            throw new \InvalidArgumentException('Invalid cohort selected for enrollment.');
+        }
+
+        $existingEnrollment = $this->enrollmentModel
+            ->where('profile_id', (int) $data['profile_id'])
+            ->where('cohort_id', (int) $data['cohort_id'])
+            ->first();
+
+        if (!empty($existingEnrollment)) {
+            return $this->buildEnrollmentDecision(
+                $data,
+                $cohort,
+                $existingEnrollment,
+                false,
+                'Enrollment status resolved.'
+            );
+        }
+
+        $requestedType = $data['enrollment_type'] ?? null;
+
+        if ((bool) $cohort['is_free']) {
+            $enrollmentId = $this->createEnrollment([
+                ...$data,
+                'enrollment_type' => 'free',
+            ]);
+
+            return $this->buildEnrollmentDecision(
+                $data,
+                $cohort,
+                [
+                    'id' => $enrollmentId,
+                    'enrollment_type' => 'free',
+                    'payment_status' => 'success',
+                    'trial_expiry_date' => null,
+                ],
+                true,
+                'User enrolled successfully.'
+            );
+        }
+
+        if ($requestedType === 'trial') {
+            $trialPayload = $this->buildTrialEnrollmentPayloadFromCohort($cohort);
+            $enrollmentId = $this->createEnrollment([
+                ...$data,
+                'enrollment_type' => 'trial',
+                ...$trialPayload,
+            ]);
+
+            return $this->buildEnrollmentDecision(
+                $data,
+                $cohort,
+                [
+                    'id' => $enrollmentId,
+                    'enrollment_type' => 'trial',
+                    'payment_status' => null,
+                    'trial_expiry_date' => $trialPayload['trial_expiry_date'],
+                ],
+                true,
+                'Trial enrollment started successfully.'
+            );
+        }
+
+        return [
+            'created' => false,
+            'message' => 'Payment required.',
+            'data' => $this->buildEnrollmentActionData($data, $cohort, null, 'payment'),
+        ];
+    }
+
+    private function createEnrollment(array $data): int
+    {
+        $payload = [
+            'profile_id' => $data['profile_id'],
+            'course_id' => $data['course_id'],
+            'course_name' => $data['course_name'] ?? null,
+            'cohort_name' => $data['cohort_name'] ?? null,
+            'cohort_id' => $data['cohort_id'],
+            'program_id' => $data['program_id'],
+            'enrollment_type' => $data['enrollment_type'],
+        ];
+
+        foreach (['trial_expiry_date', 'lessons_taken', 'payment_status', 'payment_reference', 'status'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $payload[$field] = $data[$field];
+            }
+        }
+
+        $enrollmentId = $this->enrollmentModel->insert($payload);
+
+        if (!$enrollmentId) {
+            throw new \InvalidArgumentException('Enrollment failed.');
+        }
+
+        if ($data['send_notification'] ?? true) {
+            EventDispatcher::dispatch(
+                new CohortCourseEnrolled(
+                    (int)$data['profile_id'],
+                    (int)$data['program_id'],
+                    (int)$data['course_id'],
+                    (int)$data['cohort_id'],
+                    $data['course_name'] ?? null,
+                    $data['cohort_name'] ?? null
+                )
+            );
+        }
+
+        return (int) $enrollmentId;
+    }
+
+    private function getEnrollmentCohort(array $data): array
+    {
+        return $this->programCourseCohort
+            ->select([
+                'id',
+                'program_id',
+                'course_id',
+                'is_free',
+                'status',
+                'trial_type',
+                'trial_value',
+                'cost',
+                'discount',
+            ])
+            ->where('id', (int) $data['cohort_id'])
+            ->where('program_id', (int) $data['program_id'])
+            ->where('course_id', (int) $data['course_id'])
+            ->whereRaw('status IN (?, ?)', ['ongoing', 'upcoming'])
+            ->first();
+    }
+
+    private function buildEnrollmentDecision(
+        array $data,
+        array $cohort,
+        array $enrollment,
+        bool $created,
+        string $message
+    ): array {
+        return [
+            'created' => $created,
+            'message' => $message,
+            'data' => $this->buildEnrollmentActionData(
+                $data,
+                $cohort,
+                $enrollment,
+                $this->resolveEnrollmentNextAction($cohort, $enrollment)
+            ),
+        ];
+    }
+
+    private function buildEnrollmentActionData(
+        array $data,
+        array $cohort,
+        ?array $enrollment,
+        string $nextAction
+    ): array {
+        return [
+            'nextAction' => $nextAction,
+            'enrollment_id' => isset($enrollment['id']) ? (int) $enrollment['id'] : null,
+            'program_id' => (int) $data['program_id'],
+            'course_id' => (int) $data['course_id'],
+            'cohort_id' => (int) $data['cohort_id'],
+            'is_free' => (bool) $cohort['is_free'],
+            'enrollment_type' => $enrollment['enrollment_type'] ?? null,
+            'amount_kobo' => $nextAction === 'payment' ? $this->computePrice((int) $data['cohort_id']) : null,
+            'payment_endpoint' => $nextAction === 'payment' ? '/public/learning/cohorts/enrollments/checkout' : null,
+            'mobile_payment_endpoint' => $nextAction === 'payment'
+                ? '/public/learning/cohorts/' . (int) $data['cohort_id'] . '/enrollments/mobile-payment'
+                : null,
+        ];
+    }
+
+    private function resolveEnrollmentNextAction(array $cohort, array $enrollment): string
+    {
+        $isUpcoming = ($cohort['status'] ?? null) === 'upcoming';
+        $isReserved = ($enrollment['enrollment_type'] ?? null) === 'reserved'
+            || ($enrollment['payment_status'] ?? null) === 'reserved';
+        $isPaidAccess = \in_array($enrollment['enrollment_type'] ?? null, ['paid', 'free'], true)
+            || ($enrollment['payment_status'] ?? null) === 'success';
+        $isTrialAccess = $this->hasActiveTrialAccess($cohort, $enrollment);
+
+        if ($isReserved || (($enrollment['enrollment_type'] ?? null) === 'trial' && !$isTrialAccess)) {
+            return 'payment';
+        }
+
+        if ($isUpcoming && ($isPaidAccess || $isTrialAccess)) {
+            return 'waiting';
+        }
+
+        if ($isPaidAccess || $isTrialAccess) {
+            return 'content';
+        }
+
+        return 'payment';
+    }
+
+    private function hasActiveTrialAccess(array $cohort, array $enrollment): bool
+    {
+        if (($enrollment['enrollment_type'] ?? null) !== 'trial') {
+            return false;
+        }
+
+        $trialType = $cohort['trial_type'] ?? null;
+        $trialValue = (int) ($cohort['trial_value'] ?? 0);
+
+        if ($trialType === 'days') {
+            return $trialValue > 0 && !$this->isTrialExpired($enrollment['trial_expiry_date'] ?? null);
+        }
+
+        if ($trialType === 'views') {
+            return $trialValue > 0 && (int) ($enrollment['lessons_taken'] ?? 0) < $trialValue;
+        }
+
+        return false;
+    }
+
+    private function buildTrialEnrollmentPayload(array $data): array
+    {
+        $cohort = $this->programCourseCohort
+            ->select(['id', 'program_id', 'course_id', 'trial_type', 'trial_value', 'status'])
+            ->where('id', (int) $data['cohort_id'])
+            ->where('program_id', (int) $data['program_id'])
+            ->where('course_id', (int) $data['course_id'])
+            ->whereRaw('status IN (?, ?)', ['ongoing', 'upcoming'])
+            ->first();
+
+        if (empty($cohort)) {
+            throw new \InvalidArgumentException('Invalid cohort selected for trial enrollment.');
+        }
+
+        return $this->buildTrialEnrollmentPayloadFromCohort($cohort);
+    }
+
+    private function buildTrialEnrollmentPayloadFromCohort(array $cohort): array
+    {
+        $trialType = $cohort['trial_type'] ?? null;
+        $trialValue = (int) ($cohort['trial_value'] ?? 0);
+
+        if (!\in_array($trialType, ['days', 'views'], true) || $trialValue < 1) {
+            throw new \InvalidArgumentException('Trial is not available for this cohort.');
+        }
+
+        if ($trialType !== 'days') {
+            return [
+                'trial_expiry_date' => null,
+                'lessons_taken' => 0,
+            ];
+        }
+
+        return [
+            'trial_expiry_date' => (new \DateTimeImmutable())
+                ->modify('+' . $trialValue . ' days')
+                ->format('Y-m-d H:i:s'),
+            'lessons_taken' => 0,
+        ];
+    }
+
+    private function isTrialExpired(?string $trialExpiresAt): bool
+    {
+        if ($trialExpiresAt === null || trim($trialExpiresAt) === '') {
+            return false;
+        }
+
+        $expiryTimestamp = strtotime($trialExpiresAt);
+
+        return $expiryTimestamp !== false && $expiryTimestamp < time();
+    }
+
     public function isUserEnrolled(array $data): bool
     {
         return $this->enrollmentModel
@@ -82,6 +361,22 @@ class CourseCohortEnrollmentService
 
     public function initiateMobilePayment(array $data): array
     {
+        $cohort = $this->getEnrollmentCohort($data);
+
+        if (empty($cohort)) {
+            return [
+                'status' => 'failed',
+                'message' => 'Invalid cohort selected for payment.',
+            ];
+        }
+
+        if ((bool) $cohort['is_free']) {
+            return [
+                'status' => 'failed',
+                'message' => 'This course is free and should not be added to payment.',
+            ];
+        }
+
         $existingEnrollment = $this->findExistingCourseEnrollment(
             (int) $data['profile_id'],
             (int) $data['program_id'],
@@ -100,7 +395,7 @@ class CourseCohortEnrollmentService
             ];
         }
 
-        $reference = 'MOB-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
+        $reference = 'COURSE-MOB-' . date('YmdHis') . '-' . bin2hex(random_bytes(4));
         $amount = $this->computePrice($data['cohort_id']);
 
         if ($amount <= 0) {
@@ -405,7 +700,6 @@ class CourseCohortEnrollmentService
                     'payment_status' => $status,
                     'payment_reference' => $data['reference'],
                     'lessons_taken' => (int) ($data['lessons_taken'] ?? null),
-                    'trial_expiry_date' => $data['trial_expiry_date'] ?? null,
                 ];
 
                 if ($status === 'success' && \in_array($enrollment['enrollment_type'] ?? null, ['trial', 'reserved'], true)) {
@@ -418,7 +712,7 @@ class CourseCohortEnrollmentService
                     ->where('cohort_id', $paymentItem['cohort_id'])
                     ->update($updatePayload);
             } else {
-                $enrollmentInserted = $this->enrollmentModel->insert([
+                $enrollmentPayload = [
                     'profile_id' => $data['profile_id'],
                     'program_id' => $paymentItem['program_id'],
                     'course_id' => $paymentItem['course_id'],
@@ -430,8 +724,16 @@ class CourseCohortEnrollmentService
                     'payment_status' => $status,
                     'payment_reference' => $data['reference'],
                     'lessons_taken' => $data['lessons_taken'] ?? null,
-                    'trial_expiry_date' => $data['trial_expiry_date'] ?? null,
-                ]);
+                ];
+
+                if (($enrollmentPayload['enrollment_type'] ?? null) === 'trial') {
+                    $enrollmentPayload = [
+                        ...$enrollmentPayload,
+                        ...$this->buildTrialEnrollmentPayload($enrollmentPayload),
+                    ];
+                }
+
+                $enrollmentInserted = $this->enrollmentModel->insert($enrollmentPayload);
 
                 if ($enrollmentInserted && $status === 'success') {
                     EventDispatcher::dispatch(
@@ -1063,12 +1365,72 @@ class CourseCohortEnrollmentService
         ];
     }
 
-    public function checkPaymentStatus(string $reference)
+    public function checkPaymentStatus(string $reference): array
     {
-        return $this->payment
+        $payment = $this->payment
             ->where('reference', $reference)
-            ->where('status', 'success')
-            ->exists();
+            ->first();
+
+        if (empty($payment)) {
+            return [
+                'exists' => false,
+                'payment_status' => null,
+                'nextAction' => 'payment',
+                'message' => 'Payment reference not found.',
+            ];
+        }
+
+        $items = $this->getPaymentItems((int) $payment['id']);
+        $firstItem = $items[0] ?? null;
+
+        if (empty($firstItem)) {
+            return [
+                'exists' => true,
+                'payment_status' => $payment['status'] ?? null,
+                'nextAction' => 'payment',
+                'message' => 'Payment has no checkout item.',
+                'reference' => $payment['reference'],
+            ];
+        }
+
+        $cohort = $this->programCourseCohort
+            ->select(['id', 'program_id', 'course_id', 'is_free', 'status', 'trial_type', 'trial_value'])
+            ->where('id', (int) $firstItem['cohort_id'])
+            ->first();
+
+        if (($payment['status'] ?? null) !== 'success') {
+            return [
+                'exists' => true,
+                'payment_status' => $payment['status'] ?? null,
+                'nextAction' => 'payment',
+                'message' => 'Payment is not successful yet.',
+                'reference' => $payment['reference'],
+                'program_id' => (int) $firstItem['program_id'],
+                'course_id' => (int) $firstItem['course_id'],
+                'cohort_id' => (int) $firstItem['cohort_id'],
+            ];
+        }
+
+        $enrollment = $this->enrollmentModel
+            ->where('profile_id', (int) $payment['profile_id'])
+            ->where('cohort_id', (int) $firstItem['cohort_id'])
+            ->first();
+
+        return [
+            'exists' => true,
+            'payment_status' => $payment['status'],
+            'nextAction' => !empty($cohort) && !empty($enrollment)
+                ? $this->resolveEnrollmentNextAction($cohort, $enrollment)
+                : 'payment',
+            'message' => !empty($enrollment)
+                ? 'Payment completed.'
+                : 'Payment completed but enrollment is not ready yet.',
+            'reference' => $payment['reference'],
+            'program_id' => (int) $firstItem['program_id'],
+            'course_id' => (int) $firstItem['course_id'],
+            'cohort_id' => (int) $firstItem['cohort_id'],
+            'enrollment_id' => isset($enrollment['id']) ? (int) $enrollment['id'] : null,
+        ];
     }
 
     private function computePrice(int $cohortId): int
