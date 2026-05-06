@@ -215,7 +215,37 @@ class ProgramContentService
             'program_slug' => $programSlug,
         ]);
 
-        return $this->groupProgramContentWithAgeFilter($rows, null);
+        return $this->groupSingleProgramContent($rows);
+    }
+
+    private function groupSingleProgramContent(array $rows): array
+    {
+        $program = null;
+        $courseMap = [];
+
+        foreach ($rows as $row) {
+            if (!$row['course_id']) {
+                continue;
+            }
+
+            if ($program === null) {
+                $program = [
+                    'program_id' => (int) $row['program_id'],
+                    'name' => $row['program_name'],
+                    'slug' => $row['program_slug'],
+                    'courses' => [],
+                ];
+            }
+
+            if (isset($courseMap[$row['course_id']])) {
+                continue;
+            }
+
+            $courseMap[$row['course_id']] = true;
+            $program['courses'][] = $this->buildProgramCourseResponse($row);
+        }
+
+        return $program ?? [];
     }
 
     private function groupProgramsWithCoursesWithAgeFilter(

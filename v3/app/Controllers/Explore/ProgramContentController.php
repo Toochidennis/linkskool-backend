@@ -73,6 +73,31 @@ class ProgramContentController extends ExploreBaseController
         );
     }
 
+    #[Route('/programs/{program_slug}/content', 'GET', ['api'])]
+    public function getProgramContentBySlug(array $vars): void
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'program_slug' => 'required|string',
+                'profile_id' => 'required|integer',
+            ]
+        );
+
+        $data = $this->programContentService->getProgramContentBySlug(
+            (int) $validated['profile_id'],
+            $validated['program_slug']
+        );
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Program content retrieved successfully.',
+                'data' => $data,
+            ]
+        );
+    }
+
     #[Route('/cohorts/{cohort_id}', 'GET', ['api'])]
     public function getActiveCohortByCourse(array $vars)
     {
