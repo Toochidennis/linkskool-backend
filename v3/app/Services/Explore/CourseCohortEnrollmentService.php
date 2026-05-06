@@ -166,7 +166,7 @@ class CourseCohortEnrollmentService
         ];
 
         foreach (['trial_expiry_date', 'lessons_taken', 'payment_status', 'payment_reference', 'status'] as $field) {
-            if (array_key_exists($field, $data)) {
+            if (\array_key_exists($field, $data)) {
                 $payload[$field] = $data[$field];
             }
         }
@@ -202,6 +202,7 @@ class CourseCohortEnrollmentService
                 'course_id',
                 'is_free',
                 'status',
+                'start_date',
                 'trial_type',
                 'trial_value',
                 'cost',
@@ -245,7 +246,7 @@ class CourseCohortEnrollmentService
 
     private function resolveEnrollmentNextAction(array $cohort, array $enrollment): string
     {
-        $isUpcoming = ($cohort['status'] ?? null) === 'upcoming';
+        $isUpcoming = $this->isCohortWaiting($cohort);
         $isReserved = ($enrollment['enrollment_type'] ?? null) === 'reserved'
             || ($enrollment['payment_status'] ?? null) === 'reserved';
         $isPaidAccess = \in_array($enrollment['enrollment_type'] ?? null, ['paid', 'free'], true)
@@ -265,6 +266,22 @@ class CourseCohortEnrollmentService
         }
 
         return 'payment';
+    }
+
+    private function isCohortWaiting(array $cohort): bool
+    {
+        if (($cohort['status'] ?? null) === 'upcoming') {
+            return true;
+        }
+
+        $startDate = $cohort['start_date'] ?? null;
+        if ($startDate === null || trim((string) $startDate) === '') {
+            return false;
+        }
+
+        $startTimestamp = strtotime((string) $startDate);
+
+        return $startTimestamp !== false && $startTimestamp > time();
     }
 
     private function hasActiveTrialAccess(array $cohort, array $enrollment): bool
@@ -1361,6 +1378,9 @@ class CourseCohortEnrollmentService
 
         if (empty($payment)) {
             return [
+                'exists' => false,
+                'payment_status' => null,
+                'is_paid' => false,
                 'nextAction' => 'payment',
                 'message' => 'Payment reference not found.',
             ];
@@ -1371,18 +1391,24 @@ class CourseCohortEnrollmentService
 
         if (empty($firstItem)) {
             return [
+                'exists' => true,
+                'payment_status' => $payment['status'] ?? null,
+                'is_paid' => false,
                 'nextAction' => 'payment',
                 'message' => 'Payment has no checkout item.',
             ];
         }
 
         $cohort = $this->programCourseCohort
-            ->select(['id', 'program_id', 'course_id', 'is_free', 'status', 'trial_type', 'trial_value'])
+            ->select(['id', 'program_id', 'course_id', 'is_free', 'status', 'start_date', 'trial_type', 'trial_value'])
             ->where('id', (int) $firstItem['cohort_id'])
             ->first();
 
         if (($payment['status'] ?? null) !== 'success') {
             return [
+                'exists' => true,
+                'payment_status' => $payment['status'] ?? null,
+                'is_paid' => false,
                 'nextAction' => 'payment',
                 'message' => 'Payment is not successful yet.',
             ];
@@ -1394,6 +1420,9 @@ class CourseCohortEnrollmentService
             ->first();
 
         return [
+            'exists' => true,
+            'payment_status' => $payment['status'],
+            'is_paid' => ($payment['status'] ?? null) === 'success',
             'nextAction' => !empty($cohort) && !empty($enrollment)
                 ? $this->resolveEnrollmentNextAction($cohort, $enrollment)
                 : 'payment',

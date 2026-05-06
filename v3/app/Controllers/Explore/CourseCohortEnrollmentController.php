@@ -213,12 +213,11 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         if ($res['status'] === 'blocked') {
             $this->respond(
                 [
-                    'success' => false,
+                    'success' => true,
                     'message' => $res['message'],
                 ],
                 HttpStatus::BAD_REQUEST
             );
-            return;
         }
 
         if ($res['status'] === 'failed') {

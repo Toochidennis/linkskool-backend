@@ -112,6 +112,7 @@ class ProgramContentService
             lc.slug         AS course_slug,
 
             c.id            AS active_cohort_id,
+            c.slug          AS cohort_slug,
             c.is_free       AS is_free,
             c.status          AS cohort_status,
             c.start_date       AS cohort_start_date,
@@ -153,6 +154,68 @@ class ProgramContentService
         ]);
 
         return $this->groupProgramContentWithAgeFilter($rows, $age);
+    }
+
+    public function getProgramContentBySlug(int $profileId, string $programSlug): array
+    {
+        $sql = "
+        SELECT
+            p.id            AS program_id,
+            p.name          AS program_name,
+            p.age_groups    AS program_age_groups,
+            p.slug AS program_slug,
+
+            lc.id           AS course_id,
+            lc.title        AS course_title,
+            lc.description  AS course_description,
+            lc.image_url    AS course_image_url,
+            lc.slug         AS course_slug,
+
+            c.id            AS active_cohort_id,
+            c.slug          AS cohort_slug,
+            c.is_free       AS is_free,
+            c.status          AS cohort_status,
+            c.start_date       AS cohort_start_date,
+            c.trial_type       AS trial_type,
+            c.trial_value      AS trial_value,
+
+            e.id            AS enrollment_id,
+            e.payment_status AS payment_status,
+            e.enrollment_type AS enrollment_type,
+            e.trial_expiry_date AS trial_expiry_date,
+            e.lessons_taken  AS lessons_taken
+
+        FROM programs p
+
+        INNER JOIN program_courses pc
+            ON pc.program_id = p.id
+            AND pc.is_active = 1
+
+        INNER JOIN learning_courses lc
+            ON lc.id = pc.course_id
+
+        LEFT JOIN program_course_cohorts c
+            ON c.program_id = p.id
+            AND c.course_id = lc.id
+            AND c.status IN ('ongoing', 'upcoming')
+
+        LEFT JOIN program_course_cohort_enrollments e
+            ON e.program_id = p.id
+            AND e.course_id = lc.id
+            AND e.cohort_id = c.id
+            AND e.profile_id = :profile_id
+
+        WHERE p.status = 'published'
+            AND p.slug = :program_slug
+        ORDER BY lc.id
+    ";
+
+        $rows = $this->programModel->rawQuery($sql, [
+            'profile_id' => $profileId,
+            'program_slug' => $programSlug,
+        ]);
+
+        return $this->groupProgramContentWithAgeFilter($rows, null);
     }
 
     private function groupProgramsWithCoursesWithAgeFilter(
@@ -276,6 +339,8 @@ class ProgramContentService
         ?int $age
     ): array {
         $programs = [];
+        $enrolledCourses = [];
+        $enrolledCourseMap = [];
 
         foreach ($rows as $row) {
             if (!$row['course_id']) {
@@ -301,6 +366,12 @@ class ProgramContentService
             // Track enrollment per program
             if ($row['enrollment_id'] !== null) {
                 $programs[$pid]['_has_enrollment'] = true;
+
+                $enrolledCourseKey = $row['active_cohort_id'] ?? $row['course_id'];
+                if (!isset($enrolledCourseMap[$enrolledCourseKey])) {
+                    $enrolledCourseMap[$enrolledCourseKey] = true;
+                    $enrolledCourses[] = $course;
+                }
             }
 
             // Deduplicate courses
@@ -334,7 +405,12 @@ class ProgramContentService
             );
         }
 
-        return array_values($programs);
+        return [
+            'programs' => array_values($programs),
+            'enrolled_courses' => [
+                'courses' => $enrolledCourses,
+            ],
+        ];
     }
 
     private function buildProgramCourseResponse(array $row): array
@@ -347,7 +423,7 @@ class ProgramContentService
             'course_name' => $row['course_title'],
             'description' => $row['course_description'],
             'image_url' => AssetUrl::fromAppUrl($row['course_image_url']),
-            'slug' => $row['course_slug'],
+            'slug' => $hasActiveCohort ? $row['cohort_slug'] : null,
             'cohort_id' => $hasActiveCohort ? (int) $row['active_cohort_id'] : null,
             'is_free' => (bool) ($row['is_free'] ?? false),
             'nextAction' => $access['nextAction'],
@@ -358,7 +434,7 @@ class ProgramContentService
     {
         $hasEnrollment = $row['enrollment_id'] !== null;
         $trialExpiresAt = $row['trial_expiry_date'] ?? null;
-        $isUpcoming = ($row['cohort_status'] ?? null) === 'upcoming';
+        $isUpcoming = $this->isCohortWaiting($row);
         $isReserved = ($row['enrollment_type'] ?? null) === 'reserved'
             || ($row['payment_status'] ?? null) === 'reserved';
         $isPaidAccess = \in_array($row['enrollment_type'] ?? null, ['paid', 'free'], true)
@@ -382,6 +458,22 @@ class ProgramContentService
         }
 
         return $this->courseAccess('payment', $trialExpiresAt, null);
+    }
+
+    private function isCohortWaiting(array $row): bool
+    {
+        if (($row['cohort_status'] ?? null) === 'upcoming') {
+            return true;
+        }
+
+        $startDate = $row['cohort_start_date'] ?? null;
+        if ($startDate === null || trim((string) $startDate) === '') {
+            return false;
+        }
+
+        $startTimestamp = strtotime((string) $startDate);
+
+        return $startTimestamp !== false && $startTimestamp > time();
     }
 
     private function hasActiveTrialAccess(array $row): bool
