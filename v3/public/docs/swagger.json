@@ -13,11 +13,4178 @@
     ],
     "tags": [
         {
+            "name": "portal",
+            "description": "Portal module"
+        },
+        {
             "name": "public",
             "description": "Public module"
         }
     ],
     "paths": {
+        "/portal/dashboard/admin": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "AdminOverview",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\AcademicOverviewController::adminOverview",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/dashboard/staff/{teacher_id:\\d+}": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "TeacherOverview",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\AcademicOverviewController::teacherOverview",
+                "parameters": [
+                    {
+                        "name": "teacher_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'teacher_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/dashboard/student": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "StudentOverview",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\AcademicOverviewController::studentOverview",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/course-assignments": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "StoreCourseAssignment",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\CourseAssignmentController::storeCourseAssignment",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetCourseAssignments",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\CourseAssignmentController::getCourseAssignments",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "AddClass",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\ClassController::addClass",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetClasses",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\ClassController::getClasses",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "UpdateClass",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\ClassController::updateClass",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "DeleteClass",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\ClassController::deleteClass",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/levels": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "AddLevel",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\LevelController::addLevel",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetLevels",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\LevelController::getLevels",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/levels/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "UpdateLevel",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\LevelController::updateLevel",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "DeleteLevel",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\LevelController::deleteLevel",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "AddStudent",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\StudentController::addStudent",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetStudentsByLevel",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\StudentController::getStudentsByLevel",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "UpdateStudentRecord",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\StudentController::updateStudentRecord",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "DeleteStudent",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\StudentController::deleteStudent",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/metrics": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetStudentsMetrics",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\StudentController::getStudentsMetrics",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/students": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetStudentsByClass",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\StudentController::getStudentsByClass",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/courses/{course_id:\\d+}/attendance": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "AddCourseAttendance",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\AttendanceController::addCourseAttendance",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetAllCourseAttendance",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\AttendanceController::getAllCourseAttendance",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/attendance": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "AddClassAttendance",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\AttendanceController::addClassAttendance",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetAllClassAttendance",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\AttendanceController::getAllClassAttendance",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/attendance/single": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetSingleClassAttendance",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\AttendanceController::getSingleClassAttendance",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/courses/{course_id:\\d+}/attendance/single": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetSingleCourseAttendance",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\AttendanceController::getSingleCourseAttendance",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/attendance/history": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetAttendanceHistory",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\AttendanceController::getAttendanceHistory",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/attendance/{id:\\d+}": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetAttendanceDetails",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\AttendanceController::getAttendanceDetails",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/feeds": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "AddContent",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\FeedController::addContent",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetContents",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\FeedController::getContents",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/feeds/{news_id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "UpdateContent",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\FeedController::updateContent",
+                "parameters": [
+                    {
+                        "name": "news_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'news_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "DeleteContent",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\FeedController::deleteContent",
+                "parameters": [
+                    {
+                        "name": "news_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'news_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/schools": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetSchools",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\SchoolController::getSchools",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/skill-behavior": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Store",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\SkillBehaviorController::store",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Get",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\SkillBehaviorController::get",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/skill-behavior/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\SkillBehaviorController::update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Delete",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\SkillBehaviorController::delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/courses": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "AddCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\CourseController::addCourse",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetCourses",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\CourseController::getCourses",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/courses/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "UpdateCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\CourseController::updateCourse",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "DeleteCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\CourseController::deleteCourse",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/staff": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "AddStaff",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\StaffController::addStaff",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetStaff",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\StaffController::getStaff",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/staff/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "UpdateStaff",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\StaffController::updateStaff",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "DeleteStaff",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Academics\\StaffController::deleteStaff",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/vendors": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Store",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\VendorController::store",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Get",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\VendorController::get",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/vendors/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\VendorController::update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Delete",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\VendorController::delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/vendors/{id:\\d+}/transactions/{year:\\d+}": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Transactions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\VendorController::transactions",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    },
+                    {
+                        "name": "year",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'year'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/vendors/{id:\\d+}/transactions/annual": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "AnnualHistory",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\VendorController::annualHistory",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/income/report/generate": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GenerateReport",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\IncomeController::generateReport",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/expenditure": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Store",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\ExpenditureController::store",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/expenditure/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\ExpenditureController::update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/expenditure/report/generate": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GenerateReport",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\ExpenditureController::generateReport",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/accounts": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Store",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\AccountController::store",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Get",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\AccountController::get",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/accounts/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\AccountController::update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Delete",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\AccountController::delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/fee-names": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Store",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\FeeTypeController::store",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Get",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\FeeTypeController::get",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/fee-names/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\FeeTypeController::update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Delete",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\FeeTypeController::delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/invoices": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Upsert",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\InvoiceController::upsert",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Get",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\InvoiceController::get",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{student_id:\\d+}/make-payment": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "MakePayment",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\StudentPaymentController::makePayment",
+                "parameters": [
+                    {
+                        "name": "student_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'student_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{student_id:\\d+}/financial-records": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetFinancialRecords",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\StudentPaymentController::getFinancialRecords",
+                "parameters": [
+                    {
+                        "name": "student_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'student_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/dashboard/summary": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetDashboardSummary",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\PaymentDashboardController::getDashboardSummary",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/invoices/paid": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetPaidInvoices",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\PaymentDashboardController::getPaidInvoices",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/invoices/unpaid": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetUnpaidInvoices",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\PaymentDashboardController::getUnpaidInvoices",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/auth/login": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "HandleAuthRequest",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\AuthController::handleAuthRequest",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{student_id:\\d+}/quiz-submissions": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Submit",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\QuizSubmissionController::submit",
+                "parameters": [
+                    {
+                        "name": "student_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'student_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetMarkedQuiz",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\QuizSubmissionController::getMarkedQuiz",
+                "parameters": [
+                    {
+                        "name": "student_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'student_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/quiz/mark": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "MarkQuiz",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\QuizSubmissionController::markQuiz",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/quiz/{content_id:\\d+}/publish": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "PublishQuiz",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\QuizSubmissionController::publishQuiz",
+                "parameters": [
+                    {
+                        "name": "content_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'content_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/quiz/{id:\\d+}/submissions": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetSubmissions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\QuizSubmissionController::getSubmissions",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/{content_id:\\d+}/comments": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Store",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\ContentCommentController::store",
+                "parameters": [
+                    {
+                        "name": "content_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'content_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetCommentsByContentId",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\ContentCommentController::getCommentsByContentId",
+                "parameters": [
+                    {
+                        "name": "content_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'content_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/comments/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\ContentCommentController::update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Delete",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\ContentCommentController::delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/{syllabus_id:\\d+}/comments/streams": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Streams",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\ContentCommentController::streams",
+                "parameters": [
+                    {
+                        "name": "syllabus_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'syllabus_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/material": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Store",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\MaterialController::store",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/material/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\MaterialController::update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/assignment": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Store",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\AssignmentController::store",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/assignment/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\AssignmentController::update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{student_id:\\d+}/assignment-submissions": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Submit",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\AssignmentSubmissionController::submit",
+                "parameters": [
+                    {
+                        "name": "student_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'student_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetMarkedAssignment",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\AssignmentSubmissionController::getMarkedAssignment",
+                "parameters": [
+                    {
+                        "name": "student_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'student_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/assignment/mark": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "MarkAssignment",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\AssignmentSubmissionController::markAssignment",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/assignment/{id:\\d+}/submissions": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetSubmissions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\AssignmentSubmissionController::getSubmissions",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/assignment/{content_id:\\d+}/publish": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "PublishAssignment",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\AssignmentSubmissionController::publishAssignment",
+                "parameters": [
+                    {
+                        "name": "content_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'content_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/overview": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetDashboard",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\ContentManagerController::getDashboard",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/staff/{teacher_id:\\d+}/overview": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "StaffDashboardSummary",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\ContentManagerController::staffDashboardSummary",
+                "parameters": [
+                    {
+                        "name": "teacher_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'teacher_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/syllabus/{syllabus_id:\\d+}/contents": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetAllContents",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\ContentManagerController::getAllContents",
+                "parameters": [
+                    {
+                        "name": "syllabus_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'syllabus_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/contents/{id:\\d+}": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetContentById",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\ContentManagerController::getContentById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/contents/{content_id:\\d+}": {
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Delete",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\ContentManagerController::delete",
+                "parameters": [
+                    {
+                        "name": "content_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'content_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/quiz": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Store",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\QuizController::store",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\QuizController::update",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/quiz/{content_id:\\d+}/{question_id:\\d+}": {
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Delete",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\QuizController::delete",
+                "parameters": [
+                    {
+                        "name": "content_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'content_id'"
+                    },
+                    {
+                        "name": "question_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'question_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{id:\\d+}/elearning/dashboard": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Dashboard",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\StudentContentManagerController::dashboard",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/topic": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Store",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\TopicController::store",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/topic/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\TopicController::update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/syllabus/{syllabus_id:\\d+}/topics": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Get",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\TopicController::get",
+                "parameters": [
+                    {
+                        "name": "syllabus_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'syllabus_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/syllabus": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Store",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\SyllabusController::store",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Get",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\SyllabusController::get",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/syllabus/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\SyllabusController::update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Delete",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\SyllabusController::delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/elearning/syllabus/staff": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetByStaff",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\ELearning\\SyllabusController::getByStaff",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/result/class-result": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "UpdateResult",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\ResultController::updateResult",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/send-results": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "SendResults",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\ResultExportController::sendResults",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{student_id:\\d+}/result/{term:\\d+}": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetStudentTermResult",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\StudentResultController::getStudentTermResult",
+                "parameters": [
+                    {
+                        "name": "student_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'student_id'"
+                    },
+                    {
+                        "name": "term",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'term'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{student_id:\\d+}/result/annual": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetStudentAnnualResult",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\StudentResultController::getStudentAnnualResult",
+                "parameters": [
+                    {
+                        "name": "student_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'student_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{id:\\d+}/result-terms": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetResultTerms",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\StudentResultController::getResultTerms",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/assessments": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "AddAssessments",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\AssessmentController::addAssessments",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetAllAssessments",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\AssessmentController::getAllAssessments",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/assessments/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "UpdateAssessment",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\AssessmentController::updateAssessment",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "DeleteAssessment",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\AssessmentController::deleteAssessment",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/assessments/{level_id:\\d+}": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetAssessmentByLevel",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\AssessmentController::getAssessmentByLevel",
+                "parameters": [
+                    {
+                        "name": "level_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'level_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{student_id:\\d+}/course-registrations": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "RegisterStudentCourses",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\CourseRegistrationController::registerStudentCourses",
+                "parameters": [
+                    {
+                        "name": "student_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'student_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/course-registrations": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "RegisterClassCourses",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\CourseRegistrationController::registerClassCourses",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/course-registrations/duplicate": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "DuplicateLastTermRegistrations",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\CourseRegistrationController::duplicateLastTermRegistrations",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/course-registrations/terms": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetClassRegistrationTerms",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\CourseRegistrationController::getClassRegistrationTerms",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/course-registrations/history": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetClassRegistrationHistory",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\CourseRegistrationController::getClassRegistrationHistory",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/registered-courses": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetRegisteredCoursesForClass",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\CourseRegistrationController::getRegisteredCoursesForClass",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/course-registrations/average-scores": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetRegisteredCoursesWithAvgScores",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\CourseRegistrationController::getRegisteredCoursesWithAvgScores",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/courses/{course_id:\\d+}/students": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetStudentsForCourseInClass",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\CourseRegistrationController::getStudentsForCourseInClass",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{student_id:\\d+}/registered-courses": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetCoursesRegisteredByStudent",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\CourseRegistrationController::getCoursesRegisteredByStudent",
+                "parameters": [
+                    {
+                        "name": "student_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'student_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/registered-students": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetStudentRegistrationStatusInClass",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\CourseRegistrationController::getStudentRegistrationStatusInClass",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/grades": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "AddGrades",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\GradeController::addGrades",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetGrades",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\GradeController::getGrades",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/grades/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "UpdateGrade",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\GradeController::updateGrade",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "DeleteGrade",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\GradeController::deleteGrade",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/result/comment": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Store",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\ResultCommentController::store",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/result/comment/{id:\\d+}": {
+            "put": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\ResultCommentController::update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/skill-behavior": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "UpsertSkills",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\StudentSkillBehaviorController::upsertSkills",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/skill-behavior": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetStudentsSkillsBehaviors",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\StudentSkillBehaviorController::getStudentsSkillsBehaviors",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/courses/{course_id}/results": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetCourseResultsForClass",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\ClassCourseResultController::getCourseResultsForClass",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    },
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/students-result": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetStudentsResultForClass",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\ClassCourseResultController::getStudentsResultForClass",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/classes/{class_id:\\d+}/composite-result": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetClassCompositeResult",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\ClassCourseResultController::getClassCompositeResult",
+                "parameters": [
+                    {
+                        "name": "class_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'class_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/levels/result/performance": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetAllLevelsPerformance",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Results\\ClassCourseResultController::getAllLevelsPerformance",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
         "/public/cbt/billing/verify": {
             "post": {
                 "tags": [
@@ -1370,6 +5537,37 @@
                 "summary": "UpdateLessonsTaken",
                 "description": "",
                 "operationId": "V3\\App\\Controllers\\Explore\\CourseCohortEnrollmentController::updateLessonsTaken",
+                "parameters": [
+                    {
+                        "name": "cohort_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'cohort_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/learning/cohorts/{cohort_id}/enrollments/mobile-payment": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "InitiateMobilePayment",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CourseCohortEnrollmentController::initiateMobilePayment",
                 "parameters": [
                     {
                         "name": "cohort_id",
@@ -5140,7 +9338,38 @@
                 },
                 "security": [
                     {
-                        "bearerAuth": []
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/learning/programs/{program_slug}/content": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetProgramContentBySlug",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\ProgramContentController::getProgramContentBySlug",
+                "parameters": [
+                    {
+                        "name": "program_slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'program_slug'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
                     }
                 ]
             }
@@ -5171,7 +9400,7 @@
                 },
                 "security": [
                     {
-                        "bearerAuth": []
+                        "apiKeyAuth": []
                     }
                 ]
             }

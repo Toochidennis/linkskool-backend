@@ -115,7 +115,7 @@ class StudentPaymentService
         $description = 'School Fees Receipt for ' . $data['year'] . ' ' . $data['term'] . ' term';
 
         $payload = [
-            'trans_type' => 'receipts',
+            'trans_type' => 'receipt',
             'memo' => $description,
             'c_type' => 1,
             'ref' => $data['reference'],
@@ -169,7 +169,6 @@ class StudentPaymentService
         if ($amountDue <= 0) {
             return false;
         }
-
 
         if ($payment > $amountDue) {
             $payment = $amountDue; // Cap payment to amount due

@@ -20,7 +20,7 @@ class PaymentDashboardService
     {
         $income = $this->transaction
             ->select(['SUM(amount) as total_income'])
-            ->where('trans_type', 'receipts')
+            ->where('trans_type', 'receipt')
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
             ->where('status', 1)
@@ -31,7 +31,7 @@ class PaymentDashboardService
             ->where('trans_type', 'invoice')
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
-            ->where('approved', 1)
+            ->where('status', 0)
             ->first();
 
         $transactions = $this->transaction
@@ -52,7 +52,7 @@ class PaymentDashboardService
                 'account AS account_number',
                 'account_name',
             ])
-            ->where('approved', 1)
+            ->where('status', 1)
             ->where('sub', '=', 0)
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
@@ -99,7 +99,8 @@ class PaymentDashboardService
             ->where('class', '=', $filters['class_id'])
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
-            ->where('trans_type', '=', 'receipts')
+            ->where('trans_type', '=', 'receipt')
+            ->where('status', '=', 1)
             ->get();
     }
     public function unpaidInvoices(array $filters): array
@@ -119,8 +120,8 @@ class PaymentDashboardService
                 'class AS class_id',
             ])
             ->where('class', '=', $filters['class_id'])
-            ->where('approved', '=', 1)
             ->where('trans_type', '=', 'invoice')
+            ->where('status', '=', 0)
             ->orderBy(['year' => 'DESC', 'term' => 'DESC'])
             ->get();
 
