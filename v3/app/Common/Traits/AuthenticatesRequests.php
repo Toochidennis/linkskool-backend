@@ -13,18 +13,21 @@ trait AuthenticatesRequests
 {
     private static function getSecretKey(): string
     {
-        return getenv('JWT_SECRET_KEY') ?: 'fallback_secret';
+        return getenv('JWT_SECRET_KEY');
     }
 
-    private static function generateJWT(string $userId, string $name, string $role): string
+    private static function generateJWT(string $userId, string $name, string $role, string $type = 'access'): string
     {
         $issuedAt = time();
-        $expirationTime = $issuedAt + 2592000; // 30 days
+        $expirationTime = $type === 'refresh'
+            ? $issuedAt + 7776000  // 90 days
+            : $issuedAt + 2592000; // 30 days
         $payload = [
             'iss'  => 'linkskool.com',
             'aud'  => 'linkskool.com',
             'iat'  => $issuedAt,
             'exp'  => $expirationTime,
+            'type' => $type,
             'data' => [
                 'id'   => $userId,
                 'name' => $name,
@@ -42,26 +45,9 @@ trait AuthenticatesRequests
             $decoded = JWT::decode($token, new Key(self::getSecretKey(), 'HS256'));
             return json_decode(json_encode($decoded), true);
         } catch (ExpiredException $e) {
-            $decoded = json_decode(base64_decode(explode('.', $token)[1] ?? ''), true);
-
-            if (!isset($decoded['data'])) {
-                ResponseHandler::sendJsonResponse([
-                    'success' => false,
-                    'message' => 'Token structure invalid or corrupted.',
-                    'status'  => HttpStatus::UNAUTHORIZED
-                ]);
-            }
-
-            $newToken = self::generateJWT(
-                $decoded['data']['id'],
-                $decoded['data']['name'],
-                $decoded['data']['role']
-            );
-
             ResponseHandler::sendJsonResponse([
-                'success' => true,
-                'message' => 'Token refreshed.',
-                'token'   => $newToken,
+                'success' => false,
+                'message' => 'Token expired.',
                 'status'  => HttpStatus::UNAUTHORIZED
             ]);
         } catch (Exception $e) {
@@ -71,6 +57,44 @@ trait AuthenticatesRequests
                 'status'  => HttpStatus::UNAUTHORIZED
             ]);
         }
+    }
+
+    public static function refreshExpiredToken(string $token): string
+    {
+        try {
+            $decoded = JWT::decode($token, new Key(self::getSecretKey(), 'HS256'));
+            $data = json_decode(json_encode($decoded), true);
+        } catch (ExpiredException $e) {
+            $data = json_decode(base64_decode(explode('.', $token)[1] ?? ''), true);
+        } catch (Exception $e) {
+            ResponseHandler::sendJsonResponse([
+                'success' => false,
+                'message' => 'Invalid or malformed token.',
+                'status'  => HttpStatus::UNAUTHORIZED
+            ]);
+        }
+
+        if (!isset($data['data']['id'], $data['data']['name'], $data['data']['role'])) {
+            ResponseHandler::sendJsonResponse([
+                'success' => false,
+                'message' => 'Token structure invalid or corrupted.',
+                'status'  => HttpStatus::UNAUTHORIZED
+            ]);
+        }
+
+        if (($data['type'] ?? '') !== 'refresh') {
+            ResponseHandler::sendJsonResponse([
+                'success' => false,
+                'message' => 'Invalid token type. A refresh token is required.',
+                'status'  => HttpStatus::UNAUTHORIZED
+            ]);
+        }
+
+        return self::generateJWT(
+            $data['data']['id'],
+            $data['data']['name'],
+            $data['data']['role']
+        );
     }
 
     private static function validateAPIKey(string $apiKey): bool

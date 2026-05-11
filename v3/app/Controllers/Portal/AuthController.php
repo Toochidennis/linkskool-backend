@@ -86,6 +86,30 @@ class AuthController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
+    #[Route(path: '/auth/refresh', method: 'POST', middleware: ['api'])]
+    public function handleRefreshRequest()
+    {
+        $headers = getallheaders();
+        $authHeader = $headers['Authorization'] ?? '';
+
+        if (!str_starts_with($authHeader, 'Bearer ')) {
+            ResponseHandler::sendJsonResponse([
+                'success' => false,
+                'message' => "Invalid token. Missing 'Bearer ' prefix.",
+                'status'  => HttpStatus::BAD_REQUEST
+            ]);
+        }
+
+        $token = substr($authHeader, 7);
+        $newToken = AuthService::refresh($token);
+
+        ResponseHandler::sendJsonResponse([
+            'success' => true,
+            'message' => 'Token refreshed.',
+            'token'   => $newToken,
+        ]);
+    }
+
     public function logout()
     {
         echo "Hi";
