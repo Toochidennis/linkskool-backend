@@ -21,7 +21,7 @@ trait AuthenticatesRequests
         $issuedAt = time();
         $expirationTime = $type === 'refresh'
             ? $issuedAt + 7776000  // 90 days
-            : $issuedAt + 2592000; // 30 days
+            : $issuedAt + 172800; // 2 days
         $payload = [
             'iss'  => 'linkskool.com',
             'aud'  => 'linkskool.com',
