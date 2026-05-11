@@ -281,9 +281,9 @@ class AuthService
             ->count();
     }
 
-    public static function refresh(string $token): string
+    public static function refresh(string $token): array
     {
-        return self::refreshExpiredToken($token);
+        return self::refreshToken($token);
     }
 
     private function verifyPassword(string $userPassword, string $password): bool

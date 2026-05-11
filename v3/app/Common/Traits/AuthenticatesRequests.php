@@ -53,23 +53,27 @@ trait AuthenticatesRequests
         } catch (Exception $e) {
             ResponseHandler::sendJsonResponse([
                 'success' => false,
-                'message' => 'Invalid or malformed token.',
+                'message' => 'Authentication failed.',
                 'status'  => HttpStatus::UNAUTHORIZED
             ]);
         }
     }
 
-    public static function refreshExpiredToken(string $token): string
+    public static function refreshToken(string $token): array
     {
         try {
             $decoded = JWT::decode($token, new Key(self::getSecretKey(), 'HS256'));
             $data = json_decode(json_encode($decoded), true);
         } catch (ExpiredException $e) {
-            $data = json_decode(base64_decode(explode('.', $token)[1] ?? ''), true);
+            ResponseHandler::sendJsonResponse([
+                'success' => false,
+                'message' => 'Session expired. Please log in again.',
+                'status'  => HttpStatus::UNAUTHORIZED
+            ]);
         } catch (Exception $e) {
             ResponseHandler::sendJsonResponse([
                 'success' => false,
-                'message' => 'Invalid or malformed token.',
+                'message' => 'Authentication failed.',
                 'status'  => HttpStatus::UNAUTHORIZED
             ]);
         }
@@ -77,7 +81,7 @@ trait AuthenticatesRequests
         if (!isset($data['data']['id'], $data['data']['name'], $data['data']['role'])) {
             ResponseHandler::sendJsonResponse([
                 'success' => false,
-                'message' => 'Token structure invalid or corrupted.',
+                'message' => 'Authentication failed.',
                 'status'  => HttpStatus::UNAUTHORIZED
             ]);
         }
@@ -85,16 +89,17 @@ trait AuthenticatesRequests
         if (($data['type'] ?? '') !== 'refresh') {
             ResponseHandler::sendJsonResponse([
                 'success' => false,
-                'message' => 'Invalid token type. A refresh token is required.',
+                'message' => 'Authentication failed.',
                 'status'  => HttpStatus::UNAUTHORIZED
             ]);
         }
 
-        return self::generateJWT(
-            $data['data']['id'],
-            $data['data']['name'],
-            $data['data']['role']
-        );
+        $accessToken = self::generateJWT($data['data']['id'], $data['data']['name'], $data['data']['role']);
+
+        return [
+            'access_token'  => $accessToken,
+            'refresh_token' => self::generateJWT($data['data']['id'], $data['data']['name'], $data['data']['role'], 'refresh'),
+        ];
     }
 
     private static function validateAPIKey(string $apiKey): bool
@@ -111,8 +116,8 @@ trait AuthenticatesRequests
         if (!str_starts_with($authHeader, 'Bearer ')) {
             ResponseHandler::sendJsonResponse([
                 'success' => false,
-                'message' => "Invalid token. Missing 'Bearer ' prefix.",
-                'status'  => HttpStatus::BAD_REQUEST
+                'message' => 'Authentication failed.',
+                'status'  => HttpStatus::UNAUTHORIZED
             ]);
         }
 

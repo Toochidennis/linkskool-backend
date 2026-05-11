@@ -89,29 +89,20 @@ class AuthController
     #[Route(path: '/auth/refresh', method: 'POST', middleware: ['api'])]
     public function handleRefreshRequest()
     {
-        $headers = getallheaders();
-        $authHeader = $headers['Authorization'] ?? '';
+        $post = DataExtractor::extractPostData();
+        $data = $this->validate(
+            $post,
+            [
+                'refresh_token' => 'required|string|filled'
+            ]
+        );
 
-        if (!str_starts_with($authHeader, 'Bearer ')) {
-            ResponseHandler::sendJsonResponse([
-                'success' => false,
-                'message' => "Invalid token. Missing 'Bearer ' prefix.",
-                'status'  => HttpStatus::BAD_REQUEST
-            ]);
-        }
-
-        $token = substr($authHeader, 7);
-        $newToken = AuthService::refresh($token);
+        $newToken = AuthService::refresh($data['refresh_token']);
 
         ResponseHandler::sendJsonResponse([
             'success' => true,
             'message' => 'Token refreshed.',
-            'token'   => $newToken,
+            'data' => $newToken
         ]);
-    }
-
-    public function logout()
-    {
-        echo "Hi";
     }
 }
