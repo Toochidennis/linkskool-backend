@@ -5,7 +5,6 @@ namespace V3\App\Common\Traits;
 use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use Firebase\JWT\ExpiredException;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Common\Utilities\ResponseHandler;
 
@@ -44,12 +43,6 @@ trait AuthenticatesRequests
         try {
             $decoded = JWT::decode($token, new Key(self::getSecretKey(), 'HS256'));
             return json_decode(json_encode($decoded), true);
-        } catch (ExpiredException $e) {
-            ResponseHandler::sendJsonResponse([
-                'success' => false,
-                'message' => 'Token expired.',
-                'status'  => HttpStatus::UNAUTHORIZED
-            ]);
         } catch (Exception $e) {
             ResponseHandler::sendJsonResponse([
                 'success' => false,
@@ -64,12 +57,6 @@ trait AuthenticatesRequests
         try {
             $decoded = JWT::decode($token, new Key(self::getSecretKey(), 'HS256'));
             $data = json_decode(json_encode($decoded), true);
-        } catch (ExpiredException $e) {
-            ResponseHandler::sendJsonResponse([
-                'success' => false,
-                'message' => 'Session expired. Please log in again.',
-                'status'  => HttpStatus::UNAUTHORIZED
-            ]);
         } catch (Exception $e) {
             ResponseHandler::sendJsonResponse([
                 'success' => false,
