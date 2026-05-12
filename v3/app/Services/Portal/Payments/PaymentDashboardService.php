@@ -246,22 +246,18 @@ class PaymentDashboardService
 
             $allItems = json_decode($invoice['invoice_details'], true) ?? [];
 
-            $paidFeeIds = [];
+            $paidItems = [];
             foreach ($receiptsByInvoiceId[$invoice['id']] ?? [] as $receipt) {
                 foreach (json_decode($receipt['description'], true) ?? [] as $item) {
-                    $paidFeeIds[$item['fee_id']] = true;
+                    $paidItems[$item['fee_id']] = $item;
                 }
             }
-
-            $remainingItems = array_values(
-                array_filter($allItems, fn($item) => !isset($paidFeeIds[$item['fee_id']]))
-            );
 
             $grouped[$sid]['invoices'][] = [
                 'id' => $invoice['id'],
                 'reference' => $invoice['reference'],
                 'invoice_details' => $allItems,
-                'remaining_items' => $remainingItems,
+                'items_paid' => array_values($paidItems),
                 'amount' => $invoice['amount'],
                 'amount_paid' => $invoice['amount_paid'],
                 'amount_due' => $invoice['amount_due'],

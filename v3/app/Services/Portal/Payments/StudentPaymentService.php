@@ -71,21 +71,17 @@ class StudentPaymentService
         foreach ($invoiceMap as $invoiceId => $trans) {
             $allItems = json_decode($trans['description'], true) ?? [];
 
-            $paidFeeIds = [];
+            $paidItems = [];
             foreach ($receiptsByInvoiceId[$invoiceId] ?? [] as $receipt) {
                 foreach (json_decode($receipt['description'], true) ?? [] as $item) {
-                    $paidFeeIds[$item['fee_id']] = true;
+                    $paidItems[$item['fee_id']] = $item;
                 }
             }
-
-            $remainingItems = array_values(
-                array_filter($allItems, fn($item) => !isset($paidFeeIds[$item['fee_id']]))
-            );
 
             $formatted['invoice'][] = [
                 'id' => $invoiceId,
                 'invoice_details' => $allItems,
-                'remaining_items' => $remainingItems,
+                'items_paid' => array_values($paidItems),
                 'amount' => $trans['amount'],
                 'amount_paid' => $trans['amount_paid'],
                 'amount_due' => $trans['amount_due'],

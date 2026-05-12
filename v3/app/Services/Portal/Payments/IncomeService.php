@@ -156,13 +156,13 @@ class IncomeService
             ->orderBy(['date' => 'ASC'])
             ->get();
 
-        $paidFeeIds = [];
+        $paidItems = [];
         $paymentHistory = [];
 
         foreach ($allReceipts as $r) {
             $items = json_decode($r['description'], true) ?? [];
             foreach ($items as $item) {
-                $paidFeeIds[$item['fee_id']] = true;
+                $paidItems[$item['fee_id']] = $item;
             }
             $paymentHistory[] = [
                 'id' => $r['id'],
@@ -174,8 +174,9 @@ class IncomeService
             ];
         }
 
-        $remainingItems = array_values(
-            array_filter($allItems, fn($item) => !isset($paidFeeIds[$item['fee_id']]))
+        $paidItemsList = array_values($paidItems);
+        $outstandingItems = array_values(
+            array_filter($allItems, fn($item) => !isset($paidItems[$item['fee_id']]))
         );
 
         return [
@@ -183,13 +184,20 @@ class IncomeService
             'invoice' => [
                 'id' => $invoice['id'],
                 'invoice_details' => $allItems,
-                'remaining_items' => $remainingItems,
                 'amount' => $invoice['amount'],
                 'amount_paid' => $invoice['amount_paid'],
                 'amount_due' => $invoice['amount_due'],
                 'year' => $invoice['year'],
                 'term' => $invoice['term'],
                 'status' => $invoice['status'],
+            ],
+            'paid_summary' => [
+                'items' => $paidItemsList,
+                'total' => array_sum(array_column($paidItemsList, 'amount')),
+            ],
+            'outstanding_summary' => [
+                'items' => $outstandingItems,
+                'total' => array_sum(array_column($outstandingItems, 'amount')),
             ],
             'payment_history' => $paymentHistory,
         ];
