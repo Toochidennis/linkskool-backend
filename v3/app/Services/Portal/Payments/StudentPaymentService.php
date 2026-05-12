@@ -130,11 +130,23 @@ class StudentPaymentService
         $result['data'] = array_map(function ($row) use ($levelNames) {
             $row['items_paid'] = json_decode($row['description'], true) ?? [];
             $row['level_name'] = $levelNames[$row['level_id']] ?? null;
+            $row['name'] = $this->normalizeName($row['name'] ?? null);
             unset($row['description']);
             return $row;
         }, $result['data']);
 
         return $result;
+    }
+
+    private function normalizeName(?string $name): ?string
+    {
+        if ($name === null) {
+            return null;
+        }
+
+        $name = trim($name);
+
+        return $name === '' ? $name : ucwords(strtolower($name));
     }
 
     public function addPayment(array $data): array

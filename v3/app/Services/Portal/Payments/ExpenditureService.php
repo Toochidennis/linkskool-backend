@@ -102,6 +102,7 @@ class ExpenditureService
         $query = $this->applyOtherFilters($query, $filters);
 
         $rows = $query->get();
+        $rows = $this->normalizeTransactionNames($rows);
         $groupBy = $filters['group_by'] ?? null;
 
         $transactions = $groupBy ?
@@ -331,5 +332,25 @@ class ExpenditureService
         }
 
         return $date;
+    }
+
+    private function normalizeTransactionNames(array $rows): array
+    {
+        return array_map(function (array $row) {
+            $row['name'] = $this->normalizeName($row['name'] ?? null);
+
+            return $row;
+        }, $rows);
+    }
+
+    private function normalizeName(?string $name): ?string
+    {
+        if ($name === null) {
+            return null;
+        }
+
+        $name = trim($name);
+
+        return $name === '' ? $name : ucwords(strtolower($name));
     }
 }

@@ -64,6 +64,7 @@ class PaymentDashboardService
             ->where('term', '=', $filters['term'])
             ->where('status', '=', 1)
             ->orderBy(['date' => 'DESC', 'term' => 'DESC'])
+            ->limit(25)
             ->get();
 
         $levels = $this->level
@@ -77,6 +78,7 @@ class PaymentDashboardService
         foreach ($transactions as &$trans) {
             $levelId = $trans['level_id'];
             $trans['level_name'] = $levelNames[$levelId] ?? 'Unknown Level';
+            $trans['name'] = $this->normalizeName($trans['name'] ?? null);
         }
 
         return [
@@ -124,6 +126,10 @@ class PaymentDashboardService
             ->orderBy(['date' => 'DESC', 'term' => 'DESC'])
             ->get();
 
+        foreach ($data as &$row) {
+            $row['name'] = $this->normalizeName($row['name'] ?? null);
+        }
+
         return [
             'stats' => [
                 'total_amount' => $stats['total_amount'] ?? 0,
@@ -132,10 +138,26 @@ class PaymentDashboardService
             'data' => $data,
         ];
     }
+
     public function listTransactions(array $filters): array
     {
         $page = max(1, (int) ($filters['page'] ?? 1));
         $limit = max(1, min(100, (int) ($filters['limit'] ?? 20)));
+
+        $stats = $this->transaction
+            ->select([
+                "SUM(CASE WHEN trans_type = 'receipt' THEN amount_paid ELSE 0 END) AS total_income",
+                "SUM(CASE WHEN trans_type = 'expenditure' THEN amount_paid ELSE 0 END) AS total_expenditure",
+            ])
+            ->where('year', '=', $filters['year'])
+            ->where('term', '=', $filters['term'])
+            ->in('trans_type', ['receipt', 'expenditure']);
+
+        if (!empty($filters['class_id'])) {
+            $stats->where('class', '=', $filters['class_id']);
+        }
+
+        $stats = $stats->first();
 
         $this->transaction
             ->select([
@@ -145,7 +167,6 @@ class PaymentDashboardService
                 'cref AS reg_no',
                 'memo AS description',
                 'name',
-                'amount AS total_amount',
                 'amount_due',
                 'amount_paid',
                 'date',
@@ -157,9 +178,9 @@ class PaymentDashboardService
                 'account AS account_number',
                 'account_name',
             ])
-            ->where('trans_type', '=', $filters['type'])
             ->where('year', '=', $filters['year'])
-            ->where('term', '=', $filters['term']);
+            ->where('term', '=', $filters['term'])
+            ->in('trans_type', ['receipt', 'expenditure']);
 
         if (!empty($filters['class_id'])) {
             $this->transaction->where('class', '=', $filters['class_id']);
@@ -176,10 +197,22 @@ class PaymentDashboardService
         }
 
         foreach ($result['data'] as &$trans) {
-            $trans['level_name'] = $levelNames[$trans['level_id']] ?? 'Unknown Level';
+            $trans['level_name'] = $levelNames[$trans['level_id']] ?? '';
+            $trans['name'] = $this->normalizeName($trans['name'] ?? null);
         }
 
-        return $result;
+        return [
+            'stats' => [
+                'total_income' => (float) ($stats['total_income'] ?? 0),
+                'total_expenditure' => (float) ($stats['total_expenditure'] ?? 0),
+            ],
+            'data' => [
+                'all' => $result['data'],
+                'receipt' => $this->filterTransactionsByType($result['data'], 'receipt'),
+                'expenditure' => $this->filterTransactionsByType($result['data'], 'expenditure'),
+            ],
+            'meta' => $result['meta'],
+        ];
     }
 
     public function unpaidInvoices(array $filters): array
@@ -244,7 +277,7 @@ class PaymentDashboardService
                 $grouped[$sid] = [
                     'student_id' => $sid,
                     'reg_no' => $invoice['reg_no'],
-                    'name' => ucwords(strtolower($invoice['name'])),
+                    'name' => $this->normalizeName($invoice['name'] ?? null),
                     'level_id' => $invoice['level_id'],
                     'class_id' => $invoice['class_id'],
                     'invoices' => [],
@@ -283,5 +316,24 @@ class PaymentDashboardService
             ],
             'data' => array_values($grouped),
         ];
+    }
+
+    private function normalizeName(?string $name): ?string
+    {
+        if ($name === null) {
+            return null;
+        }
+
+        $name = trim($name);
+
+        return $name === '' ? $name : ucwords(strtolower($name));
+    }
+
+    private function filterTransactionsByType(array $transactions, string $type): array
+    {
+        return array_values(array_filter(
+            $transactions,
+            fn(array $transaction) => ($transaction['type'] ?? null) === $type
+        ));
     }
 }

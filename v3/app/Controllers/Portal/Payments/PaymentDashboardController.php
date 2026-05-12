@@ -48,7 +48,6 @@ class PaymentDashboardController extends BaseController
         $filteredVars = $this->validate(
             $vars,
             [
-                'type' => 'required|string|in:receipt,expenditure',
                 'year' => 'required|integer',
                 'term' => 'required|integer',
                 'class_id' => 'nullable|integer',

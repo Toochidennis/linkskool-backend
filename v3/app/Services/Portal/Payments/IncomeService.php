@@ -30,6 +30,7 @@ class IncomeService
 
         if ($groupBy) {
             $rows = $this->buildFilteredQuery($filters)->get();
+            $rows = $this->normalizeTransactionNames($rows);
 
             return [
                 'summary' => [
@@ -67,6 +68,7 @@ class IncomeService
         $transactions = array_map(function ($row) use ($classes, $levels) {
             $row['class_name'] = $classes[$row['class_id']] ?? null;
             $row['level_name'] = $levels[$row['level_id']] ?? null;
+            $row['name'] = $this->normalizeName($row['name'] ?? null);
             $row['items_paid'] = json_decode($row['description'], true) ?? [];
             unset($row['description']);
             return $row;
@@ -115,6 +117,7 @@ class IncomeService
 
         $invoiceId = (int) $receipt['it_id'];
         $receiptOut = $receipt;
+        $receiptOut['name'] = $this->normalizeName($receiptOut['name'] ?? null);
         $receiptOut['items_paid'] = json_decode($receipt['description'], true) ?? [];
         unset($receiptOut['description'], $receiptOut['it_id']);
 
@@ -451,5 +454,25 @@ class IncomeService
         }
 
         return $date;
+    }
+
+    private function normalizeTransactionNames(array $rows): array
+    {
+        return array_map(function (array $row) {
+            $row['name'] = $this->normalizeName($row['name'] ?? null);
+
+            return $row;
+        }, $rows);
+    }
+
+    private function normalizeName(?string $name): ?string
+    {
+        if ($name === null) {
+            return null;
+        }
+
+        $name = trim($name);
+
+        return $name === '' ? $name : ucwords(strtolower($name));
     }
 }
