@@ -18,12 +18,19 @@ class PaymentDashboardService
 
     public function getSummary(array $filters): array
     {
+        $expected = $this->transaction
+            ->select(['SUM(amount) as total_expected'])
+            ->where('trans_type', 'invoice')
+            ->where('year', '=', $filters['year'])
+            ->where('term', '=', $filters['term'])
+            ->first();
+
         $income = $this->transaction
-            ->select(['SUM(amount) as total_income'])
+            ->select(['SUM(amount_paid) as total_income'])
             ->where('trans_type', 'receipt')
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
-            ->where('status', 1)
+            ->where('status', '=', 1)
             ->first();
 
         $outstanding = $this->transaction
@@ -42,7 +49,7 @@ class PaymentDashboardService
                 'cref AS reg_no',
                 'memo AS description',
                 'name',
-                'amount',
+                'amount_paid AS amount',
                 'date',
                 'year',
                 'term',
@@ -53,10 +60,9 @@ class PaymentDashboardService
                 'account_name',
             ])
             ->where('trans_type', '=', 'receipt')
-            ->where('status', 1)
-            ->where('sub', '=', 0)
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
+            ->where('status', '=', 1)
             ->orderBy(['date' => 'DESC', 'term' => 'DESC'])
             ->get();
 
@@ -74,6 +80,7 @@ class PaymentDashboardService
         }
 
         return [
+            'expected' => $expected['total_expected'] ?? 0,
             'income' => $income['total_income'] ?? 0,
             'outstanding' => $outstanding['total_outstanding'] ?? 0,
             'transactions' => $transactions,
@@ -84,7 +91,7 @@ class PaymentDashboardService
     {
         $stats = $this->transaction
             ->select([
-                'SUM(amount) as total_amount',
+                'SUM(amount_paid) as total_amount',
                 'COUNT(*) as count',
             ])
             ->where('class', '=', $filters['class_id'])
@@ -101,7 +108,7 @@ class PaymentDashboardService
                 'cref AS reg_no',
                 'memo as description',
                 'name',
-                'amount',
+                'amount_paid AS amount',
                 'date',
                 'year',
                 'term',
@@ -114,6 +121,7 @@ class PaymentDashboardService
             ->where('term', '=', $filters['term'])
             ->where('trans_type', '=', 'receipt')
             ->where('status', '=', 1)
+            ->orderBy(['date' => 'DESC', 'term' => 'DESC'])
             ->get();
 
         return [
@@ -127,7 +135,7 @@ class PaymentDashboardService
     public function listTransactions(array $filters): array
     {
         $page = max(1, (int) ($filters['page'] ?? 1));
-        $perPage = max(1, min(100, (int) ($filters['per_page'] ?? 20)));
+        $limit = max(1, min(100, (int) ($filters['limit'] ?? 20)));
 
         $this->transaction
             ->select([
@@ -137,9 +145,9 @@ class PaymentDashboardService
                 'cref AS reg_no',
                 'memo AS description',
                 'name',
-                'amount',
-                'amount_paid',
+                'amount AS total_amount',
                 'amount_due',
+                'amount_paid',
                 'date',
                 'year',
                 'term',
@@ -159,7 +167,7 @@ class PaymentDashboardService
 
         $result = $this->transaction
             ->orderBy(['date' => 'DESC'])
-            ->paginate($page, $perPage);
+            ->paginate($page, $limit);
 
         $levels = $this->level->select(['id', 'level_name'])->get();
         $levelNames = [];
@@ -188,7 +196,6 @@ class PaymentDashboardService
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
             ->where('trans_type', '=', 'invoice')
-            ->where('status', '=', 0)
             ->first();
 
         $invoices = $this->transaction

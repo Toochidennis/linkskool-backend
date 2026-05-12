@@ -34,7 +34,7 @@ class IncomeController extends BaseController
                 'end_date' => 'required_if:custom_type,range|date|after_or_equal:start_date',
                 'group_by' => 'nullable|string|in:level,class,month',
                 'page' => 'nullable|integer|min:1',
-                'per_page' => 'nullable|integer|min:1',
+                'limit' => 'nullable|integer|min:1',
                 'filters.terms' => 'nullable|array',
                 'filters.terms.*' => 'integer|in:1,2,3',
                 'filters.sessions' => 'nullable|array',

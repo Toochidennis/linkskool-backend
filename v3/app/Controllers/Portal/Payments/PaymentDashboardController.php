@@ -53,7 +53,7 @@ class PaymentDashboardController extends BaseController
                 'term' => 'required|integer',
                 'class_id' => 'nullable|integer',
                 'page' => 'nullable|integer',
-                'per_page' => 'nullable|integer',
+                'limit' => 'nullable|integer|min:1',
             ]
         );
 

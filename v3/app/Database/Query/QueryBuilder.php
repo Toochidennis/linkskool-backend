@@ -534,7 +534,7 @@ class QueryBuilder
             'data' => $data,
             'meta' => [
                 'total' => $total,
-                'per_page' => $limit,
+                'limit' => $limit,
                 'current_page' => $page,
                 'last_page' => (int) ceil($total / $limit),
                 'has_next' => $page * $limit < $total,

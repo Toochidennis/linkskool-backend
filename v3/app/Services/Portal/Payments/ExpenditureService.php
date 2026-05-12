@@ -2,7 +2,6 @@
 
 namespace V3\App\Services\Portal\Payments;
 
-use V3\App\Models\Portal\Academics\ClassModel;
 use V3\App\Models\Portal\Academics\SchoolSettings;
 use V3\App\Models\Portal\Payments\Transaction;
 
@@ -20,7 +19,7 @@ class ExpenditureService
     public function addExpenditure(array $data)
     {
         $description = [
-            'amount' => $data['amount'],
+            'amount_paid' => $data['amount'],
             'desc' => $data['description']
         ];
 
@@ -33,13 +32,10 @@ class ExpenditureService
             'name' => $data['customer_name'],
             'description' => json_encode($description),
             'quantity' => 1,
-            'it_id' => 1,
-            'amount' => $data['amount'],
+            'amount_paid' => $data['amount'],
             'date' => $data['date'],
             'account' => $data['account_number'],
             'account_name' => $data['account_name'],
-            'approved' => 1,
-            'sub' => 0,
             'status' => 1,
             'year' => $data['year'],
             'term' => $data['term'],
@@ -51,7 +47,7 @@ class ExpenditureService
     public function updateExpenditure(array $data): bool
     {
         $description = [
-            'amount' => $data['amount'],
+            'amount_paid' => $data['amount'],
             'desc' => $data['description']
         ];
 
@@ -62,7 +58,7 @@ class ExpenditureService
             'cref' => $data['customer_reference'],
             'name' => $data['customer_name'],
             'description' => json_encode($description),
-            'amount' => $data['amount'],
+            'amount_paid' => $data['amount'],
             'account' => $data['account_number'],
             'account_name' => $data['account_name'],
             'year' => $data['year'],
@@ -93,7 +89,7 @@ class ExpenditureService
                 'name',
                 'account AS account_number',
                 'account_name',
-                'amount',
+                'amount_paid AS amount',
                 'date',
                 'year',
                 'term',
@@ -116,8 +112,8 @@ class ExpenditureService
         return [
             'summary' => [
                 'total_amount' => array_sum(array_column($rows, 'amount')),
-                'total_transactions' => count($rows),
-                'unique_vendors' => count(array_unique(array_column($rows, 'customer_id'))),
+                'total_transactions' => \count($rows),
+                'unique_vendors' => \count(array_unique(array_column($rows, 'customer_id'))),
             ],
             'chart_data' => $this->buildChartData($rows, $groupBy),
             'transactions' => $transactions,

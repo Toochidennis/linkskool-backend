@@ -34,7 +34,6 @@ class StudentPaymentService
             ])
             ->where('cid', '=', $studentId)
             ->where('trans_type', '=', 'invoice')
-            ->where('approved', '=', 1)
             ->orderBy(['year' => 'DESC', 'term' => 'DESC'])
             ->get();
 
@@ -46,7 +45,6 @@ class StudentPaymentService
             ->select(['it_id', 'description'])
             ->where('cid', '=', $studentId)
             ->where('trans_type', '=', 'receipt')
-            ->where('approved', '=', 1)
             ->get();
 
         $receiptsByInvoiceId = [];
@@ -92,7 +90,7 @@ class StudentPaymentService
     public function getPaymentHistory(int $studentId, array $filters): array
     {
         $page = max(1, (int) ($filters['page'] ?? 1));
-        $perPage = max(1, min(100, (int) ($filters['per_page'] ?? 20)));
+        $limit = max(1, min(100, (int) ($filters['limit'] ?? 20)));
 
         $query = $this->transaction
             ->select([
@@ -101,7 +99,7 @@ class StudentPaymentService
                 'ref AS reference',
                 'cref AS reg_no',
                 'name',
-                'amount',
+                'amount_paid AS amount',
                 'description',
                 'date',
                 'year',
@@ -111,8 +109,7 @@ class StudentPaymentService
                 'status',
             ])
             ->where('cid', '=', $studentId)
-            ->where('trans_type', '=', 'receipt')
-            ->where('approved', '=', 1);
+            ->where('trans_type', '=', 'receipt');
 
         if (!empty($filters['year'])) {
             $query->where('year', '=', $filters['year']);
@@ -122,7 +119,7 @@ class StudentPaymentService
             $query->where('term', '=', $filters['term']);
         }
 
-        $result = $query->orderBy(['year' => 'DESC', 'date' => 'DESC'])->paginate($page, $perPage);
+        $result = $query->orderBy(['year' => 'DESC', 'date' => 'DESC'])->paginate($page, $limit);
 
         $levels = $this->level->select(['id', 'level_name'])->get();
         $levelNames = [];
@@ -168,8 +165,6 @@ class StudentPaymentService
             'date' => date('Y-m-d'),
             'account' => 1980,
             'account_name' => 'Income',
-            'sub' => 0,
-            'approved' => 1,
             'status' => 1,
             'class' => $data['class_id'],
             'level' => $data['level_id'],
@@ -207,8 +202,6 @@ class StudentPaymentService
             'date' => date('Y-m-d'),
             'account' => 1980,
             'account_name' => 'Income',
-            'sub' => 0,
-            'approved' => 0,
             'status' => 0,
             'class' => $data['class_id'],
             'level' => $data['level_id'],

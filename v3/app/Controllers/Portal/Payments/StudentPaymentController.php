@@ -85,20 +85,20 @@ class StudentPaymentController extends BaseController
     }
 
     #[Route(
-        '/students/{student_id:\d+}/payment-history',
+        '/students/{student_id:\d+}/payment/history',
         'GET',
         ['auth', 'role:student', 'role:admin']
     )]
     public function getPaymentHistory(array $vars)
     {
         $cleanedData = $this->validate(
-            data: [...$vars, ...$this->query],
+            data: [...$vars],
             rules: [
                 'student_id' => 'required|integer|min:1',
                 'year' => 'nullable|digits:4',
                 'term' => 'nullable|integer|in:1,2,3',
                 'page' => 'nullable|integer|min:1',
-                'per_page' => 'nullable|integer|min:1',
+                'limit' => 'nullable|integer|min:1',
             ],
         );
 

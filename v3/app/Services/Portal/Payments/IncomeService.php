@@ -42,25 +42,25 @@ class IncomeService
                 ],
                 'chart_data' => $this->buildChartData($rows, $groupBy, $classes, $levels),
                 'transactions' => $this->applyGrouping($rows, $groupBy, $classes, $levels),
-                'pagination' => null,
+                'meta' => null,
             ];
         }
 
         $page = max(1, (int) ($filters['page'] ?? 1));
-        $perPage = max(1, min(100, (int) ($filters['per_page'] ?? 20)));
+        $limit = max(1, min(100, (int) ($filters['limit'] ?? 20)));
 
         $aggregate = $this->buildFilteredQuery($filters, [
-            'SUM(amount) AS total_amount',
+            'SUM(amount_paid) AS total_amount',
             'COUNT(*) AS total_transactions',
             'COUNT(DISTINCT cref) AS unique_students',
-            'AVG(amount) AS average_amount',
+            'AVG(amount_paid) AS average_amount',
         ])->first();
 
         $result = $this->buildFilteredQuery($filters)
             ->orderBy(['date' => 'DESC'])
-            ->paginate($page, $perPage);
+            ->paginate($page, $limit);
 
-        $chartRows = $this->buildFilteredQuery($filters, ['date', 'amount'])
+        $chartRows = $this->buildFilteredQuery($filters, ['date', 'amount_paid AS amount'])
             ->orderBy(['date' => 'ASC'])
             ->get();
 
@@ -81,12 +81,7 @@ class IncomeService
             ],
             'chart_data' => $this->buildChartData($chartRows, null, $classes, $levels),
             'transactions' => $transactions,
-            'pagination' => [
-                'current_page' => $result['current_page'],
-                'per_page' => $result['per_page'],
-                'total' => $result['total'],
-                'last_page' => $result['last_page'],
-            ],
+            'meta' => $result['meta'],
         ];
     }
 

@@ -149,7 +149,7 @@ class CbtGamifyService
         ];
     }
 
-    public function getFullLeaderboard(int $examTypeId, ?int $courseId = null, int $page = 1, int $perPage = 50): array
+    public function getFullLeaderboard(int $examTypeId, ?int $courseId = null, int $page = 1, int $limit = 50): array
     {
         // Build the query
         $query = $this->cbtGamifyModel
@@ -164,17 +164,17 @@ class CbtGamifyService
         $query->orderBy('score', 'DESC');
 
         // Get paginated results
-        $leaderboardData = $query->paginate($page, $perPage);
+        $leaderboardData = $query->paginate($page, $limit);
 
         // Add rank to each record
-        $startRank = (($page - 1) * $perPage) + 1;
+        $startRank = (($page - 1) * $limit) + 1;
         foreach ($leaderboardData['data'] as &$record) {
             $record['rank'] = $startRank++;
         }
 
         return [
             'data' => $leaderboardData['data'],
-            'pagination' => $leaderboardData['meta'],
+            'meta' => $leaderboardData['meta'],
         ];
     }
 }
