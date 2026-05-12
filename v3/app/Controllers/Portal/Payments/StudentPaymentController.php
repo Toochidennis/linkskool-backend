@@ -51,7 +51,7 @@ class StudentPaymentController extends BaseController
     }
 
     #[Route(
-        '/students/payment-status/{reference}',
+        '/students/payment/status/{reference}',
         'GET',
         ['auth', 'role:admin', 'role:student']
     )]
