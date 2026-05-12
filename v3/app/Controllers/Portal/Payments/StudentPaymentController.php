@@ -19,49 +19,52 @@ class StudentPaymentController extends BaseController
     }
 
     #[Route(
-        '/students/{student_id:\d+}/make-payment',
+        '/students/{student_id:\d+}/initiate-payment',
         'POST',
         ['auth', 'role:admin', 'role:student']
     )]
-    public function makePayment(array $vars)
+    public function initiatePayment(array $vars)
     {
         $cleanedData = $this->validate(
             data: [...$this->post, ...$vars],
             rules: [
-                'invoice_id' => 'required|string|filled',
-                'reference' => 'required|string|filled',
                 'student_id' => 'required|integer|min:1',
+                'invoice_id' => 'required|integer|min:1',
                 'reg_no' => 'required|string|filled',
                 'name' => 'required|string|filled',
+                'email' => 'required_if:type,online|email',
                 'amount' => 'required|numeric|min:1',
                 'class_id' => 'required|integer',
                 'level_id' => 'required|integer',
                 'type' => 'required|string|in:offline,online',
                 'year' => 'required|digits:4',
                 'term' => 'required|integer|in:1,2,3',
-                'invoice_details' => 'required|array|min:1',
-                'invoice_details.*.fee_id' => 'required|integer',
-                'invoice_details.*.fee_name' => 'required|string|filled',
-                'invoice_details.*.amount' => 'required|numeric',
             ],
         );
 
-        $newId = $this->studentPayment->addPayment($cleanedData);
+        $result = $this->studentPayment->initiatePayment($cleanedData);
 
-        if ($newId) {
-            $this->respond(
-                [
-                    'success' => true,
-                    'message' => 'Payment successful'
-                ],
-                HttpStatus::CREATED
-            );
-        }
+        return $this->respond([
+            'success' => true,
+            'data' => $result,
+        ], HttpStatus::CREATED);
+    }
 
-        $this->respondError(
-            'Validation failed',
-            HttpStatus::BAD_REQUEST
-        );
+    #[Route(
+        '/students/payment-status/{reference}',
+        'GET',
+        ['auth', 'role:admin', 'role:student']
+    )]
+    public function checkPaymentStatus(array $vars)
+    {
+        $cleanedData = $this->validate($vars, [
+            'reference' => 'required|string|filled',
+        ]);
+
+        return $this->respond([
+            'success' => true,
+            'data' => $this->studentPayment->checkPaymentStatus($cleanedData['reference']),
+        ]);
     }
 
     #[Route(
@@ -73,10 +76,9 @@ class StudentPaymentController extends BaseController
     {
         $cleanedData = $this->validate($vars, ['student_id' => 'required|integer']);
 
-        $this->respond([
+        return $this->respond([
             'success' => true,
-            'response' => $this->studentPayment
-                ->getInvoiceAndTransactionHistory($cleanedData['student_id']),
+            'data' => $this->studentPayment->getInvoiceAndTransactionHistory($cleanedData['student_id']),
         ]);
     }
 }

@@ -14,6 +14,7 @@ use V3\App\Events\Email\PaymentReceipt;
 use V3\App\Services\Explore\BillingService;
 use V3\App\Services\Explore\CbtPaymentFulfillmentService;
 use V3\App\Services\Explore\CourseCohortEnrollmentService;
+use V3\App\Services\Portal\Payments\StudentPaymentService;
 
 #[Group('/public')]
 class WebhookController extends ExploreBaseController
@@ -21,6 +22,7 @@ class WebhookController extends ExploreBaseController
     private BillingService $billingService;
     private CourseCohortEnrollmentService $courseEnrollment;
     private CbtPaymentFulfillmentService $cbtPaymentFulfillmentService;
+    private StudentPaymentService $studentPaymentService;
 
     public function __construct()
     {
@@ -29,6 +31,7 @@ class WebhookController extends ExploreBaseController
         $this->billingService = new BillingService($this->pdo);
         $this->courseEnrollment = new CourseCohortEnrollmentService($this->pdo);
         $this->cbtPaymentFulfillmentService = new CbtPaymentFulfillmentService($this->pdo);
+        $this->studentPaymentService = new StudentPaymentService($this->pdo);
     }
 
     #[Route('/webhooks/paystack', 'POST')]
@@ -83,6 +86,10 @@ class WebhookController extends ExploreBaseController
         $type = $metadata['payment_type'] ?? null;
 
         switch ($type) {
+            case 'school_fees':
+                $res = $this->studentPaymentService
+                    ->handleWebhookVerification($data['reference']);
+                break;
             case 'course':
                 $res = $this->courseEnrollment
                     ->handlePaymentWebhook($data['reference']);
