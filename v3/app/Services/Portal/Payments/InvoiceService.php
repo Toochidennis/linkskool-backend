@@ -111,6 +111,7 @@ class InvoiceService
                 'description' => $description,
                 'quantity' => 1,
                 'it_id' => 1,
+                'amount' => $amount,
                 'amount_due' => $amount,
                 'date' => date('Y-m-d'),
                 'account' => 1980,

@@ -19,7 +19,7 @@ class StudentPaymentController extends BaseController
     }
 
     #[Route(
-        '/students/{student_id:\d+}/initiate-payment',
+        '/students/{student_id:\d+}/payment/initiate',
         'POST',
         ['auth', 'role:admin', 'role:student']
     )]
@@ -33,7 +33,7 @@ class StudentPaymentController extends BaseController
                 'reg_no' => 'required|string|filled',
                 'name' => 'required|string|filled',
                 'email' => 'required_if:type,online|email',
-                'amount' => 'required|numeric|min:1',
+                'items' => 'required|array|min:1',
                 'class_id' => 'required|integer',
                 'level_id' => 'required|integer',
                 'type' => 'required|string|in:offline,online',
@@ -42,7 +42,7 @@ class StudentPaymentController extends BaseController
             ],
         );
 
-        $result = $this->studentPayment->initiatePayment($cleanedData);
+        $result = $this->studentPayment->addPayment($cleanedData);
 
         return $this->respond([
             'success' => true,
@@ -68,7 +68,7 @@ class StudentPaymentController extends BaseController
     }
 
     #[Route(
-        '/students/{student_id:\d+}/financial-records',
+        '/students/{student_id:\d+}/payment/history',
         'GET',
         ['auth', 'role:student', 'role:admin']
     )]

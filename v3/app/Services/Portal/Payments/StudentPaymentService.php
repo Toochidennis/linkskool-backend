@@ -29,6 +29,7 @@ class StudentPaymentService
         $transactions = $this->transaction
             ->select([
                 'tid AS id',
+                'it_id',
                 'trans_type AS type',
                 'ref AS reference',
                 'cref AS reg_no',
@@ -56,36 +57,66 @@ class StudentPaymentService
             $levelNames[$level['id']] = $level['level_name'];
         }
 
+        $invoiceMap = [];
+        $receiptsByInvoiceId = [];
+
         foreach ($transactions as $trans) {
-            $type = $trans['type'];
+            if ($trans['type'] === 'invoice') {
+                $invoiceMap[$trans['id']] = $trans;
+            } else {
+                $receiptsByInvoiceId[(int) $trans['it_id']][] = $trans;
+            }
+        }
+
+        foreach ($invoiceMap as $invoiceId => $trans) {
+            $allItems = json_decode($trans['description'], true) ?? [];
+
+            $paidFeeIds = [];
+            foreach ($receiptsByInvoiceId[$invoiceId] ?? [] as $receipt) {
+                foreach (json_decode($receipt['description'], true) ?? [] as $item) {
+                    $paidFeeIds[$item['fee_id']] = true;
+                }
+            }
+
+            $remainingItems = array_values(
+                array_filter($allItems, fn($item) => !isset($paidFeeIds[$item['fee_id']]))
+            );
+
+            $formatted['invoice'][] = [
+                'id' => $invoiceId,
+                'invoice_details' => $allItems,
+                'remaining_items' => $remainingItems,
+                'amount' => $trans['amount'],
+                'amount_paid' => $trans['amount_paid'],
+                'amount_due' => $trans['amount_due'],
+                'year' => $trans['year'],
+                'term' => $trans['term'],
+            ];
+        }
+
+        foreach ($transactions as $trans) {
+            if ($trans['type'] === 'invoice') {
+                continue;
+            }
+
             $levelName = $levelNames[$trans['level_id']] ?? 'Unknown Level';
 
-            if ($type === 'invoice') {
-                $formatted['invoice'][] = [
-                    'id' => $trans['id'],
-                    'invoice_details' => json_decode($trans['description'], true),
-                    'amount' => $trans['amount'],
-                    'amount_paid' => $trans['amount_paid'],
-                    'amount_due' => $trans['amount_due'],
-                    'year' => $trans['year'],
-                    'term' => $trans['term'],
-                ];
-            } else {
-                $formatted['payments'][] = [
-                    'id' => $trans['id'],
-                    'reference' => $trans['reference'],
-                    'reg_no' => $trans['reg_no'],
-                    'name' => $trans['name'],
-                    'amount' => $trans['amount'],
-                    'date' => $trans['date'],
-                    'year' => $trans['year'],
-                    'term' => $trans['term'],
-                    'level_id' => $trans['level_id'],
-                    'class_id' => $trans['class_id'],
-                    'status' => $trans['status'],
-                    'level_name' => $levelName,
-                ];
-            }
+            $formatted['payments'][] = [
+                'id' => $trans['id'],
+                'invoice_id' => (int) $trans['it_id'],
+                'reference' => $trans['reference'],
+                'reg_no' => $trans['reg_no'],
+                'name' => $trans['name'],
+                'amount' => $trans['amount'],
+                'items_paid' => json_decode($trans['description'], true) ?? [],
+                'date' => $trans['date'],
+                'year' => $trans['year'],
+                'term' => $trans['term'],
+                'level_id' => $trans['level_id'],
+                'class_id' => $trans['class_id'],
+                'status' => $trans['status'],
+                'level_name' => $levelName,
+            ];
         }
 
         return $formatted;
@@ -93,6 +124,9 @@ class StudentPaymentService
 
     public function addPayment(array $data): array
     {
+        $items = $data['items'];
+        $data['amount'] = (float) array_sum(array_column($items, 'amount'));
+
         if ($data['type'] === 'online') {
             return $this->initiatePayment($data);
         }
@@ -102,13 +136,14 @@ class StudentPaymentService
         $this->transaction->insert([
             'trans_type' => 'receipt',
             'memo' => 'School Fees for ' . $data['year'] . ' Term ' . $data['term'],
+            'description' => json_encode($items),
             'c_type' => 1,
             'ref' => $reference,
             'cid' => $data['student_id'],
             'cref' => $data['reg_no'],
             'name' => $data['name'],
             'quantity' => 1,
-            'it_id' => 1,
+            'it_id' => $data['invoice_id'],
             'amount' => $data['amount'],
             'amount_paid' => $data['amount'],
             'amount_due' => 0,
@@ -124,7 +159,7 @@ class StudentPaymentService
             'term' => $data['term'],
         ]);
 
-        $this->updateInvoice((int) $data['invoice_id'], (float) $data['amount']);
+        $this->updateInvoice((int) $data['invoice_id'], $data['amount']);
 
         return [
             'payment_type' => 'offline',
@@ -140,13 +175,14 @@ class StudentPaymentService
         $this->transaction->insert([
             'trans_type' => 'receipt',
             'memo' => 'School Fees for ' . $data['year'] . ' Term ' . $data['term'],
+            'description' => json_encode($data['items']),
             'c_type' => 1,
             'ref' => $reference,
             'cid' => $data['student_id'],
             'cref' => $data['reg_no'],
             'name' => $data['name'],
             'quantity' => 1,
-            'it_id' => 1,
+            'it_id' => $data['invoice_id'],
             'amount' => $data['amount'],
             'amount_paid' => 0,
             'amount_due' => $data['amount'],
@@ -166,7 +202,7 @@ class StudentPaymentService
 
         $payment = $paystack->initialize([
             'email' => $data['email'],
-            'amount' => (int) round((float) $data['amount'] * 100), // kobo
+            'amount' => (int) round($data['amount'] * 100),
             'reference' => $reference,
             'metadata' => [
                 'payment_type' => 'school_fees',
@@ -193,11 +229,12 @@ class StudentPaymentService
         }
 
         if (!$verification['success'] || $verification['status'] !== 'success') {
-            return ['status' => 'failed', 'message' => 'Payment not successful: ' . ($verification['status'] ?? 'unknown')];
+            $reason = $verification['status'] ?? 'unknown';
+            return ['status' => 'failed', 'message' => 'Payment not successful: ' . $reason];
         }
 
         $receipt = $this->transaction
-            ->select(['tid', 'amount', 'status'])
+            ->select(['tid', 'it_id', 'amount', 'status'])
             ->where('ref', '=', $reference)
             ->where('trans_type', '=', 'receipt')
             ->first();
@@ -215,8 +252,7 @@ class StudentPaymentService
             return ['status' => 'failed', 'message' => 'Payment amount mismatch.'];
         }
 
-        $metadata = $verification['raw']['data']['metadata'] ?? [];
-        $invoiceId = (int) ($metadata['invoice_id'] ?? 0);
+        $invoiceId = (int) $receipt['it_id'];
         $amount = (float) $receipt['amount'];
 
         $this->pdo->beginTransaction();
@@ -294,7 +330,7 @@ class StudentPaymentService
         if ($newAmountDue <= 0) {
             return (bool) $this->transaction
                 ->where('tid', '=', $invoiceId)
-                ->update(['amount_paid' => $newAmountPaid, 'amount_due' => 0, 'approved' => 0, 'sub' => 0]);
+                ->update(['amount_paid' => $newAmountPaid, 'amount_due' => 0, 'status' => 1]);
         }
 
         return (bool) $this->transaction

@@ -215,6 +215,20 @@ class PaymentDashboardService
             ->orderBy(['year' => 'DESC', 'term' => 'DESC'])
             ->get();
 
+        $receiptRows = $this->transaction
+            ->select(['it_id', 'description'])
+            ->where('class', '=', $filters['class_id'])
+            ->where('year', '=', $filters['year'])
+            ->where('term', '=', $filters['term'])
+            ->where('trans_type', '=', 'receipt')
+            ->where('status', '=', 1)
+            ->get();
+
+        $receiptsByInvoiceId = [];
+        foreach ($receiptRows as $receipt) {
+            $receiptsByInvoiceId[(int) $receipt['it_id']][] = $receipt;
+        }
+
         $grouped = [];
         foreach ($invoices as $invoice) {
             $sid = $invoice['student_id'];
@@ -230,10 +244,24 @@ class PaymentDashboardService
                 ];
             }
 
+            $allItems = json_decode($invoice['invoice_details'], true) ?? [];
+
+            $paidFeeIds = [];
+            foreach ($receiptsByInvoiceId[$invoice['id']] ?? [] as $receipt) {
+                foreach (json_decode($receipt['description'], true) ?? [] as $item) {
+                    $paidFeeIds[$item['fee_id']] = true;
+                }
+            }
+
+            $remainingItems = array_values(
+                array_filter($allItems, fn($item) => !isset($paidFeeIds[$item['fee_id']]))
+            );
+
             $grouped[$sid]['invoices'][] = [
                 'id' => $invoice['id'],
                 'reference' => $invoice['reference'],
-                'invoice_details' => json_decode($invoice['invoice_details'], true),
+                'invoice_details' => $allItems,
+                'remaining_items' => $remainingItems,
                 'amount' => $invoice['amount'],
                 'amount_paid' => $invoice['amount_paid'],
                 'amount_due' => $invoice['amount_due'],
