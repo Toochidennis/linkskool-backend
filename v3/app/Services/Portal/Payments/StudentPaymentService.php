@@ -19,57 +19,46 @@ class StudentPaymentService
         $this->level = new Level($pdo);
     }
 
-    public function getInvoiceAndTransactionHistory(int $studentId): array
+    public function getStudentInvoices(int $studentId): array
     {
-        $formatted = [
-            'invoice' => [],
-            'payments' => [],
-        ];
-
-        $transactions = $this->transaction
+        $invoices = $this->transaction
             ->select([
                 'tid AS id',
-                'it_id',
-                'trans_type AS type',
-                'ref AS reference',
-                'cref AS reg_no',
-                'cid AS student_id',
                 'description',
-                'name',
                 'amount',
                 'amount_paid',
                 'amount_due',
-                'date',
                 'year',
                 'term',
-                'level AS level_id',
-                'class AS class_id',
                 'status',
             ])
             ->where('cid', '=', $studentId)
+            ->where('trans_type', '=', 'invoice')
             ->where('approved', '=', 1)
             ->orderBy(['year' => 'DESC', 'term' => 'DESC'])
             ->get();
 
-        $levels = $this->level->select(['id', 'level_name'])->get();
-        $levelNames = [];
-        foreach ($levels as $level) {
-            $levelNames[$level['id']] = $level['level_name'];
+        if (empty($invoices)) {
+            return [];
         }
 
-        $invoiceMap = [];
+        $receipts = $this->transaction
+            ->select(['it_id', 'description'])
+            ->where('cid', '=', $studentId)
+            ->where('trans_type', '=', 'receipt')
+            ->where('approved', '=', 1)
+            ->get();
+
         $receiptsByInvoiceId = [];
-
-        foreach ($transactions as $trans) {
-            if ($trans['type'] === 'invoice') {
-                $invoiceMap[$trans['id']] = $trans;
-            } else {
-                $receiptsByInvoiceId[(int) $trans['it_id']][] = $trans;
-            }
+        foreach ($receipts as $receipt) {
+            $receiptsByInvoiceId[(int) $receipt['it_id']][] = $receipt;
         }
 
-        foreach ($invoiceMap as $invoiceId => $trans) {
-            $allItems = json_decode($trans['description'], true) ?? [];
+        $result = [];
+
+        foreach ($invoices as $invoice) {
+            $invoiceId = $invoice['id'];
+            $allItems = json_decode($invoice['description'], true) ?? [];
 
             $paidItems = [];
             foreach ($receiptsByInvoiceId[$invoiceId] ?? [] as $receipt) {
@@ -78,44 +67,77 @@ class StudentPaymentService
                 }
             }
 
-            $formatted['invoice'][] = [
+            $outstandingItems = array_values(
+                array_filter($allItems, fn($item) => !isset($paidItems[$item['fee_id']]))
+            );
+
+            $result[] = [
                 'id' => $invoiceId,
                 'invoice_details' => $allItems,
                 'items_paid' => array_values($paidItems),
-                'amount' => $trans['amount'],
-                'amount_paid' => $trans['amount_paid'],
-                'amount_due' => $trans['amount_due'],
-                'year' => $trans['year'],
-                'term' => $trans['term'],
+                'outstanding_items' => $outstandingItems,
+                'outstanding_total' => array_sum(array_column($outstandingItems, 'amount')),
+                'amount' => $invoice['amount'],
+                'amount_paid' => $invoice['amount_paid'],
+                'amount_due' => $invoice['amount_due'],
+                'year' => $invoice['year'],
+                'term' => $invoice['term'],
+                'status' => $invoice['status'],
             ];
         }
 
-        foreach ($transactions as $trans) {
-            if ($trans['type'] === 'invoice') {
-                continue;
-            }
+        return $result;
+    }
 
-            $levelName = $levelNames[$trans['level_id']] ?? 'Unknown Level';
+    public function getPaymentHistory(int $studentId, array $filters): array
+    {
+        $page = max(1, (int) ($filters['page'] ?? 1));
+        $perPage = max(1, min(100, (int) ($filters['per_page'] ?? 20)));
 
-            $formatted['payments'][] = [
-                'id' => $trans['id'],
-                'invoice_id' => (int) $trans['it_id'],
-                'reference' => $trans['reference'],
-                'reg_no' => $trans['reg_no'],
-                'name' => $trans['name'],
-                'amount' => $trans['amount'],
-                'items_paid' => json_decode($trans['description'], true) ?? [],
-                'date' => $trans['date'],
-                'year' => $trans['year'],
-                'term' => $trans['term'],
-                'level_id' => $trans['level_id'],
-                'class_id' => $trans['class_id'],
-                'status' => $trans['status'],
-                'level_name' => $levelName,
-            ];
+        $query = $this->transaction
+            ->select([
+                'tid AS id',
+                'it_id AS invoice_id',
+                'ref AS reference',
+                'cref AS reg_no',
+                'name',
+                'amount',
+                'description',
+                'date',
+                'year',
+                'term',
+                'level AS level_id',
+                'class AS class_id',
+                'status',
+            ])
+            ->where('cid', '=', $studentId)
+            ->where('trans_type', '=', 'receipt')
+            ->where('approved', '=', 1);
+
+        if (!empty($filters['year'])) {
+            $query->where('year', '=', $filters['year']);
         }
 
-        return $formatted;
+        if (!empty($filters['term'])) {
+            $query->where('term', '=', $filters['term']);
+        }
+
+        $result = $query->orderBy(['year' => 'DESC', 'date' => 'DESC'])->paginate($page, $perPage);
+
+        $levels = $this->level->select(['id', 'level_name'])->get();
+        $levelNames = [];
+        foreach ($levels as $level) {
+            $levelNames[$level['id']] = $level['level_name'];
+        }
+
+        $result['data'] = array_map(function ($row) use ($levelNames) {
+            $row['items_paid'] = json_decode($row['description'], true) ?? [];
+            $row['level_name'] = $levelNames[$row['level_id']] ?? null;
+            unset($row['description']);
+            return $row;
+        }, $result['data']);
+
+        return $result;
     }
 
     public function addPayment(array $data): array
