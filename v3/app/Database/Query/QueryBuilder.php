@@ -516,8 +516,19 @@ class QueryBuilder
 
         $offset = ($page - 1) * $limit;
 
+        // Build count query before get() resets state
+        $countQuery = "SELECT COUNT(*) FROM `$this->table`";
+        if (!empty($this->joins)) {
+            $countQuery .= " " . implode(" ", $this->joins);
+        }
+        if (!empty($this->whereConditions)) {
+            $countQuery .= " WHERE " . implode(" AND ", $this->whereConditions);
+        }
+        $countStmt = $this->pdo->prepare($countQuery);
+        $countStmt->execute([...$this->bindings, ...$this->whereBindings]);
+        $total = (int) $countStmt->fetchColumn();
+
         $data = $this->limit($limit)->offset($offset)->get();
-        $total = $this->count();
 
         return [
             'data' => $data,
@@ -525,7 +536,7 @@ class QueryBuilder
                 'total' => $total,
                 'per_page' => $limit,
                 'current_page' => $page,
-                'last_page' => ceil($total / $limit),
+                'last_page' => (int) ceil($total / $limit),
                 'has_next' => $page * $limit < $total,
                 'has_prev' => $page > 1
             ],

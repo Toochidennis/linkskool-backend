@@ -26,8 +26,8 @@ class PaymentDashboardService
             ->where('status', 1)
             ->first();
 
-        $invoiced = $this->transaction
-            ->select(['SUM(amount) as total_invoiced'])
+        $outstanding = $this->transaction
+            ->select(['SUM(amount_due) as total_outstanding'])
             ->where('trans_type', 'invoice')
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
@@ -52,6 +52,7 @@ class PaymentDashboardService
                 'account AS account_number',
                 'account_name',
             ])
+            ->where('trans_type', '=', 'receipt')
             ->where('status', 1)
             ->where('sub', '=', 0)
             ->where('year', '=', $filters['year'])
@@ -74,14 +75,26 @@ class PaymentDashboardService
 
         return [
             'income' => $income['total_income'] ?? 0,
-            'invoiced' => $invoiced['total_invoiced'] ?? 0,
+            'outstanding' => $outstanding['total_outstanding'] ?? 0,
             'transactions' => $transactions,
         ];
     }
 
     public function paidInvoices(array $filters): array
     {
-        return $this->transaction
+        $stats = $this->transaction
+            ->select([
+                'SUM(amount) as total_amount',
+                'COUNT(*) as count',
+            ])
+            ->where('class', '=', $filters['class_id'])
+            ->where('year', '=', $filters['year'])
+            ->where('term', '=', $filters['term'])
+            ->where('trans_type', '=', 'receipt')
+            ->where('status', '=', 1)
+            ->first();
+
+        $data = $this->transaction
             ->select([
                 'tid AS id',
                 'ref AS reference',
@@ -102,10 +115,83 @@ class PaymentDashboardService
             ->where('trans_type', '=', 'receipt')
             ->where('status', '=', 1)
             ->get();
+
+        return [
+            'stats' => [
+                'total_amount' => $stats['total_amount'] ?? 0,
+                'count' => (int) ($stats['count'] ?? 0),
+            ],
+            'data' => $data,
+        ];
     }
+    public function listTransactions(array $filters): array
+    {
+        $page = max(1, (int) ($filters['page'] ?? 1));
+        $perPage = max(1, min(100, (int) ($filters['per_page'] ?? 20)));
+
+        $this->transaction
+            ->select([
+                'tid AS id',
+                'trans_type AS type',
+                'ref AS reference',
+                'cref AS reg_no',
+                'memo AS description',
+                'name',
+                'amount',
+                'amount_paid',
+                'amount_due',
+                'date',
+                'year',
+                'term',
+                'level AS level_id',
+                'class AS class_id',
+                'status',
+                'account AS account_number',
+                'account_name',
+            ])
+            ->where('trans_type', '=', $filters['type'])
+            ->where('year', '=', $filters['year'])
+            ->where('term', '=', $filters['term']);
+
+        if (!empty($filters['class_id'])) {
+            $this->transaction->where('class', '=', $filters['class_id']);
+        }
+
+        $result = $this->transaction
+            ->orderBy(['date' => 'DESC'])
+            ->paginate($page, $perPage);
+
+        $levels = $this->level->select(['id', 'level_name'])->get();
+        $levelNames = [];
+        foreach ($levels as $level) {
+            $levelNames[$level['id']] = $level['level_name'];
+        }
+
+        foreach ($result['data'] as &$trans) {
+            $trans['level_name'] = $levelNames[$trans['level_id']] ?? 'Unknown Level';
+        }
+
+        return $result;
+    }
+
     public function unpaidInvoices(array $filters): array
     {
-        $invoices =  $this->transaction
+        $stats = $this->transaction
+            ->select([
+                'SUM(amount) as total_amount',
+                'SUM(amount_paid) as total_amount_paid',
+                'SUM(amount_due) as total_amount_due',
+                'COUNT(*) as invoice_count',
+                'COUNT(DISTINCT cid) as student_count',
+            ])
+            ->where('class', '=', $filters['class_id'])
+            ->where('year', '=', $filters['year'])
+            ->where('term', '=', $filters['term'])
+            ->where('trans_type', '=', 'invoice')
+            ->where('status', '=', 0)
+            ->first();
+
+        $invoices = $this->transaction
             ->select([
                 'tid AS id',
                 'cid AS student_id',
@@ -113,13 +199,17 @@ class PaymentDashboardService
                 'ref AS reference',
                 'description as invoice_details',
                 'name',
-                'amount_due AS amount',
+                'amount',
+                'amount_paid',
+                'amount_due',
                 'year',
                 'term',
                 'level AS level_id',
                 'class AS class_id',
             ])
             ->where('class', '=', $filters['class_id'])
+            ->where('year', '=', $filters['year'])
+            ->where('term', '=', $filters['term'])
             ->where('trans_type', '=', 'invoice')
             ->where('status', '=', 0)
             ->orderBy(['year' => 'DESC', 'term' => 'DESC'])
@@ -133,7 +223,7 @@ class PaymentDashboardService
                 $grouped[$sid] = [
                     'student_id' => $sid,
                     'reg_no' => $invoice['reg_no'],
-                    'name' => $invoice['name'],
+                    'name' => ucwords(strtolower($invoice['name'])),
                     'level_id' => $invoice['level_id'],
                     'class_id' => $invoice['class_id'],
                     'invoices' => [],
@@ -144,12 +234,23 @@ class PaymentDashboardService
                 'id' => $invoice['id'],
                 'reference' => $invoice['reference'],
                 'invoice_details' => json_decode($invoice['invoice_details'], true),
-                'amount_due' => $invoice['amount'],
+                'amount' => $invoice['amount'],
+                'amount_paid' => $invoice['amount_paid'],
+                'amount_due' => $invoice['amount_due'],
                 'year' => $invoice['year'],
                 'term' => $invoice['term'],
             ];
         }
 
-        return array_values($grouped);
+        return [
+            'stats' => [
+                'total_amount' => $stats['total_amount'] ?? 0,
+                'total_amount_paid' => $stats['total_amount_paid'] ?? 0,
+                'total_amount_due' => $stats['total_amount_due'] ?? 0,
+                'invoice_count' => (int) ($stats['invoice_count'] ?? 0),
+                'student_count' => (int) ($stats['student_count'] ?? 0),
+            ],
+            'data' => array_values($grouped),
+        ];
     }
 }

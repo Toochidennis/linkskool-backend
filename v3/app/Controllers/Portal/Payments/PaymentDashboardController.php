@@ -39,6 +39,31 @@ class PaymentDashboardController extends BaseController
     }
 
     #[Route(
+        '/transactions',
+        'GET',
+        ['auth', 'role:admin']
+    )]
+    public function getTransactions(array $vars)
+    {
+        $filteredVars = $this->validate(
+            $vars,
+            [
+                'type' => 'required|string|in:receipt,expenditure',
+                'year' => 'required|integer',
+                'term' => 'required|integer',
+                'class_id' => 'nullable|integer',
+                'page' => 'nullable|integer',
+                'per_page' => 'nullable|integer',
+            ]
+        );
+
+        return $this->respond([
+            'success' => true,
+            'data' => $this->paymentService->listTransactions($filteredVars)
+        ]);
+    }
+
+    #[Route(
         '/invoices/paid',
         'GET',
         ['auth', 'role:admin']
