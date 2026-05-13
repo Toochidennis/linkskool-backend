@@ -167,8 +167,7 @@ class PaymentDashboardService
                 'cref AS reg_no',
                 'memo AS description',
                 'name',
-                'amount_due',
-                'amount_paid',
+                'amount_paid AS amount',
                 'date',
                 'year',
                 'term',
@@ -207,9 +206,13 @@ class PaymentDashboardService
                 'total_expenditure' => (float) ($stats['total_expenditure'] ?? 0),
             ],
             'data' => [
-                'all' => $result['data'],
-                'receipt' => $this->filterTransactionsByType($result['data'], 'receipt'),
-                'expenditure' => $this->filterTransactionsByType($result['data'], 'expenditure'),
+                'all' => $this->groupTransactionsByMonth($result['data']),
+                'receipt' => $this->groupTransactionsByMonth(
+                    $this->filterTransactionsByType($result['data'], 'receipt')
+                ),
+                'expenditure' => $this->groupTransactionsByMonth(
+                    $this->filterTransactionsByType($result['data'], 'expenditure')
+                ),
             ],
             'meta' => $result['meta'],
         ];
@@ -335,5 +338,40 @@ class PaymentDashboardService
             $transactions,
             fn(array $transaction) => ($transaction['type'] ?? null) === $type
         ));
+    }
+
+    private function groupTransactionsByMonth(array $transactions): array
+    {
+        $groups = [];
+
+        foreach ($transactions as $transaction) {
+            $timestamp = strtotime((string) ($transaction['date'] ?? ''));
+            $monthKey = $timestamp ? date('Y-m', $timestamp) : 'unknown';
+
+            if (!isset($groups[$monthKey])) {
+                $groups[$monthKey] = [
+                    'month' => $monthKey,
+                    'label' => $timestamp ? date('M Y', $timestamp) : 'Unknown',
+                    'total_income' => 0,
+                    'total_expenditure' => 0,
+                    'total_transactions' => 0,
+                    'transactions' => [],
+                ];
+            }
+
+            $amount = (float) ($transaction['amount_paid'] ?? 0);
+            if (($transaction['type'] ?? null) === 'receipt') {
+                $groups[$monthKey]['total_income'] += $amount;
+            }
+
+            if (($transaction['type'] ?? null) === 'expenditure') {
+                $groups[$monthKey]['total_expenditure'] += $amount;
+            }
+
+            $groups[$monthKey]['total_transactions']++;
+            $groups[$monthKey]['transactions'][] = $transaction;
+        }
+
+        return array_values($groups);
     }
 }
