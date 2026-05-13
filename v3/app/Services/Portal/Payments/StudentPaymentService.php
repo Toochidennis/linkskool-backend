@@ -160,31 +160,45 @@ class StudentPaymentService
 
         $reference = 'SFEES-' . date('YmdHis') . '-' . strtoupper(bin2hex(random_bytes(4)));
 
-        $this->transaction->insert([
-            'trans_type' => 'receipt',
-            'memo' => 'School Fees for ' . $data['year'] . ' Term ' . $data['term'],
-            'description' => json_encode($items),
-            'c_type' => 1,
-            'ref' => $reference,
-            'cid' => $data['student_id'],
-            'cref' => $data['reg_no'],
-            'name' => $data['name'],
-            'quantity' => 1,
-            'it_id' => $data['invoice_id'],
-            'amount' => $data['amount'],
-            'amount_paid' => $data['amount'],
-            'amount_due' => 0,
-            'date' => date('Y-m-d'),
-            'account' => 1980,
-            'account_name' => 'Income',
-            'status' => 1,
-            'class' => $data['class_id'],
-            'level' => $data['level_id'],
-            'year' => $data['year'],
-            'term' => $data['term'],
-        ]);
+        $this->pdo->beginTransaction();
 
-        $this->updateInvoice((int) $data['invoice_id'], $data['amount']);
+        try {
+            $stmt = $this->pdo->prepare(
+                "SELECT tid FROM transactions WHERE tid = ? AND trans_type = 'invoice' FOR UPDATE"
+            );
+            $stmt->execute([$data['invoice_id']]);
+
+            $this->transaction->insert([
+                'trans_type' => 'receipt',
+                'memo' => 'School Fees for ' . $data['year'] . ' Term ' . $data['term'],
+                'description' => json_encode($items),
+                'c_type' => 1,
+                'ref' => $reference,
+                'cid' => $data['student_id'],
+                'cref' => $data['reg_no'],
+                'name' => $data['name'],
+                'quantity' => 1,
+                'it_id' => $data['invoice_id'],
+                'amount' => $data['amount'],
+                'amount_paid' => $data['amount'],
+                'amount_due' => 0,
+                'date' => date('Y-m-d'),
+                'account' => 1980,
+                'account_name' => 'Income',
+                'status' => 1,
+                'class' => $data['class_id'],
+                'level' => $data['level_id'],
+                'year' => $data['year'],
+                'term' => $data['term'],
+            ]);
+
+            $this->updateInvoice((int) $data['invoice_id'], $data['amount']);
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            return ['payment_type' => 'offline', 'success' => false, 'message' => $e->getMessage()];
+        }
 
         return [
             'payment_type' => 'offline',
@@ -256,31 +270,35 @@ class StudentPaymentService
             return ['status' => 'failed', 'message' => 'Payment not successful: ' . $reason];
         }
 
-        $receipt = $this->transaction
-            ->select(['tid', 'it_id', 'amount', 'status'])
-            ->where('ref', '=', $reference)
-            ->where('trans_type', '=', 'receipt')
-            ->first();
-
-        if (empty($receipt)) {
-            return ['status' => 'failed', 'message' => 'Receipt not found for reference.'];
-        }
-
-        if ((int) $receipt['status'] === 1) {
-            return ['status' => 'success', 'message' => 'Payment already verified.'];
-        }
-
-        $expectedKobo = (int) round((float) $receipt['amount'] * 100);
-        if ((int) $verification['amount_kobo'] !== $expectedKobo) {
-            return ['status' => 'failed', 'message' => 'Payment amount mismatch.'];
-        }
-
-        $invoiceId = (int) $receipt['it_id'];
-        $amount = (float) $receipt['amount'];
-
         $this->pdo->beginTransaction();
 
         try {
+            $stmt = $this->pdo->prepare(
+                "SELECT tid, it_id, amount, status FROM transactions
+                 WHERE ref = ? AND trans_type = 'receipt' FOR UPDATE"
+            );
+            $stmt->execute([$reference]);
+            $receipt = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (empty($receipt)) {
+                $this->pdo->rollBack();
+                return ['status' => 'failed', 'message' => 'Receipt not found for reference.'];
+            }
+
+            if ((int) $receipt['status'] === 1) {
+                $this->pdo->rollBack();
+                return ['status' => 'success', 'message' => 'Payment already verified.'];
+            }
+
+            $expectedKobo = (int) round((float) $receipt['amount'] * 100);
+            if ((int) $verification['amount_kobo'] !== $expectedKobo) {
+                $this->pdo->rollBack();
+                return ['status' => 'failed', 'message' => 'Payment amount mismatch.'];
+            }
+
+            $invoiceId = (int) $receipt['it_id'];
+            $amount = (float) $receipt['amount'];
+
             $this->transaction
                 ->where('ref', '=', $reference)
                 ->where('trans_type', '=', 'receipt')
@@ -333,11 +351,12 @@ class StudentPaymentService
 
     private function updateInvoice(int $invoiceId, float $payment): bool
     {
-        $invoice = $this->transaction
-            ->select(['amount', 'amount_paid', 'amount_due'])
-            ->where('tid', '=', $invoiceId)
-            ->where('trans_type', '=', 'invoice')
-            ->first();
+        $stmt = $this->pdo->prepare(
+            "SELECT amount, amount_paid, amount_due FROM transactions
+             WHERE tid = ? AND trans_type = 'invoice' FOR UPDATE"
+        );
+        $stmt->execute([$invoiceId]);
+        $invoice = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         if (empty($invoice) || (float) $invoice['amount_due'] <= 0 || $payment <= 0) {
             return false;

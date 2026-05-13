@@ -124,12 +124,28 @@ class InvoiceService
 
             $success = false;
 
-            $success = $existing ? $this->transaction
-                ->where('tid', '=', $existing['tid'])
-                ->update([
-                    'amount_due' => $amount,
-                    'description' => $description
-                ]) : $this->transaction->insert($payload);
+            if ($existing) {
+                $hasPayments = $this->transaction
+                    ->select(['tid'])
+                    ->where('it_id', '=', $existing['tid'])
+                    ->where('trans_type', '=', 'receipt')
+                    ->where('status', '=', 1)
+                    ->first();
+
+                if (!empty($hasPayments)) {
+                    continue;
+                }
+
+                $success = $this->transaction
+                    ->where('tid', '=', $existing['tid'])
+                    ->update([
+                        'amount' => $amount,
+                        'amount_due' => $amount,
+                        'description' => $description,
+                    ]);
+            } else {
+                $success = $this->transaction->insert($payload);
+            }
 
             if (!$success) {
                 return false;
