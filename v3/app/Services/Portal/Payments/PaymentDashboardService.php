@@ -321,6 +321,7 @@ class PaymentDashboardService
                 'total_invoiced' => $billed['total_amount'] ?? 0,
                 'total_paid' => $billed['total_paid'] ?? 0,
                 'total_outstanding' => $outstanding['total_outstanding'] ?? 0,
+                'invoice_count' => (int) ($outstanding['invoice_count'] ?? 0),
                 'student_count' => (int) ($outstanding['student_count'] ?? 0),
             ],
             'data' => array_values($grouped),
