@@ -220,11 +220,17 @@ class PaymentDashboardService
 
     public function unpaidInvoices(array $filters): array
     {
-        $stats = $this->transaction
+        $billed = $this->transaction
+            ->select(['SUM(amount) as total_amount', 'SUM(amount_paid) as total_paid'])
+            ->where('class', '=', $filters['class_id'])
+            ->where('year', '=', $filters['year'])
+            ->where('term', '=', $filters['term'])
+            ->where('trans_type', '=', 'invoice')
+            ->first();
+
+        $outstanding = $this->transaction
             ->select([
-                'SUM(amount) as total_amount',
-                'SUM(amount_paid) as total_amount_paid',
-                'SUM(amount_due) as total_amount_due',
+                'SUM(amount_due) as total_outstanding',
                 'COUNT(*) as invoice_count',
                 'COUNT(DISTINCT cid) as student_count',
             ])
@@ -232,6 +238,7 @@ class PaymentDashboardService
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
             ->where('trans_type', '=', 'invoice')
+            ->where('status', '=', 0)
             ->first();
 
         $invoices = $this->transaction
@@ -311,11 +318,10 @@ class PaymentDashboardService
 
         return [
             'stats' => [
-                'total_amount' => $stats['total_amount'] ?? 0,
-                'total_amount_paid' => $stats['total_amount_paid'] ?? 0,
-                'total_amount_due' => $stats['total_amount_due'] ?? 0,
-                'invoice_count' => (int) ($stats['invoice_count'] ?? 0),
-                'student_count' => (int) ($stats['student_count'] ?? 0),
+                'total_invoiced' => $billed['total_amount'] ?? 0,
+                'total_paid' => $billed['total_paid'] ?? 0,
+                'total_outstanding' => $outstanding['total_outstanding'] ?? 0,
+                'student_count' => (int) ($outstanding['student_count'] ?? 0),
             ],
             'data' => array_values($grouped),
         ];
