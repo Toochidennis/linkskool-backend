@@ -374,4 +374,118 @@ class PaymentDashboardService
 
         return array_values($groups);
     }
+
+    public function getReceiptDetail(int $id): array
+    {
+        $receipt = $this->transaction
+            ->select([
+                'tid AS id',
+                'it_id',
+                'ref AS reference',
+                'cref AS reg_no',
+                'cid AS student_id',
+                'name',
+                'amount',
+                'description',
+                'memo',
+                'date',
+                'year',
+                'term',
+                'level AS level_id',
+                'class AS class_id',
+                'status',
+            ])
+            ->where('tid', '=', $id)
+            ->where('trans_type', '=', 'receipt')
+            ->first();
+
+        if (empty($receipt)) {
+            return [];
+        }
+
+        $invoiceId = (int) $receipt['it_id'];
+        $receiptOut = $receipt;
+        $receiptOut['name'] = $this->normalizeName($receiptOut['name'] ?? null);
+        $receiptOut['items_paid'] = json_decode($receipt['description'], true) ?? [];
+        unset($receiptOut['description'], $receiptOut['it_id']);
+
+        $invoice = $this->transaction
+            ->select([
+                'tid AS id',
+                'description',
+                'amount',
+                'amount_paid',
+                'amount_due',
+                'year',
+                'term',
+                'status',
+            ])
+            ->where('tid', '=', $invoiceId)
+            ->where('trans_type', '=', 'invoice')
+            ->first();
+
+        if (empty($invoice)) {
+            return [
+                'receipt' => $receiptOut,
+                'invoice' => null,
+                'payment_history' => [],
+            ];
+        }
+
+        $allItems = json_decode($invoice['description'], true) ?? [];
+
+        $allReceipts = $this->transaction
+            ->select(['tid AS id', 'ref AS reference', 'amount', 'description', 'date', 'status'])
+            ->where('it_id', '=', $invoiceId)
+            ->where('trans_type', '=', 'receipt')
+            ->where('status', '=', 1)
+            ->orderBy(['date' => 'ASC'])
+            ->get();
+
+        $paidItems = [];
+        $paymentHistory = [];
+
+        foreach ($allReceipts as $r) {
+            $items = json_decode($r['description'], true) ?? [];
+            foreach ($items as $item) {
+                $paidItems[$item['fee_id']] = $item;
+            }
+            $paymentHistory[] = [
+                'id' => $r['id'],
+                'reference' => $r['reference'],
+                'amount' => $r['amount'],
+                'items_paid' => $items,
+                'date' => $r['date'],
+                'status' => $r['status'],
+            ];
+        }
+
+        $paidItemsList = array_values($paidItems);
+        $outstandingItems = array_values(
+            array_filter($allItems, fn($item) => !isset($paidItems[$item['fee_id']]))
+        );
+
+        return [
+            'receipt' => $receiptOut,
+            'invoice' => [
+                'id' => $invoice['id'],
+                'invoice_details' => $allItems,
+                'amount' => $invoice['amount'],
+                'amount_paid' => $invoice['amount_paid'],
+                'amount_due' => $invoice['amount_due'],
+                'year' => $invoice['year'],
+                'term' => $invoice['term'],
+                'status' => $invoice['status'],
+            ],
+            'paid_summary' => [
+                'items' => $paidItemsList,
+                'total' => array_sum(array_column($paidItemsList, 'amount')),
+            ],
+            'outstanding_summary' => [
+                'items' => $outstandingItems,
+                'total' => array_sum(array_column($outstandingItems, 'amount')),
+            ],
+            'payment_history' => $paymentHistory,
+        ];
+    }
 }

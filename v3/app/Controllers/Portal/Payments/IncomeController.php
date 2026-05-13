@@ -51,27 +51,4 @@ class IncomeController extends BaseController
             'data' => $this->incomeService->report($filteredVars),
         ]);
     }
-
-    #[Route(
-        '/receipts/{reference}',
-        'GET',
-        ['auth', 'role:admin', 'role:student']
-    )]
-    public function getReceiptDetail(array $vars)
-    {
-        $cleanedData = $this->validate($vars, [
-            'reference' => 'required|string|filled',
-        ]);
-
-        $detail = $this->incomeService->getReceiptDetail($cleanedData['reference']);
-
-        if (empty($detail)) {
-            return $this->respondError('Receipt not found.', HttpStatus::NOT_FOUND);
-        }
-
-        return $this->respond([
-            'success' => true,
-            'data' => $detail,
-        ]);
-    }
 }
