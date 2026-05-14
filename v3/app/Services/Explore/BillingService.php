@@ -4,6 +4,7 @@ namespace V3\App\Services\Explore;
 
 use V3\App\Models\Explore\Payment;
 use V3\App\Models\Explore\Voucher;
+use V3\App\Services\GooglePlay\GooglePlayBillingService;
 use V3\App\Services\Paystack\PaystackService;
 use V3\App\Models\Explore\Plan;
 
@@ -28,6 +29,8 @@ class BillingService
             return $this->verifyPaymentOnline($data);
         } elseif ($data['method'] === 'voucher') {
             return $this->redeemVoucher($data);
+        } elseif ($data['method'] === 'google_play') {
+            return $this->verifyGooglePlay($data);
         } else {
             return [
                 'status' => 'failed',
@@ -336,6 +339,73 @@ class BillingService
             'platform' => (string) $existingPayment['platform'],
             'method' => (string) $existingPayment['method'],
             'reference' => $reference,
+        ];
+    }
+
+    private function verifyGooglePlay(array $data): array
+    {
+        $purchaseToken = (string) $data['purchase_token'];
+        $productId = (string) $data['product_id'];
+
+        $reference = 'gplay-' . $purchaseToken;
+
+        $existingPayment = $this->payment
+            ->where('reference', $reference)
+            ->first();
+
+        if (!empty($existingPayment) && ($existingPayment['status'] ?? '') === 'success') {
+            return [
+                'status' => 'success',
+                'message' => 'Payment already recorded',
+                'salt' => bin2hex(random_bytes(16)),
+            ];
+        }
+
+        try {
+            $googlePlay = new GooglePlayBillingService();
+            $verification = $googlePlay->verifySubscription($purchaseToken, $productId);
+        } catch (\Throwable $e) {
+            return [
+                'status' => 'failed',
+                'message' => 'Purchase verification failed: ' . $e->getMessage(),
+            ];
+        }
+
+        if (!$verification['success']) {
+            return [
+                'status' => 'failed',
+                'message' => 'Purchase could not be verified. Please try again.',
+            ];
+        }
+
+        $payload = [
+            'user_id' => (int) $data['user_id'],
+            'amount' => 0,
+            'plan_id' => (int) $data['plan_id'],
+            'reference' => $reference,
+            'status' => 'success',
+            'message' => 'Mobile purchase verified',
+            'method' => 'google_play',
+            'platform' => 'mobile',
+            'first_name' => (string) $data['first_name'],
+            'last_name' => (string) $data['last_name'],
+        ];
+
+        $saved = !empty($existingPayment)
+            ? $this->payment->where('reference', $reference)->update($payload)
+            : $this->payment->insert($payload);
+
+        if (!$saved) {
+            return [
+                'status' => 'failed',
+                'message' => 'Failed to record payment.',
+            ];
+        }
+
+        return [
+            'status' => 'success',
+            'message' => 'Purchase verified successfully',
+            'salt' => bin2hex(random_bytes(16)),
         ];
     }
 

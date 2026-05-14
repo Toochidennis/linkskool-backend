@@ -26,12 +26,14 @@ class BillingController extends ExploreBaseController
             [
                 'user_id' => 'required|integer',
                 'plan_id' => 'required|integer',
-                'method' => 'required|string|in:online,voucher',
+                'method' => 'required|string|in:online,voucher,google_play',
                 'platform' => 'required|string|in:mobile,desktop',
                 'first_name' => 'required|string',
                 'last_name' => 'required|string',
                 'voucher_code' => 'required_if:method,voucher|string',
                 'reference' => 'required_if:method,online|string',
+                'purchase_token' => 'required_if:method,google_play|string',
+                'product_id' => 'required_if:method,google_play|string',
             ]
         );
 
