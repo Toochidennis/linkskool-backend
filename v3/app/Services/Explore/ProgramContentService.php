@@ -118,6 +118,8 @@ class ProgramContentService
             c.start_date       AS cohort_start_date,
             c.trial_type       AS trial_type,
             c.trial_value      AS trial_value,
+            c.discount         AS discount,
+            c.cost             AS cost,
 
             e.id            AS enrollment_id,
             e.payment_status AS payment_status,
@@ -178,6 +180,8 @@ class ProgramContentService
             c.start_date       AS cohort_start_date,
             c.trial_type       AS trial_type,
             c.trial_value      AS trial_value,
+            c.discount         AS discount,
+            c.cost             AS cost,
 
             e.id            AS enrollment_id,
             e.payment_status AS payment_status,
@@ -456,6 +460,8 @@ class ProgramContentService
             'slug' => $hasActiveCohort ? $row['cohort_slug'] : null,
             'cohort_id' => $hasActiveCohort ? (int) $row['active_cohort_id'] : null,
             'is_free' => (bool) ($row['is_free'] ?? false),
+            'discount' => $hasActiveCohort && isset($row['discount']) ? (int) $row['discount'] : null,
+            'amount' => $hasActiveCohort && isset($row['cost']) ? (float) $row['cost'] : null,
             'nextAction' => $access['nextAction'],
         ];
     }

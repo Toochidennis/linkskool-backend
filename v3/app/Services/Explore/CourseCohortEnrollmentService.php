@@ -11,6 +11,7 @@ use V3\App\Models\Explore\LearningCourse;
 use V3\App\Models\Explore\Program;
 use V3\App\Models\Explore\ProgramCohortCourseEnrollment;
 use V3\App\Models\Explore\ProgramCourseCohort;
+use V3\App\Services\GooglePlay\GooglePlayBillingService;
 use V3\App\Services\Paystack\PaystackService;
 
 class CourseCohortEnrollmentService
@@ -938,6 +939,117 @@ class CourseCohortEnrollmentService
         }
 
         return (int) $amount;
+    }
+
+    public function verifyMobileStorePurchase(array $data): array
+    {
+        $purchaseToken = (string) $data['purchase_token'];
+        $productId = (string) $data['product_id'];
+        $reference = 'gplay-' . $purchaseToken;
+
+        $existingPayment = $this->payment
+            ->where('reference', $reference)
+            ->first();
+
+        if (!empty($existingPayment) && ($existingPayment['status'] ?? '') === 'success') {
+            return [
+                'success' => true,
+                'status' => 'success',
+                'message' => 'Payment already recorded.',
+            ];
+        }
+
+        try {
+            $billingService = new GooglePlayBillingService();
+            $verification = $billingService->verifySubscription($purchaseToken, $productId);
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'status' => 'failed',
+                'message' => 'Purchase verification failed: ' . $e->getMessage(),
+            ];
+        }
+
+        if (!$verification['success']) {
+            return [
+                'success' => false,
+                'status' => 'failed',
+                'message' => 'Purchase could not be verified. Please try again.',
+            ];
+        }
+
+        $cohort = $this->getEnrollmentCohort($data);
+
+        if (empty($cohort)) {
+            return [
+                'success' => false,
+                'status' => 'failed',
+                'message' => 'Invalid cohort selected for payment.',
+            ];
+        }
+
+        $this->pdo->beginTransaction();
+
+        try {
+            if (!empty($existingPayment)) {
+                $this->payment
+                    ->where('reference', $reference)
+                    ->update(['status' => 'success', 'message' => 'Mobile purchase verified']);
+                $paymentId = (int) $existingPayment['id'];
+            } else {
+                $paymentId = (int) $this->payment->insert([
+                    'profile_id' => (int) $data['profile_id'],
+                    'reference' => $reference,
+                    'amount' => 0,
+                    'status' => 'success',
+                    'method' => 'google_play',
+                    'platform' => 'mobile',
+                    'message' => 'Mobile purchase verified',
+                ]);
+            }
+
+            $existingItem = $this->paymentItem
+                ->where('payment_id', $paymentId)
+                ->where('cohort_id', (int) $data['cohort_id'])
+                ->first();
+
+            if (empty($existingItem)) {
+                $this->paymentItem->insert([
+                    'payment_id' => $paymentId,
+                    'program_id' => (int) $data['program_id'],
+                    'course_id' => (int) $data['course_id'],
+                    'cohort_id' => (int) $data['cohort_id'],
+                    'amount' => 0,
+                ]);
+            }
+
+            $payment = $this->payment->where('reference', $reference)->first();
+            $items = $this->getPaymentItems($paymentId);
+
+            $res = $this->fulfillSuccessfulPayment($payment, $items);
+
+            if (($res['status'] ?? '') !== 'success') {
+                throw new \RuntimeException($res['message'] ?? 'Enrollment fulfillment failed.');
+            }
+
+            $this->pdo->commit();
+
+            return [
+                'success' => true,
+                'status' => 'success',
+                'message' => 'Payment verified successfully.',
+            ];
+        } catch (\Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            return [
+                'success' => false,
+                'status' => 'failed',
+                'message' => 'Failed to record payment: ' . $e->getMessage(),
+            ];
+        }
     }
 
     public function abandonExpiredPendingPayments(): int

@@ -388,6 +388,36 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         );
     }
 
+    #[Route('/{cohort_id}/enrollments/mobile-billing', 'POST', ['api'])]
+    public function verifyMobileBilling(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'profile_id' => 'required|integer',
+                'program_id' => 'required|integer',
+                'course_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+                'purchase_token' => 'required|string',
+                'product_id' => 'required|string',
+            ]
+        );
+
+        $result = $this->enrollmentService->verifyMobileStorePurchase($validated);
+
+        if (!$result['success']) {
+            $this->respondError($result['message'], HttpStatus::BAD_REQUEST);
+        }
+
+        $this->respond(
+            [
+                'status' => true,
+                'message' => $result['message'],
+            ],
+            HttpStatus::OK
+        );
+    }
+
     #[Route('/enrollments/free', 'POST', ['api'])]
     public function freeEnroll()
     {
