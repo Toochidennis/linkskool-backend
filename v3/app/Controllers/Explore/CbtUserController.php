@@ -63,9 +63,10 @@ class CbtUserController extends ExploreBaseController
 
         $response = $this->authBootstrapService
             ->bootstrapWithGoogleToken(
-                $data['google_token'], 
-                $data['fcm_token'] ?? null, 
-                $data['platform']);
+                $data['google_token'],
+                $data['fcm_token'] ?? null,
+                $data['platform']
+            );
 
         if (empty($response)) {
             $this->respondError(
@@ -306,8 +307,8 @@ class CbtUserController extends ExploreBaseController
         $data = $this->validate(
             $this->getRequestData(),
             [
-                    'email' => 'required|email|max:255',
-                ]
+                'email' => 'required|email|max:255',
+            ]
         );
 
         $result = $this->passwordResetService->generateResetToken($data['email']);
