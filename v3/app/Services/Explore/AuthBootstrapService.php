@@ -106,9 +106,9 @@ class AuthBootstrapService
         }
     }
 
-    public function bootstrapWithGoogleToken(string $token, ?string $fcmToken = null): array
+    public function bootstrapWithGoogleToken(string $token, ?string $fcmToken = null, ?string $platform = null): array
     {
-        $tokens = $this->exchangeCodeForTokens($token);
+        $tokens = $this->exchangeCodeForTokens($token, $platform);
         $accessToken = $tokens['access_token'] ?? null;
 
         if (empty($accessToken)) {
@@ -192,9 +192,14 @@ class AuthBootstrapService
         return $result;
     }
 
-    private function exchangeCodeForTokens(string $code): array
+    private function exchangeCodeForTokens(string $code, ?string $platform = null): array
     {
         $curl = curl_init();
+
+        $redirectUri = getEnv('GOOGLE_REDIRECT_URI');
+        if ($platform === 'web') {
+            $redirectUri = getEnv('GOOGLE_REDIRECT_URI_WEB');
+        }
 
         curl_setopt_array($curl, [
             CURLOPT_URL => getEnv('GOOGLE_TOKEN_URL'),
@@ -204,7 +209,7 @@ class AuthBootstrapService
                 'code' => $code,
                 'client_id' => getEnv('GOOGLE_CLIENT_ID'),
                 'client_secret' => getEnv('GOOGLE_CLIENT_SECRET'),
-                'redirect_uri' => getEnv('GOOGLE_REDIRECT_URI'),
+                'redirect_uri' => $redirectUri,
                 'grant_type' => 'authorization_code',
             ]),
             CURLOPT_HTTPHEADER => [

@@ -95,7 +95,7 @@ class BillingService
     private function initiatePaymentOnline(array $data): array
     {
         $paystack = new PaystackService();
-        $reference = 'CBT-' . date('YmdHis') . '-' . bin2hex(random_bytes(5));
+        $reference = 'CBT-DESKTOP' . date('YmdHis') . '-' . bin2hex(random_bytes(5));
         $amount = $this->computePrice((int) $data['plan_id']);
         $payload = [
             'email' => $data['email'],
@@ -516,7 +516,7 @@ class BillingService
 
         return [
             'status' => $payment['status'],
-            'message' => 'Payment status retrieved successfully',
+            'message' => $payment['status'] === 'success' ? 'Payment successful' : 'Payment not successful',
         ];
     }
 
