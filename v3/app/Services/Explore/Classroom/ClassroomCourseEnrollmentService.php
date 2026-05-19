@@ -19,7 +19,8 @@ class ClassroomCourseEnrollmentService
         $this->courseModel = new ClassroomCourse($pdo);
         $this->quizModel   = new ClassroomCourseQuiz($pdo);
     }
-    public function enroll(array $data): array
+
+    public function enroll(array $data): bool
     {
         $course = $this->courseModel
             ->select(['id', 'name', 'description', 'image_url', 'status', 'pricing_type', 'price'])
@@ -28,11 +29,11 @@ class ClassroomCourseEnrollmentService
             ->first();
 
         if (empty($course)) {
-            throw new \InvalidArgumentException('Invalid join code or institution.');
+            throw new \RuntimeException('Invalid join code or institution.');
         }
 
         if ($course['status'] !== 'published') {
-            throw new \InvalidArgumentException('This course is not currently available for enrollment.');
+            throw new \RuntimeException('This course is not currently available for enrollment.');
         }
 
         $courseId  = (int) $course['id'];
@@ -44,23 +45,14 @@ class ClassroomCourseEnrollmentService
             ->first();
 
         if (!empty($existing)) {
-            throw new \InvalidArgumentException('Student is already enrolled in this course.');
+            return true;
         }
 
-        $this->model->insert([
+        return $this->model->insert([
             'course_id'      => $courseId,
             'student_id'     => $studentId,
             'institution_id' => (int) $data['institution_id'],
         ]);
-
-        return [
-            'id' => $courseId,
-            'name' => $course['name'],
-            'description'  => $course['description'],
-            'image_url' => AssetUrl::fromAppUrl($course['image_url'] ?? null),
-            'pricing_type' => $course['pricing_type'],
-            'price'  => $course['price'],
-        ];
     }
 
     public function getEnrolledCourses(int $studentId, int $institutionId): array
@@ -90,12 +82,12 @@ class ClassroomCourseEnrollmentService
 
             return [
                 'course' => [
-                    'id'           => (int) $course['id'],
-                    'name'         => $course['name'],
-                    'description'  => $course['description'],
-                    'image_url'    => AssetUrl::fromAppUrl($course['image_url'] ?? null),
+                    'id'  => (int) $course['id'],
+                    'name' => $course['name'],
+                    'description' => $course['description'],
+                    'image_url' => AssetUrl::fromAppUrl($course['image_url'] ?? null),
                     'pricing_type' => $course['pricing_type'],
-                    'price'        => $course['price'],
+                    'price' => $course['price'],
                 ],
                 'quizzes' => array_map(fn($q) => [
                     'course_id'  => $q['course_id'],

@@ -25,7 +25,7 @@ class ClassroomCourseEnrollmentController extends ExploreBaseController
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'student_id'     => 'required|integer',
+                'student_id'  => 'required|integer',
                 'institution_id' => 'required|integer',
             ]
         );
@@ -56,17 +56,20 @@ class ClassroomCourseEnrollmentController extends ExploreBaseController
             ]
         );
 
-        try {
-            $result = $this->service->enroll($validated);
-        } catch (\InvalidArgumentException $e) {
-            $this->respondError($e->getMessage(), HttpStatus::BAD_REQUEST);
+        $result = $this->service->enroll($validated);
+
+        if (!$result) {
+            $this->respondError(
+                'Enrollment failed. You may already be enrolled in this course.',
+                HttpStatus::BAD_REQUEST
+            );
         }
 
         $this->respond(
             [
                 'status'  => true,
                 'message' => 'Enrolled successfully.',
-                'data'    => $result,
+                'data' => $result,
             ],
             HttpStatus::CREATED
         );
