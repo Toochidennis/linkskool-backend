@@ -54,12 +54,12 @@ class ClassroomCourseEnrollmentService
         ]);
 
         return [
-            'id'           => $courseId,
-            'name'         => $course['name'],
+            'id' => $courseId,
+            'name' => $course['name'],
             'description'  => $course['description'],
-            'image_url'    => AssetUrl::fromAppUrl($course['image_url'] ?? null),
+            'image_url' => AssetUrl::fromAppUrl($course['image_url'] ?? null),
             'pricing_type' => $course['pricing_type'],
-            'price'        => $course['price'],
+            'price'  => $course['price'],
         ];
     }
 
@@ -83,10 +83,10 @@ class ClassroomCourseEnrollmentService
                 ->where('id', $courseId)
                 ->first();
 
-            $quiz = $this->quizModel
+            $quizzes = $this->quizModel
                 ->select(['course_id', 'lesson_id', 'topic', 'start_date', 'end_date'])
                 ->where('course_id', $courseId)
-                ->first();
+                ->get();
 
             return [
                 'course' => [
@@ -97,14 +97,14 @@ class ClassroomCourseEnrollmentService
                     'pricing_type' => $course['pricing_type'],
                     'price'        => $course['price'],
                 ],
-                'quiz' => $quiz ? [
-                    'course_id'  => $quiz['course_id'],
-                    'lesson_id'  => $quiz['lesson_id'] ?? null,
+                'quizzes' => array_map(fn($q) => [
+                    'course_id'  => $q['course_id'],
+                    'lesson_id'  => $q['lesson_id'] ?? null,
                     'name'       => $course['name'],
-                    'topic'      => $quiz['topic'],
-                    'start_date' => $quiz['start_date'],
-                    'end_date'   => $quiz['end_date'],
-                ] : null,
+                    'topic'      => $q['topic'],
+                    'start_date' => $q['start_date'],
+                    'end_date'   => $q['end_date'],
+                ], $quizzes),
             ];
         }, $courseIds);
     }
