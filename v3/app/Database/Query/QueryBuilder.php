@@ -318,6 +318,36 @@ class QueryBuilder
     }
 
     /**
+     * Inserts multiple rows into the table in a single query.
+     *
+     * @param  array $rows An array of associative arrays, each representing a row.
+     * @return int|false The number of inserted rows or false on failure.
+     */
+    public function insertMany(array $rows): int|false
+    {
+        $columns = array_keys($rows[0]);
+        array_map($this->validateColumn(...), $columns);
+
+        $wrappedColumns = implode(", ", array_map($this->wrapIdentifier(...), $columns));
+        $rowPlaceholder = '(' . implode(", ", array_fill(0, count($columns), '?')) . ')';
+        $allPlaceholders = implode(", ", array_fill(0, count($rows), $rowPlaceholder));
+
+        $bindings = [];
+        foreach ($rows as $row) {
+            foreach ($columns as $column) {
+                $bindings[] = $row[$column] ?? null;
+            }
+        }
+
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO " . $this->wrapIdentifier($this->table) . " ($wrappedColumns) VALUES $allPlaceholders"
+        );
+
+        $this->reset();
+        return $stmt->execute($bindings) ? $stmt->rowCount() : false;
+    }
+
+    /**
      * Updates records in the table.
      *
      * @param  array $data The columns and values to update.

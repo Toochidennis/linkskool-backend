@@ -50,6 +50,7 @@ class ClassroomInstitutionService
                 'phone' => $data['phone'] ?? null,
                 'email' => $data['email'] ?? null,
                 'address' => $data['address'] ?? null,
+                'join_code' => $this->generateJoinCode($data['name']),
             ]);
 
             if (!$institutionId) {
@@ -79,5 +80,14 @@ class ClassroomInstitutionService
         }
 
         return $row;
+    }
+
+    private function generateJoinCode(string $name): string
+    {
+        $prefix   = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $name), 0, 3));
+        $segment1 = strtoupper(substr(bin2hex(random_bytes(4)), 0, 4));
+        $segment2 = strtoupper(substr(bin2hex(random_bytes(4)), 0, 4));
+
+        return "{$prefix}-{$segment1}-{$segment2}";
     }
 }
