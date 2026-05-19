@@ -7,6 +7,7 @@ use V3\App\Common\Enums\QuestionType;
 use V3\App\Models\Explore\Syllabi;
 use V3\App\Models\Explore\Topic;
 use V3\App\Models\Portal\ELearning\Quiz;
+use V3\App\Services\Common\DeepSeekClient;
 
 class TopicService
 {
@@ -18,19 +19,18 @@ class TopicService
     private array $syllabusCache = [];
     private int $apiCallCount = 0;
     private float $lastApiCallTime = 0;
+    private DeepSeekClient $ai;
 
-    // Configuration for rate limiting
-    private const BATCH_SIZE = 100;
-    private const API_DELAY_MS = 500; // 500ms delay between API calls
-    private const MAX_RETRIES = 3;
-    private const RETRY_BACKOFF_MS = 1000;
+    private const BATCH_SIZE   = 100;
+    private const API_DELAY_MS = 500;
 
     public function __construct(PDO $pdo)
     {
         $this->syllabi = new Syllabi($pdo);
-        $this->topic = new Topic($pdo);
-        $this->quiz = new Quiz($pdo);
-        $this->pdo = $pdo;
+        $this->topic   = new Topic($pdo);
+        $this->quiz    = new Quiz($pdo);
+        $this->pdo     = $pdo;
+        $this->ai      = new DeepSeekClient();
     }
 
     public function getSyllabusAndTopics(int $courseId, int $examTypeId): array
@@ -573,112 +573,41 @@ PROMPT;
 
     private function callAIWithRetry(string $prompt, int $retryCount = 0, string $type = 'general'): array
     {
-        try {
-            $payload = [
-                'model' => 'deepseek-chat',
-                'messages' => [
-                    ['role' => 'user', 'content' => $prompt],
-                ],
-                'temperature' => $type === 'general' ? 0.3 : 0.2,
-                'max_tokens' => 200
-            ];
+        $result = $this->ai->call([
+            'model'       => 'deepseek-chat',
+            'messages'    => [['role' => 'user', 'content' => $prompt]],
+            'temperature' => $type === 'general' ? 0.3 : 0.2,
+            'max_tokens'  => 200,
+        ], 30);
 
-            $ch = curl_init(getenv('DEEP_SEEK_URL'));
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST => true,
-                CURLOPT_HTTPHEADER => [
-                    'Authorization: Bearer ' . getenv('DEEP_SEEK_API_KEY'),
-                    'Content-Type: application/json'
-                ],
-                CURLOPT_POSTFIELDS => json_encode($payload),
-                CURLOPT_TIMEOUT => 30,
-                CURLOPT_CONNECTTIMEOUT => 10
-            ]);
+        $this->lastApiCallTime = microtime(true);
+        $this->apiCallCount++;
 
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            $this->lastApiCallTime = microtime(true);
-            $this->apiCallCount++;
-
-            if ($response === false) {
-                throw new \RuntimeException('DeepSeek API request failed');
+        if ($type === 'syllabus') {
+            if (empty($result['type']) || empty($result['name'])) {
+                throw new \RuntimeException('AI returned invalid syllabus classification');
             }
-
-            // Handle rate limiting (HTTP 429)
-            if ($httpCode === 429) {
-                if ($retryCount < self::MAX_RETRIES) {
-                    $backoffMs = self::RETRY_BACKOFF_MS * pow(2, $retryCount);
-                    usleep((int)($backoffMs * 1000));
-                    return $this->callAIWithRetry($prompt, $retryCount + 1, $type);
-                }
-                throw new \RuntimeException('DeepSeek API rate limit exceeded after retries');
+            if ($result['type'] === 'existing' && !isset($result['syllabus_id'])) {
+                throw new \RuntimeException('Missing syllabus_id for existing syllabus');
             }
-
-            if ($httpCode >= 400) {
-                throw new \RuntimeException("DeepSeek API error: HTTP $httpCode");
+        } elseif ($type === 'topic') {
+            if (empty($result['type']) || empty($result['name'])) {
+                throw new \RuntimeException('AI returned invalid topic classification');
             }
-
-            $decoded = json_decode($response, true);
-
-            if (!isset($decoded['choices'][0]['message']['content'])) {
-                throw new \RuntimeException('Invalid DeepSeek response structure');
+            if ($result['type'] === 'existing' && !isset($result['topic_id'])) {
+                throw new \RuntimeException('Missing topic_id for existing topic');
             }
-
-            $content = $decoded['choices'][0]['message']['content'];
-
-            // Extract JSON if wrapped in markdown code blocks
-            if (strpos($content, '```json') !== false) {
-                preg_match('/```json\s*(.*?)\s*```/s', $content, $matches);
-                $content = $matches[1] ?? $content;
-            } elseif (strpos($content, '```') !== false) {
-                preg_match('/```\s*(.*?)\s*```/s', $content, $matches);
-                $content = $matches[1] ?? $content;
+        } elseif ($type === 'explanation') {
+            if (!isset($result['explanation'])) {
+                throw new \RuntimeException('AI returned invalid explanation payload');
             }
-
-            $result = json_decode($content, true);
-
-            // Validate based on type
-            if ($type === 'syllabus') {
-                if (!\is_array($result) || empty($result['type']) || empty($result['name'])) {
-                    throw new \RuntimeException('AI returned invalid syllabus classification: ' . $content);
-                }
-                // Map name to match existing syllabus if type is existing
-                if ($result['type'] === 'existing' && !isset($result['syllabus_id'])) {
-                    // Find the ID from existing syllabi
-                    throw new \RuntimeException('Missing syllabus_id for existing syllabus');
-                }
-            } elseif ($type === 'topic') {
-                if (!\is_array($result) || empty($result['type']) || empty($result['name'])) {
-                    throw new \RuntimeException('AI returned invalid topic classification: ' . $content);
-                }
-                // Map name to match existing topic if type is existing
-                if ($result['type'] === 'existing' && !isset($result['topic_id'])) {
-                    // Find the ID from existing topics
-                    throw new \RuntimeException('Missing topic_id for existing topic');
-                }
-            } elseif ($type === 'explanation') {
-                if (!\is_array($result) || !isset($result['explanation'])) {
-                    throw new \RuntimeException('AI returned invalid explanation payload: ' . $content);
-                }
-            } else {
-                // General type
-                if (!\is_array($result) || empty($result['syllabus']) || empty($result['topic'])) {
-                    throw new \RuntimeException('AI returned invalid classification: ' . $content);
-                }
+        } else {
+            if (empty($result['syllabus']) || empty($result['topic'])) {
+                throw new \RuntimeException('AI returned invalid classification');
             }
-
-            return $result;
-        } catch (\Throwable $e) {
-            if ($retryCount < self::MAX_RETRIES) {
-                $backoffMs = self::RETRY_BACKOFF_MS * pow(2, $retryCount);
-                usleep((int)($backoffMs * 1000));
-                return $this->callAIWithRetry($prompt, $retryCount + 1, $type);
-            }
-            throw $e;
         }
+
+        return $result;
     }
 
     private function shouldRequestExplanation(array $question): bool

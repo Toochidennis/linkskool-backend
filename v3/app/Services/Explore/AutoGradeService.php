@@ -2,11 +2,18 @@
 
 namespace V3\App\Services\Explore;
 
+use V3\App\Services\Common\DeepSeekClient;
+
 class AutoGradeService
 {
-    private const MAX_RETRIES = 3;
-    private const RETRY_BACKOFF_MS = 1000;
     private const MAX_COMMENT_WORDS = 20;
+
+    private DeepSeekClient $ai;
+
+    public function __construct()
+    {
+        $this->ai = new DeepSeekClient();
+    }
 
     public function grade(string $questionText, string $answerText): array
     {
@@ -55,112 +62,34 @@ class AutoGradeService
             PROMPT;
     }
 
-    private function callAIWithRetry(string $prompt, int $retryCount = 0): array
+    private function callAIWithRetry(string $prompt): array
     {
         try {
-            $payload = [
-                'model' => 'deepseek-chat',
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => 'You are a strict academic grader. Return only JSON.',
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => $prompt,
-                    ],
+            $result = $this->ai->call([
+                'model'       => 'deepseek-chat',
+                'messages'    => [
+                    ['role' => 'system', 'content' => 'You are a strict academic grader. Return only JSON.'],
+                    ['role' => 'user', 'content' => $prompt],
                 ],
                 'temperature' => 0.2,
-                'max_tokens' => 220,
-            ];
+                'max_tokens'  => 220,
+            ], 30);
 
-            $ch = curl_init(getenv('DEEP_SEEK_URL'));
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST => true,
-                CURLOPT_HTTPHEADER => [
-                    'Authorization: Bearer ' . getenv('DEEP_SEEK_API_KEY'),
-                    'Content-Type: application/json',
-                ],
-                CURLOPT_POSTFIELDS => json_encode($payload),
-                CURLOPT_TIMEOUT => 30,
-                CURLOPT_CONNECTTIMEOUT => 10,
-            ]);
-
-            $response = curl_exec($ch);
-            $curlError = curl_error($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($response === false) {
-                throw new \RuntimeException('Request failed: ' . $curlError);
-            }
-
-            if ($httpCode === 429) {
-                if ($retryCount < self::MAX_RETRIES) {
-                    $backoffMs = self::RETRY_BACKOFF_MS * (2 ** $retryCount);
-                    usleep((int)($backoffMs * 1000));
-                    return $this->callAIWithRetry($prompt, $retryCount + 1);
-                }
-
-                throw new \RuntimeException('API rate limit exceeded after retries');
-            }
-
-            if ($httpCode >= 400) {
-                throw new \RuntimeException("API error: HTTP {$httpCode}");
-            }
-
-            $decoded = json_decode($response, true);
-            $content = $decoded['choices'][0]['message']['content'] ?? '';
-
-            if (!\is_string($content) || trim($content) === '') {
-                throw new \RuntimeException('Invalid response structure');
-            }
-
-            $parsed = $this->parseResponseContent($content);
-
-            if (!isset($parsed['score']) || !isset($parsed['comment'])) {
+            if (!isset($result['score']) || !isset($result['comment'])) {
                 throw new \RuntimeException('Missing score/comment in response');
             }
 
             return [
-                'score' => max(0, min(100, (float)$parsed['score'])),
-                'comment' => $this->humanizeComment((string) ($parsed['comment'] ?? '')),
+                'score'   => max(0, min(100, (float) $result['score'])),
+                'comment' => $this->humanizeComment((string) ($result['comment'] ?? '')),
             ];
         } catch (\Throwable $e) {
-            if ($retryCount < self::MAX_RETRIES) {
-                $backoffMs = self::RETRY_BACKOFF_MS * (2 ** $retryCount);
-                usleep((int)($backoffMs * 1000));
-                return $this->callAIWithRetry($prompt, $retryCount + 1);
-            }
-
             return [
-                'score' => 0,
+                'score'   => 0,
                 'comment' => 'Grading failed.',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ];
         }
-    }
-
-    private function parseResponseContent(string $content): array
-    {
-        $trimmed = trim($content);
-
-        if (strpos($trimmed, '```json') !== false) {
-            preg_match('/```json\s*(.*?)\s*```/s', $trimmed, $matches);
-            $trimmed = $matches[1] ?? $trimmed;
-        } elseif (strpos($trimmed, '```') !== false) {
-            preg_match('/```\s*(.*?)\s*```/s', $trimmed, $matches);
-            $trimmed = $matches[1] ?? $trimmed;
-        }
-
-        $parsed = json_decode($trimmed, true);
-
-        if (\is_array($parsed)) {
-            return $parsed;
-        }
-
-        return [];
     }
 
     private function humanizeComment(string $comment): string

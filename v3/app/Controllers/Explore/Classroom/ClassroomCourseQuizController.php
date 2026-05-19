@@ -27,6 +27,7 @@ class ClassroomCourseQuizController extends ExploreBaseController
             [
                 'question_id'    => 'nullable|integer',
                 'course_id'      => 'required|integer',
+                'topic_id'       => 'nullable|string',
                 'institution_id' => 'required|integer',
                 'question_text'  => 'required|string',
                 'options'        => 'required|array',
@@ -34,6 +35,8 @@ class ClassroomCourseQuizController extends ExploreBaseController
                 'correct'        => 'required|array',
                 'correct.text'   => 'required|string',
                 'correct.order'  => 'required|integer',
+                'start_date'      => 'nullable|date',
+                'end_date'        => 'nullable|date|after_or_equal:start_date',
             ]
         );
 
@@ -71,6 +74,35 @@ class ClassroomCourseQuizController extends ExploreBaseController
         );
     }
 
+    #[Route('/{course_id}/quizzes/generate', 'GET', ['api'])]
+    public function generateQuestions(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'course_id'  => 'required|integer',
+                'count'      => 'required|integer',
+                'subject_id' => 'nullable|integer',
+                'level_id'   => 'nullable|integer',
+            ]
+        );
+
+        $questions = $this->service->generateQuestions(
+            (int) $validated['course_id'],
+            (int) $validated['count'],
+            isset($validated['subject_id']) ? (int) $validated['subject_id'] : null,
+            isset($validated['level_id'])   ? (int) $validated['level_id']   : null,
+        );
+
+        $this->respond(
+            [
+                'status' => true,
+                'data' => $questions,
+            ],
+            HttpStatus::OK
+        );
+    }
+
     #[Route('/{course_id}/quizzes/{question_id}', 'PUT', ['api'])]
     public function update(array $vars): void
     {
@@ -79,6 +111,7 @@ class ClassroomCourseQuizController extends ExploreBaseController
             [
                 'question_id'    => 'required|integer',
                 'course_id'      => 'required|integer',
+                'topic_id'       => 'nullable|string',
                 'institution_id' => 'required|integer',
                 'question_text'  => 'required|string',
                 'options'        => 'required|array',
@@ -86,6 +119,8 @@ class ClassroomCourseQuizController extends ExploreBaseController
                 'correct'        => 'required|array',
                 'correct.text'   => 'required|string',
                 'correct.order'  => 'required|integer',
+                'start_date'      => 'nullable|date',
+                'end_date'        => 'nullable|date|after_or_equal:start_date',
             ]
         );
 
