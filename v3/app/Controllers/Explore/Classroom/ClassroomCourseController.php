@@ -19,7 +19,7 @@ class ClassroomCourseController extends ExploreBaseController
         $this->service = new ClassroomCourseService($this->pdo);
     }
 
-    #[Route('/{institution_id}', 'POST', ['api'])]
+    #[Route('', 'POST', ['api'])]
     public function createCourse(array $vars): void
     {
         $validated = $this->validate(
