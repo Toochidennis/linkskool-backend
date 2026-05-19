@@ -1,11 +1,12 @@
 <?php
 
-namespace V3\App\Controllers\Explore;
+namespace V3\App\Controllers\Explore\Classroom;
 
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
-use V3\App\Services\Explore\ClassroomAccessCodeService;
+use V3\App\Controllers\Explore\ExploreBaseController;
+use V3\App\Services\Explore\Classroom\ClassroomAccessCodeService;
 
 #[Group('/public/classroom')]
 class ClassroomAccessCodeController extends ExploreBaseController

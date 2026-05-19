@@ -1,11 +1,12 @@
 <?php
 
-namespace V3\App\Controllers\Explore;
+namespace V3\App\Controllers\Explore\Classroom;
 
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
 use V3\App\Common\Utilities\HttpStatus;
-use V3\App\Services\Explore\ClassroomInstitutionService;
+use V3\App\Controllers\Explore\ExploreBaseController;
+use V3\App\Services\Explore\Classroom\ClassroomInstitutionService;
 
 #[Group('/public/classroom/institutions')]
 class ClassroomInstitutionController extends ExploreBaseController
@@ -24,13 +25,14 @@ class ClassroomInstitutionController extends ExploreBaseController
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'name'         => 'required|string',
-                'type'         => 'required|string',
-                'email'        => 'required|email',
+                'name' => 'required|string',
+                'type' => 'required|string',
+                'email' => 'required|email',
                 'access_code'  => 'required|string',
-                'phone'        => 'nullable|string',
-                'website'      => 'nullable|string',
-                'address'      => 'nullable|string',
+                'phone' => 'nullable|string',
+                'website' => 'nullable|string',
+                'address' => 'nullable|string',
+                'user_id' => 'required|integer',
             ],
         );
 
@@ -52,17 +54,17 @@ class ClassroomInstitutionController extends ExploreBaseController
         );
     }
 
-    #[Route('/{slug}', 'GET', ['api'])]
+    #[Route('/{user_id}', 'GET', ['api'])]
     public function getProfile(array $vars): void
     {
         $validated = $this->validate(
             $vars,
             [
-                'slug' => 'required|string',
+                'user_id' => 'required|integer',
             ],
         );
 
-        $profile = $this->service->getInstitutionProfile($validated['slug']);
+        $profile = $this->service->getInstitutionByUserId((int) $validated['user_id']);
 
         if (empty($profile)) {
             $this->respondError(

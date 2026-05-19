@@ -1,11 +1,10 @@
 <?php
 
-namespace V3\App\Services\Explore;
+namespace V3\App\Services\Explore\Classroom;
 
 use V3\App\Common\Utilities\Str;
 use V3\App\Common\Utilities\Uuid;
-use V3\App\Models\Explore\ClassroomInstitution;
-use V3\App\Services\Explore\ClassroomAccessCodeService;
+use V3\App\Models\Explore\Classroom\ClassroomInstitution;
 use V3\App\Services\Explore\StorageService;
 
 class ClassroomInstitutionService
@@ -67,11 +66,6 @@ class ClassroomInstitutionService
             $this->model->rollBack();
             return false;
         }
-    }
-
-    public function getInstitutionProfile(string $slug): array
-    {
-        return $this->model->where('slug', $slug)->first();
     }
 
     public function getInstitutionByUserId(int $userId): array

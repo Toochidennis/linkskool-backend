@@ -1,12 +1,12 @@
 <?php
 
-namespace V3\App\Models\Explore;
+namespace V3\App\Models\Explore\Classroom;
 
 use V3\App\Models\BaseModel;
 
-class ClassroomQuizAttempt extends BaseModel
+class ClassroomCourseStaff extends BaseModel
 {
-    protected string $table = 'classroom_quiz_attempts';
+    protected string $table = 'classroom_course_staff';
 
     public function __construct(\PDO $pdo)
     {

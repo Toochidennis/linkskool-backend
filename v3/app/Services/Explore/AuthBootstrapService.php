@@ -102,8 +102,8 @@ class AuthBootstrapService
             $institution = $this->institutionService->getInstitutionByUserId($registeredUserId);
 
             return [
-                'user'        => $user,
-                'profiles'    => $profiles,
+                'user' => $user,
+                'profiles' => $profiles,
                 'institution' => $institution ?: null,
             ];
         } catch (Throwable $e) {
@@ -285,8 +285,8 @@ class AuthBootstrapService
         unset($user['password']);
 
         return [
-            'user'        => $user,
-            'profiles'    => $profiles,
+            'user' => $user,
+            'profiles' => $profiles,
             'institution' => $institution ?: null,
         ];
     }

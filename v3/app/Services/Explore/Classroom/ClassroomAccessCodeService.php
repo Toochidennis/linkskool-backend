@@ -1,8 +1,8 @@
 <?php
 
-namespace V3\App\Services\Explore;
+namespace V3\App\Services\Explore\Classroom;
 
-use V3\App\Models\Explore\ClassroomAccessCode;
+use V3\App\Models\Explore\Classroom\ClassroomAccessCode;
 
 class ClassroomAccessCodeService
 {
