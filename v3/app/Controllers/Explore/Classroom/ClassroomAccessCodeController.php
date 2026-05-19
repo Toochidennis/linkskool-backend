@@ -18,7 +18,7 @@ class ClassroomAccessCodeController extends ExploreBaseController
         $this->service = new ClassroomAccessCodeService($this->pdo);
     }
 
-    #[Route('access-code/seed', 'POST', ['api'])]
+    #[Route('access-codes/seed', 'GET')]
     public function seedCodes(): void
     {
         $seeded = $this->service->seedCodes();
@@ -30,8 +30,8 @@ class ClassroomAccessCodeController extends ExploreBaseController
         );
     }
 
-    #[Route('access-code/validate', 'POST', ['api'])]
-    public function validateAccessCode(): void
+    #[Route('access-codes/verify', 'POST', ['api'])]
+    public function verifyAccessCode(): void
     {
         $data = $this->validate(
             $this->getRequestData(),

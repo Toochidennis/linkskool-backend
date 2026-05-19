@@ -76,7 +76,7 @@ class ClassroomInstitutionController extends ExploreBaseController
         $this->respond(
             [
                 'status' => true,
-                'data'   => $profile,
+                'data' => $profile,
             ],
             HttpStatus::OK
         );

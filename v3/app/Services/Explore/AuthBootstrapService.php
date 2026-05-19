@@ -7,7 +7,7 @@ use Throwable;
 use V3\App\Common\Events\EventDispatcher;
 use V3\App\Events\Auth\UserRegisteredFirstTime;
 use V3\App\Models\Common\UserDeviceToken;
-use V3\App\Services\Explore\ClassroomInstitutionService;
+use V3\App\Services\Explore\Classroom\ClassroomInstitutionService;
 
 class AuthBootstrapService
 {
