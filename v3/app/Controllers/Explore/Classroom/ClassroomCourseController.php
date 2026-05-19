@@ -58,6 +58,24 @@ class ClassroomCourseController extends ExploreBaseController
         );
     }
 
+    #[Route('/{id}', 'GET', ['api'])]
+    public function getCourseById(array $vars): void
+    {
+        $course = $this->service->getCourseById((int) $vars['id']);
+
+        if (empty($course)) {
+            $this->respondError('Course not found.', HttpStatus::NOT_FOUND);
+        }
+
+        $this->respond(
+            [
+                'status' => true,
+                'data'   => $course,
+            ],
+            HttpStatus::OK
+        );
+    }
+
     #[Route('', 'GET', ['api'])]
     public function getCoursesByInstitution(array $vars): void
     {

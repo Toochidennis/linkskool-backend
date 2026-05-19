@@ -88,6 +88,27 @@ class ClassroomCourseService
         return $result;
     }
 
+    public function getCourseById(int $id): array
+    {
+        $course = $this->classroomCourse
+            ->select([
+                'classroom_courses.*',
+                'course_table.course_name AS subject_name',
+            ])
+            ->join('course_table', 'classroom_courses.subject_id = course_table.id', 'LEFT')
+            ->where('classroom_courses.id', $id)
+            ->first();
+
+        if (empty($course)) {
+            return [];
+        }
+
+        $course['image_url']    = AssetUrl::fromAppUrl($course['image_url'] ?? null);
+        $course['subject_name'] = $course['subject_name'] ? ucwords(strtolower($course['subject_name'])) : null;
+
+        return $course;
+    }
+
     public function listStudents(
         int $institutionId,
         array $filters = [],

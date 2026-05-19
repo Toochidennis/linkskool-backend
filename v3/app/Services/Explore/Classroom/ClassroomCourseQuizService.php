@@ -156,6 +156,12 @@ class ClassroomCourseQuizService
         - The correct answer must reference the exact text of one option and its zero-based order (0–3)
         - Questions must be relevant to the course/subject/level provided
         - Language should be clear and appropriate for the target level
+        - For ALL mathematical or scientific notation — including equations, expressions, formulas, fractions, exponents, roots, matrices, vectors, integrals, summations, chemical formulas, Greek letters, and any symbolic content — you MUST use LaTeX syntax
+        - Wrap inline LaTeX with \( and \), e.g. \( x^2 + y^2 = z^2 \)
+        - Wrap block/display LaTeX with \[ and \], e.g. \[ \int_0^\infty e^{-x}\,dx = 1 \]
+        - This applies to question_text and every option text — never use plain-text math like "x^2" or "sqrt(x)" outside of LaTeX delimiters
+        - This rule applies to all subjects: Mathematics, Physics, Chemistry, Biology, Economics, Statistics, Computer Science, Logic, etc.
+        - Use Markdown for all other formatting needs: **bold** for emphasis, `code` for variable names or code snippets, and numbered or bulleted lists where clarity requires it
 
         Return ONLY valid JSON matching this schema exactly:
         {
@@ -180,10 +186,10 @@ class ClassroomCourseQuizService
         PROMPT;
 
         $result = $this->ai->call([
-            'model'           => 'deepseek-chat',
-            'messages'        => [['role' => 'user', 'content' => $prompt]],
-            'temperature'     => 0.4,
-            'max_tokens'      => 300 * $count,
+            'model' => 'deepseek-chat',
+            'messages' => [['role' => 'user', 'content' => $prompt]],
+            'temperature' => 0.4,
+            'max_tokens' => 300 * $count,
             'response_format' => ['type' => 'json_object'],
         ], 120);
 
