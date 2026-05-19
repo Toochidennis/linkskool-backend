@@ -19,7 +19,7 @@ class ClassroomCourseQuizController extends ExploreBaseController
         $this->service = new ClassroomCourseQuizService($this->pdo);
     }
 
-    #[Route('/{course_id}/quizzes', 'POST', ['api', 'auth'])]
+    #[Route('/{course_id}/quizzes', 'POST', ['api'])]
     public function create(array $vars): void
     {
         $validated = $this->validate(
@@ -56,7 +56,7 @@ class ClassroomCourseQuizController extends ExploreBaseController
         );
     }
 
-    #[Route('/{course_id}/quizzes/{question_id}', 'PUT', ['api', 'auth'])]
+    #[Route('/{course_id}/quizzes/{question_id}', 'PUT', ['api'])]
     public function update(array $vars): void
     {
         $validated = $this->validate(
