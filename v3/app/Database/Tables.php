@@ -147,5 +147,15 @@ class Tables
         'study_topic_exam_types',
         'study_sub_topics',
         'study_sub_sub_topics',
+        'classroom_access_codes',
+        'classroom_institutions',
+        'classroom_courses',
+        'classroom_students',
+        'classroom_staff',
+        'classroom_course_staff',
+        'classroom_course_codes',
+        'classroom_course_enrollments',
+        'classroom_course_quizzes',
+        'classroom_quiz_attempts',
     ];
 }
