@@ -2,6 +2,7 @@
 
 namespace V3\App\Services\Explore\Classroom;
 
+use V3\App\Common\Utilities\AssetUrl;
 use V3\App\Common\Utilities\Str;
 use V3\App\Common\Utilities\Uuid;
 use V3\App\Models\Explore\Classroom\ClassroomCourse;
@@ -48,6 +49,11 @@ class ClassroomCourseService
 
     public function getCoursesByInstitution(int $institutionId): array
     {
-        return $this->classroomCourse->where('institution_id', $institutionId)->get();
+        $rows = $this->classroomCourse->where('institution_id', $institutionId)->get();
+
+        return array_map(function (array $row): array {
+            $row['image_url'] = AssetUrl::fromAppUrl($row['image_url'] ?? null);
+            return $row;
+        }, $rows);
     }
 }

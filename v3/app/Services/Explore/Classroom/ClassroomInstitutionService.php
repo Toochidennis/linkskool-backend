@@ -2,6 +2,7 @@
 
 namespace V3\App\Services\Explore\Classroom;
 
+use V3\App\Common\Utilities\AssetUrl;
 use V3\App\Common\Utilities\Str;
 use V3\App\Common\Utilities\Uuid;
 use V3\App\Models\Explore\Classroom\ClassroomInstitution;
@@ -70,6 +71,13 @@ class ClassroomInstitutionService
 
     public function getInstitutionByUserId(int $userId): array
     {
-        return $this->model->where('user_id', $userId)->first();
+        $row = $this->model->where('user_id', $userId)->first();
+
+        if (!empty($row)) {
+            $row['logo_url']   = AssetUrl::fromAppUrl($row['logo_url'] ?? null);
+            $row['banner_url'] = AssetUrl::fromAppUrl($row['banner_url'] ?? null);
+        }
+
+        return $row;
     }
 }
