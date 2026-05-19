@@ -27,6 +27,7 @@ class ClassroomCourseQuizController extends ExploreBaseController
             [
                 'question_id'    => 'nullable|integer',
                 'course_id'      => 'required|integer',
+                'lesson_id'      => 'nullable|integer',
                 'topic_id'       => 'nullable|string',
                 'institution_id' => 'required|integer',
                 'question_text'  => 'required|string',
@@ -62,8 +63,17 @@ class ClassroomCourseQuizController extends ExploreBaseController
     #[Route('/{course_id}/quizzes', 'GET', ['api'])]
     public function getByCourseId(array $vars): void
     {
-        $courseId = (int) $vars['course_id'];
-        $quizzes = $this->service->getQuizByCourseId($courseId);
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'course_id' => 'required|integer',
+                'lesson_id' => 'nullable|integer',
+            ]
+        );
+
+        $courseId = (int) $validated['course_id'];
+        $lessonId = isset($validated['lesson_id']) ? (int) $validated['lesson_id'] : null;
+        $quizzes = $this->service->getQuizByCourseId($courseId, $lessonId);
 
         $this->respond(
             [
@@ -112,6 +122,7 @@ class ClassroomCourseQuizController extends ExploreBaseController
                 'question_id'    => 'required|integer',
                 'course_id'      => 'required|integer',
                 'topic_id'       => 'nullable|string',
+                'lesson_id'      => 'nullable|integer',
                 'institution_id' => 'required|integer',
                 'question_text'  => 'required|string',
                 'options'        => 'required|array',
@@ -137,7 +148,7 @@ class ClassroomCourseQuizController extends ExploreBaseController
             [
                 'status'  => true,
                 'message' => 'Quiz question updated successfully.',
-                'data'    => ['question_id' => $validated['question_id']],
+                'data' => ['question_id' => $validated['question_id']],
             ],
             HttpStatus::OK
         );

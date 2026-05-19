@@ -30,6 +30,7 @@ class ClassroomCourseQuizService
         $payload = [
             'institution_id' => $data['institution_id'],
             'course_id' => $data['course_id'],
+            'lesson_id' => $data['lesson_id'] ?? null,
             'topic' => $data['topic'] ?? null,
             'question_text' => $data['question_text'],
             'options' => json_encode($data['options']),
@@ -52,6 +53,7 @@ class ClassroomCourseQuizService
         $payload = [
             'institution_id' => $data['institution_id'],
             'topic' => $data['topic'] ?? null,
+            'lesson_id' => $data['lesson_id'] ?? null,
             'course_id' => $data['course_id'],
             'question_text' => $data['question_text'],
             'options' => json_encode($data['options']),
@@ -66,12 +68,13 @@ class ClassroomCourseQuizService
             ->update($payload);
     }
 
-    public function getQuizByCourseId(int $courseId): array
+    public function getQuizByCourseId(int $courseId, ?int $lessonId = null): array
     {
-        $quizzes = $this->model
+        $query = $this->model
             ->select([
                 'question_id',
                 'question_text',
+                'lesson_id',
                 'topic',
                 'options',
                 'correct',
@@ -79,12 +82,18 @@ class ClassroomCourseQuizService
                 'start_date',
                 'end_date',
             ])
-            ->where('course_id', $courseId)
-            ->get();
+            ->where('course_id', $courseId);
+
+        if ($lessonId !== null) {
+            $query = $query->where('lesson_id', $lessonId);
+        }
+
+        $quizzes = $query->get();
 
         return array_map(fn($q) => [
             'question_id'   => $q['question_id'],
             'question_text' => $q['question_text'],
+            'lesson_id'    => $q['lesson_id'] ?? null,
             'topic'   => $q['topic'],
             'options'  => json_decode($q['options'], true),
             'correct'       => json_decode($q['correct'], true),
@@ -110,7 +119,7 @@ class ClassroomCourseQuizService
         }
 
         $courseName = $course['name'];
-        $topic      = $course['topic'] ?? null;
+        $topic  = $course['topic'] ?? null;
 
         $levelName = null;
         if ($levelId) {
