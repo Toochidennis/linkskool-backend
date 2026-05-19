@@ -65,11 +65,11 @@ class ClassroomCourseController extends ExploreBaseController
             [...$this->getRequestData(), ...$vars],
             [
                 'institution_id' => 'required|integer',
-                'level_id'       => 'nullable|integer',
-                'status'         => 'nullable|string',
-                'subject_id'     => 'nullable|integer',
-                'page'           => 'nullable|integer',
-                'limit'          => 'nullable|integer',
+                'level_id'  => 'nullable|integer',
+                'status'  => 'nullable|string|in:draft,published,archived',
+                'subject_id' => 'nullable|integer',
+                'page' => 'nullable|integer',
+                'limit' => 'nullable|integer',
             ],
         );
 

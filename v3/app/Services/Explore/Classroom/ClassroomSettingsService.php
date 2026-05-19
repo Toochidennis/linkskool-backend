@@ -18,14 +18,9 @@ class ClassroomSettingsService
 
     public function getLevels(): array
     {
-        $rows = $this->levelModel->select(['id', 'name'])
+        return $this->levelModel->select(['id', 'name'])
         ->orderBy('rank', 'ASC')
         ->get();
-
-        return array_map(fn($row) => [
-            'id'   => $row['id'],
-            'name' => ucwords(strtolower($row['name'])),
-        ], $rows);
     }
 
     public function getSubjects(): array

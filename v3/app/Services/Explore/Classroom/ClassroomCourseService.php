@@ -57,24 +57,31 @@ class ClassroomCourseService
         int $page = 1,
         int $limit = 20
     ): array {
-        $query = $this->classroomCourse->where('institution_id', $institutionId);
+        $query = $this->classroomCourse
+            ->select([
+                'classroom_courses.*',
+                'course_table.course_name AS subject_name',
+            ])
+            ->join('course_table', 'classroom_courses.subject_id = course_table.id', 'LEFT')
+            ->where('classroom_courses.institution_id', $institutionId);
 
         if (!empty($filters['level_id'])) {
-            $query->where('level_id', $filters['level_id']);
+            $query->where('classroom_courses.level_id', $filters['level_id']);
         }
 
         if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
+            $query->where('classroom_courses.status', $filters['status']);
         }
 
         if (!empty($filters['subject_id'])) {
-            $query->where('subject_id', $filters['subject_id']);
+            $query->where('classroom_courses.subject_id', $filters['subject_id']);
         }
 
         $result = $query->paginate($page, $limit);
 
         $result['data'] = array_map(function (array $row): array {
-            $row['image_url'] = AssetUrl::fromAppUrl($row['image_url'] ?? null);
+            $row['image_url']    = AssetUrl::fromAppUrl($row['image_url'] ?? null);
+            $row['subject_name'] = $row['subject_name'] ? ucwords(strtolower($row['subject_name'])) : null;
             return $row;
         }, $result['data']);
 
