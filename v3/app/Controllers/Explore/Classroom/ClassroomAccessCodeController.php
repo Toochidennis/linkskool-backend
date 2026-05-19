@@ -50,7 +50,9 @@ class ClassroomAccessCodeController extends ExploreBaseController
             [
                 'success' => true,
                 'message' => 'Access code validated successfully.',
-                'data' => $result['id']
+                'data' => [
+                    'valid' => true,
+                ]
             ]
         );
     }
