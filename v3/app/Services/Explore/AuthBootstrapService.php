@@ -7,11 +7,13 @@ use Throwable;
 use V3\App\Common\Events\EventDispatcher;
 use V3\App\Events\Auth\UserRegisteredFirstTime;
 use V3\App\Models\Common\UserDeviceToken;
+use V3\App\Services\Explore\ClassroomInstitutionService;
 
 class AuthBootstrapService
 {
     private CbtUserService $cbtUserService;
     private ProgramProfileService $profileService;
+    private ClassroomInstitutionService $institutionService;
     private UserDeviceToken $userDeviceToken;
     private PDO $pdo;
 
@@ -20,6 +22,7 @@ class AuthBootstrapService
         $this->pdo = $pdo;
         $this->cbtUserService = new CbtUserService($pdo);
         $this->profileService = new ProgramProfileService($pdo);
+        $this->institutionService = new ClassroomInstitutionService($pdo);
         $this->userDeviceToken = new UserDeviceToken($pdo);
     }
 
@@ -96,9 +99,12 @@ class AuthBootstrapService
                 );
             }
 
+            $institution = $this->institutionService->getInstitutionByUserId($registeredUserId);
+
             return [
-                'user' => $user,
-                'profiles' => $profiles
+                'user'        => $user,
+                'profiles'    => $profiles,
+                'institution' => $institution ?: null,
             ];
         } catch (Throwable $e) {
             $this->pdo->rollBack();
@@ -258,7 +264,8 @@ class AuthBootstrapService
 
             return [
                 'user' => $user,
-                'profiles' => $profiles
+                'profiles' => $profiles,
+                'institution' => null,
             ];
         }
 
@@ -274,11 +281,13 @@ class AuthBootstrapService
         }
 
         $profiles = $this->profileService->getProfilesByUserId($user['id']);
+        $institution = $this->institutionService->getInstitutionByUserId((int) $user['id']);
         unset($user['password']);
 
         return [
-            'user' => $user,
-            'profiles' => $profiles
+            'user'        => $user,
+            'profiles'    => $profiles,
+            'institution' => $institution ?: null,
         ];
     }
 

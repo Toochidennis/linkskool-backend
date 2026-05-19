@@ -54,6 +54,22 @@ class ClassroomAccessCodeService
             return ['status' => 'error', 'message' => 'Access code has already been used.'];
         }
 
-        return ['status' => 'success', 'message' => 'Access code applied successfully.'];
+        return ['status' => 'success', 'id' => $row['id']];
+    }
+
+    public function assignCode(int $code, int $institutionId): array|bool
+    {
+        $codeId = $this->validateCode($code)['id'] ?? null;
+
+        if (!$codeId) {
+            return ['message' => 'Invalid or already used access code.'];
+        }
+
+        return $this->model
+            ->where('id', $codeId)
+            ->update([
+                'institution_id' => $institutionId,
+                'used_at' => date('Y-m-d H:i:s'),
+            ]);
     }
 }
