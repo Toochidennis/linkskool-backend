@@ -12,7 +12,7 @@ class ClassroomAccessCodeService
     public function __construct(\PDO $pdo)
     {
         $this->model = new ClassroomAccessCode($pdo);
-        $this->csvPath = dirname(__DIR__, 3) . '/config/classroom_access_codes.csv';
+        $this->csvPath = dirname(__DIR__, 4) . '/config/classroom_access_codes.csv';
     }
 
     public function seedCodes(): int

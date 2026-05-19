@@ -1857,14 +1857,14 @@
                 ]
             }
         },
-        "/portal/students/{student_id:\\d+}/make-payment": {
+        "/portal/students/{student_id:\\d+}/payment/initiate": {
             "post": {
                 "tags": [
                     "portal"
                 ],
-                "summary": "MakePayment",
+                "summary": "InitiatePayment",
                 "description": "",
-                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\StudentPaymentController::makePayment",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\StudentPaymentController::initiatePayment",
                 "parameters": [
                     {
                         "name": "student_id",
@@ -1894,14 +1894,88 @@
                 ]
             }
         },
-        "/portal/students/{student_id:\\d+}/financial-records": {
+        "/portal/students/payment/status/{reference}": {
             "get": {
                 "tags": [
                     "portal"
                 ],
-                "summary": "GetFinancialRecords",
+                "summary": "CheckPaymentStatus",
                 "description": "",
-                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\StudentPaymentController::getFinancialRecords",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\StudentPaymentController::checkPaymentStatus",
+                "parameters": [
+                    {
+                        "name": "reference",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'reference'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{student_id:\\d+}/invoices": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetInvoices",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\StudentPaymentController::getInvoices",
+                "parameters": [
+                    {
+                        "name": "student_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'student_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/students/{student_id:\\d+}/payment/history": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetPaymentHistory",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\StudentPaymentController::getPaymentHistory",
                 "parameters": [
                     {
                         "name": "student_id",
@@ -1939,6 +2013,30 @@
                 "summary": "GetDashboardSummary",
                 "description": "",
                 "operationId": "V3\\App\\Controllers\\Portal\\Payments\\PaymentDashboardController::getDashboardSummary",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/payments/transactions": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetTransactions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\PaymentDashboardController::getTransactions",
                 "parameters": [],
                 "responses": {
                     "200": {
@@ -2003,6 +2101,43 @@
                 ]
             }
         },
+        "/portal/payments/receipts/{id}": {
+            "get": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "GetReceiptDetail",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\Payments\\PaymentDashboardController::getReceiptDetail",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    },
+                    {
+                        "roleAuth": []
+                    }
+                ]
+            }
+        },
         "/portal/auth/login": {
             "post": {
                 "tags": [
@@ -2011,6 +2146,27 @@
                 "summary": "HandleAuthRequest",
                 "description": "",
                 "operationId": "V3\\App\\Controllers\\Portal\\AuthController::handleAuthRequest",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/portal/auth/refresh": {
+            "post": {
+                "tags": [
+                    "portal"
+                ],
+                "summary": "HandleRefreshRequest",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Portal\\AuthController::handleRefreshRequest",
                 "parameters": [],
                 "responses": {
                     "200": {
@@ -5685,6 +5841,37 @@
                 ]
             }
         },
+        "/public/learning/cohorts/{cohort_id}/enrollments/mobile-billing": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "VerifyMobileBilling",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\CourseCohortEnrollmentController::verifyMobileBilling",
+                "parameters": [
+                    {
+                        "name": "cohort_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'cohort_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
         "/public/learning/cohorts/enrollments/free": {
             "post": {
                 "tags": [
@@ -6564,6 +6751,396 @@
                     },
                     {
                         "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroomaccess-codes/seed": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "SeedCodes",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomAccessCodeController::seedCodes",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroomaccess-codes/verify": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "VerifyAccessCode",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomAccessCodeController::verifyAccessCode",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroom/courses/{institution_id}": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "CreateCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseController::createCourse",
+                "parameters": [
+                    {
+                        "name": "institution_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'institution_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroom/courses": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetCoursesByInstitution",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseController::getCoursesByInstitution",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroom/courses/{id}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "UpdateCourse",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseController::updateCourse",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroom/enrollments": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetEnrolledCourses",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseEnrollmentController::getEnrolledCourses",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Enroll",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseEnrollmentController::enroll",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroom/institutions": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "CreateInstitution",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomInstitutionController::createInstitution",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroom/institutions/{user_id}": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetProfile",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomInstitutionController::getProfile",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'user_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroom/auth/student": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "AuthenticateStudent",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomAuthController::authenticateStudent",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroom/courses/{course_id}/quizzes": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Create",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseQuizController::create",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            },
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GetByCourseId",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseQuizController::getByCourseId",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroom/courses/{course_id}/quizzes/generate": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "GenerateQuestions",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseQuizController::generateQuestions",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroom/courses/{course_id}/quizzes/{question_id}": {
+            "put": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Update",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseQuizController::update",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'course_id'"
+                    },
+                    {
+                        "name": "question_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Path parameter 'question_id'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
+                    }
+                ]
+            }
+        },
+        "/public/classroom/students": {
+            "post": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "CreateStudents",
+                "description": "",
+                "operationId": "V3\\App\\Controllers\\Explore\\Classroom\\ClassroomStudentController::createStudents",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "security": [
+                    {
+                        "apiKeyAuth": []
                     }
                 ]
             }

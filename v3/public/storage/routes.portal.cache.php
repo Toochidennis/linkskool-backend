@@ -776,9 +776,9 @@
   64 => 
   array (
     'method' => 'POST',
-    'path' => '/portal/students/{student_id:\\d+}/make-payment',
+    'path' => '/portal/students/{student_id:\\d+}/payment/initiate',
     'class' => 'V3\\App\\Controllers\\Portal\\Payments\\StudentPaymentController',
-    'methodName' => 'makePayment',
+    'methodName' => 'initiatePayment',
     'middleware' => 
     array (
       0 => 'auth',
@@ -789,9 +789,22 @@
   65 => 
   array (
     'method' => 'GET',
-    'path' => '/portal/students/{student_id:\\d+}/financial-records',
+    'path' => '/portal/students/payment/status/{reference}',
     'class' => 'V3\\App\\Controllers\\Portal\\Payments\\StudentPaymentController',
-    'methodName' => 'getFinancialRecords',
+    'methodName' => 'checkPaymentStatus',
+    'middleware' => 
+    array (
+      0 => 'auth',
+      1 => 'role:admin',
+      2 => 'role:student',
+    ),
+  ),
+  66 => 
+  array (
+    'method' => 'GET',
+    'path' => '/portal/students/{student_id:\\d+}/invoices',
+    'class' => 'V3\\App\\Controllers\\Portal\\Payments\\StudentPaymentController',
+    'methodName' => 'getInvoices',
     'middleware' => 
     array (
       0 => 'auth',
@@ -799,7 +812,20 @@
       2 => 'role:admin',
     ),
   ),
-  66 => 
+  67 => 
+  array (
+    'method' => 'GET',
+    'path' => '/portal/students/{student_id:\\d+}/payment/history',
+    'class' => 'V3\\App\\Controllers\\Portal\\Payments\\StudentPaymentController',
+    'methodName' => 'getPaymentHistory',
+    'middleware' => 
+    array (
+      0 => 'auth',
+      1 => 'role:student',
+      2 => 'role:admin',
+    ),
+  ),
+  68 => 
   array (
     'method' => 'GET',
     'path' => '/portal/payments/dashboard/summary',
@@ -811,7 +837,19 @@
       1 => 'role:admin',
     ),
   ),
-  67 => 
+  69 => 
+  array (
+    'method' => 'GET',
+    'path' => '/portal/payments/transactions',
+    'class' => 'V3\\App\\Controllers\\Portal\\Payments\\PaymentDashboardController',
+    'methodName' => 'getTransactions',
+    'middleware' => 
+    array (
+      0 => 'auth',
+      1 => 'role:admin',
+    ),
+  ),
+  70 => 
   array (
     'method' => 'GET',
     'path' => '/portal/payments/invoices/paid',
@@ -823,7 +861,7 @@
       1 => 'role:admin',
     ),
   ),
-  68 => 
+  71 => 
   array (
     'method' => 'GET',
     'path' => '/portal/payments/invoices/unpaid',
@@ -835,7 +873,20 @@
       1 => 'role:admin',
     ),
   ),
-  69 => 
+  72 => 
+  array (
+    'method' => 'GET',
+    'path' => '/portal/payments/receipts/{id}',
+    'class' => 'V3\\App\\Controllers\\Portal\\Payments\\PaymentDashboardController',
+    'methodName' => 'getReceiptDetail',
+    'middleware' => 
+    array (
+      0 => 'auth',
+      1 => 'role:admin',
+      2 => 'role:student',
+    ),
+  ),
+  73 => 
   array (
     'method' => 'POST',
     'path' => '/portal/auth/login',
@@ -846,7 +897,18 @@
       0 => 'api',
     ),
   ),
-  70 => 
+  74 => 
+  array (
+    'method' => 'POST',
+    'path' => '/portal/auth/refresh',
+    'class' => 'V3\\App\\Controllers\\Portal\\AuthController',
+    'methodName' => 'handleRefreshRequest',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  75 => 
   array (
     'method' => 'POST',
     'path' => '/portal/students/{student_id:\\d+}/quiz-submissions',
@@ -858,7 +920,7 @@
       1 => 'role:student',
     ),
   ),
-  71 => 
+  76 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/elearning/quiz/mark',
@@ -871,7 +933,7 @@
       2 => 'role:staff',
     ),
   ),
-  72 => 
+  77 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/elearning/quiz/{content_id:\\d+}/publish',
@@ -884,7 +946,7 @@
       2 => 'role:staff',
     ),
   ),
-  73 => 
+  78 => 
   array (
     'method' => 'GET',
     'path' => '/portal/elearning/quiz/{id:\\d+}/submissions',
@@ -897,7 +959,7 @@
       2 => 'role:staff',
     ),
   ),
-  74 => 
+  79 => 
   array (
     'method' => 'GET',
     'path' => '/portal/students/{student_id:\\d+}/quiz-submissions',
@@ -909,7 +971,7 @@
       1 => 'role:student',
     ),
   ),
-  75 => 
+  80 => 
   array (
     'method' => 'POST',
     'path' => '/portal/elearning/{content_id:\\d+}/comments',
@@ -920,7 +982,7 @@
       0 => 'auth',
     ),
   ),
-  76 => 
+  81 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/elearning/comments/{id:\\d+}',
@@ -931,7 +993,7 @@
       0 => 'auth',
     ),
   ),
-  77 => 
+  82 => 
   array (
     'method' => 'GET',
     'path' => '/portal/elearning/{content_id:\\d+}/comments',
@@ -942,7 +1004,7 @@
       0 => 'auth',
     ),
   ),
-  78 => 
+  83 => 
   array (
     'method' => 'GET',
     'path' => '/portal/elearning/{syllabus_id:\\d+}/comments/streams',
@@ -953,7 +1015,7 @@
       0 => 'auth',
     ),
   ),
-  79 => 
+  84 => 
   array (
     'method' => 'DELETE',
     'path' => '/portal/elearning/comments/{id:\\d+}',
@@ -966,7 +1028,7 @@
       2 => 'role:staff',
     ),
   ),
-  80 => 
+  85 => 
   array (
     'method' => 'POST',
     'path' => '/portal/elearning/material',
@@ -979,7 +1041,7 @@
       2 => 'role:staff',
     ),
   ),
-  81 => 
+  86 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/elearning/material/{id:\\d+}',
@@ -992,7 +1054,7 @@
       2 => 'role:staff',
     ),
   ),
-  82 => 
+  87 => 
   array (
     'method' => 'POST',
     'path' => '/portal/elearning/assignment',
@@ -1005,7 +1067,7 @@
       2 => 'role:staff',
     ),
   ),
-  83 => 
+  88 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/elearning/assignment/{id:\\d+}',
@@ -1018,7 +1080,7 @@
       2 => 'role:staff',
     ),
   ),
-  84 => 
+  89 => 
   array (
     'method' => 'POST',
     'path' => '/portal/students/{student_id:\\d+}/assignment-submissions',
@@ -1030,7 +1092,7 @@
       1 => 'role:student',
     ),
   ),
-  85 => 
+  90 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/elearning/assignment/mark',
@@ -1043,7 +1105,7 @@
       2 => 'role:staff',
     ),
   ),
-  86 => 
+  91 => 
   array (
     'method' => 'GET',
     'path' => '/portal/elearning/assignment/{id:\\d+}/submissions',
@@ -1056,7 +1118,7 @@
       2 => 'role:staff',
     ),
   ),
-  87 => 
+  92 => 
   array (
     'method' => 'GET',
     'path' => '/portal/students/{student_id:\\d+}/assignment-submissions',
@@ -1068,7 +1130,7 @@
       1 => 'role:student',
     ),
   ),
-  88 => 
+  93 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/elearning/assignment/{content_id:\\d+}/publish',
@@ -1081,7 +1143,7 @@
       2 => 'role:staff',
     ),
   ),
-  89 => 
+  94 => 
   array (
     'method' => 'GET',
     'path' => '/portal/elearning/overview',
@@ -1093,7 +1155,7 @@
       1 => 'role:admin',
     ),
   ),
-  90 => 
+  95 => 
   array (
     'method' => 'GET',
     'path' => '/portal/elearning/staff/{teacher_id:\\d+}/overview',
@@ -1105,7 +1167,7 @@
       1 => 'role:staff',
     ),
   ),
-  91 => 
+  96 => 
   array (
     'method' => 'GET',
     'path' => '/portal/elearning/syllabus/{syllabus_id:\\d+}/contents',
@@ -1116,7 +1178,7 @@
       0 => 'auth',
     ),
   ),
-  92 => 
+  97 => 
   array (
     'method' => 'GET',
     'path' => '/portal/elearning/contents/{id:\\d+}',
@@ -1127,7 +1189,7 @@
       0 => 'auth',
     ),
   ),
-  93 => 
+  98 => 
   array (
     'method' => 'DELETE',
     'path' => '/portal/elearning/contents/{content_id:\\d+}',
@@ -1140,7 +1202,7 @@
       2 => 'role:staff',
     ),
   ),
-  94 => 
+  99 => 
   array (
     'method' => 'POST',
     'path' => '/portal/elearning/quiz',
@@ -1153,7 +1215,7 @@
       2 => 'role:staff',
     ),
   ),
-  95 => 
+  100 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/elearning/quiz',
@@ -1166,7 +1228,7 @@
       2 => 'role:staff',
     ),
   ),
-  96 => 
+  101 => 
   array (
     'method' => 'DELETE',
     'path' => '/portal/elearning/quiz/{content_id:\\d+}/{question_id:\\d+}',
@@ -1179,7 +1241,7 @@
       2 => 'role:staff',
     ),
   ),
-  97 => 
+  102 => 
   array (
     'method' => 'GET',
     'path' => '/portal/students/{id:\\d+}/elearning/dashboard',
@@ -1191,7 +1253,7 @@
       1 => 'role:student',
     ),
   ),
-  98 => 
+  103 => 
   array (
     'method' => 'POST',
     'path' => '/portal/elearning/topic',
@@ -1204,7 +1266,7 @@
       2 => 'role:staff',
     ),
   ),
-  99 => 
+  104 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/elearning/topic/{id:\\d+}',
@@ -1217,7 +1279,7 @@
       2 => 'role:staff',
     ),
   ),
-  100 => 
+  105 => 
   array (
     'method' => 'GET',
     'path' => '/portal/elearning/syllabus/{syllabus_id:\\d+}/topics',
@@ -1230,7 +1292,7 @@
       2 => 'role:staff',
     ),
   ),
-  101 => 
+  106 => 
   array (
     'method' => 'POST',
     'path' => '/portal/elearning/syllabus',
@@ -1243,7 +1305,7 @@
       2 => 'role:staff',
     ),
   ),
-  102 => 
+  107 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/elearning/syllabus/{id:\\d+}',
@@ -1256,7 +1318,7 @@
       2 => 'role:staff',
     ),
   ),
-  103 => 
+  108 => 
   array (
     'method' => 'GET',
     'path' => '/portal/elearning/syllabus',
@@ -1268,7 +1330,7 @@
       1 => 'role:admin',
     ),
   ),
-  104 => 
+  109 => 
   array (
     'method' => 'GET',
     'path' => '/portal/elearning/syllabus/staff',
@@ -1280,7 +1342,7 @@
       1 => 'role:staff',
     ),
   ),
-  105 => 
+  110 => 
   array (
     'method' => 'DELETE',
     'path' => '/portal/elearning/syllabus/{id:\\d+}',
@@ -1293,7 +1355,7 @@
       2 => 'role:staff',
     ),
   ),
-  106 => 
+  111 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/result/class-result',
@@ -1306,7 +1368,7 @@
       2 => 'role:staff',
     ),
   ),
-  107 => 
+  112 => 
   array (
     'method' => 'POST',
     'path' => '/portal/send-results',
@@ -1317,7 +1379,7 @@
       0 => 'api',
     ),
   ),
-  108 => 
+  113 => 
   array (
     'method' => 'GET',
     'path' => '/portal/students/{student_id:\\d+}/result/{term:\\d+}',
@@ -1328,7 +1390,7 @@
       0 => 'auth',
     ),
   ),
-  109 => 
+  114 => 
   array (
     'method' => 'GET',
     'path' => '/portal/students/{student_id:\\d+}/result/annual',
@@ -1339,7 +1401,7 @@
       0 => 'auth',
     ),
   ),
-  110 => 
+  115 => 
   array (
     'method' => 'GET',
     'path' => '/portal/students/{id:\\d+}/result-terms',
@@ -1350,7 +1412,7 @@
       0 => 'auth',
     ),
   ),
-  111 => 
+  116 => 
   array (
     'method' => 'POST',
     'path' => '/portal/assessments',
@@ -1362,7 +1424,7 @@
       1 => 'role:admin',
     ),
   ),
-  112 => 
+  117 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/assessments/{id:\\d+}',
@@ -1374,7 +1436,7 @@
       1 => 'role:admin',
     ),
   ),
-  113 => 
+  118 => 
   array (
     'method' => 'GET',
     'path' => '/portal/assessments',
@@ -1386,7 +1448,7 @@
       1 => 'role:admin',
     ),
   ),
-  114 => 
+  119 => 
   array (
     'method' => 'GET',
     'path' => '/portal/assessments/{level_id:\\d+}',
@@ -1398,7 +1460,7 @@
       1 => 'role:admin',
     ),
   ),
-  115 => 
+  120 => 
   array (
     'method' => 'DELETE',
     'path' => '/portal/assessments/{id:\\d+}',
@@ -1410,7 +1472,7 @@
       1 => 'role:admin',
     ),
   ),
-  116 => 
+  121 => 
   array (
     'method' => 'POST',
     'path' => '/portal/students/{student_id:\\d+}/course-registrations',
@@ -1422,7 +1484,7 @@
       1 => 'role:admin',
     ),
   ),
-  117 => 
+  122 => 
   array (
     'method' => 'POST',
     'path' => '/portal/classes/{class_id:\\d+}/course-registrations',
@@ -1434,7 +1496,7 @@
       1 => 'role:admin',
     ),
   ),
-  118 => 
+  123 => 
   array (
     'method' => 'POST',
     'path' => '/portal/classes/{class_id:\\d+}/course-registrations/duplicate',
@@ -1446,7 +1508,7 @@
       1 => 'role:admin',
     ),
   ),
-  119 => 
+  124 => 
   array (
     'method' => 'GET',
     'path' => '/portal/course-registrations/terms',
@@ -1458,7 +1520,7 @@
       1 => 'role:admin',
     ),
   ),
-  120 => 
+  125 => 
   array (
     'method' => 'GET',
     'path' => '/portal/classes/{class_id:\\d+}/course-registrations/history',
@@ -1470,7 +1532,7 @@
       1 => 'role:admin',
     ),
   ),
-  121 => 
+  126 => 
   array (
     'method' => 'GET',
     'path' => '/portal/classes/{class_id:\\d+}/registered-courses',
@@ -1482,7 +1544,7 @@
       1 => 'role:admin',
     ),
   ),
-  122 => 
+  127 => 
   array (
     'method' => 'GET',
     'path' => '/portal/classes/{class_id:\\d+}/course-registrations/average-scores',
@@ -1494,7 +1556,7 @@
       1 => 'role:admin',
     ),
   ),
-  123 => 
+  128 => 
   array (
     'method' => 'GET',
     'path' => '/portal/courses/{course_id:\\d+}/students',
@@ -1506,7 +1568,7 @@
       1 => 'role:admin',
     ),
   ),
-  124 => 
+  129 => 
   array (
     'method' => 'GET',
     'path' => '/portal/students/{student_id:\\d+}/registered-courses',
@@ -1518,7 +1580,7 @@
       1 => 'role:admin',
     ),
   ),
-  125 => 
+  130 => 
   array (
     'method' => 'GET',
     'path' => '/portal/classes/{class_id:\\d+}/registered-students',
@@ -1530,7 +1592,7 @@
       1 => 'role:admin',
     ),
   ),
-  126 => 
+  131 => 
   array (
     'method' => 'POST',
     'path' => '/portal/grades',
@@ -1542,7 +1604,7 @@
       1 => 'role:admin',
     ),
   ),
-  127 => 
+  132 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/grades/{id:\\d+}',
@@ -1554,7 +1616,7 @@
       1 => 'role:admin',
     ),
   ),
-  128 => 
+  133 => 
   array (
     'method' => 'GET',
     'path' => '/portal/grades',
@@ -1566,7 +1628,7 @@
       1 => 'role:admin',
     ),
   ),
-  129 => 
+  134 => 
   array (
     'method' => 'DELETE',
     'path' => '/portal/grades/{id:\\d+}',
@@ -1578,7 +1640,7 @@
       1 => 'role:admin',
     ),
   ),
-  130 => 
+  135 => 
   array (
     'method' => 'POST',
     'path' => '/portal/students/result/comment',
@@ -1591,7 +1653,7 @@
       2 => 'role:staff',
     ),
   ),
-  131 => 
+  136 => 
   array (
     'method' => 'PUT',
     'path' => '/portal/students/result/comment/{id:\\d+}',
@@ -1604,7 +1666,7 @@
       2 => 'role:staff',
     ),
   ),
-  132 => 
+  137 => 
   array (
     'method' => 'POST',
     'path' => '/portal/students/skill-behavior',
@@ -1617,7 +1679,7 @@
       2 => 'role:staff',
     ),
   ),
-  133 => 
+  138 => 
   array (
     'method' => 'GET',
     'path' => '/portal/classes/{class_id:\\d+}/skill-behavior',
@@ -1630,7 +1692,7 @@
       2 => 'role:staff',
     ),
   ),
-  134 => 
+  139 => 
   array (
     'method' => 'GET',
     'path' => '/portal/classes/{class_id:\\d+}/courses/{course_id}/results',
@@ -1643,7 +1705,7 @@
       2 => 'role:staff',
     ),
   ),
-  135 => 
+  140 => 
   array (
     'method' => 'GET',
     'path' => '/portal/classes/{class_id:\\d+}/students-result',
@@ -1656,7 +1718,7 @@
       2 => 'role:staff',
     ),
   ),
-  136 => 
+  141 => 
   array (
     'method' => 'GET',
     'path' => '/portal/classes/{class_id:\\d+}/composite-result',
@@ -1668,7 +1730,7 @@
       1 => 'role:admin',
     ),
   ),
-  137 => 
+  142 => 
   array (
     'method' => 'GET',
     'path' => '/portal/levels/result/performance',

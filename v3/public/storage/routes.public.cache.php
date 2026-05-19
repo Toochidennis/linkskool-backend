@@ -624,6 +624,17 @@
   54 => 
   array (
     'method' => 'POST',
+    'path' => '/public/learning/cohorts/{cohort_id}/enrollments/mobile-billing',
+    'class' => 'V3\\App\\Controllers\\Explore\\CourseCohortEnrollmentController',
+    'methodName' => 'verifyMobileBilling',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  55 => 
+  array (
+    'method' => 'POST',
     'path' => '/public/learning/cohorts/enrollments/free',
     'class' => 'V3\\App\\Controllers\\Explore\\CourseCohortEnrollmentController',
     'methodName' => 'freeEnroll',
@@ -632,7 +643,7 @@
       0 => 'api',
     ),
   ),
-  55 => 
+  56 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/challenges',
@@ -643,7 +654,7 @@
       0 => 'api',
     ),
   ),
-  56 => 
+  57 => 
   array (
     'method' => 'PUT',
     'path' => '/public/cbt/challenges/{challenge_id:\\d+}',
@@ -654,7 +665,7 @@
       0 => 'api',
     ),
   ),
-  57 => 
+  58 => 
   array (
     'method' => 'PUT',
     'path' => '/public/cbt/challenges/status/{challenge_id:\\d+}',
@@ -665,7 +676,7 @@
       0 => 'api',
     ),
   ),
-  58 => 
+  59 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/challenges',
@@ -676,7 +687,7 @@
       0 => 'api',
     ),
   ),
-  59 => 
+  60 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/challenges/questions',
@@ -687,7 +698,7 @@
       0 => 'api',
     ),
   ),
-  60 => 
+  61 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/cbt/challenges/{challenge_id:\\d+}',
@@ -698,7 +709,7 @@
       0 => 'api',
     ),
   ),
-  61 => 
+  62 => 
   array (
     'method' => 'GET',
     'path' => '/public/notification-campaigns/options',
@@ -711,7 +722,7 @@
       2 => 'role:admin',
     ),
   ),
-  62 => 
+  63 => 
   array (
     'method' => 'POST',
     'path' => '/public/notification-campaigns/send',
@@ -724,7 +735,7 @@
       2 => 'role:admin',
     ),
   ),
-  63 => 
+  64 => 
   array (
     'method' => 'GET',
     'path' => '/public/games',
@@ -735,7 +746,7 @@
       0 => 'api',
     ),
   ),
-  64 => 
+  65 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/license/activate/desktop',
@@ -746,7 +757,7 @@
       0 => 'api',
     ),
   ),
-  65 => 
+  66 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/license/activate/mobile',
@@ -757,7 +768,7 @@
       0 => 'api',
     ),
   ),
-  66 => 
+  67 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/license/status/desktop',
@@ -768,7 +779,7 @@
       0 => 'api',
     ),
   ),
-  67 => 
+  68 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/license/status/mobile',
@@ -779,7 +790,7 @@
       0 => 'api',
     ),
   ),
-  68 => 
+  69 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/license/plans/desktop',
@@ -790,7 +801,7 @@
       0 => 'api',
     ),
   ),
-  69 => 
+  70 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/license/plans/mobile',
@@ -801,7 +812,7 @@
       0 => 'api',
     ),
   ),
-  70 => 
+  71 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/license/trial/start',
@@ -812,7 +823,7 @@
       0 => 'api',
     ),
   ),
-  71 => 
+  72 => 
   array (
     'method' => 'POST',
     'path' => '/public/learning/lessons/{lesson_id}/attendance',
@@ -823,7 +834,7 @@
       0 => 'api',
     ),
   ),
-  72 => 
+  73 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/lessons/{lesson_id}/attendance',
@@ -835,7 +846,7 @@
       1 => 'auth',
     ),
   ),
-  73 => 
+  74 => 
   array (
     'method' => 'GET',
     'path' => '/public/books',
@@ -846,7 +857,7 @@
       0 => 'api',
     ),
   ),
-  74 => 
+  75 => 
   array (
     'method' => 'GET',
     'path' => '/public/learn/lessons/{lesson_id}/submissions',
@@ -858,7 +869,7 @@
       1 => 'auth',
     ),
   ),
-  75 => 
+  76 => 
   array (
     'method' => 'POST',
     'path' => '/public/learn/lessons/submissions/auto-grade',
@@ -870,7 +881,7 @@
       1 => 'auth',
     ),
   ),
-  76 => 
+  77 => 
   array (
     'method' => 'POST',
     'path' => '/public/learn/lessons/submissions/grade',
@@ -882,7 +893,7 @@
       1 => 'auth',
     ),
   ),
-  77 => 
+  78 => 
   array (
     'method' => 'POST',
     'path' => '/public/learn/lessons/submissions/notify',
@@ -894,7 +905,7 @@
       1 => 'auth',
     ),
   ),
-  78 => 
+  79 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/study/exam-types/{exam_type_id:\\d+}/topics',
@@ -907,7 +918,7 @@
       2 => 'role:admin',
     ),
   ),
-  79 => 
+  80 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/study/exam-types/{exam_type_id:\\d+}/topics',
@@ -918,7 +929,7 @@
       0 => 'api',
     ),
   ),
-  80 => 
+  81 => 
   array (
     'method' => 'POST',
     'path' => '/public/learning/lessons/{lesson_id}/assignments',
@@ -929,7 +940,7 @@
       0 => 'api',
     ),
   ),
-  81 => 
+  82 => 
   array (
     'method' => 'POST',
     'path' => '/public/learn/programs/courses/cohorts',
@@ -941,7 +952,7 @@
       1 => 'auth',
     ),
   ),
-  82 => 
+  83 => 
   array (
     'method' => 'POST',
     'path' => '/public/learn/programs/courses/cohorts/{id}',
@@ -953,7 +964,7 @@
       1 => 'auth',
     ),
   ),
-  83 => 
+  84 => 
   array (
     'method' => 'PUT',
     'path' => '/public/learn/programs/courses/cohorts/{id}/status',
@@ -965,7 +976,7 @@
       1 => 'auth',
     ),
   ),
-  84 => 
+  85 => 
   array (
     'method' => 'GET',
     'path' => '/public/learn/programs/{program_id}/courses/{course_id}/cohorts',
@@ -977,7 +988,7 @@
       1 => 'auth',
     ),
   ),
-  85 => 
+  86 => 
   array (
     'method' => 'GET',
     'path' => '/public/learn/programs/{program_id}/cohorts',
@@ -989,7 +1000,7 @@
       1 => 'auth',
     ),
   ),
-  86 => 
+  87 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/learn/programs/courses/cohorts/{id}',
@@ -1001,7 +1012,171 @@
       1 => 'auth',
     ),
   ),
-  87 => 
+  88 => 
+  array (
+    'method' => 'GET',
+    'path' => '/public/classroomaccess-codes/seed',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomAccessCodeController',
+    'methodName' => 'seedCodes',
+    'middleware' => 
+    array (
+    ),
+  ),
+  89 => 
+  array (
+    'method' => 'POST',
+    'path' => '/public/classroomaccess-codes/verify',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomAccessCodeController',
+    'methodName' => 'verifyAccessCode',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  90 => 
+  array (
+    'method' => 'POST',
+    'path' => '/public/classroom/courses/{institution_id}',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseController',
+    'methodName' => 'createCourse',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  91 => 
+  array (
+    'method' => 'GET',
+    'path' => '/public/classroom/courses',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseController',
+    'methodName' => 'getCoursesByInstitution',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  92 => 
+  array (
+    'method' => 'PUT',
+    'path' => '/public/classroom/courses/{id}',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseController',
+    'methodName' => 'updateCourse',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  93 => 
+  array (
+    'method' => 'GET',
+    'path' => '/public/classroom/enrollments',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseEnrollmentController',
+    'methodName' => 'getEnrolledCourses',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  94 => 
+  array (
+    'method' => 'POST',
+    'path' => '/public/classroom/enrollments',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseEnrollmentController',
+    'methodName' => 'enroll',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  95 => 
+  array (
+    'method' => 'POST',
+    'path' => '/public/classroom/institutions',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomInstitutionController',
+    'methodName' => 'createInstitution',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  96 => 
+  array (
+    'method' => 'GET',
+    'path' => '/public/classroom/institutions/{user_id}',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomInstitutionController',
+    'methodName' => 'getProfile',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  97 => 
+  array (
+    'method' => 'POST',
+    'path' => '/public/classroom/auth/student',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomAuthController',
+    'methodName' => 'authenticateStudent',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  98 => 
+  array (
+    'method' => 'POST',
+    'path' => '/public/classroom/courses/{course_id}/quizzes',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseQuizController',
+    'methodName' => 'create',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  99 => 
+  array (
+    'method' => 'GET',
+    'path' => '/public/classroom/courses/{course_id}/quizzes',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseQuizController',
+    'methodName' => 'getByCourseId',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  100 => 
+  array (
+    'method' => 'GET',
+    'path' => '/public/classroom/courses/{course_id}/quizzes/generate',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseQuizController',
+    'methodName' => 'generateQuestions',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  101 => 
+  array (
+    'method' => 'PUT',
+    'path' => '/public/classroom/courses/{course_id}/quizzes/{question_id}',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomCourseQuizController',
+    'methodName' => 'update',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  102 => 
+  array (
+    'method' => 'POST',
+    'path' => '/public/classroom/students',
+    'class' => 'V3\\App\\Controllers\\Explore\\Classroom\\ClassroomStudentController',
+    'methodName' => 'createStudents',
+    'middleware' => 
+    array (
+      0 => 'api',
+    ),
+  ),
+  103 => 
   array (
     'method' => 'POST',
     'path' => '/public/levels',
@@ -1013,7 +1188,7 @@
       1 => 'auth',
     ),
   ),
-  88 => 
+  104 => 
   array (
     'method' => 'PUT',
     'path' => '/public/levels/{id}',
@@ -1025,7 +1200,7 @@
       1 => 'auth',
     ),
   ),
-  89 => 
+  105 => 
   array (
     'method' => 'GET',
     'path' => '/public/levels',
@@ -1036,7 +1211,7 @@
       0 => 'api',
     ),
   ),
-  90 => 
+  106 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/levels/{id}',
@@ -1048,7 +1223,7 @@
       1 => 'auth',
     ),
   ),
-  91 => 
+  107 => 
   array (
     'method' => 'POST',
     'path' => '/public/learn/programs/lessons/{lesson_id}/quizzes',
@@ -1060,7 +1235,7 @@
       1 => 'auth',
     ),
   ),
-  92 => 
+  108 => 
   array (
     'method' => 'PUT',
     'path' => '/public/learn/programs/lessons/{lesson_id}/quizzes/{question_id}',
@@ -1072,7 +1247,7 @@
       1 => 'auth',
     ),
   ),
-  93 => 
+  109 => 
   array (
     'method' => 'GET',
     'path' => '/public/learn/programs/lessons/{lesson_id}/quizzes',
@@ -1083,7 +1258,7 @@
       0 => 'api',
     ),
   ),
-  94 => 
+  110 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/learn/programs/lessons/quizzes/{question_id}',
@@ -1095,7 +1270,7 @@
       1 => 'auth',
     ),
   ),
-  95 => 
+  111 => 
   array (
     'method' => 'GET',
     'path' => '/public/learn/programs/{program_id}/enrollment-analysis/profiles',
@@ -1107,7 +1282,7 @@
       1 => 'auth',
     ),
   ),
-  96 => 
+  112 => 
   array (
     'method' => 'GET',
     'path' => '/public/learn/programs/{program_id}/enrollment-analysis/profiles/{profile_id}/enrollments',
@@ -1119,7 +1294,7 @@
       1 => 'auth',
     ),
   ),
-  97 => 
+  113 => 
   array (
     'method' => 'POST',
     'path' => '/public/learning/cohorts/{cohort_id}/lessons/{lesson_id}/progress',
@@ -1131,7 +1306,7 @@
       1 => 'auth',
     ),
   ),
-  98 => 
+  114 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/exams',
@@ -1142,7 +1317,7 @@
       0 => 'api',
     ),
   ),
-  99 => 
+  115 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/exams/{examTypeId:\\d+}/courses',
@@ -1153,7 +1328,7 @@
       0 => 'api',
     ),
   ),
-  100 => 
+  116 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/exams-courses',
@@ -1164,7 +1339,7 @@
       0 => 'api',
     ),
   ),
-  101 => 
+  117 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/exams/{exam_id:\\d+}/questions',
@@ -1175,7 +1350,7 @@
       0 => 'api',
     ),
   ),
-  102 => 
+  118 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/exams/questions/by-topic',
@@ -1186,7 +1361,7 @@
       0 => 'api',
     ),
   ),
-  103 => 
+  119 => 
   array (
     'method' => 'GET',
     'path' => '/public/export-questions',
@@ -1196,7 +1371,7 @@
     array (
     ),
   ),
-  104 => 
+  120 => 
   array (
     'method' => 'POST',
     'path' => '/public/questions',
@@ -1208,7 +1383,7 @@
       1 => 'auth',
     ),
   ),
-  105 => 
+  121 => 
   array (
     'method' => 'PUT',
     'path' => '/public/questions',
@@ -1220,7 +1395,7 @@
       1 => 'auth',
     ),
   ),
-  106 => 
+  122 => 
   array (
     'method' => 'GET',
     'path' => '/public/exams',
@@ -1232,7 +1407,7 @@
       1 => 'auth',
     ),
   ),
-  107 => 
+  123 => 
   array (
     'method' => 'GET',
     'path' => '/public/exams/{exam_id:\\d+}/questions',
@@ -1244,7 +1419,7 @@
       1 => 'auth',
     ),
   ),
-  108 => 
+  124 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/exams',
@@ -1256,7 +1431,7 @@
       1 => 'auth',
     ),
   ),
-  109 => 
+  125 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/exams/{exam_type}/download',
@@ -1267,7 +1442,7 @@
       0 => 'api',
     ),
   ),
-  110 => 
+  126 => 
   array (
     'method' => 'POST',
     'path' => '/public/webhooks/paystack',
@@ -1277,7 +1452,7 @@
     array (
     ),
   ),
-  111 => 
+  127 => 
   array (
     'method' => 'POST',
     'path' => '/public/learn/programs',
@@ -1289,7 +1464,7 @@
       1 => 'auth',
     ),
   ),
-  112 => 
+  128 => 
   array (
     'method' => 'POST',
     'path' => '/public/learn/programs/{id}',
@@ -1301,7 +1476,7 @@
       1 => 'auth',
     ),
   ),
-  113 => 
+  129 => 
   array (
     'method' => 'PUT',
     'path' => '/public/learn/programs/{id}/status',
@@ -1313,7 +1488,7 @@
       1 => 'auth',
     ),
   ),
-  114 => 
+  130 => 
   array (
     'method' => 'GET',
     'path' => '/public/learn/programs',
@@ -1325,7 +1500,7 @@
       1 => 'auth',
     ),
   ),
-  115 => 
+  131 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/learn/programs/{id}',
@@ -1337,7 +1512,7 @@
       1 => 'auth',
     ),
   ),
-  116 => 
+  132 => 
   array (
     'method' => 'POST',
     'path' => '/public/video-library/videos',
@@ -1349,7 +1524,7 @@
       1 => 'auth',
     ),
   ),
-  117 => 
+  133 => 
   array (
     'method' => 'GET',
     'path' => '/public/video-library/videos/{course_id}',
@@ -1361,7 +1536,7 @@
       1 => 'auth',
     ),
   ),
-  118 => 
+  134 => 
   array (
     'method' => 'GET',
     'path' => '/public/video-library/courses',
@@ -1373,7 +1548,7 @@
       1 => 'auth',
     ),
   ),
-  119 => 
+  135 => 
   array (
     'method' => 'GET',
     'path' => '/public/video-library/syllabi/{course_id}',
@@ -1384,7 +1559,7 @@
       0 => 'api',
     ),
   ),
-  120 => 
+  136 => 
   array (
     'method' => 'GET',
     'path' => '/public/video-library/videos/published/{level_id}/{course_id}',
@@ -1395,7 +1570,7 @@
       0 => 'api',
     ),
   ),
-  121 => 
+  137 => 
   array (
     'method' => 'GET',
     'path' => '/public/video-library/courses/by-level',
@@ -1406,7 +1581,7 @@
       0 => 'api',
     ),
   ),
-  122 => 
+  138 => 
   array (
     'method' => 'POST',
     'path' => '/public/video-library/videos/{id:\\d+}',
@@ -1418,7 +1593,7 @@
       1 => 'auth',
     ),
   ),
-  123 => 
+  139 => 
   array (
     'method' => 'PUT',
     'path' => '/public/video-library/videos/{id}/status',
@@ -1430,7 +1605,7 @@
       1 => 'auth',
     ),
   ),
-  124 => 
+  140 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/video-library/videos/{id:\\d+}',
@@ -1442,7 +1617,7 @@
       1 => 'auth',
     ),
   ),
-  125 => 
+  141 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/study/generate-content',
@@ -1452,7 +1627,7 @@
     array (
     ),
   ),
-  126 => 
+  142 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/study/seed',
@@ -1462,7 +1637,7 @@
     array (
     ),
   ),
-  127 => 
+  143 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/study/contents',
@@ -1472,7 +1647,7 @@
     array (
     ),
   ),
-  128 => 
+  144 => 
   array (
     'method' => 'POST',
     'path' => '/public/news',
@@ -1484,7 +1659,7 @@
       1 => 'auth',
     ),
   ),
-  129 => 
+  145 => 
   array (
     'method' => 'POST',
     'path' => '/public/news/{id:\\d+}',
@@ -1496,7 +1671,7 @@
       1 => 'auth',
     ),
   ),
-  130 => 
+  146 => 
   array (
     'method' => 'PUT',
     'path' => '/public/news/{id}/notify',
@@ -1508,7 +1683,7 @@
       1 => 'auth',
     ),
   ),
-  131 => 
+  147 => 
   array (
     'method' => 'PUT',
     'path' => '/public/news/{id}/status',
@@ -1520,7 +1695,7 @@
       1 => 'auth',
     ),
   ),
-  132 => 
+  148 => 
   array (
     'method' => 'GET',
     'path' => '/public/news/admin',
@@ -1532,7 +1707,7 @@
       1 => 'auth',
     ),
   ),
-  133 => 
+  149 => 
   array (
     'method' => 'GET',
     'path' => '/public/news',
@@ -1543,7 +1718,7 @@
       0 => 'api',
     ),
   ),
-  134 => 
+  150 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/news/{id:\\d+}',
@@ -1555,7 +1730,7 @@
       1 => 'auth',
     ),
   ),
-  135 => 
+  151 => 
   array (
     'method' => 'POST',
     'path' => '/public/seed/courses',
@@ -1565,7 +1740,7 @@
     array (
     ),
   ),
-  136 => 
+  152 => 
   array (
     'method' => 'POST',
     'path' => '/public/seed/programs',
@@ -1575,7 +1750,7 @@
     array (
     ),
   ),
-  137 => 
+  153 => 
   array (
     'method' => 'POST',
     'path' => '/public/seed/cohorts',
@@ -1585,7 +1760,7 @@
     array (
     ),
   ),
-  138 => 
+  154 => 
   array (
     'method' => 'POST',
     'path' => '/public/seed/cohort/lessons',
@@ -1595,7 +1770,7 @@
     array (
     ),
   ),
-  139 => 
+  155 => 
   array (
     'method' => 'POST',
     'path' => '/public/seed/cohort/lesson/quizzes',
@@ -1605,7 +1780,7 @@
     array (
     ),
   ),
-  140 => 
+  156 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/settings',
@@ -1616,7 +1791,7 @@
       0 => 'api',
     ),
   ),
-  141 => 
+  157 => 
   array (
     'method' => 'GET',
     'path' => '/public/key-buddy/content',
@@ -1626,7 +1801,7 @@
     array (
     ),
   ),
-  142 => 
+  158 => 
   array (
     'method' => 'POST',
     'path' => '/public/advertisements',
@@ -1638,7 +1813,7 @@
       1 => 'auth',
     ),
   ),
-  143 => 
+  159 => 
   array (
     'method' => 'POST',
     'path' => '/public/advertisements/{id:\\d+}',
@@ -1650,7 +1825,7 @@
       1 => 'auth',
     ),
   ),
-  144 => 
+  160 => 
   array (
     'method' => 'GET',
     'path' => '/public/advertisements',
@@ -1662,7 +1837,7 @@
       1 => 'auth',
     ),
   ),
-  145 => 
+  161 => 
   array (
     'method' => 'GET',
     'path' => '/public/advertisements/published',
@@ -1673,7 +1848,7 @@
       0 => 'api',
     ),
   ),
-  146 => 
+  162 => 
   array (
     'method' => 'PUT',
     'path' => '/public/advertisements/{id}/status',
@@ -1685,7 +1860,7 @@
       1 => 'auth',
     ),
   ),
-  147 => 
+  163 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/advertisements/{id}',
@@ -1697,7 +1872,7 @@
       1 => 'auth',
     ),
   ),
-  148 => 
+  164 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt-updates',
@@ -1710,7 +1885,7 @@
       2 => 'role:admin',
     ),
   ),
-  149 => 
+  165 => 
   array (
     'method' => 'PUT',
     'path' => '/public/cbt-updates/{id:\\d+}/notify',
@@ -1723,7 +1898,7 @@
       2 => 'role:admin',
     ),
   ),
-  150 => 
+  166 => 
   array (
     'method' => 'PUT',
     'path' => '/public/cbt-updates/{id:\\d+}/status',
@@ -1736,7 +1911,7 @@
       2 => 'role:admin',
     ),
   ),
-  151 => 
+  167 => 
   array (
     'method' => 'PUT',
     'path' => '/public/cbt-updates/{id:\\d+}',
@@ -1749,7 +1924,7 @@
       2 => 'role:admin',
     ),
   ),
-  152 => 
+  168 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt-updates',
@@ -1760,7 +1935,7 @@
       0 => 'api',
     ),
   ),
-  153 => 
+  169 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt-updates/{id:\\d+}/comments',
@@ -1771,7 +1946,7 @@
       0 => 'api',
     ),
   ),
-  154 => 
+  170 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt-updates/{id:\\d+}/comments',
@@ -1782,7 +1957,7 @@
       0 => 'api',
     ),
   ),
-  155 => 
+  171 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt-updates/{id:\\d+}',
@@ -1793,7 +1968,7 @@
       0 => 'api',
     ),
   ),
-  156 => 
+  172 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt-updates/all',
@@ -1806,7 +1981,7 @@
       2 => 'role:admin',
     ),
   ),
-  157 => 
+  173 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/topics/generate/{limit:\\d+}',
@@ -1817,7 +1992,7 @@
       0 => 'api',
     ),
   ),
-  158 => 
+  174 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/topics',
@@ -1828,7 +2003,7 @@
       0 => 'api',
     ),
   ),
-  159 => 
+  175 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/study/categories',
@@ -1841,7 +2016,7 @@
       2 => 'role:admin',
     ),
   ),
-  160 => 
+  176 => 
   array (
     'method' => 'PUT',
     'path' => '/public/cbt/study/categories/{id:\\d+}',
@@ -1854,7 +2029,7 @@
       2 => 'role:admin',
     ),
   ),
-  161 => 
+  177 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/study/categories',
@@ -1865,7 +2040,7 @@
       0 => 'api',
     ),
   ),
-  162 => 
+  178 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/study/courses/{course_id:\\d+}/categories',
@@ -1876,7 +2051,7 @@
       0 => 'api',
     ),
   ),
-  163 => 
+  179 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/cbt/study/categories/{id:\\d+}',
@@ -1889,7 +2064,7 @@
       2 => 'role:admin',
     ),
   ),
-  164 => 
+  180 => 
   array (
     'method' => 'POST',
     'path' => '/public/learning/cohorts/{cohort_id}/discussions',
@@ -1900,7 +2075,7 @@
       0 => 'api',
     ),
   ),
-  165 => 
+  181 => 
   array (
     'method' => 'POST',
     'path' => '/public/learning/cohorts/{cohort_id}/discussions/{discussion_id}/posts',
@@ -1911,7 +2086,7 @@
       0 => 'api',
     ),
   ),
-  166 => 
+  182 => 
   array (
     'method' => 'PUT',
     'path' => '/public/learning/cohorts/{cohort_id}/discussions/{discussion_id}',
@@ -1922,7 +2097,7 @@
       0 => 'api',
     ),
   ),
-  167 => 
+  183 => 
   array (
     'method' => 'PUT',
     'path' => '/public/learning/cohorts/{cohort_id}/discussions/{discussion_id}/posts/{post_id}',
@@ -1933,7 +2108,7 @@
       0 => 'api',
     ),
   ),
-  168 => 
+  184 => 
   array (
     'method' => 'POST',
     'path' => '/public/learning/cohorts/{cohort_id}/posts/{post_id}/like',
@@ -1944,7 +2119,7 @@
       0 => 'api',
     ),
   ),
-  169 => 
+  185 => 
   array (
     'method' => 'POST',
     'path' => '/public/learning/cohorts/{cohort_id}/posts/{post_id}/unlike',
@@ -1955,7 +2130,7 @@
       0 => 'api',
     ),
   ),
-  170 => 
+  186 => 
   array (
     'method' => 'POST',
     'path' => '/public/learning/cohorts/{cohort_id}/discussions/{discussion_id}/like',
@@ -1966,7 +2141,7 @@
       0 => 'api',
     ),
   ),
-  171 => 
+  187 => 
   array (
     'method' => 'POST',
     'path' => '/public/learning/cohorts/{cohort_id}/discussions/{discussion_id}/unlike',
@@ -1977,7 +2152,7 @@
       0 => 'api',
     ),
   ),
-  172 => 
+  188 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/cohorts/{cohort_id}/discussions',
@@ -1988,7 +2163,7 @@
       0 => 'api',
     ),
   ),
-  173 => 
+  189 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/cohorts/discussions/{discussion_id}',
@@ -1999,7 +2174,7 @@
       0 => 'api',
     ),
   ),
-  174 => 
+  190 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/discussions/{discussion_id}/posts',
@@ -2010,7 +2185,7 @@
       0 => 'api',
     ),
   ),
-  175 => 
+  191 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/posts/{post_id}/replies',
@@ -2021,7 +2196,7 @@
       0 => 'api',
     ),
   ),
-  176 => 
+  192 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/learning/cohorts/{cohort_id}/discussions/{discussion_id}',
@@ -2032,7 +2207,7 @@
       0 => 'api',
     ),
   ),
-  177 => 
+  193 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/learning/cohorts/{cohort_id}/posts/{post_id}',
@@ -2043,7 +2218,7 @@
       0 => 'api',
     ),
   ),
-  178 => 
+  194 => 
   array (
     'method' => 'POST',
     'path' => '/public/news/categories',
@@ -2055,7 +2230,7 @@
       1 => 'auth',
     ),
   ),
-  179 => 
+  195 => 
   array (
     'method' => 'GET',
     'path' => '/public/news/categories',
@@ -2067,7 +2242,7 @@
       1 => 'auth',
     ),
   ),
-  180 => 
+  196 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/programs',
@@ -2078,7 +2253,7 @@
       0 => 'api',
     ),
   ),
-  181 => 
+  197 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/programs/content',
@@ -2089,7 +2264,7 @@
       0 => 'api',
     ),
   ),
-  182 => 
+  198 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/programs/{program_slug}/content',
@@ -2100,7 +2275,7 @@
       0 => 'api',
     ),
   ),
-  183 => 
+  199 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/cohorts/{cohort_id}',
@@ -2111,7 +2286,7 @@
       0 => 'api',
     ),
   ),
-  184 => 
+  200 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/cohorts/{cohort_id}/lessons',
@@ -2122,7 +2297,7 @@
       0 => 'api',
     ),
   ),
-  185 => 
+  201 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/cohorts/{cohort_id}/lessons/v2',
@@ -2133,7 +2308,7 @@
       0 => 'api',
     ),
   ),
-  186 => 
+  202 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/cohorts/{cohort_id}/profiles/{profile_id}/lessons',
@@ -2144,7 +2319,7 @@
       0 => 'api',
     ),
   ),
-  187 => 
+  203 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/lessons/{lesson_id}',
@@ -2155,7 +2330,7 @@
       0 => 'api',
     ),
   ),
-  188 => 
+  204 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/lessons/{lesson_id}/quizzes',
@@ -2166,7 +2341,7 @@
       0 => 'api',
     ),
   ),
-  189 => 
+  205 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/profiles/{profile_id}/stats',
@@ -2177,7 +2352,7 @@
       0 => 'api',
     ),
   ),
-  190 => 
+  206 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/cohorts/{cohort_id}/profiles/{profile_id}/lesson-performance',
@@ -2188,7 +2363,7 @@
       0 => 'api',
     ),
   ),
-  191 => 
+  207 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/cohorts/{cohort_id}/profiles/{profile_id}/leaderboard',
@@ -2199,7 +2374,7 @@
       0 => 'api',
     ),
   ),
-  192 => 
+  208 => 
   array (
     'method' => 'GET',
     'path' => '/public/learning/profiles/{profile_id}/upcoming-cohorts/{slug}',
@@ -2210,7 +2385,7 @@
       0 => 'api',
     ),
   ),
-  193 => 
+  209 => 
   array (
     'method' => 'POST',
     'path' => '/public/courses',
@@ -2223,7 +2398,7 @@
       2 => 'role:admin',
     ),
   ),
-  194 => 
+  210 => 
   array (
     'method' => 'PUT',
     'path' => '/public/courses/{id:\\d+}',
@@ -2236,7 +2411,7 @@
       2 => 'role:admin',
     ),
   ),
-  195 => 
+  211 => 
   array (
     'method' => 'GET',
     'path' => '/public/courses',
@@ -2249,7 +2424,7 @@
       2 => 'role:admin',
     ),
   ),
-  196 => 
+  212 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/courses/{id:\\d+}',
@@ -2262,7 +2437,7 @@
       2 => 'role:admin',
     ),
   ),
-  197 => 
+  213 => 
   array (
     'method' => 'GET',
     'path' => '/public/admissions',
@@ -2272,7 +2447,7 @@
     array (
     ),
   ),
-  198 => 
+  214 => 
   array (
     'method' => 'POST',
     'path' => '/public/faqs',
@@ -2284,7 +2459,7 @@
       1 => 'auth',
     ),
   ),
-  199 => 
+  215 => 
   array (
     'method' => 'PUT',
     'path' => '/public/faqs/{id:\\d+}',
@@ -2296,7 +2471,7 @@
       1 => 'auth',
     ),
   ),
-  200 => 
+  216 => 
   array (
     'method' => 'GET',
     'path' => '/public/faqs',
@@ -2307,7 +2482,7 @@
       0 => 'api',
     ),
   ),
-  201 => 
+  217 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/faqs/{id:\\d+}',
@@ -2319,7 +2494,7 @@
       1 => 'auth',
     ),
   ),
-  202 => 
+  218 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/challenges/leaderboard',
@@ -2330,7 +2505,7 @@
       0 => 'api',
     ),
   ),
-  203 => 
+  219 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/challenges/leaderboard/{challenge_id:\\d+}',
@@ -2341,7 +2516,7 @@
       0 => 'api',
     ),
   ),
-  204 => 
+  220 => 
   array (
     'method' => 'GET',
     'path' => '/public/for-you',
@@ -2352,7 +2527,7 @@
       0 => 'api',
     ),
   ),
-  205 => 
+  221 => 
   array (
     'method' => 'POST',
     'path' => '/public/learn/programs/cohorts/{cohort_id}/lessons',
@@ -2364,7 +2539,7 @@
       1 => 'auth',
     ),
   ),
-  206 => 
+  222 => 
   array (
     'method' => 'POST',
     'path' => '/public/learn/programs/cohorts/{cohort_id}/lessons/{lesson_id}',
@@ -2376,7 +2551,7 @@
       1 => 'auth',
     ),
   ),
-  207 => 
+  223 => 
   array (
     'method' => 'PUT',
     'path' => '/public/learn/programs/cohorts/lessons/{lesson_id}/status',
@@ -2388,7 +2563,7 @@
       1 => 'auth',
     ),
   ),
-  208 => 
+  224 => 
   array (
     'method' => 'GET',
     'path' => '/public/learn/programs/cohorts/{cohort_id}/lessons',
@@ -2400,7 +2575,7 @@
       1 => 'auth',
     ),
   ),
-  209 => 
+  225 => 
   array (
     'method' => 'GET',
     'path' => '/public/learn/programs/cohorts/lessons/{lesson_id}/quiz',
@@ -2412,7 +2587,7 @@
       1 => 'auth',
     ),
   ),
-  210 => 
+  226 => 
   array (
     'method' => 'DELETE',
     'path' => '/public/learn/programs/cohorts/lessons/{lesson_id}',
@@ -2424,7 +2599,7 @@
       1 => 'auth',
     ),
   ),
-  211 => 
+  227 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/users',
@@ -2435,7 +2610,7 @@
       0 => 'api',
     ),
   ),
-  212 => 
+  228 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/users/google',
@@ -2446,7 +2621,7 @@
       0 => 'api',
     ),
   ),
-  213 => 
+  229 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/users/signup',
@@ -2457,7 +2632,7 @@
       0 => 'api',
     ),
   ),
-  214 => 
+  230 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/users/login',
@@ -2468,7 +2643,7 @@
       0 => 'api',
     ),
   ),
-  215 => 
+  231 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/users/{id:\\d+}/fcm-token',
@@ -2479,7 +2654,7 @@
       0 => 'api',
     ),
   ),
-  216 => 
+  232 => 
   array (
     'method' => 'PUT',
     'path' => '/public/cbt/users/{id:\\d+}/phone',
@@ -2490,7 +2665,7 @@
       0 => 'api',
     ),
   ),
-  217 => 
+  233 => 
   array (
     'method' => 'PUT',
     'path' => '/public/cbt/users/{id:\\d+}',
@@ -2501,7 +2676,7 @@
       0 => 'api',
     ),
   ),
-  218 => 
+  234 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/users/{email}',
@@ -2512,7 +2687,7 @@
       0 => 'api',
     ),
   ),
-  219 => 
+  235 => 
   array (
     'method' => 'GET',
     'path' => '/public/cbt/users/{user_id}/profiles',
@@ -2523,7 +2698,7 @@
       0 => 'api',
     ),
   ),
-  220 => 
+  236 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/users/{user_id}/profiles',
@@ -2534,7 +2709,7 @@
       0 => 'api',
     ),
   ),
-  221 => 
+  237 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/users/forgot-password',
@@ -2545,7 +2720,7 @@
       0 => 'api',
     ),
   ),
-  222 => 
+  238 => 
   array (
     'method' => 'POST',
     'path' => '/public/cbt/users/reset-password',

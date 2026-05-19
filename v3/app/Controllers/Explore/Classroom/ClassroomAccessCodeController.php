@@ -15,10 +15,11 @@ class ClassroomAccessCodeController extends ExploreBaseController
 
     public function __construct()
     {
+        parent::__construct();
         $this->service = new ClassroomAccessCodeService($this->pdo);
     }
 
-    #[Route('access-codes/seed', 'GET')]
+    #[Route('/access-codes/seed', 'GET')]
     public function seedCodes(): void
     {
         $seeded = $this->service->seedCodes();
@@ -30,7 +31,7 @@ class ClassroomAccessCodeController extends ExploreBaseController
         );
     }
 
-    #[Route('access-codes/verify', 'POST', ['api'])]
+    #[Route('/access-codes/verify', 'POST', ['api'])]
     public function verifyAccessCode(): void
     {
         $data = $this->validate(
@@ -48,7 +49,8 @@ class ClassroomAccessCodeController extends ExploreBaseController
         $this->respond(
             [
                 'success' => true,
-                'message' => 'Access code validated successfully.'
+                'message' => 'Access code validated successfully.',
+                'data' => $result['id']
             ]
         );
     }
