@@ -114,6 +114,16 @@ class ClassroomCourseService
         return $query->paginate($page, $limit);
     }
 
+    public function updateCourseStatus(int $id, string $status): bool
+    {
+        return $this->classroomCourse
+            ->where('id', $id)
+            ->update([
+                'status'     => $status,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+    }
+
     public function updateCourse(int $id, array $data): bool
     {
         if (isset($_FILES['image'])) {

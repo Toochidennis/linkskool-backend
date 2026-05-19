@@ -57,7 +57,7 @@ class ClassroomAccessCodeService
         return ['status' => 'success', 'id' => $row['id']];
     }
 
-    public function assignCode(int $code, int $institutionId): array|bool
+    public function assignCode(string $code, int $institutionId): array|bool
     {
         $codeId = $this->validateCode($code)['id'] ?? null;
 

@@ -131,4 +131,33 @@ class ClassroomCourseController extends ExploreBaseController
             HttpStatus::OK
         );
     }
+
+    #[Route('/{id}/status', 'PATCH', ['api'])]
+    public function updateStatus(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'id' => 'required|integer',
+                'status' => 'required|string|in:draft,published,archived',
+            ]
+        );
+
+        $updated = $this->service->updateCourseStatus(
+            (int) $validated['id'],
+            $validated['status']
+        );
+
+        if (!$updated) {
+            $this->respondError('Failed to update course status.', HttpStatus::BAD_REQUEST);
+        }
+
+        $this->respond(
+            [
+                'status'  => true,
+                'message' => 'Course status updated successfully.',
+            ],
+            HttpStatus::OK
+        );
+    }
 }
