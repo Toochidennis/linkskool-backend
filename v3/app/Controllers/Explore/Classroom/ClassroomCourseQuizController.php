@@ -56,6 +56,21 @@ class ClassroomCourseQuizController extends ExploreBaseController
         );
     }
 
+    #[Route('/{course_id}/quizzes', 'GET', ['api'])]
+    public function getByCourseId(array $vars): void
+    {
+        $courseId = (int) $vars['course_id'];
+        $quizzes = $this->service->getQuizByCourseId($courseId);
+
+        $this->respond(
+            [
+                'status' => true,
+                'data'   => $quizzes,
+            ],
+            HttpStatus::OK
+        );
+    }
+
     #[Route('/{course_id}/quizzes/{question_id}', 'PUT', ['api'])]
     public function update(array $vars): void
     {

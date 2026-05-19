@@ -45,4 +45,24 @@ class ClassroomCourseQuizService
             ->where('question_id', '=', $data['question_id'])
             ->update($payload);
     }
+
+    public function getQuizByCourseId(int $courseId): array
+    {
+        $quizzes = $this->model
+            ->select([
+                'question_id',
+                'question_text',
+                'options',
+                'correct',
+            ])
+            ->where('course_id', $courseId)
+            ->get();
+
+        return array_map(fn($q) => [
+            'question_id'   => $q['question_id'],
+            'question_text' => $q['question_text'],
+            'options'       => json_decode($q['options'], true),
+            'correct'       => json_decode($q['correct'], true),
+        ], $quizzes);
+    }
 }
