@@ -15,9 +15,9 @@ class ClassroomCourseEnrollmentService
 
     public function __construct(\PDO $pdo)
     {
-        $this->model       = new ClassroomCourseEnrollment($pdo);
+        $this->model  = new ClassroomCourseEnrollment($pdo);
         $this->courseModel = new ClassroomCourse($pdo);
-        $this->quizModel   = new ClassroomCourseQuiz($pdo);
+        $this->quizModel = new ClassroomCourseQuiz($pdo);
     }
 
     public function enroll(array $data): bool
@@ -49,8 +49,8 @@ class ClassroomCourseEnrollmentService
         }
 
         return $this->model->insert([
-            'course_id'      => $courseId,
-            'student_id'     => $studentId,
+            'course_id' => $courseId,
+            'student_id' => $studentId,
             'institution_id' => (int) $data['institution_id'],
         ]);
     }
@@ -92,8 +92,8 @@ class ClassroomCourseEnrollmentService
                 'quizzes' => array_map(fn($q) => [
                     'course_id'  => $q['course_id'],
                     'lesson_id'  => $q['lesson_id'] ?? null,
-                    'name'       => $course['name'],
-                    'topic'      => $q['topic'],
+                    'name'  => $course['name'],
+                    'topic'  => $q['topic'],
                     'start_date' => $q['start_date'],
                     'end_date'   => $q['end_date'],
                 ], $quizzes),
