@@ -5,19 +5,19 @@ namespace V3\App\Services\Explore\Classroom;
 use V3\App\Common\Utilities\AssetUrl;
 use V3\App\Models\Explore\Classroom\ClassroomCourse;
 use V3\App\Models\Explore\Classroom\ClassroomCourseEnrollment;
-use V3\App\Models\Explore\Classroom\ClassroomCourseQuiz;
+use V3\App\Models\Explore\Classroom\ClassroomCourseQuizSetting;
 
 class ClassroomCourseEnrollmentService
 {
     protected ClassroomCourseEnrollment $model;
     private ClassroomCourse $courseModel;
-    private ClassroomCourseQuiz $quizModel;
+    private ClassroomCourseQuizSetting $quizSettingModel;
 
     public function __construct(\PDO $pdo)
     {
-        $this->model  = new ClassroomCourseEnrollment($pdo);
-        $this->courseModel = new ClassroomCourse($pdo);
-        $this->quizModel = new ClassroomCourseQuiz($pdo);
+        $this->model          = new ClassroomCourseEnrollment($pdo);
+        $this->courseModel    = new ClassroomCourse($pdo);
+        $this->quizSettingModel = new ClassroomCourseQuizSetting($pdo);
     }
 
     public function enroll(array $data): bool
@@ -75,25 +75,26 @@ class ClassroomCourseEnrollmentService
                 ->where('id', $courseId)
                 ->first();
 
-            $quizzes = $this->quizModel
-                ->select(['course_id', 'lesson_id', 'topic', 'start_date', 'end_date'])
+            $quizzes = $this->quizSettingModel
+                ->select(['id', 'course_id', 'lesson_id', 'topic', 'duration', 'start_date', 'end_date'])
                 ->where('course_id', $courseId)
                 ->get();
 
             return [
                 'course' => [
-                    'id'  => (int) $course['id'],
-                    'name' => $course['name'],
-                    'description' => $course['description'],
-                    'image_url' => AssetUrl::fromAppUrl($course['image_url'] ?? null),
+                    'id'           => (int) $course['id'],
+                    'name'         => $course['name'],
+                    'description'  => $course['description'],
+                    'image_url'    => AssetUrl::fromAppUrl($course['image_url'] ?? null),
                     'pricing_type' => $course['pricing_type'],
-                    'price' => $course['price'],
+                    'price'        => $course['price'],
                 ],
-                'quizzes' => array_map(fn($q) => [
-                    'course_id'  => $q['course_id'],
-                    'lesson_id'  => $q['lesson_id'] ?? null,
-                    'name'  => $course['name'],
-                    'topic'  => $q['topic'],
+                'assessments' => array_map(fn($q) => [
+                    'id'         => (int) $q['id'],
+                    'course_id'  => (int) $q['course_id'],
+                    'lesson_id'  => $q['lesson_id'] !== null ? (int) $q['lesson_id'] : null,
+                    'topic'      => $q['topic'],
+                    'duration'   => $q['duration'] !== null ? (int) $q['duration'] : null,
                     'start_date' => $q['start_date'],
                     'end_date'   => $q['end_date'],
                 ], $quizzes),
