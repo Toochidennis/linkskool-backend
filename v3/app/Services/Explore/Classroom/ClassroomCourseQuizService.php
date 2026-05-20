@@ -119,17 +119,11 @@ class ClassroomCourseQuizService
         return $this->settingModel->where('id', $settingsId)->first();
     }
 
-    public function getSettings(int $courseId, ?int $lessonId = null): ?array
+    public function getSettings(int $settingsId): ?array
     {
-        $query = $this->settingModel->where('course_id', $courseId);
-
-        if ($lessonId !== null) {
-            $query->where('lesson_id', $lessonId);
-        } else {
-            $query->whereNull('lesson_id');
-        }
-
-        return $query->first() ?: null;
+        return $this->settingModel
+            ->where('id', $settingsId)
+            ->first() ?: null;
     }
 
     public function getQuestions(int $quizSettingsId): array

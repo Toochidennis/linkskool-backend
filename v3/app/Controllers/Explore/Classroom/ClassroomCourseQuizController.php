@@ -182,21 +182,17 @@ class ClassroomCourseQuizController extends ExploreBaseController
         );
     }
 
-    #[Route('/{course_id}/quizzes/settings', 'GET', ['api'])]
+    #[Route('/quizzes/settings/{settings_id}', 'GET', ['api'])]
     public function getSettings(array $vars): void
     {
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'course_id' => 'required|integer',
-                'lesson_id' => 'nullable|integer',
+                'settings_id' => 'required|integer',
             ]
         );
 
-        $settings = $this->service->getSettings(
-            (int) $validated['course_id'],
-            isset($validated['lesson_id']) ? (int) $validated['lesson_id'] : null,
-        );
+        $settings = $this->service->getSettings((int) $validated['settings_id']);
 
         $this->respond(
             [
