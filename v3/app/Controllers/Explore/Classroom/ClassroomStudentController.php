@@ -49,8 +49,8 @@ class ClassroomStudentController extends ExploreBaseController
     #[Route('/{institution_id}/students', 'POST', ['api'])]
     public function createStudents(array $vars): void
     {
-        $data = $this->validate(
-            $this->getRequestData(),
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
             [
                 'institution_id' => 'required|integer',
                 'level_id' => 'required|integer',
@@ -63,7 +63,7 @@ class ClassroomStudentController extends ExploreBaseController
             ],
         );
 
-        $count = $this->service->createStudents($data['students']);
+        $count = $this->service->createStudents($validated);
 
         if (!$count) {
             $this->respondError(
