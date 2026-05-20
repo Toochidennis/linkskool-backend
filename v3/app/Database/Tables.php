@@ -160,7 +160,7 @@ class Tables
         'classroom_course_lessons',
         'classroom_course_lesson_progress',
         'classroom_course_quiz_settings',
-        'classroom_lesson_assignments',
-        'classroom_lesson_files',
+        'classroom_course_lesson_assignments',
+        'classroom_course_lesson_files',
     ];
 }

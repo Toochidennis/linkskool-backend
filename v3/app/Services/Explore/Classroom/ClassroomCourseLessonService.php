@@ -5,23 +5,23 @@ namespace V3\App\Services\Explore\Classroom;
 use V3\App\Common\Utilities\Str;
 use V3\App\Common\Utilities\Uuid;
 use V3\App\Models\Explore\Classroom\ClassroomCourseLesson;
-use V3\App\Models\Explore\Classroom\ClassroomLessonAssignment;
-use V3\App\Models\Explore\Classroom\ClassroomLessonFile;
+use V3\App\Models\Explore\Classroom\ClassroomCourseLessonAssignment;
+use V3\App\Models\Explore\Classroom\ClassroomCourseLessonFile;
 use V3\App\Services\Explore\StorageService;
 
 class ClassroomCourseLessonService
 {
     protected ClassroomCourseLesson $model;
-    private ClassroomLessonAssignment $assignmentModel;
-    private ClassroomLessonFile $fileModel;
+    private ClassroomCourseLessonAssignment $assignmentModel;
+    private ClassroomCourseLessonFile $fileModel;
     private \PDO $pdo;
 
     public function __construct(\PDO $pdo)
     {
         $this->pdo             = $pdo;
         $this->model           = new ClassroomCourseLesson($pdo);
-        $this->assignmentModel = new ClassroomLessonAssignment($pdo);
-        $this->fileModel       = new ClassroomLessonFile($pdo);
+        $this->assignmentModel = new ClassroomCourseLessonAssignment($pdo);
+        $this->fileModel       = new ClassroomCourseLessonFile($pdo);
     }
 
     public function addLesson(array $data): int|false
@@ -50,7 +50,7 @@ class ClassroomCourseLessonService
             ];
 
             if ($data['is_final_lesson'] && !isset($_FILES['certificate'])) {
-                throw new \Exception('Certificate file is required for final lessons.');
+                throw new \RuntimeException('Certificate file is required for final lessons.');
             }
 
             if (!empty($data['video_url']) && $this->isYouTubeUrl($data['video_url'])) {
@@ -59,7 +59,7 @@ class ClassroomCourseLessonService
 
             $lessonId = $this->model->insert($payload);
             if (!$lessonId) {
-                throw new \Exception('Failed to insert lesson record.');
+                throw new \RuntimeException('Failed to insert lesson record.');
             }
 
             $this->saveAssignment($lessonId, $data);
@@ -98,7 +98,7 @@ class ClassroomCourseLessonService
             ];
 
             if ($data['is_final_lesson'] && !isset($_FILES['certificate'])) {
-                throw new \Exception('Certificate file is required for final lessons.');
+                throw new \RuntimeException('Certificate file is required for final lessons.');
             }
 
             if (!empty($data['video_url']) && $this->isYouTubeUrl($data['video_url'])) {
@@ -110,7 +110,7 @@ class ClassroomCourseLessonService
                 ->update(array_filter($payload, fn($v) => $v !== null));
 
             if (!$updated) {
-                throw new \Exception('Failed to update lesson record.');
+                throw new \RuntimeException('Failed to update lesson record.');
             }
 
             $this->updateAssignment((int) $data['lesson_id'], $data);
@@ -140,7 +140,7 @@ class ClassroomCourseLessonService
                    a.due_date        AS assignment_due_date,
                    a.submission_type AS assignment_submission_type
             FROM classroom_course_lessons l
-            LEFT JOIN classroom_lesson_assignments a ON a.lesson_id = l.id
+            LEFT JOIN classroom_course_lesson_assignments a ON a.lesson_id = l.id
             WHERE l.course_id = :course_id
             ORDER BY l.display_order ASC
         ";
@@ -281,7 +281,7 @@ class ClassroomCourseLessonService
             $placeholders[]   = ":{$key}";
         }
 
-        $sql  = 'SELECT * FROM classroom_lesson_files WHERE lesson_id IN (' . implode(',', $placeholders) . ')';
+        $sql  = 'SELECT * FROM classroom_course_lesson_files WHERE lesson_id IN (' . implode(',', $placeholders) . ')';
         $rows = $this->fileModel->rawQuery($sql, $params);
 
         $grouped = [];

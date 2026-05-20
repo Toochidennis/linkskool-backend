@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS classroom_lesson_assignments (
+CREATE TABLE IF NOT EXISTS classroom_course_lesson_assignments (
     id              INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     lesson_id       INT UNSIGNED NOT NULL,
     instructions    TEXT NULL,
@@ -6,17 +6,17 @@ CREATE TABLE IF NOT EXISTS classroom_lesson_assignments (
     submission_type ENUM('file','text','link','mixed') NOT NULL DEFAULT 'file',
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_cla_lesson FOREIGN KEY (lesson_id) REFERENCES classroom_course_lessons (id) ON DELETE CASCADE
+    CONSTRAINT fk_ccla_lesson FOREIGN KEY (lesson_id) REFERENCES classroom_course_lessons (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS classroom_lesson_files (
+CREATE TABLE IF NOT EXISTS classroom_course_lesson_files (
     id         INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     lesson_id  INT UNSIGNED NOT NULL,
     type       ENUM('material','assignment','certificate') NOT NULL,
     url        VARCHAR(500) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_clf_lesson FOREIGN KEY (lesson_id) REFERENCES classroom_course_lessons (id) ON DELETE CASCADE
+    CONSTRAINT fk_cclf_lesson FOREIGN KEY (lesson_id) REFERENCES classroom_course_lessons (id) ON DELETE CASCADE
 );
 
 -- Columns to drop from classroom_course_lessons once data is migrated:
