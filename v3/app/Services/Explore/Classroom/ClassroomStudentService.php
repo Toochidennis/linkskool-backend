@@ -3,50 +3,82 @@
 namespace V3\App\Services\Explore\Classroom;
 
 use V3\App\Models\Explore\Classroom\ClassroomStudent;
-use V3\App\Models\Explore\Level;
 
 class ClassroomStudentService
 {
     protected ClassroomStudent $model;
-    private Level $levelModel;
 
     public function __construct(\PDO $pdo)
     {
-        $this->model      = new ClassroomStudent($pdo);
-        $this->levelModel = new Level($pdo);
+        $this->model = new ClassroomStudent($pdo);
     }
 
-    public function listStudents(
-        int $institutionId,
-        array $filters = [],
-        int $page = 1,
-        int $limit = 20
-    ): array {
-        $query = $this->model
-            ->select([
-                'classroom_students.*',
-                'level.name as level_name',
-            ])
-            ->join('level', 'classroom_students.level_id = level.id', 'LEFT')
-            ->where('classroom_students.institution_id', $institutionId);
+    public function listStudents(array $data): array
+    {
+        $institutionId = (int) $data['institution_id'];
+        $page = max(1, (int) ($data['page'] ?? 1));
+        $limit = max(1, min(100, (int) ($data['limit'] ?? 20)));
+        $offset = ($page - 1) * $limit;
 
-        if (!empty($filters['level_id'])) {
-            $query->where('classroom_students.level_id', $filters['level_id']);
+        $where = ['s.institution_id = :institution_id'];
+        $params = ['institution_id' => $institutionId];
+
+        if (!empty($data['level_id'])) {
+            $where[] = 's.level_id = :level_id';
+            $params['level_id'] = (int) $data['level_id'];
         }
 
-        if (!empty($filters['name'])) {
-            $term = '%' . $filters['name'] . '%';
-            $query->whereRaw(
-                '(`first_name` LIKE ? OR `last_name` LIKE ? OR `middle_name` LIKE ?)',
-                [$term, $term, $term]
-            );
+        if (!empty($data['name'])) {
+            $term = '%' . $data['name'] . '%';
+            $where[] = '(s.first_name LIKE :name OR s.last_name LIKE :name OR s.middle_name LIKE :name)';
+            $params['name'] = $term;
         }
 
-        if (!empty($filters['reg_number'])) {
-            $query->where('reg_number', 'LIKE', '%' . $filters['reg_number'] . '%');
+        if (!empty($data['reg_number'])) {
+            $where[] = 's.reg_number LIKE :reg_number';
+            $params['reg_number'] = '%' . $data['reg_number'] . '%';
         }
 
-        return $query->paginate($page, $limit);
+        $whereSql = implode(' AND ', $where);
+
+        $countSql = "
+            SELECT COUNT(*) AS total
+            FROM classroom_students s
+            WHERE {$whereSql}
+        ";
+
+        $countRows = $this->model->rawQuery($countSql, $params);
+        $total = (int) ($countRows[0]['total'] ?? 0);
+
+        $sql = "
+            SELECT
+                s.*,
+                l.name AS level_name
+            FROM classroom_students s
+            LEFT JOIN level l
+                ON s.level_id = l.id
+            WHERE {$whereSql}
+            ORDER BY s.id DESC
+            LIMIT :limit OFFSET :offset
+        ";
+
+        $rows = $this->model->rawQuery($sql, [
+            ...$params,
+            'limit' => $limit,
+            'offset' => $offset,
+        ]);
+
+        return [
+            'data' => $rows,
+            'meta' => [
+                'total' => $total,
+                'limit' => $limit,
+                'current_page' => $page,
+                'last_page' => (int) ceil($total / $limit),
+                'has_next' => $page * $limit < $total,
+                'has_prev' => $page > 1,
+            ],
+        ];
     }
 
     public function createStudents(array $data): int

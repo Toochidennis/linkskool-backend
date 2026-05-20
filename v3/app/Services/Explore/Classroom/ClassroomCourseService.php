@@ -182,7 +182,12 @@ class ClassroomCourseService
                 EXISTS(
                     SELECT 1 FROM classroom_course_quiz_settings q
                     WHERE q.lesson_id = l.id
-                ) AS has_quiz
+                ) AS has_quiz,
+                (
+                    SELECT GROUP_CONCAT(q.id ORDER BY q.id ASC)
+                    FROM classroom_course_quiz_settings q
+                    WHERE q.lesson_id = l.id
+                ) AS quiz_settings_ids
             FROM classroom_course_lessons l
             WHERE l.course_id = :course_id
             ORDER BY l.display_order ASC
@@ -201,6 +206,11 @@ class ClassroomCourseService
         $items = [];
 
         foreach ($lessons as $row) {
+            $quizSettingsIds = array_values(array_map(
+                'intval',
+                array_filter(explode(',', (string) ($row['quiz_settings_ids'] ?? '')))
+            ));
+
             $items[] = [
                 'type'            => 'lesson',
                 'id'              => (int) $row['id'],
@@ -214,6 +224,7 @@ class ClassroomCourseService
                 'has_material'    => (bool) $row['has_material'],
                 'has_certificate' => (bool) $row['has_certificate'],
                 'has_quiz'        => (bool) $row['has_quiz'],
+                'quiz_settings_ids' => $quizSettingsIds,
             ];
         }
 
@@ -221,6 +232,7 @@ class ClassroomCourseService
             $items[] = [
                 'type'       => 'quiz',
                 'id'         => (int) $row['id'],
+                'settings_id' => (int) $row['id'],
                 'topic'      => $row['topic'],
                 'duration'   => $row['duration'] !== null ? (int) $row['duration'] : null,
                 'start_date' => $row['start_date'],
