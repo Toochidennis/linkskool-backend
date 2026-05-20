@@ -25,9 +25,9 @@ class ClassroomDashboardService
 
     public function getDashboard(int $institutionId): array
     {
-        $totalCourses  = $this->courseModel->where('institution_id', $institutionId)->count();
-        $totalStudents  = $this->studentModel->where('institution_id', $institutionId)->count();
-        $totalStaff = $this->staffModel->where('institution_id', $institutionId)->count();
+        $totalCourses     = $this->courseModel->where('institution_id', $institutionId)->count();
+        $totalStudents    = $this->studentModel->where('institution_id', $institutionId)->count();
+        $totalStaff       = $this->staffModel->where('institution_id', $institutionId)->count();
         $totalAssessments = $this->quizSettingModel->where('institution_id', $institutionId)->count();
 
         $courses = $this->courseModel
@@ -35,34 +35,15 @@ class ClassroomDashboardService
             ->where('institution_id', $institutionId)
             ->get();
 
-        $courseList = array_map(function (array $course): array {
-            $courseId    = (int) $course['id'];
-            $assessments = $this->quizSettingModel
-                ->select(['id', 'course_id', 'lesson_id', 'topic', 'duration', 'start_date', 'end_date'])
-                ->where('course_id', $courseId)
-                ->get();
-
-            return [
-                'course' => [
-                    'id'           => $courseId,
-                    'name'         => $course['name'],
-                    'description'  => $course['description'],
-                    'image_url'    => AssetUrl::fromAppUrl($course['image_url'] ?? null),
-                    'pricing_type' => $course['pricing_type'],
-                    'price'  => $course['price'],
-                    'status'   => $course['status'],
-                ],
-                'assessments' => array_map(fn($q) => [
-                    'id'  => (int) $q['id'],
-                    'course_id'  => (int) $q['course_id'],
-                    'lesson_id'  => $q['lesson_id'] !== null ? (int) $q['lesson_id'] : null,
-                    'topic'      => $q['topic'],
-                    'duration'   => $q['duration'] !== null ? (int) $q['duration'] : null,
-                    'start_date' => $q['start_date'],
-                    'end_date'   => $q['end_date'],
-                ], $assessments),
-            ];
-        }, $courses);
+        $courseList = array_map(fn(array $course) => [
+            'id'           => (int) $course['id'],
+            'name'         => $course['name'],
+            'description'  => $course['description'],
+            'image_url'    => AssetUrl::fromAppUrl($course['image_url'] ?? null),
+            'pricing_type' => $course['pricing_type'],
+            'price'        => $course['price'],
+            'status'       => $course['status'],
+        ], $courses);
 
         return [
             'summary' => [
