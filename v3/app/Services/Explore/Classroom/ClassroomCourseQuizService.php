@@ -151,9 +151,10 @@ class ClassroomCourseQuizService
         $count = $data['count'];
         $subjectId = $data['subject_id'] ?? null;
         $levelId = $data['level_id'] ?? null;
+        $topic  = $data['topic'] ?? null;
 
         $course = $this->courseModel
-            ->select(['name', 'topic'])
+            ->select(['name'])
             ->where('id', $courseId)
             ->first();
 
@@ -162,7 +163,6 @@ class ClassroomCourseQuizService
         }
 
         $courseName = $course['name'];
-        $topic  = $course['topic'] ?? null;
 
         $levelName = null;
         if ($levelId) {

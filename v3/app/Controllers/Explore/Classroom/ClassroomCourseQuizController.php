@@ -63,7 +63,7 @@ class ClassroomCourseQuizController extends ExploreBaseController
                 'quiz_settings_id'       => 'required|integer',
                 'questions'              => 'required|array|min:1',
                 'questions.*.question_text' => 'required|string',
-                'questions.*.options'       => 'required|array|size:4',
+                'questions.*.options'       => 'required|array',
                 'questions.*.options.*.text' => 'required|string',
                 'questions.*.correct'       => 'required|array',
                 'questions.*.correct.text'  => 'required|string',
@@ -125,7 +125,7 @@ class ClassroomCourseQuizController extends ExploreBaseController
         );
     }
 
-    #[Route('/{course_id}/quizzes/questions/generate', 'GET', ['api'])]
+    #[Route('/{course_id}/quizzes/questions/generate', 'POST', ['api'])]
     public function generateQuestions(array $vars): void
     {
         $validated = $this->validate(
