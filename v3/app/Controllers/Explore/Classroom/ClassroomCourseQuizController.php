@@ -27,6 +27,7 @@ class ClassroomCourseQuizController extends ExploreBaseController
             [
                 'question_id'      => 'nullable|integer',
                 'quiz_settings_id' => 'required|integer',
+                'course_id'        => 'required|integer',
                 'question_text'    => 'required|string',
                 'options'          => 'required|array',
                 'options.*.text'   => 'required|string',
@@ -60,6 +61,7 @@ class ClassroomCourseQuizController extends ExploreBaseController
             [
                 'question_id'      => 'required|integer',
                 'quiz_settings_id' => 'required|integer',
+                'course_id'        => 'required|integer',
                 'question_text'    => 'required|string',
                 'options'          => 'required|array',
                 'options.*.text'   => 'required|string',
@@ -95,15 +97,11 @@ class ClassroomCourseQuizController extends ExploreBaseController
                 'count'      => 'required|integer',
                 'subject_id' => 'nullable|integer',
                 'level_id'   => 'nullable|integer',
+                'topic'      => 'nullable|string',
             ]
         );
 
-        $questions = $this->service->generateQuestions(
-            (int) $validated['course_id'],
-            (int) $validated['count'],
-            isset($validated['subject_id']) ? (int) $validated['subject_id'] : null,
-            isset($validated['level_id'])   ? (int) $validated['level_id']   : null,
-        );
+        $questions = $this->service->generateQuestions($validated);
 
         $this->respond(
             [

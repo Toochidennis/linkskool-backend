@@ -50,20 +50,20 @@ class ClassroomCourseLessonController extends ExploreBaseController
                 'zoom_info.start_time'       => 'required_with:zoom_info.url|date',
                 'zoom_info.end_time'         => 'required_with:zoom_info.url|date',
 
-                'certificate'           => 'nullable|array',
-                'certificate.name'      => 'required_with:certificate|string',
-                'certificate.tmp_name'  => 'required_with:certificate|string',
-                'certificate.error'     => 'required_with:certificate|integer',
-
-                'material'          => 'required|array',
-                'material.name'     => 'required|string',
-                'material.tmp_name' => 'required|string',
-                'material.error'    => 'required|integer',
+                'material'          => 'nullable|array',
+                'material.name'     => 'required_with:material|string',
+                'material.tmp_name' => 'required_with:material|string',
+                'material.error'    => 'required_with:material|integer',
 
                 'assignment'           => 'nullable|array',
                 'assignment.name'      => 'required_with:assignment|string',
                 'assignment.tmp_name'  => 'required_with:assignment|string',
                 'assignment.error'     => 'required_with:assignment|integer',
+
+                'certificate'          => 'nullable|array',
+                'certificate.name'     => 'required_with:certificate|string',
+                'certificate.tmp_name' => 'required_with:certificate|string',
+                'certificate.error'    => 'required_with:certificate|integer',
             ]
         );
 
@@ -115,11 +115,6 @@ class ClassroomCourseLessonController extends ExploreBaseController
                 'zoom_info.start_time'       => 'required_with:zoom_info.url|date',
                 'zoom_info.end_time'         => 'required_with:zoom_info.url|date',
 
-                'certificate'           => 'nullable|array',
-                'certificate.name'      => 'required_with:certificate|string',
-                'certificate.tmp_name'  => 'required_with:certificate|string',
-                'certificate.error'     => 'required_with:certificate|integer',
-
                 'material'          => 'nullable|array',
                 'material.name'     => 'required_with:material|string',
                 'material.tmp_name' => 'required_with:material|string',
@@ -130,9 +125,10 @@ class ClassroomCourseLessonController extends ExploreBaseController
                 'assignment.tmp_name'  => 'required_with:assignment|string',
                 'assignment.error'     => 'required_with:assignment|integer',
 
-                'old_material_url'    => 'nullable|string',
-                'old_certificate_url' => 'nullable|string',
-                'old_assignment_url'  => 'nullable|string',
+                'certificate'          => 'nullable|array',
+                'certificate.name'     => 'required_with:certificate|string',
+                'certificate.tmp_name' => 'required_with:certificate|string',
+                'certificate.error'    => 'required_with:certificate|integer',
             ]
         );
 

@@ -5,17 +5,23 @@ namespace V3\App\Services\Explore\Classroom;
 use V3\App\Common\Utilities\Str;
 use V3\App\Common\Utilities\Uuid;
 use V3\App\Models\Explore\Classroom\ClassroomCourseLesson;
+use V3\App\Models\Explore\Classroom\ClassroomLessonAssignment;
+use V3\App\Models\Explore\Classroom\ClassroomLessonFile;
 use V3\App\Services\Explore\StorageService;
 
 class ClassroomCourseLessonService
 {
     protected ClassroomCourseLesson $model;
+    private ClassroomLessonAssignment $assignmentModel;
+    private ClassroomLessonFile $fileModel;
     private \PDO $pdo;
 
     public function __construct(\PDO $pdo)
     {
-        $this->pdo   = $pdo;
-        $this->model = new ClassroomCourseLesson($pdo);
+        $this->pdo             = $pdo;
+        $this->model           = new ClassroomCourseLesson($pdo);
+        $this->assignmentModel = new ClassroomLessonAssignment($pdo);
+        $this->fileModel       = new ClassroomLessonFile($pdo);
     }
 
     public function addLesson(array $data): int|false
@@ -24,26 +30,23 @@ class ClassroomCourseLessonService
             $this->pdo->beginTransaction();
 
             $payload = [
-                'slug'                       => Uuid::v4(),
-                'course_id'                  => $data['course_id'],
-                'institution_id'             => $data['institution_id'],
-                'title'                      => $data['title'],
-                'description'                => $data['description'] ?? null,
-                'goals'                      => $data['goals'] ?? null,
-                'objectives'                 => $data['objectives'] ?? null,
-                'video_url'                  => $data['video_url'] ?? null,
-                'recorded_video_url'         => $data['recorded_video_url'] ?? null,
-                'zoom_info'                  => json_encode($data['zoom_info'] ?? []),
-                'display_order'              => $data['display_order'],
-                'write_up_content'           => $data['write_up_content'] ?? null,
-                'assignment_instructions'    => $data['assignment_instructions'] ?? null,
-                'assignment_due_date'        => !empty($data['assignment_due_date']) ? $data['assignment_due_date'] : null,
-                'assignment_submission_type' => $data['assignment_submission_type'] ?? 'upload',
-                'is_final_lesson'            => $data['is_final_lesson'] ?? false,
-                'author_name'                => $data['author_name'],
-                'author_id'                  => $data['author_id'],
-                'lesson_date'                => $data['lesson_date'],
-                'status'                     => $data['status'] ?? 'draft',
+                'slug'               => Uuid::v4(),
+                'course_id'          => $data['course_id'],
+                'institution_id'     => $data['institution_id'],
+                'title'              => $data['title'],
+                'description'        => $data['description'] ?? null,
+                'goals'              => $data['goals'] ?? null,
+                'objectives'         => $data['objectives'] ?? null,
+                'video_url'          => $data['video_url'] ?? null,
+                'recorded_video_url' => $data['recorded_video_url'] ?? null,
+                'zoom_info'          => json_encode($data['zoom_info'] ?? []),
+                'display_order'      => $data['display_order'],
+                'write_up_content'   => $data['write_up_content'] ?? null,
+                'is_final_lesson'    => $data['is_final_lesson'] ?? false,
+                'author_name'        => $data['author_name'],
+                'author_id'          => $data['author_id'],
+                'lesson_date'        => $data['lesson_date'],
+                'status'             => $data['status'] ?? 'draft',
             ];
 
             if ($data['is_final_lesson'] && !isset($_FILES['certificate'])) {
@@ -54,13 +57,13 @@ class ClassroomCourseLessonService
                 $payload['thumbnail'] = $this->getYouTubeThumbnail($data['video_url']);
             }
 
-            $fileUrls = $this->processNewFiles($data);
-            $payload  = [...$payload, ...$fileUrls];
-
             $lessonId = $this->model->insert($payload);
             if (!$lessonId) {
                 throw new \Exception('Failed to insert lesson record.');
             }
+
+            $this->saveAssignment($lessonId, $data);
+            $this->saveFiles($lessonId, $data);
 
             $this->pdo->commit();
 
@@ -77,24 +80,21 @@ class ClassroomCourseLessonService
             $this->pdo->beginTransaction();
 
             $payload = [
-                'title'                      => $data['title'],
-                'description'                => $data['description'] ?? null,
-                'goals'                      => $data['goals'] ?? null,
-                'objectives'                 => $data['objectives'] ?? null,
-                'video_url'                  => $data['video_url'] ?? null,
-                'recorded_video_url'         => $data['recorded_video_url'] ?? null,
-                'zoom_info'                  => json_encode($data['zoom_info'] ?? []),
-                'display_order'              => $data['display_order'],
-                'write_up_content'           => $data['write_up_content'] ?? null,
-                'assignment_instructions'    => $data['assignment_instructions'] ?? null,
-                'assignment_due_date'        => !empty($data['assignment_due_date']) ? $data['assignment_due_date'] : null,
-                'assignment_submission_type' => $data['assignment_submission_type'] ?? 'upload',
-                'is_final_lesson'            => $data['is_final_lesson'] ?? false,
-                'author_name'                => $data['author_name'],
-                'author_id'                  => $data['author_id'],
-                'lesson_date'                => $data['lesson_date'],
-                'status'                     => $data['status'] ?? 'draft',
-                'updated_at'                 => date('Y-m-d H:i:s'),
+                'title'              => $data['title'],
+                'description'        => $data['description'] ?? null,
+                'goals'              => $data['goals'] ?? null,
+                'objectives'         => $data['objectives'] ?? null,
+                'video_url'          => $data['video_url'] ?? null,
+                'recorded_video_url' => $data['recorded_video_url'] ?? null,
+                'zoom_info'          => json_encode($data['zoom_info'] ?? []),
+                'display_order'      => $data['display_order'],
+                'write_up_content'   => $data['write_up_content'] ?? null,
+                'is_final_lesson'    => $data['is_final_lesson'] ?? false,
+                'author_name'        => $data['author_name'],
+                'author_id'          => $data['author_id'],
+                'lesson_date'        => $data['lesson_date'],
+                'status'             => $data['status'] ?? 'draft',
+                'updated_at'         => date('Y-m-d H:i:s'),
             ];
 
             if ($data['is_final_lesson'] && !isset($_FILES['certificate'])) {
@@ -105,9 +105,6 @@ class ClassroomCourseLessonService
                 $payload['thumbnail'] = $this->getYouTubeThumbnail($data['video_url']);
             }
 
-            $fileUrls = $this->processNewFiles($data, isUpdate: true);
-            $payload  = [...$payload, ...$fileUrls];
-
             $updated = $this->model
                 ->where('id', $data['lesson_id'])
                 ->update(array_filter($payload, fn($v) => $v !== null));
@@ -116,7 +113,8 @@ class ClassroomCourseLessonService
                 throw new \Exception('Failed to update lesson record.');
             }
 
-            $this->cleanupOldFiles($data, $fileUrls);
+            $this->updateAssignment((int) $data['lesson_id'], $data);
+            $this->replaceFiles((int) $data['lesson_id'], $data);
 
             $this->pdo->commit();
 
@@ -137,90 +135,161 @@ class ClassroomCourseLessonService
     public function getLessonsByCourseId(int $courseId): array
     {
         $sql = "
-            SELECT *
-            FROM classroom_course_lessons
-            WHERE course_id = :course_id
-            ORDER BY display_order ASC
+            SELECT l.*,
+                   a.instructions    AS assignment_instructions,
+                   a.due_date        AS assignment_due_date,
+                   a.submission_type AS assignment_submission_type
+            FROM classroom_course_lessons l
+            LEFT JOIN classroom_lesson_assignments a ON a.lesson_id = l.id
+            WHERE l.course_id = :course_id
+            ORDER BY l.display_order ASC
         ";
 
         $rows = $this->model->rawQuery($sql, ['course_id' => $courseId]);
 
-        return array_map(function (array $row): array {
+        if (empty($rows)) {
+            return [];
+        }
+
+        $lessonIds = array_column($rows, 'id');
+        $files     = $this->getFilesForLessons($lessonIds);
+
+        return array_map(function (array $row) use ($files): array {
             $row['zoom_info'] = !empty($row['zoom_info']) ? json_decode($row['zoom_info'], true) : null;
+            $row['files']     = $files[$row['id']] ?? [];
             return $row;
         }, $rows);
     }
 
     public function deleteLesson(int $id): bool
     {
-        $lesson = $this->model->where('id', $id)->first();
+        $files = $this->fileModel->where('lesson_id', $id)->get();
 
-        if (!$lesson) {
-            return true;
+        foreach ($files as $file) {
+            StorageService::deleteFile($file['url']);
         }
 
-        if (!empty($lesson['material_url'])) {
-            StorageService::deleteFile($lesson['material_url']);
-        }
-        if (!empty($lesson['assignment_url'])) {
-            StorageService::deleteFile($lesson['assignment_url']);
-        }
-        if (!empty($lesson['certificate_url'])) {
-            StorageService::deleteFile($lesson['certificate_url']);
-        }
+        $this->fileModel->where('lesson_id', $id)->delete();
+        $this->assignmentModel->where('lesson_id', $id)->delete();
 
         return $this->model->where('id', $id)->delete();
     }
 
-    private function processNewFiles(array $data, bool $isUpdate = false): array
+    private function saveAssignment(int $lessonId, array $data): void
     {
-        $urls = [
-            'material_url'    => null,
-            'assignment_url'  => null,
-            'certificate_url' => null,
-        ];
+        $hasData = !empty($data['assignment_instructions']) || !empty($data['assignment_due_date']);
 
-        $material = $_FILES['material'] ?? null;
-
-        if (!$material && !$isUpdate) {
-            throw new \Exception('Material file is required.');
+        if (!$hasData) {
+            return;
         }
 
-        if ($material) {
-            $urls['material_url'] = StorageService::saveFile(
-                $material,
-                $this->buildLessonPath($data, 'materials')
-            );
-        }
-
-        if (isset($_FILES['assignment'])) {
-            $urls['assignment_url'] = StorageService::saveFile(
-                $_FILES['assignment'],
-                $this->buildLessonPath($data, 'assignments')
-            );
-        }
-
-        if (isset($_FILES['certificate'])) {
-            $urls['certificate_url'] = StorageService::saveFile(
-                $_FILES['certificate'],
-                $this->buildLessonPath($data, 'certificates')
-            );
-        }
-
-        return $urls;
+        $this->assignmentModel->insert([
+            'lesson_id'       => $lessonId,
+            'instructions'    => $data['assignment_instructions'] ?? null,
+            'due_date'        => $data['assignment_due_date'] ?? null,
+            'submission_type' => $data['assignment_submission_type'] ?? 'file',
+        ]);
     }
 
-    private function cleanupOldFiles(array $data, array $fileUrls): void
+    private function updateAssignment(int $lessonId, array $data): void
     {
-        if (isset($data['old_material_url'], $fileUrls['material_url'])) {
-            StorageService::deleteFile($data['old_material_url']);
+        $hasData  = !empty($data['assignment_instructions']) || !empty($data['assignment_due_date']);
+        $existing = $this->assignmentModel->where('lesson_id', $lessonId)->first();
+
+        if (!$hasData) {
+            if ($existing) {
+                $this->assignmentModel->where('lesson_id', $lessonId)->delete();
+            }
+            return;
         }
-        if (isset($data['old_assignment_url'], $fileUrls['assignment_url'])) {
-            StorageService::deleteFile($data['old_assignment_url']);
+
+        $payload = [
+            'instructions'    => $data['assignment_instructions'] ?? null,
+            'due_date'        => $data['assignment_due_date'] ?? null,
+            'submission_type' => $data['assignment_submission_type'] ?? 'file',
+            'updated_at'      => date('Y-m-d H:i:s'),
+        ];
+
+        if ($existing) {
+            $this->assignmentModel->where('lesson_id', $lessonId)->update($payload);
+        } else {
+            $this->assignmentModel->insert(['lesson_id' => $lessonId, ...$payload]);
         }
-        if (isset($data['old_certificate_url'], $fileUrls['certificate_url'])) {
-            StorageService::deleteFile($data['old_certificate_url']);
+    }
+
+    private function saveFiles(int $lessonId, array $data): void
+    {
+        foreach (['material', 'assignment', 'certificate'] as $type) {
+            if (!isset($_FILES[$type])) {
+                continue;
+            }
+
+            $url = StorageService::saveFile(
+                $_FILES[$type],
+                $this->buildLessonPath($data, "{$type}s")
+            );
+
+            $this->fileModel->insert([
+                'lesson_id' => $lessonId,
+                'type'      => $type,
+                'url'       => $url,
+            ]);
         }
+    }
+
+    private function replaceFiles(int $lessonId, array $data): void
+    {
+        foreach (['material', 'assignment', 'certificate'] as $type) {
+            if (!isset($_FILES[$type])) {
+                continue;
+            }
+
+            $existing = $this->fileModel
+                ->where('lesson_id', $lessonId)
+                ->where('type', $type)
+                ->first();
+
+            if ($existing) {
+                StorageService::deleteFile($existing['url']);
+                $this->fileModel->where('id', $existing['id'])->delete();
+            }
+
+            $url = StorageService::saveFile(
+                $_FILES[$type],
+                $this->buildLessonPath($data, "{$type}s")
+            );
+
+            $this->fileModel->insert([
+                'lesson_id' => $lessonId,
+                'type'      => $type,
+                'url'       => $url,
+            ]);
+        }
+    }
+
+    private function getFilesForLessons(array $lessonIds): array
+    {
+        if (empty($lessonIds)) {
+            return [];
+        }
+
+        $params       = [];
+        $placeholders = [];
+        foreach ($lessonIds as $i => $id) {
+            $key              = "id{$i}";
+            $params[$key]     = $id;
+            $placeholders[]   = ":{$key}";
+        }
+
+        $sql  = 'SELECT * FROM classroom_lesson_files WHERE lesson_id IN (' . implode(',', $placeholders) . ')';
+        $rows = $this->fileModel->rawQuery($sql, $params);
+
+        $grouped = [];
+        foreach ($rows as $row) {
+            $grouped[$row['lesson_id']][] = $row;
+        }
+
+        return $grouped;
     }
 
     private function buildLessonPath(array $data, string $assetType): string

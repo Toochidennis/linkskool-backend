@@ -4,7 +4,7 @@ namespace V3\App\Services\Explore\Classroom;
 
 use V3\App\Models\Explore\Classroom\ClassroomCourse;
 use V3\App\Models\Explore\Classroom\ClassroomCourseQuiz;
-use V3\App\Models\Explore\Classroom\ClassroomQuizSetting;
+use V3\App\Models\Explore\Classroom\ClassroomCourseQuizSetting;
 use V3\App\Models\Explore\Level;
 use V3\App\Models\Portal\Academics\Course as SubjectModel;
 use V3\App\Services\Common\DeepSeekClient;
@@ -12,7 +12,7 @@ use V3\App\Services\Common\DeepSeekClient;
 class ClassroomCourseQuizService
 {
     protected ClassroomCourseQuiz $model;
-    private ClassroomQuizSetting $settingModel;
+    private ClassroomCourseQuizSetting $settingModel;
     private ClassroomCourse $courseModel;
     private Level $levelModel;
     private SubjectModel $subjectModel;
@@ -21,20 +21,21 @@ class ClassroomCourseQuizService
     public function __construct(\PDO $pdo)
     {
         $this->model          = new ClassroomCourseQuiz($pdo);
-        $this->settingModel   = new ClassroomQuizSetting($pdo);
+        $this->settingModel   = new ClassroomCourseQuizSetting($pdo);
         $this->courseModel    = new ClassroomCourse($pdo);
         $this->levelModel     = new Level($pdo);
         $this->subjectModel   = new SubjectModel($pdo);
-        $this->ai             = new DeepSeekClient();
+        $this->ai = new DeepSeekClient();
     }
 
     public function create(array $data)
     {
         $payload = [
             'quiz_settings_id' => $data['quiz_settings_id'],
-            'question_text'    => $data['question_text'],
-            'options'          => json_encode($data['options']),
-            'correct'          => json_encode($data['correct']),
+            'course_id'  => $data['course_id'],
+            'question_text'  => $data['question_text'],
+            'options'  => json_encode($data['options']),
+            'correct'  => json_encode($data['correct']),
         ];
 
         if (isset($data['question_id']) && !empty($data['question_id']) && $data['question_id'] > 0) {
@@ -50,9 +51,10 @@ class ClassroomCourseQuizService
     {
         $payload = [
             'quiz_settings_id' => $data['quiz_settings_id'],
-            'question_text'    => $data['question_text'],
-            'options'          => json_encode($data['options']),
-            'correct'          => json_encode($data['correct']),
+            'question_text' => $data['question_text'],
+            'course_id' => $data['course_id'],
+            'options'  => json_encode($data['options']),
+            'correct' => json_encode($data['correct']),
         ];
 
         return $this->model
@@ -117,12 +119,13 @@ class ClassroomCourseQuizService
         return $query->first() ?: null;
     }
 
-    public function generateQuestions(
-        int $courseId,
-        int $count,
-        ?int $subjectId = null,
-        ?int $levelId = null
-    ): array {
+    public function generateQuestions(array $data): array
+    {
+        $courseId = $data['course_id'];
+        $count = $data['count'];
+        $subjectId = $data['subject_id'] ?? null;
+        $levelId = $data['level_id'] ?? null;
+
         $course = $this->courseModel
             ->select(['name', 'topic'])
             ->where('id', $courseId)
@@ -137,7 +140,7 @@ class ClassroomCourseQuizService
 
         $levelName = null;
         if ($levelId) {
-            $level     = $this->levelModel->select(['name'])->where('id', $levelId)->first();
+            $level = $this->levelModel->select(['name'])->where('id', $levelId)->first();
             $levelName = $level['name'] ?? null;
         }
 

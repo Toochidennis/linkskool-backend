@@ -157,5 +157,10 @@ class Tables
         'classroom_course_enrollments',
         'classroom_course_quizzes',
         'classroom_quiz_attempts',
+        'classroom_course_lessons',
+        'classroom_course_lesson_progress',
+        'classroom_course_quiz_settings',
+        'classroom_lesson_assignments',
+        'classroom_lesson_files',
     ];
 }
