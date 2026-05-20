@@ -47,6 +47,19 @@ class ClassroomCourseQuizService
         return $this->model->insert($payload);
     }
 
+    public function createMany(int $quizSettingsId, int $courseId, array $questions): int
+    {
+        $rows = array_map(fn($q) => [
+            'quiz_settings_id' => $quizSettingsId,
+            'course_id'        => $courseId,
+            'question_text'    => $q['question_text'],
+            'options'          => json_encode($q['options']),
+            'correct'          => json_encode($q['correct']),
+        ], $questions);
+
+        return $this->model->insertMany($rows);
+    }
+
     public function update(array $data)
     {
         $payload = [

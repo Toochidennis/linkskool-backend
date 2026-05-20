@@ -53,6 +53,44 @@ class ClassroomCourseQuizController extends ExploreBaseController
         );
     }
 
+    #[Route('/{course_id}/quizzes/questions/bulk', 'POST', ['api'])]
+    public function createMany(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'course_id'              => 'required|integer',
+                'quiz_settings_id'       => 'required|integer',
+                'questions'              => 'required|array|min:1',
+                'questions.*.question_text' => 'required|string',
+                'questions.*.options'       => 'required|array|size:4',
+                'questions.*.options.*.text' => 'required|string',
+                'questions.*.correct'       => 'required|array',
+                'questions.*.correct.text'  => 'required|string',
+                'questions.*.correct.order' => 'required|integer',
+            ]
+        );
+
+        $count = $this->service->createMany(
+            (int) $validated['quiz_settings_id'],
+            (int) $validated['course_id'],
+            $validated['questions']
+        );
+
+        if (!$count) {
+            $this->respondError('Failed to save questions.', HttpStatus::BAD_REQUEST);
+        }
+
+        $this->respond(
+            [
+                'status'  => true,
+                'message' => "{$count} question(s) saved successfully.",
+                'data'    => ['count' => $count],
+            ],
+            HttpStatus::CREATED
+        );
+    }
+
     #[Route('/{course_id}/quizzes/questions/{question_id}', 'PUT', ['api'])]
     public function update(array $vars): void
     {
