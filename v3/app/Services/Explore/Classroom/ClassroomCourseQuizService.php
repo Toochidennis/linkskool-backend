@@ -4,6 +4,7 @@ namespace V3\App\Services\Explore\Classroom;
 
 use V3\App\Models\Explore\Classroom\ClassroomCourse;
 use V3\App\Models\Explore\Classroom\ClassroomCourseQuiz;
+use V3\App\Models\Explore\Classroom\ClassroomQuizSetting;
 use V3\App\Models\Explore\Level;
 use V3\App\Models\Portal\Academics\Course as SubjectModel;
 use V3\App\Services\Common\DeepSeekClient;
@@ -11,6 +12,7 @@ use V3\App\Services\Common\DeepSeekClient;
 class ClassroomCourseQuizService
 {
     protected ClassroomCourseQuiz $model;
+    private ClassroomQuizSetting $settingModel;
     private ClassroomCourse $courseModel;
     private Level $levelModel;
     private SubjectModel $subjectModel;
@@ -18,26 +20,21 @@ class ClassroomCourseQuizService
 
     public function __construct(\PDO $pdo)
     {
-        $this->model        = new ClassroomCourseQuiz($pdo);
-        $this->courseModel  = new ClassroomCourse($pdo);
-        $this->levelModel   = new Level($pdo);
-        $this->subjectModel = new SubjectModel($pdo);
-        $this->ai           = new DeepSeekClient();
+        $this->model          = new ClassroomCourseQuiz($pdo);
+        $this->settingModel   = new ClassroomQuizSetting($pdo);
+        $this->courseModel    = new ClassroomCourse($pdo);
+        $this->levelModel     = new Level($pdo);
+        $this->subjectModel   = new SubjectModel($pdo);
+        $this->ai             = new DeepSeekClient();
     }
 
     public function create(array $data)
     {
         $payload = [
-            'institution_id' => $data['institution_id'],
-            'course_id' => $data['course_id'],
-            'lesson_id' => $data['lesson_id'] ?? null,
-            'topic' => $data['topic'] ?? null,
-            'question_text' => $data['question_text'],
-            'options' => json_encode($data['options']),
-            'correct' => json_encode($data['correct']),
-            'duration' => $data['duration'] ?? null,
-            'start_date' => $data['start_date'] ?? null,
-            'end_date' => $data['end_date'] ?? null,
+            'quiz_settings_id' => $data['quiz_settings_id'],
+            'question_text'    => $data['question_text'],
+            'options'          => json_encode($data['options']),
+            'correct'          => json_encode($data['correct']),
         ];
 
         if (isset($data['question_id']) && !empty($data['question_id']) && $data['question_id'] > 0) {
@@ -48,19 +45,14 @@ class ClassroomCourseQuizService
 
         return $this->model->insert($payload);
     }
+
     public function update(array $data)
     {
         $payload = [
-            'institution_id' => $data['institution_id'],
-            'topic' => $data['topic'] ?? null,
-            'lesson_id' => $data['lesson_id'] ?? null,
-            'course_id' => $data['course_id'],
-            'question_text' => $data['question_text'],
-            'options' => json_encode($data['options']),
-            'correct' => json_encode($data['correct']),
-            'duration' => $data['duration'] ?? null,
-            'start_date' => $data['start_date'] ?? null,
-            'end_date' => $data['end_date'] ?? null,
+            'quiz_settings_id' => $data['quiz_settings_id'],
+            'question_text'    => $data['question_text'],
+            'options'          => json_encode($data['options']),
+            'correct'          => json_encode($data['correct']),
         ];
 
         return $this->model
@@ -68,39 +60,61 @@ class ClassroomCourseQuizService
             ->update($payload);
     }
 
-    public function getQuizByCourseId(int $courseId, ?int $lessonId = null): array
+    public function saveSettings(array $data): array|false
     {
-        $query = $this->model
-            ->select([
-                'question_id',
-                'question_text',
-                'lesson_id',
-                'topic',
-                'options',
-                'correct',
-                'duration',
-                'start_date',
-                'end_date',
-            ])
-            ->where('course_id', $courseId);
+        $courseId = $data['course_id'];
+        $lessonId = $data['lesson_id'] ?? null;
 
+        $payload = [
+            'institution_id' => $data['institution_id'],
+            'course_id'      => $courseId,
+            'lesson_id'      => $lessonId,
+            'topic'          => $data['topic'] ?? null,
+            'duration'       => $data['duration'] ?? null,
+            'start_date'     => $data['start_date'] ?? null,
+            'end_date'       => $data['end_date'] ?? null,
+        ];
+
+        $query = $this->settingModel->where('course_id', $courseId);
         if ($lessonId !== null) {
-            $query = $query->where('lesson_id', $lessonId);
+            $query->where('lesson_id', $lessonId);
+        } else {
+            $query->whereNull('lesson_id');
         }
 
-        $quizzes = $query->get();
+        $existing = $query->first();
 
-        return array_map(fn($q) => [
-            'question_id'   => $q['question_id'],
-            'question_text' => $q['question_text'],
-            'lesson_id'    => $q['lesson_id'] ?? null,
-            'topic'   => $q['topic'],
-            'options'  => json_decode($q['options'], true),
-            'correct'       => json_decode($q['correct'], true),
-            'duration'      => $q['duration'],
-            'start_date'    => $q['start_date'],
-            'end_date'      => $q['end_date'],
-        ], $quizzes);
+        if ($existing) {
+            $updated = $this->settingModel
+                ->where('id', $existing['id'])
+                ->update([...$payload, 'updated_at' => date('Y-m-d H:i:s')]);
+
+            if (!$updated) {
+                return false;
+            }
+
+            $settingsId = (int) $existing['id'];
+        } else {
+            $settingsId = $this->settingModel->insert($payload);
+            if (!$settingsId) {
+                return false;
+            }
+        }
+
+        return $this->settingModel->where('id', $settingsId)->first();
+    }
+
+    public function getSettings(int $courseId, ?int $lessonId = null): ?array
+    {
+        $query = $this->settingModel->where('course_id', $courseId);
+
+        if ($lessonId !== null) {
+            $query->where('lesson_id', $lessonId);
+        } else {
+            $query->whereNull('lesson_id');
+        }
+
+        return $query->first() ?: null;
     }
 
     public function generateQuestions(
@@ -156,10 +170,10 @@ class ClassroomCourseQuizService
         - The correct answer must reference the exact text of one option and its zero-based order (0–3)
         - Questions must be relevant to the course/subject/level provided
         - Language should be clear and appropriate for the target level
-        - For ALL mathematical or scientific notation — including equations, expressions, formulas, fractions, exponents, roots, matrices, vectors, integrals, summations, chemical formulas, Greek letters, and any symbolic content — you MUST use LaTeX syntax
-        - Wrap inline LaTeX with \( and \), e.g. \( x^2 + y^2 = z^2 \)
-        - Wrap block/display LaTeX with \[ and \], e.g. \[ \int_0^\infty e^{-x}\,dx = 1 \]
-        - This applies to question_text and every option text — never use plain-text math like "x^2" or "sqrt(x)" outside of LaTeX delimiters
+        - For ALL mathematical or scientific notation — including equations, expressions, formulas, fractions, exponents, roots, matrices, vectors, integrals, summations, chemical formulas, Greek letters, and any symbolic content — you MUST use KaTeX/MathJax dollar-sign syntax
+        - Wrap inline math with single dollar signs, e.g. \$x^{2} + y^{2} = z^{2}\$
+        - Wrap block/display math with double dollar signs, e.g. \$\$\int_{0}^{\infty} e^{-x}\,dx = 1\$\$
+        - This applies to question_text and every option text — never use plain-text math like "x^2" or "sqrt(x)" outside of dollar-sign delimiters
         - This rule applies to all subjects: Mathematics, Physics, Chemistry, Biology, Economics, Statistics, Computer Science, Logic, etc.
         - Use Markdown for all other formatting needs: **bold** for emphasis, `code` for variable names or code snippets, and numbered or bulleted lists where clarity requires it
 

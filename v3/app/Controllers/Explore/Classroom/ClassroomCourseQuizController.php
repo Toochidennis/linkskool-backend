@@ -25,29 +25,21 @@ class ClassroomCourseQuizController extends ExploreBaseController
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'question_id'    => 'nullable|integer',
-                'course_id'      => 'required|integer',
-                'lesson_id'      => 'nullable|integer',
-                'topic_id'       => 'nullable|string',
-                'institution_id' => 'required|integer',
-                'question_text'  => 'required|string',
-                'options'        => 'required|array',
-                'options.*.text' => 'required|string',
-                'correct'        => 'required|array',
-                'correct.text'   => 'required|string',
-                'correct.order'  => 'required|integer',
-                'start_date'      => 'nullable|date',
-                'end_date'        => 'nullable|date|after_or_equal:start_date',
+                'question_id'      => 'nullable|integer',
+                'quiz_settings_id' => 'required|integer',
+                'question_text'    => 'required|string',
+                'options'          => 'required|array',
+                'options.*.text'   => 'required|string',
+                'correct'          => 'required|array',
+                'correct.text'     => 'required|string',
+                'correct.order'    => 'required|integer',
             ]
         );
 
         $result = $this->service->create($validated);
 
         if (!$result) {
-            $this->respondError(
-                'Failed to save quiz question.',
-                HttpStatus::BAD_REQUEST
-            );
+            $this->respondError('Failed to save quiz question.', HttpStatus::BAD_REQUEST);
         }
 
         $this->respond(
@@ -60,25 +52,34 @@ class ClassroomCourseQuizController extends ExploreBaseController
         );
     }
 
-    #[Route('/{course_id}/quizzes', 'GET', ['api'])]
-    public function getByCourseId(array $vars): void
+    #[Route('/{course_id}/quizzes/{question_id}', 'PUT', ['api'])]
+    public function update(array $vars): void
     {
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'course_id' => 'required|integer',
-                'lesson_id' => 'nullable|integer',
+                'question_id'      => 'required|integer',
+                'quiz_settings_id' => 'required|integer',
+                'question_text'    => 'required|string',
+                'options'          => 'required|array',
+                'options.*.text'   => 'required|string',
+                'correct'          => 'required|array',
+                'correct.text'     => 'required|string',
+                'correct.order'    => 'required|integer',
             ]
         );
 
-        $courseId = (int) $validated['course_id'];
-        $lessonId = isset($validated['lesson_id']) ? (int) $validated['lesson_id'] : null;
-        $quizzes = $this->service->getQuizByCourseId($courseId, $lessonId);
+        $result = $this->service->update($validated);
+
+        if (!$result) {
+            $this->respondError('Failed to update quiz question.', HttpStatus::BAD_REQUEST);
+        }
 
         $this->respond(
             [
-                'status' => true,
-                'data'   => $quizzes,
+                'status'  => true,
+                'message' => 'Quiz question updated successfully.',
+                'data'    => ['question_id' => $validated['question_id']],
             ],
             HttpStatus::OK
         );
@@ -107,48 +108,64 @@ class ClassroomCourseQuizController extends ExploreBaseController
         $this->respond(
             [
                 'status' => true,
-                'data' => $questions,
+                'data'   => $questions,
             ],
             HttpStatus::OK
         );
     }
 
-    #[Route('/{course_id}/quizzes/{question_id}', 'PUT', ['api'])]
-    public function update(array $vars): void
+    #[Route('/{course_id}/quizzes/settings', 'POST', ['api'])]
+    public function saveSettings(array $vars): void
     {
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'question_id'    => 'required|integer',
                 'course_id'      => 'required|integer',
-                'topic_id'       => 'nullable|string',
-                'lesson_id'      => 'nullable|integer',
                 'institution_id' => 'required|integer',
-                'question_text'  => 'required|string',
-                'options'        => 'required|array',
-                'options.*.text' => 'required|string',
-                'correct'        => 'required|array',
-                'correct.text'   => 'required|string',
-                'correct.order'  => 'required|integer',
-                'start_date'      => 'nullable|date',
-                'end_date'        => 'nullable|date|after_or_equal:start_date',
+                'lesson_id'      => 'nullable|integer',
+                'topic'          => 'nullable|string',
+                'duration'       => 'nullable|integer',
+                'start_date'     => 'nullable|date',
+                'end_date'       => 'nullable|date|after_or_equal:start_date',
             ]
         );
 
-        $result = $this->service->update($validated);
+        $settings = $this->service->saveSettings($validated);
 
-        if (!$result) {
-            $this->respondError(
-                'Failed to update quiz question.',
-                HttpStatus::BAD_REQUEST
-            );
+        if (!$settings) {
+            $this->respondError('Failed to save quiz settings.', HttpStatus::BAD_REQUEST);
         }
 
         $this->respond(
             [
                 'status'  => true,
-                'message' => 'Quiz question updated successfully.',
-                'data' => ['question_id' => $validated['question_id']],
+                'message' => 'Quiz settings saved successfully.',
+                'data'    => $settings,
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/{course_id}/quizzes/settings', 'GET', ['api'])]
+    public function getSettings(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'course_id' => 'required|integer',
+                'lesson_id' => 'nullable|integer',
+            ]
+        );
+
+        $settings = $this->service->getSettings(
+            (int) $validated['course_id'],
+            isset($validated['lesson_id']) ? (int) $validated['lesson_id'] : null,
+        );
+
+        $this->respond(
+            [
+                'status' => true,
+                'data'   => $settings,
             ],
             HttpStatus::OK
         );
