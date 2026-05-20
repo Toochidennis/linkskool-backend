@@ -6,18 +6,21 @@ use V3\App\Common\Utilities\AssetUrl;
 use V3\App\Common\Utilities\Str;
 use V3\App\Common\Utilities\Uuid;
 use V3\App\Models\Explore\Classroom\ClassroomCourse;
-use V3\App\Models\Explore\Classroom\ClassroomStudent;
+use V3\App\Models\Explore\Classroom\ClassroomCourseLesson;
+use V3\App\Models\Explore\Classroom\ClassroomCourseQuizSetting;
 use V3\App\Services\Explore\StorageService;
 
 class ClassroomCourseService
 {
     private ClassroomCourse $classroomCourse;
-    private ClassroomStudent $classroomStudent;
+    private ClassroomCourseLesson $lessonModel;
+    private ClassroomCourseQuizSetting $quizSettingModel;
 
     public function __construct(\PDO $pdo)
     {
-        $this->classroomCourse = new ClassroomCourse($pdo);
-        $this->classroomStudent = new ClassroomStudent($pdo);
+        $this->classroomCourse  = new ClassroomCourse($pdo);
+        $this->lessonModel      = new ClassroomCourseLesson($pdo);
+        $this->quizSettingModel = new ClassroomCourseQuizSetting($pdo);
     }
 
     public function createCourse(array $data): bool
@@ -109,39 +112,6 @@ class ClassroomCourseService
         return $course;
     }
 
-    public function listStudents(
-        int $institutionId,
-        array $filters = [],
-        int $page = 1,
-        int $limit = 20
-    ): array {
-        $query = $this->classroomStudent
-            ->select([
-                'classroom_students.*',
-                'level.name as level_name',
-            ])
-            ->join('level', 'classroom_students.level_id = level.id', 'LEFT')
-            ->where('classroom_students.institution_id', $institutionId);
-
-        if (!empty($filters['level_id'])) {
-            $query->where('classroom_students.level_id', $filters['level_id']);
-        }
-
-        if (!empty($filters['name'])) {
-            $term = '%' . $filters['name'] . '%';
-            $query->whereRaw(
-                '(`first_name` LIKE ? OR `last_name` LIKE ? OR `middle_name` LIKE ?)',
-                [$term, $term, $term]
-            );
-        }
-
-        if (!empty($filters['reg_number'])) {
-            $query->where('reg_number', 'LIKE', '%' . $filters['reg_number'] . '%');
-        }
-
-        return $query->paginate($page, $limit);
-    }
-
     public function updateCourseStatus(int $id, string $status): bool
     {
         return $this->classroomCourse
@@ -184,5 +154,80 @@ class ClassroomCourseService
         }
 
         return $this->classroomCourse->where('id', $id)->update($payload);
+    }
+
+    public function getCourseContent(int $courseId): array
+    {
+        $lessonSql = "
+            SELECT
+                l.id,
+                l.title,
+                l.display_order,
+                l.status,
+                l.lesson_date,
+                l.is_final_lesson,
+                (l.video_url IS NOT NULL OR l.recorded_video_url IS NOT NULL) AS has_video,
+                EXISTS(
+                    SELECT 1 FROM classroom_course_lesson_assignments a
+                    WHERE a.lesson_id = l.id
+                ) AS has_assignment,
+                EXISTS(
+                    SELECT 1 FROM classroom_course_lesson_files f
+                    WHERE f.lesson_id = l.id AND f.type = 'material'
+                ) AS has_material,
+                EXISTS(
+                    SELECT 1 FROM classroom_course_lesson_files f
+                    WHERE f.lesson_id = l.id AND f.type = 'certificate'
+                ) AS has_certificate,
+                EXISTS(
+                    SELECT 1 FROM classroom_course_quiz_settings q
+                    WHERE q.lesson_id = l.id
+                ) AS has_quiz
+            FROM classroom_course_lessons l
+            WHERE l.course_id = :course_id
+            ORDER BY l.display_order ASC
+        ";
+
+        $quizSql = "
+            SELECT id, topic, duration, start_date, end_date
+            FROM classroom_course_quiz_settings
+            WHERE course_id = :course_id
+            AND lesson_id IS NULL
+        ";
+
+        $lessons = $this->lessonModel->rawQuery($lessonSql, ['course_id' => $courseId]);
+        $quizzes = $this->quizSettingModel->rawQuery($quizSql, ['course_id' => $courseId]);
+
+        $items = [];
+
+        foreach ($lessons as $row) {
+            $items[] = [
+                'type'            => 'lesson',
+                'id'              => (int) $row['id'],
+                'title'           => $row['title'],
+                'display_order'   => (int) $row['display_order'],
+                'status'          => $row['status'],
+                'lesson_date'     => $row['lesson_date'],
+                'is_final_lesson' => (bool) $row['is_final_lesson'],
+                'has_video'       => (bool) $row['has_video'],
+                'has_assignment'  => (bool) $row['has_assignment'],
+                'has_material'    => (bool) $row['has_material'],
+                'has_certificate' => (bool) $row['has_certificate'],
+                'has_quiz'        => (bool) $row['has_quiz'],
+            ];
+        }
+
+        foreach ($quizzes as $row) {
+            $items[] = [
+                'type'       => 'quiz',
+                'id'         => (int) $row['id'],
+                'topic'      => $row['topic'],
+                'duration'   => $row['duration'] !== null ? (int) $row['duration'] : null,
+                'start_date' => $row['start_date'],
+                'end_date'   => $row['end_date'],
+            ];
+        }
+
+        return $items;
     }
 }

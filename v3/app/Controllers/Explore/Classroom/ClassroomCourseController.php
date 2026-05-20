@@ -150,6 +150,25 @@ class ClassroomCourseController extends ExploreBaseController
         );
     }
 
+    #[Route('/{id}/content', 'GET', ['api'])]
+    public function getCourseContent(array $vars): void
+    {
+        $validated = $this->validate(
+            $vars,
+            ['id' => 'required|integer']
+        );
+
+        $content = $this->service->getCourseContent((int) $validated['id']);
+
+        $this->respond(
+            [
+                'status' => true,
+                'data'   => $content,
+            ],
+            HttpStatus::OK
+        );
+    }
+
     #[Route('/{id}/status', 'PATCH', ['api'])]
     public function updateStatus(array $vars): void
     {

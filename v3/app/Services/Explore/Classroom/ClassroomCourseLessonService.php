@@ -82,7 +82,6 @@ class ClassroomCourseLessonService
             $payload = [
                 'title'              => $data['title'],
                 'description'        => $data['description'] ?? null,
-                'goals'              => $data['goals'] ?? null,
                 'objectives'         => $data['objectives'] ?? null,
                 'video_url'          => $data['video_url'] ?? null,
                 'recorded_video_url' => $data['recorded_video_url'] ?? null,
@@ -177,7 +176,7 @@ class ClassroomCourseLessonService
 
     private function saveAssignment(int $lessonId, array $data): void
     {
-        $hasData = !empty($data['assignment_instructions']) || !empty($data['assignment_due_date']);
+        $hasData = !empty($data['instructions']) || !empty($data['due_date']);
 
         if (!$hasData) {
             return;
@@ -185,15 +184,15 @@ class ClassroomCourseLessonService
 
         $this->assignmentModel->insert([
             'lesson_id'       => $lessonId,
-            'instructions'    => $data['assignment_instructions'] ?? null,
-            'due_date'        => $data['assignment_due_date'] ?? null,
-            'submission_type' => $data['assignment_submission_type'] ?? 'file',
+            'instructions'    => $data['instructions'] ?? null,
+            'due_date'        => $data['due_date'] ?? null,
+            'submission_type' => $data['submission_type'] ?? null,
         ]);
     }
 
     private function updateAssignment(int $lessonId, array $data): void
     {
-        $hasData  = !empty($data['assignment_instructions']) || !empty($data['assignment_due_date']);
+        $hasData  = !empty($data['instructions']) || !empty($data['due_date']);
         $existing = $this->assignmentModel->where('lesson_id', $lessonId)->first();
 
         if (!$hasData) {
@@ -204,9 +203,9 @@ class ClassroomCourseLessonService
         }
 
         $payload = [
-            'instructions'    => $data['assignment_instructions'] ?? null,
-            'due_date'        => $data['assignment_due_date'] ?? null,
-            'submission_type' => $data['assignment_submission_type'] ?? 'file',
+            'instructions'    => $data['instructions'] ?? null,
+            'due_date'        => $data['due_date'] ?? null,
+            'submission_type' => $data['submission_type'] ?? null,
             'updated_at'      => date('Y-m-d H:i:s'),
         ];
 
