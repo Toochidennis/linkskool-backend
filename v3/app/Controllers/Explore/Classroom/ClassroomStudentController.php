@@ -46,6 +46,40 @@ class ClassroomStudentController extends ExploreBaseController
         );
     }
 
+    #[Route('/{institution_id}/students/{student_id}/status', 'PATCH', ['api'])]
+    public function updateStudentStatus(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'institution_id' => 'required|integer',
+                'student_id' => 'required|integer',
+                'status' => 'required|integer|in:0,1,2', // 0 = inactive, 1 = active, 2 = suspended
+            ],
+        );
+
+        $updated = $this->service->updateStudentStatus(
+            (int) $validated['institution_id'],
+            (int) $validated['student_id'],
+            (int) $validated['status'],
+        );
+
+        if (!$updated) {
+            $this->respondError(
+                'Student not found or no changes made.',
+                HttpStatus::NOT_FOUND
+            );
+        }
+
+        $this->respond(
+            [
+                'status'  => true,
+                'message' => 'Student status updated successfully.',
+            ],
+            HttpStatus::OK
+        );
+    }
+
     #[Route('/{institution_id}/students', 'POST', ['api'])]
     public function createStudents(array $vars): void
     {

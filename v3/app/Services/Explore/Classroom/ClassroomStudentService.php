@@ -81,6 +81,14 @@ class ClassroomStudentService
         ];
     }
 
+    public function updateStudentStatus(int $institutionId, int $studentId, int $status): bool
+    {
+        return $this->model
+            ->where('id', '=', $studentId)
+            ->where('institution_id', '=', $institutionId)
+            ->update(['status' => $status]);
+    }
+
     public function createStudents(array $data): int
     {
         $rows = [];
