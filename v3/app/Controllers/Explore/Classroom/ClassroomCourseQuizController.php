@@ -168,4 +168,26 @@ class ClassroomCourseQuizController extends ExploreBaseController
             HttpStatus::OK
         );
     }
+
+    #[Route('/{course_id}/quizzes/questions', 'GET', ['api'])]
+    public function getQuestions(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'course_id'        => 'required|integer',
+                'quiz_settings_id' => 'required|integer',
+            ]
+        );
+
+        $questions = $this->service->getQuestions((int) $validated['quiz_settings_id']);
+
+        $this->respond(
+            [
+                'status' => true,
+                'data'   => $questions,
+            ],
+            HttpStatus::OK
+        );
+    }
 }

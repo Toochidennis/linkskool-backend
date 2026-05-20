@@ -119,6 +119,19 @@ class ClassroomCourseQuizService
         return $query->first() ?: null;
     }
 
+    public function getQuestions(int $quizSettingsId): array
+    {
+        $rows = $this->model
+            ->where('quiz_settings_id', $quizSettingsId)
+            ->get();
+
+        return array_map(fn($row) => [
+            ...$row,
+            'options' => json_decode($row['options'], true),
+            'correct' => json_decode($row['correct'], true),
+        ], $rows);
+    }
+
     public function generateQuestions(array $data): array
     {
         $courseId = $data['course_id'];
