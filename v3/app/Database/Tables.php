@@ -162,5 +162,6 @@ class Tables
         'classroom_course_quiz_settings',
         'classroom_course_lesson_assignments',
         'classroom_course_lesson_files',
+        'classroom_sync_logs',
     ];
 }

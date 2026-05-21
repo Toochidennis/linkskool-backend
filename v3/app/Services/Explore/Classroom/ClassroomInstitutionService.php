@@ -40,6 +40,7 @@ class ClassroomInstitutionService
         $this->model->beginTransaction();
         try {
             $institutionId = $this->model->insert([
+                'id' => $data['id'],
                 'slug' => Uuid::v4(),
                 'name' => $data['name'],
                 'type' => $data['type'],

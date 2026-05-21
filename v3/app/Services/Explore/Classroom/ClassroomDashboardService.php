@@ -17,17 +17,17 @@ class ClassroomDashboardService
 
     public function __construct(\PDO $pdo)
     {
-        $this->courseModel      = new ClassroomCourse($pdo);
-        $this->studentModel     = new ClassroomStudent($pdo);
-        $this->staffModel       = new ClassroomStaff($pdo);
+        $this->courseModel = new ClassroomCourse($pdo);
+        $this->studentModel = new ClassroomStudent($pdo);
+        $this->staffModel = new ClassroomStaff($pdo);
         $this->quizSettingModel = new ClassroomCourseQuizSetting($pdo);
     }
 
     public function getDashboard(int $institutionId): array
     {
-        $totalCourses     = $this->courseModel->where('institution_id', $institutionId)->count();
-        $totalStudents    = $this->studentModel->where('institution_id', $institutionId)->count();
-        $totalStaff       = $this->staffModel->where('institution_id', $institutionId)->count();
+        $totalCourses = $this->courseModel->where('institution_id', $institutionId)->count();
+        $totalStudents = $this->studentModel->where('institution_id', $institutionId)->count();
+        $totalStaff = $this->staffModel->where('institution_id', $institutionId)->count();
         $totalAssessments = $this->quizSettingModel->where('institution_id', $institutionId)->count();
 
         $courses = $this->courseModel
@@ -36,13 +36,13 @@ class ClassroomDashboardService
             ->get();
 
         $courseList = array_map(fn(array $course) => [
-            'id'           => (int) $course['id'],
-            'name'         => $course['name'],
+            'id' => (int) $course['id'],
+            'name' => $course['name'],
             'description'  => $course['description'],
-            'image_url'    => AssetUrl::fromAppUrl($course['image_url'] ?? null),
+            'image_url' => AssetUrl::fromAppUrl($course['image_url'] ?? null),
             'pricing_type' => $course['pricing_type'],
-            'price'        => $course['price'],
-            'status'       => $course['status'],
+            'price' => $course['price'],
+            'status'  => $course['status'],
         ], $courses);
 
         return [

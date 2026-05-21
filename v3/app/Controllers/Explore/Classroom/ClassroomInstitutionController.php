@@ -25,6 +25,7 @@ class ClassroomInstitutionController extends ExploreBaseController
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
+                'id' => 'required|string',
                 'name' => 'required|string',
                 'type' => 'required|string',
                 'email' => 'required|email',
