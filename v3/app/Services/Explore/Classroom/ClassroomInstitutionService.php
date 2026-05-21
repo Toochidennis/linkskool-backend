@@ -61,7 +61,7 @@ class ClassroomInstitutionService
 
             $accessCodeResult = $this->accessCodeService->assignCode(
                 $data['access_code'],
-                $institutionId
+                $data['id']
             );
 
             $this->model->commit();
