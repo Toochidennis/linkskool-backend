@@ -52,7 +52,6 @@ class ClassroomInstitutionService
                 'email' => $data['email'] ?? null,
                 'address' => $data['address'] ?? null,
                 'join_code' => $this->generateJoinCode($data['name']),
-                'password_hash' => password_hash($data['password'], PASSWORD_BCRYPT),
             ]);
 
             if (!$institutionId) {
@@ -70,6 +69,17 @@ class ClassroomInstitutionService
             $this->model->rollBack();
             return false;
         }
+    }
+
+    public function savePassword(int $institutionId, string $newPassword): bool
+    {
+        $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT);
+        return $this->model
+            ->where('id', $institutionId)
+            ->update([
+                'password_hash' => $passwordHash,
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
     }
 
     public function getInstitutionByUserId(int $userId): array

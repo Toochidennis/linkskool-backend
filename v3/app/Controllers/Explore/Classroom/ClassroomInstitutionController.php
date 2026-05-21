@@ -34,7 +34,6 @@ class ClassroomInstitutionController extends ExploreBaseController
                 'website' => 'nullable|string',
                 'address' => 'nullable|string',
                 'user_id' => 'required|integer',
-                'password' => 'required|string|min:8',
             ],
         );
 
@@ -53,6 +52,35 @@ class ClassroomInstitutionController extends ExploreBaseController
                 'message' => 'Institution created successfully.',
             ],
             HttpStatus::CREATED
+        );
+    }
+
+    #[Route('/{institution_id}/password', 'POST', ['api'])]
+    public function savedPassword(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'institution_id' => 'required|integer',
+                'password' => 'required|string',
+            ],
+        );
+
+        $saved = $this->service->savePassword((int) $validated['institution_id'], $validated['password']);
+
+        if (!$saved) {
+            $this->respondError(
+                'Failed to save password.',
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'status'  => true,
+                'message' => 'Password saved successfully.',
+            ],
+            HttpStatus::OK
         );
     }
 
