@@ -77,6 +77,7 @@ class ClassroomSyncService
 
     public function push(array $payload): array
     {
+        $this->pdo->exec('SET FOREIGN_KEY_CHECKS=0');
         $this->pdo->beginTransaction();
 
         try {
@@ -204,6 +205,8 @@ class ClassroomSyncService
         } catch (\Exception $e) {
             $this->pdo->rollBack();
             throw $e;
+        } finally {
+            $this->pdo->exec('SET FOREIGN_KEY_CHECKS=1');
         }
     }
 
