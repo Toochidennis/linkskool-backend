@@ -61,12 +61,12 @@ class ClassroomInstitutionController extends ExploreBaseController
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'institution_id' => 'required|integer',
-                'password' => 'required|string',
+                'institution_id' => 'required|string|filled',
+                'password' => 'required|string|filled',
             ],
         );
 
-        $saved = $this->service->savePassword((int) $validated['institution_id'], $validated['password']);
+        $saved = $this->service->savePassword($validated['institution_id'], $validated['password']);
 
         if (!$saved) {
             $this->respondError(

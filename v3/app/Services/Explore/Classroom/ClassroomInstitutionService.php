@@ -71,7 +71,7 @@ class ClassroomInstitutionService
         }
     }
 
-    public function savePassword(int $institutionId, string $newPassword): bool
+    public function savePassword(string $institutionId, string $newPassword): bool
     {
         $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT);
         return $this->model
