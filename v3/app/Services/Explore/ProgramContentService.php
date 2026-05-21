@@ -2,24 +2,22 @@
 
 namespace V3\App\Services\Explore;
 
-use V3\App\Models\Explore\CohortLessonQuiz;
+use V3\App\Common\Utilities\AssetUrl;
 use V3\App\Models\Explore\Program;
 use V3\App\Models\Explore\ProgramCourseCohort;
 use V3\App\Models\Explore\ProgramCourseCohortLesson;
 
-class LearningPathService
+class ProgramContentService
 {
     private Program $programModel;
     private ProgramCourseCohort $programCourseCohortModel;
     private ProgramCourseCohortLesson $programCourseCohortLessonModel;
-    private CohortLessonQuiz $cohortLessonQuizModel;
 
     public function __construct(\PDO $pdo)
     {
         $this->programModel = new Program($pdo);
         $this->programCourseCohortModel = new ProgramCourseCohort($pdo);
         $this->programCourseCohortLessonModel = new ProgramCourseCohortLesson($pdo);
-        $this->cohortLessonQuizModel = new CohortLessonQuiz($pdo);
     }
 
     public function getProgramsWithCourses(
@@ -92,6 +90,168 @@ class LearningPathService
         return $this->groupProgramsWithCoursesWithAgeFilter($rows, $age);
     }
 
+    public function getProgramsWithCoursesContent(
+        ?string $birthDate = null,
+        ?int $profileId = null
+    ): array {
+        $age = $birthDate !== null
+            ? (int) date('Y') - (int) substr($birthDate, 0, 4)
+            : null;
+
+        $sql = "
+        SELECT
+            p.id            AS program_id,
+            p.name          AS program_name,
+            p.age_groups    AS program_age_groups,
+            p.slug AS program_slug,
+
+            lc.id           AS course_id,
+            lc.title        AS course_title,
+            lc.description  AS course_description,
+            lc.image_url    AS course_image_url,
+            lc.slug         AS course_slug,
+
+            c.id            AS active_cohort_id,
+            c.slug          AS cohort_slug,
+            c.is_free       AS is_free,
+            c.status          AS cohort_status,
+            c.start_date       AS cohort_start_date,
+            c.trial_type       AS trial_type,
+            c.trial_value      AS trial_value,
+            c.discount         AS discount,
+            c.cost             AS cost,
+
+            e.id            AS enrollment_id,
+            e.payment_status AS payment_status,
+            e.enrollment_type AS enrollment_type,
+            e.trial_expiry_date AS trial_expiry_date,
+            e.lessons_taken  AS lessons_taken
+
+        FROM programs p
+
+        INNER JOIN program_courses pc
+            ON pc.program_id = p.id
+            AND pc.is_active = 1
+
+        INNER JOIN learning_courses lc
+            ON lc.id = pc.course_id
+
+        LEFT JOIN program_course_cohorts c
+            ON c.program_id = p.id
+            AND c.course_id = lc.id
+            AND c.status IN ('ongoing', 'upcoming')
+
+        LEFT JOIN program_course_cohort_enrollments e
+            ON e.program_id = p.id
+            AND e.course_id = lc.id
+            AND e.cohort_id = c.id
+            AND e.profile_id = :profile_id
+
+        WHERE p.status = 'published'
+        ORDER BY p.id, lc.id
+    ";
+
+        $rows = $this->programModel->rawQuery($sql, [
+            'profile_id' => $profileId
+        ]);
+
+        return $this->groupProgramContentWithAgeFilter($rows, $age);
+    }
+
+    public function getProgramContentBySlug(int $profileId, string $programSlug): array
+    {
+        $sql = "
+        SELECT
+            p.id            AS program_id,
+            p.name          AS program_name,
+            p.age_groups    AS program_age_groups,
+            p.slug AS program_slug,
+
+            lc.id           AS course_id,
+            lc.title        AS course_title,
+            lc.description  AS course_description,
+            lc.image_url    AS course_image_url,
+            lc.slug         AS course_slug,
+
+            c.id            AS active_cohort_id,
+            c.slug          AS cohort_slug,
+            c.is_free       AS is_free,
+            c.status          AS cohort_status,
+            c.start_date       AS cohort_start_date,
+            c.trial_type       AS trial_type,
+            c.trial_value      AS trial_value,
+            c.discount         AS discount,
+            c.cost             AS cost,
+
+            e.id            AS enrollment_id,
+            e.payment_status AS payment_status,
+            e.enrollment_type AS enrollment_type,
+            e.trial_expiry_date AS trial_expiry_date,
+            e.lessons_taken  AS lessons_taken
+
+        FROM programs p
+
+        INNER JOIN program_courses pc
+            ON pc.program_id = p.id
+            AND pc.is_active = 1
+
+        INNER JOIN learning_courses lc
+            ON lc.id = pc.course_id
+
+        LEFT JOIN program_course_cohorts c
+            ON c.program_id = p.id
+            AND c.course_id = lc.id
+            AND c.status IN ('ongoing', 'upcoming')
+
+        LEFT JOIN program_course_cohort_enrollments e
+            ON e.program_id = p.id
+            AND e.course_id = lc.id
+            AND e.cohort_id = c.id
+            AND e.profile_id = :profile_id
+
+        WHERE p.status = 'published'
+            AND p.slug = :program_slug
+        ORDER BY lc.id
+    ";
+
+        $rows = $this->programModel->rawQuery($sql, [
+            'profile_id' => $profileId,
+            'program_slug' => $programSlug,
+        ]);
+
+        return $this->groupSingleProgramContent($rows);
+    }
+
+    private function groupSingleProgramContent(array $rows): array
+    {
+        $program = null;
+        $courseMap = [];
+
+        foreach ($rows as $row) {
+            if (!$row['course_id']) {
+                continue;
+            }
+
+            if ($program === null) {
+                $program = [
+                    'program_id' => (int) $row['program_id'],
+                    'name' => $row['program_name'],
+                    'slug' => $row['program_slug'],
+                    'courses' => [],
+                ];
+            }
+
+            if (isset($courseMap[$row['course_id']])) {
+                continue;
+            }
+
+            $courseMap[$row['course_id']] = true;
+            $program['courses'][] = $this->buildProgramCourseResponse($row);
+        }
+
+        return $program ?? [];
+    }
+
     private function groupProgramsWithCoursesWithAgeFilter(
         array $rows,
         ?int $age
@@ -110,7 +270,7 @@ class LearningPathService
                     'program_id' => $pid,
                     'name' => $row['program_name'],
                     'description' => $row['program_description'],
-                    'image_url' => $row['program_image_url'],
+                    'image_url' => AssetUrl::fromAppUrl($row['program_image_url']),
                     'slug' => $row['program_slug'],
                     'courses' => [],
                     '_course_map' => [],
@@ -135,7 +295,7 @@ class LearningPathService
                 'course_id' => (int) $row['course_id'],
                 'course_name' => $row['course_title'],
                 'description' => $row['course_description'],
-                'image_url' => $row['course_image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['course_image_url']),
 
                 'has_active_cohort' => $row['active_cohort_id'] !== null,
                 'cohort_id' => $row['active_cohort_id'],
@@ -208,6 +368,190 @@ class LearningPathService
         return array_values($programs);
     }
 
+    private function groupProgramContentWithAgeFilter(
+        array $rows,
+        ?int $age
+    ): array {
+        $programs = [];
+        $enrolledCourses = [];
+        $enrolledCourseMap = [];
+
+        foreach ($rows as $row) {
+            if (!$row['course_id']) {
+                continue;
+            }
+
+            $pid = (int) $row['program_id'];
+
+            if (!isset($programs[$pid])) {
+                $programs[$pid] = [
+                    'program_id' => $pid,
+                    'name' => $row['program_name'],
+                    'slug' => $row['program_slug'],
+                    'courses' => [],
+                    '_course_map' => [],
+                    '_has_enrollment' => false,
+                    '_age_groups' => json_decode($row['program_age_groups'] ?? '[]', true) ?? []
+                ];
+            }
+
+            $course = $this->buildProgramCourseResponse($row);
+
+            // Track enrollment per program
+            if ($row['enrollment_id'] !== null) {
+                $programs[$pid]['_has_enrollment'] = true;
+
+                $enrolledCourseKey = $row['active_cohort_id'] ?? $row['course_id'];
+                if (!isset($enrolledCourseMap[$enrolledCourseKey])) {
+                    $enrolledCourseMap[$enrolledCourseKey] = true;
+                    $enrolledCourses[] = $course;
+                }
+            }
+
+            // Deduplicate courses
+            if (isset($programs[$pid]['_course_map'][$row['course_id']])) {
+                continue;
+            }
+
+            $programs[$pid]['_course_map'][$row['course_id']] = true;
+            $programs[$pid]['courses'][] = $course;
+        }
+
+        // Apply age filter AFTER aggregation
+        $programs = array_filter($programs, function ($program) use ($age) {
+            if ($age === null) {
+                return true;
+            }
+
+            if ($program['_has_enrollment']) {
+                return true;
+            }
+
+            return $this->matchesAgeGroup($program['_age_groups'], $age);
+        });
+
+        // Cleanup internal fields
+        foreach ($programs as &$program) {
+            unset(
+                $program['_course_map'],
+                $program['_has_enrollment'],
+                $program['_age_groups']
+            );
+        }
+
+        return [
+            'programs' => array_values($programs),
+            'enrolled_courses' => [
+                'courses' => $enrolledCourses,
+            ],
+        ];
+    }
+
+    private function buildProgramCourseResponse(array $row): array
+    {
+        $hasActiveCohort = $row['active_cohort_id'] !== null;
+        $access = $this->resolveCourseAccess($row);
+
+        return [
+            'course_id' => (int) $row['course_id'],
+            'course_name' => $row['course_title'],
+            'description' => $row['course_description'],
+            'image_url' => AssetUrl::fromAppUrl($row['course_image_url']),
+            'slug' => $hasActiveCohort ? $row['cohort_slug'] : null,
+            'cohort_id' => $hasActiveCohort ? (int) $row['active_cohort_id'] : null,
+            'is_free' => (bool) ($row['is_free'] ?? false),
+            'discount' => $hasActiveCohort && isset($row['discount']) ? (int) $row['discount'] : null,
+            'amount' => $hasActiveCohort && isset($row['cost']) ? (float) $row['cost'] : null,
+            'nextAction' => $access['nextAction'],
+        ];
+    }
+
+    private function resolveCourseAccess(array $row): array
+    {
+        $hasEnrollment = $row['enrollment_id'] !== null;
+        $trialExpiresAt = $row['trial_expiry_date'] ?? null;
+        $isUpcoming = $this->isCohortWaiting($row);
+        $isReserved = ($row['enrollment_type'] ?? null) === 'reserved'
+            || ($row['payment_status'] ?? null) === 'reserved';
+        $isPaidAccess = \in_array($row['enrollment_type'] ?? null, ['paid', 'free'], true)
+            || ($row['payment_status'] ?? null) === 'success';
+        $isTrialAccess = $this->hasActiveTrialAccess($row);
+
+        if (!$hasEnrollment) {
+            return $this->courseAccess('description', null, null);
+        }
+
+        if ($isReserved || (($row['enrollment_type'] ?? null) === 'trial' && !$isTrialAccess)) {
+            return $this->courseAccess('payment', $trialExpiresAt, null);
+        }
+
+        if ($isUpcoming && ($isPaidAccess || $isTrialAccess)) {
+            return $this->courseAccess('waiting', $trialExpiresAt, $row['cohort_start_date'] ?? null);
+        }
+
+        if ($isPaidAccess || $isTrialAccess) {
+            return $this->courseAccess('content', $trialExpiresAt, null);
+        }
+
+        return $this->courseAccess('payment', $trialExpiresAt, null);
+    }
+
+    private function isCohortWaiting(array $row): bool
+    {
+        if (($row['cohort_status'] ?? null) === 'upcoming') {
+            return true;
+        }
+
+        $startDate = $row['cohort_start_date'] ?? null;
+        if ($startDate === null || trim((string) $startDate) === '') {
+            return false;
+        }
+
+        $startTimestamp = strtotime((string) $startDate);
+
+        return $startTimestamp !== false && $startTimestamp > time();
+    }
+
+    private function hasActiveTrialAccess(array $row): bool
+    {
+        if (($row['enrollment_type'] ?? null) !== 'trial') {
+            return false;
+        }
+
+        $trialType = $row['trial_type'] ?? null;
+        $trialValue = (int) ($row['trial_value'] ?? 0);
+
+        if ($trialType === 'days') {
+            return $trialValue > 0 && !$this->isTrialExpired($row['trial_expiry_date'] ?? null);
+        }
+
+        if ($trialType === 'views') {
+            return $trialValue > 0 && (int) ($row['lessons_taken'] ?? 0) < $trialValue;
+        }
+
+        return false;
+    }
+
+    private function courseAccess(string $nextAction, ?string $trialExpiresAt, ?string $lockedUntil): array
+    {
+        return [
+            'nextAction' => $nextAction,
+            'trialExpiresAt' => $trialExpiresAt,
+            'lockedUntil' => $lockedUntil,
+        ];
+    }
+
+    private function isTrialExpired(?string $trialExpiresAt): bool
+    {
+        if ($trialExpiresAt === null || trim($trialExpiresAt) === '') {
+            return false;
+        }
+
+        $expiryTimestamp = strtotime($trialExpiresAt);
+
+        return $expiryTimestamp !== false && $expiryTimestamp < time();
+    }
+
     private function matchesAgeGroup(array $ageGroups, int $age): bool
     {
         foreach ($ageGroups as $group) {
@@ -222,27 +566,136 @@ class LearningPathService
         return false;
     }
 
-    public function getActiveCohortByCourse(int $cohortId): array
+    public function getActiveCohortByCourse(int|string $cohortIdentifier, ?int $profileId = null): array
     {
+        $cohortIdentifier = trim((string) $cohortIdentifier);
+        $isCohortId = ctype_digit($cohortIdentifier);
+        $whereClause = $isCohortId ? 'c.id = :cohort_id' : 'c.slug = :slug';
+
         $query = "
             SELECT
-                p.*,
-                lc.title AS course_title
-            FROM program_course_cohorts p
+                p.id AS program_id,
+                p.slug AS program_slug,
+                p.name AS program_name,
+                p.description AS program_description,
+                p.image_url AS program_image_url,
+                p.sponsor AS program_sponsor,
+                p.start_date AS program_start_date,
+                p.video_url AS program_video_url,
+                p.onboarding_steps AS program_onboarding_steps,
+                p.whatsapp_group_link AS program_whatsapp_group_link,
+                lc.id AS course_id,
+                lc.slug AS course_slug,
+                lc.title AS course_name,
+                lc.description AS course_description,
+                lc.image_url AS course_image_url,
+                c.id AS cohort_id,
+                c.slug AS cohort_slug,
+                c.title AS cohort_title,
+                c.description AS cohort_description,
+                c.benefits AS cohort_benefits,
+                c.start_date,
+                c.end_date,
+                c.instructor_name,
+                c.discount,
+                c.cost,
+                c.trial_type,
+                c.trial_value,
+                c.delivery_mode,
+                c.video_url,
+                c.image_url AS cohort_image_url,
+                c.is_free,
+                c.enrollment_deadline,
+                c.learning_type,
+                c.whatsapp_group_link AS cohort_whatsapp_group_link,
+                CASE
+                    WHEN :profile_id_check IS NOT NULL AND EXISTS (
+                        SELECT 1
+                        FROM program_course_cohort_enrollments e
+                        WHERE e.profile_id = :profile_id_match
+                            AND e.cohort_id = c.id
+                    ) THEN 1
+                    ELSE 0
+                END AS has_enrolled
+            FROM program_course_cohorts c
+            INNER JOIN programs p
+                ON p.id = c.program_id
+            INNER JOIN program_courses pc
+                ON pc.program_id = p.id
+                AND pc.course_id = c.course_id
+                AND pc.is_active = 1
             INNER JOIN learning_courses lc
-                ON lc.id = p.course_id
-            WHERE p.id = :cohort_id
-            ORDER BY p.start_date ASC
+                ON lc.id = c.course_id
+            WHERE {$whereClause}
+                AND p.status = :status
+                AND c.status IN ('ongoing', 'upcoming')
             LIMIT 1
         ";
 
-        $rows = $this->programCourseCohortModel->rawQuery($query, [
-            'cohort_id' => $cohortId
-        ]);
+        $params = [
+            'status' => 'published',
+            'profile_id_check' => $profileId,
+            'profile_id_match' => $profileId,
+        ];
+        if ($isCohortId) {
+            $params['cohort_id'] = (int) $cohortIdentifier;
+        } else {
+            $params['slug'] = $cohortIdentifier;
+        }
 
-        $rows[0]['course_name'] = $rows[0]['course_title'];
+        $rows = $this->programCourseCohortModel->rawQuery($query, $params);
 
-        return $rows[0] ?? [];
+        if (empty($rows)) {
+            return [];
+        }
+
+        $row = $rows[0];
+
+        return [
+            'program' => [
+                'id' => (int) $row['program_id'],
+                'slug' => $row['program_slug'],
+                'name' => $row['program_name'],
+                'description' => $row['program_description'],
+                'image_url' => AssetUrl::fromAppUrl($row['program_image_url']),
+                'sponsor' => $row['program_sponsor'],
+                'start_date' => $row['program_start_date'] ?? null,
+                'video_url' => $row['program_video_url'] ?? null,
+                'onboarding_steps' => isset($row['program_onboarding_steps']) ?
+                    json_decode($row['program_onboarding_steps'], true)
+                    : null,
+                'whatsapp_group_link' => $row['program_whatsapp_group_link'] ?? null,
+            ],
+            'course' => [
+                'courseId' => (int) $row['course_id'],
+                'slug' => $row['course_slug'],
+                'courseName' => $row['course_name'],
+                'description' => $row['course_description'],
+                'image_url' => AssetUrl::fromAppUrl($row['course_image_url']),
+            ],
+            'cohort' => [
+                'cohortId' => (int) $row['cohort_id'],
+                'slug' => $row['cohort_slug'],
+                'title' => $row['cohort_title'],
+                'description' => $row['cohort_description'],
+                'benefits' => $row['cohort_benefits'],
+                'start_date' => $row['start_date'],
+                'end_date' => $row['end_date'],
+                'instructor_name' => $row['instructor_name'],
+                'discount' => $row['discount'] !== null ? (int) $row['discount'] : null,
+                'cost' => $row['cost'] !== null ? (float) $row['cost'] : null,
+                'trial_type' => $row['trial_type'],
+                'trial_value' => $row['trial_value'] !== null ? (int) $row['trial_value'] : null,
+                'delivery_mode' => $row['delivery_mode'],
+                'video_url' => $row['video_url'],
+                'is_free' => (bool) $row['is_free'],
+                'image_url' => AssetUrl::fromAppUrl($row['cohort_image_url']),
+                'enrollment_deadline' => $row['enrollment_deadline'],
+                'learning_type' => $row['learning_type'],
+                'whatsapp_group_link' => $row['cohort_whatsapp_group_link'] ?? null,
+                'hasEnrolled' => (bool) $row['has_enrolled'],
+            ],
+        ];
     }
 
     public function getLessonsByCohort(int $cohortId): array
@@ -315,7 +768,7 @@ class LearningPathService
                     'course_name' => html_entity_decode($row['course_name'], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                     'description' => $row['course_description'],
                     'course_id' => (int) $row['course_id'],
-                    'image' => $row['image_url'],
+                    'image' => AssetUrl::fromAppUrl($row['image_url']),
                     'is_enrolled' => (bool) $row['is_enrolled'],
                 ] : null,
         ];
@@ -514,436 +967,6 @@ class LearningPathService
     }
 
 
-    public function getLessonQuiz(int $lessonId): array
-    {
-        $rows = $this->cohortLessonQuizModel
-            ->select([
-                'question_id',
-                'title AS question',
-                'type AS question_type',
-                'answer',
-                'correct'
-            ])
-            ->where('lesson_id', $lessonId)
-            ->get();
-
-        return array_map(fn($q) => [
-            'id' => $q['question_id'],
-            'question' => $q['question'],
-            'type' => $q['question_type'],
-            'options' => json_decode($q['answer'], true),
-            'correct' => json_decode($q['correct'], true)
-        ], $rows);
-    }
-
-    public function getUserLearningStats(int $profileId): array
-    {
-        $sql = "
-            SELECT
-                COUNT(DISTINCT e.cohort_id) AS total_courses_enrolled,
-                COUNT(DISTINCT CASE 
-                    WHEN e.status = 'completed' THEN e.cohort_id 
-                END) AS total_courses_completed,
-
-                COUNT(DISTINCT l.id) AS total_lessons,
-                COUNT(DISTINCT CASE 
-                    WHEN p.is_completed = 1 THEN l.id 
-                END) AS lessons_completed,
-
-                AVG(s.quiz_score) AS avg_quiz_score,
-                COUNT(DISTINCT s.id) AS assignments_submitted
-
-            FROM program_course_cohort_enrollments e
-
-            INNER JOIN program_course_cohorts c
-                ON c.id = e.cohort_id
-                AND c.status = 'ongoing'
-
-            INNER JOIN program_course_cohort_lessons l
-                ON l.cohort_id = c.id
-                AND l.status = 'published'
-
-            LEFT JOIN cohort_lesson_progress p
-                ON p.lesson_id = l.id
-                AND p.profile_id = e.profile_id
-
-            LEFT JOIN cohort_tasks_submissions s
-                ON s.lesson_id = l.id
-                AND s.profile_id = e.profile_id
-
-            WHERE e.profile_id = :profile_id
-        ";
-
-        $row = $this->programModel->rawQuery($sql, [
-            'profile_id' => $profileId
-        ])[0] ?? [];
-
-        return [
-            'total_courses_enrolled'  => (int) ($row['total_courses_enrolled'] ?? 0),
-            'total_courses_completed' => (int) ($row['total_courses_completed'] ?? 0),
-
-            'total_lessons'     => (int) ($row['total_lessons'] ?? 0),
-            'lessons_completed' => (int) ($row['lessons_completed'] ?? 0),
-
-            'overall_quiz_score' => $row['avg_quiz_score'] !== null
-                ? round((float) $row['avg_quiz_score'], 2)
-                : 0.0,
-
-            'assignments_submitted' => (int) ($row['assignments_submitted'] ?? 0),
-
-            'programs' => $this->getProgramsWithCourses(null, $profileId)
-        ];
-    }
-
-    public function getLessonPerformanceByProfile(int $profileId, int $cohortId): array
-    {
-        $rows = $this->fetchLessonPerformanceRowsByProfile($profileId, $cohortId);
-
-        return $this->buildLessonPerformanceSummary($rows);
-    }
-
-    public function getLeaderboardByCohort(int $profileId, int $cohortId): array
-    {
-        $rows = $this->fetchLessonPerformanceRowsByCohort($cohortId);
-        $profiles = [];
-
-        foreach ($rows as $row) {
-            $rowProfileId = (int) ($row['profile_id'] ?? 0);
-            if ($rowProfileId <= 0) {
-                continue;
-            }
-
-            if (!isset($profiles[$rowProfileId])) {
-                $firstName = trim((string) ($row['first_name'] ?? ''));
-                $lastName = trim((string) ($row['last_name'] ?? ''));
-                $fullName = trim($firstName . ' ' . $lastName);
-
-                $profiles[$rowProfileId] = [
-                    'profile_id' => $rowProfileId,
-                    'name' => $fullName !== '' ? $fullName : ('Profile ' . $rowProfileId),
-                    'rows' => [],
-                ];
-            }
-
-            $profiles[$rowProfileId]['rows'][] = $row;
-        }
-
-        $leaderboard = [];
-
-        foreach ($profiles as $entry) {
-            $summary = $this->buildLessonPerformanceSummary($entry['rows']);
-            $leaderboard[] = [
-                'profile_id' => $entry['profile_id'],
-                'name' => $entry['name'],
-                'score' => (float) ($summary['overall_score_percentage'] ?? 0.0),
-            ];
-        }
-
-        usort($leaderboard, function (array $left, array $right): int {
-            $scoreComparison = $right['score'] <=> $left['score'];
-
-            if ($scoreComparison !== 0) {
-                return $scoreComparison;
-            }
-
-            return strcasecmp($left['name'], $right['name']);
-        });
-
-        $topUsers = [];
-        $currentProfilePosition = null;
-
-        foreach ($leaderboard as $index => $entry) {
-            $position = $index + 1;
-
-            if ($entry['profile_id'] === $profileId) {
-                $currentProfilePosition = $position;
-            }
-
-            if ($index < 20) {
-                $topUsers[] = [
-                    'position' => $position,
-                    'name' => $entry['name'],
-                ];
-            }
-        }
-
-        return [
-            'leaderboard' => $topUsers,
-            'profile_position' => $currentProfilePosition,
-        ];
-    }
-
-    private function fetchLessonPerformanceRowsByProfile(int $profileId, int $cohortId): array
-    {
-        $sql = "
-            SELECT DISTINCT
-                l.id AS lesson_id,
-                l.title AS lesson_title,
-                l.display_order,
-                l.cohort_id,
-                l.assignment_url,
-                l.assignment_instructions,
-                l.assignment_due_date,
-                l.zoom_info,
-                c.zoom_link,
-                s.quiz_score,
-                s.assigned_score,
-                s.submission_type,
-                s.text_content,
-                s.link_url,
-                s.files,
-                CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM cohort_lesson_quizzes q
-                        WHERE q.lesson_id = l.id
-                    ) THEN 1
-                    ELSE 0
-                END AS has_quiz,
-                CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM cohort_lesson_attendance a
-                        WHERE a.lesson_id = l.id
-                          AND a.profile_id = :attendance_profile_id
-                    ) THEN 1
-                    ELSE 0
-                END AS has_attendance
-            FROM program_course_cohort_enrollments e
-            INNER JOIN program_course_cohort_lessons l
-                ON l.cohort_id = e.cohort_id
-               AND l.status = 'published'
-            LEFT JOIN program_course_cohorts c
-                ON c.id = l.cohort_id
-            LEFT JOIN cohort_tasks_submissions s
-                ON s.id = (
-                    SELECT s2.id
-                    FROM cohort_tasks_submissions s2
-                    WHERE s2.lesson_id = l.id
-                      AND s2.profile_id = :submission_profile_id
-                    ORDER BY s2.id DESC
-                    LIMIT 1
-                )
-            WHERE e.profile_id = :profile_id
-              AND e.cohort_id = :cohort_id
-            ORDER BY l.display_order ASC, l.id ASC
-        ";
-
-        return $this->programCourseCohortLessonModel->rawQuery($sql, [
-            'profile_id' => $profileId,
-            'cohort_id' => $cohortId,
-            'submission_profile_id' => $profileId,
-            'attendance_profile_id' => $profileId,
-        ]);
-    }
-
-    private function fetchLessonPerformanceRowsByCohort(int $cohortId): array
-    {
-        $sql = "
-            SELECT DISTINCT
-                e.profile_id,
-                p.first_name,
-                p.last_name,
-                l.id AS lesson_id,
-                l.title AS lesson_title,
-                l.display_order,
-                l.cohort_id,
-                l.assignment_url,
-                l.assignment_instructions,
-                l.assignment_due_date,
-                l.zoom_info,
-                c.zoom_link,
-                s.quiz_score,
-                s.assigned_score,
-                s.submission_type,
-                s.text_content,
-                s.link_url,
-                s.files,
-                CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM cohort_lesson_quizzes q
-                        WHERE q.lesson_id = l.id
-                    ) THEN 1
-                    ELSE 0
-                END AS has_quiz,
-                CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM cohort_lesson_attendance a
-                        WHERE a.lesson_id = l.id
-                          AND a.profile_id = e.profile_id
-                    ) THEN 1
-                    ELSE 0
-                END AS has_attendance
-            FROM program_course_cohort_enrollments e
-            INNER JOIN program_profiles p
-                ON p.id = e.profile_id
-            INNER JOIN program_course_cohort_lessons l
-                ON l.cohort_id = e.cohort_id
-               AND l.status = 'published'
-            LEFT JOIN program_course_cohorts c
-                ON c.id = l.cohort_id
-            LEFT JOIN cohort_tasks_submissions s
-                ON s.id = (
-                    SELECT s2.id
-                    FROM cohort_tasks_submissions s2
-                    WHERE s2.lesson_id = l.id
-                      AND s2.profile_id = e.profile_id
-                    ORDER BY s2.id DESC
-                    LIMIT 1
-                )
-            WHERE e.cohort_id = :cohort_id
-            ORDER BY e.profile_id ASC, l.display_order ASC, l.id ASC
-        ";
-
-        return $this->programCourseCohortLessonModel->rawQuery($sql, [
-            'cohort_id' => $cohortId,
-        ]);
-    }
-
-    private function buildLessonPerformanceSummary(array $rows): array
-    {
-        $attendanceSupposed = 0;
-        $attendanceTaken = 0;
-        $assignmentsSupposed = 0;
-        $assignmentsDone = 0;
-        $quizzesSupposed = 0;
-        $quizzesTaken = 0;
-        $scoreSum = 0.0;
-        $scoreCount = 0;
-        $lessons = [];
-
-        foreach ($rows as $row) {
-            $hasAttendance = (bool) ($row['has_attendance'] ?? false);
-            $hasQuiz = (bool) ($row['has_quiz'] ?? false);
-            $quizScore = $row['quiz_score'] !== null ? (float) $row['quiz_score'] : null;
-            $assignmentScore = $row['assigned_score'] !== null ? (float) $row['assigned_score'] : null;
-
-            $attendanceExpected = $this->isAttendanceExpected($row);
-            $assignmentExpected = $this->isAssignmentExpected($row);
-            $assignmentDone = $this->isAssignmentDone($row);
-            $quizTaken = $quizScore !== null;
-
-            if ($attendanceExpected) {
-                $attendanceSupposed++;
-                if ($hasAttendance) {
-                    $attendanceTaken++;
-                }
-            }
-
-            if ($assignmentExpected) {
-                $assignmentsSupposed++;
-            }
-
-            if ($assignmentDone) {
-                $assignmentsDone++;
-            }
-
-            if ($hasQuiz) {
-                $quizzesSupposed++;
-            }
-
-            if ($quizTaken) {
-                $quizzesTaken++;
-            }
-
-            if ($hasQuiz) {
-                $scoreSum += $quizScore ?? 0.0;
-                $scoreCount++;
-            }
-
-            if ($assignmentExpected) {
-                $scoreSum += $assignmentScore ?? 0.0;
-                $scoreCount++;
-            }
-
-            $lessons[] = [
-                'lesson_id' => (int) $row['lesson_id'],
-                'title' => $row['lesson_title'],
-                'display_order' => (int) $row['display_order'],
-                'attendance_taken' => $hasAttendance,
-                'quiz_score' => $quizScore,
-                'assignment_score' => $assignmentScore,
-            ];
-        }
-
-        return [
-            'overall_score_percentage' => $scoreCount > 0
-                ? round($scoreSum / $scoreCount, 2)
-                : 0.0,
-            'attendance' => [
-                'taken' => $attendanceTaken,
-                'supposed' => $attendanceSupposed,
-            ],
-            'assignments' => [
-                'taken' => $assignmentsDone,
-                'supposed' => $assignmentsSupposed,
-            ],
-            'quizzes' => [
-                'taken' => $quizzesTaken,
-                'supposed' => $quizzesSupposed,
-            ],
-            'lessons' => $lessons,
-        ];
-    }
-
-    private function isAttendanceExpected(array $row): bool
-    {
-        if ($this->hasNonEmptyValue($row['zoom_link'] ?? null)) {
-            return true;
-        }
-
-        if (!$this->hasNonEmptyValue($row['zoom_info'] ?? null)) {
-            return false;
-        }
-
-        $zoomInfo = json_decode((string) $row['zoom_info'], true);
-        if (\is_array($zoomInfo)) {
-            if ($this->hasNonEmptyValue($zoomInfo['url'] ?? null)) {
-                return true;
-            }
-
-            return !empty($zoomInfo);
-        }
-
-        return false;
-    }
-
-    private function isAssignmentExpected(array $row): bool
-    {
-        return $this->hasNonEmptyValue($row['assignment_url'] ?? null)
-            || $this->hasNonEmptyValue($row['assignment_instructions'] ?? null)
-            || $this->hasNonEmptyValue($row['assignment_due_date'] ?? null);
-    }
-
-    private function isAssignmentDone(array $row): bool
-    {
-        if ($this->hasNonEmptyValue($row['submission_type'] ?? null)) {
-            return true;
-        }
-
-        if ($this->hasNonEmptyValue($row['text_content'] ?? null)) {
-            return true;
-        }
-
-        if ($this->hasNonEmptyValue($row['link_url'] ?? null)) {
-            return true;
-        }
-
-        if (!$this->hasNonEmptyValue($row['files'] ?? null)) {
-            return false;
-        }
-
-        $files = json_decode((string) $row['files'], true);
-        return \is_array($files) && !empty($files);
-    }
-
-    private function hasNonEmptyValue(mixed $value): bool
-    {
-        return $value !== null && trim((string) $value) !== '';
-    }
-
     public function getUpcomingCohorts(string $slug, int $profileId): array
     {
         $sql = "
@@ -1022,7 +1045,7 @@ class LearningPathService
                 'slug' => $row['course_slug'],
                 'courseName' => $row['course_name'],
                 'description' => $row['course_description'],
-                'image_url' => $row['course_image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['course_image_url']),
             ],
             'cohort' => [
                 'cohortId' => (int) $row['cohort_id'],
@@ -1034,7 +1057,7 @@ class LearningPathService
                 'instructor_name' => $row['instructor_name'],
                 'delivery_mode' => $row['delivery_mode'],
                 'video_url' => $row['video_url'],
-                'image_url' => $row['cohort_image_url'],
+                'image_url' => AssetUrl::fromAppUrl($row['cohort_image_url']),
                 'learning_type' => $row['learning_type'],
                 'whatsapp_group_link' => $row['cohort_whatsapp_group_link'] ?? null,
                 'is_enrolled' => (bool) $row['is_enrolled'],

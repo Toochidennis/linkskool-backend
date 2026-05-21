@@ -557,6 +557,7 @@ class LicenseService
                 'free_trial_days' => $p['free_trial_days'],
                 'currency' => 'NGN',
                 'features' => $p['features'] ? json_decode($p['features'], true) : [],
+                'product_id' => $p['product_id']
             ];
         }
         return $formatted;

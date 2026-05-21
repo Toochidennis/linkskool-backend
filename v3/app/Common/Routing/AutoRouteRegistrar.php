@@ -114,11 +114,40 @@ class AutoRouteRegistrar
             mkdir($dir, 0777, true);
         }
         file_put_contents($cacheFile, $content);
+    }
 
+    public function generateDocs(): void
+    {
+        $storageDir = __DIR__ . '/../../../public/storage/';
         $swaggerPath = __DIR__ . '/../../../public/docs/swagger.json';
-        //$routes = include $cacheFile;
 
-        SwaggerGenerator::generate($routes, $swaggerPath);
+        $cacheFiles = glob("{$storageDir}routes.*.cache.php") ?: [];
+        if (empty($cacheFiles)) {
+            return;
+        }
+
+        // Skip if swagger is up to date (newer than all cache files)
+        if (file_exists($swaggerPath)) {
+            $swaggerMtime = filemtime($swaggerPath);
+            $needsRegen = false;
+            foreach ($cacheFiles as $file) {
+                if (filemtime($file) > $swaggerMtime) {
+                    $needsRegen = true;
+                    break;
+                }
+            }
+            if (!$needsRegen) {
+                return;
+            }
+        }
+
+        $allRoutes = [];
+        foreach ($cacheFiles as $file) {
+            $cached = include $file;
+            $allRoutes = array_merge($allRoutes, $cached);
+        }
+
+        SwaggerGenerator::generate($allRoutes, $swaggerPath);
     }
 
     public function clearCache(?string $prefix = null): void

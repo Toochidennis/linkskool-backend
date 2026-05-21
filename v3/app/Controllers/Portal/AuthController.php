@@ -86,8 +86,23 @@ class AuthController
         ResponseHandler::sendJsonResponse($this->response);
     }
 
-    public function logout()
+    #[Route(path: '/auth/refresh', method: 'POST', middleware: ['api'])]
+    public function handleRefreshRequest()
     {
-        echo "Hi";
+        $post = DataExtractor::extractPostData();
+        $data = $this->validate(
+            $post,
+            [
+                'refresh_token' => 'required|string|filled'
+            ]
+        );
+
+        $newToken = AuthService::refresh($data['refresh_token']);
+
+        ResponseHandler::sendJsonResponse([
+            'success' => true,
+            'message' => 'Token refreshed.',
+            'data' => $newToken
+        ]);
     }
 }

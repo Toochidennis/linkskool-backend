@@ -26,50 +26,97 @@ class IncomeService
     {
         $classes = $this->getClasses();
         $levels = $this->getLevels();
+        $groupBy = $filters['group_by'] ?? null;
 
-        $query =  $this->transaction
-            ->select([
-                'tid AS id',
-                'ref AS reference',
-                'cref AS reg_no',
-                'memo as description',
-                'name',
-                'amount',
-                'date',
-                'year',
-                'term',
-                'level AS level_id',
-                'class AS class_id',
-                'status',
-            ])
+        if ($groupBy) {
+            $rows = $this->buildFilteredQuery($filters)->get();
+            $rows = $this->normalizeTransactionNames($rows);
+
+            return [
+                'summary' => [
+                    'total_amount' => array_sum(array_column($rows, 'amount')),
+                    'total_transactions' => \count($rows),
+                    'unique_students' => \count(array_unique(array_column($rows, 'reg_no'))),
+                    'average_amount' => \count($rows) > 0
+                        ? round(array_sum(array_column($rows, 'amount')) / \count($rows), 2)
+                        : 0,
+                ],
+                'chart_data' => $this->buildChartData($rows, $groupBy, $classes, $levels),
+                'transactions' => $this->applyGrouping($rows, $groupBy, $classes, $levels),
+                'meta' => null,
+            ];
+        }
+
+        $page = max(1, (int) ($filters['page'] ?? 1));
+        $limit = max(1, min(100, (int) ($filters['limit'] ?? 20)));
+
+        $aggregate = $this->buildFilteredQuery($filters, [
+            'SUM(amount_paid) AS total_amount',
+            'COUNT(*) AS total_transactions',
+            'COUNT(DISTINCT cref) AS unique_students',
+            'AVG(amount_paid) AS average_amount',
+        ])->first();
+
+        $result = $this->buildFilteredQuery($filters)
+            ->orderBy(['date' => 'DESC'])
+            ->paginate($page, $limit);
+
+        $chartRows = $this->buildFilteredQuery($filters, ['date', 'amount_paid AS amount'])
+            ->orderBy(['date' => 'ASC'])
+            ->get();
+
+        $transactions = array_map(function ($row) use ($classes, $levels) {
+            $row['class_name'] = $classes[$row['class_id']] ?? null;
+            $row['level_name'] = $levels[$row['level_id']] ?? null;
+            $row['name'] = $this->normalizeName($row['name'] ?? null);
+            $row['items_paid'] = json_decode($row['description'], true) ?? [];
+            unset($row['description']);
+            return $row;
+        }, $result['data']);
+
+        return [
+            'summary' => [
+                'total_amount' => $aggregate['total_amount'] ?? 0,
+                'total_transactions' => (int) ($aggregate['total_transactions'] ?? 0),
+                'unique_students' => (int) ($aggregate['unique_students'] ?? 0),
+                'average_amount' => round((float) ($aggregate['average_amount'] ?? 0), 2),
+            ],
+            'chart_data' => $this->buildChartData($chartRows, null, $classes, $levels),
+            'transactions' => $transactions,
+            'meta' => $result['meta'],
+        ];
+    }
+
+    private function buildFilteredQuery(array $filters, ?array $select = null): Transaction
+    {
+        $defaultSelect = [
+            'tid AS id',
+            'it_id',
+            'ref AS reference',
+            'cref AS reg_no',
+            'memo',
+            'description',
+            'name',
+            'amount',
+            'date',
+            'year',
+            'term',
+            'level AS level_id',
+            'class AS class_id',
+            'status',
+        ];
+
+        $query = $this->transaction
+            ->select($select ?? $defaultSelect)
             ->where('status', '=', 1)
-            ->where('trans_type', '=', 'receipts');
+            ->where('trans_type', '=', 'receipt');
 
         $query = $this->applyDateFilters($query, $filters);
         $query = $this->applyOtherFilters($query, $filters);
 
-        $rows = $query->get();
-        $groupBy = $filters['group_by'] ?? null;
-
-        $transactions = $groupBy ?
-            $this->applyGrouping($rows, $groupBy, $classes, $levels)
-            :
-            array_map(function ($row) use ($classes, $levels) {
-                $row['class_name'] = $classes[$row['class_id']] ?? null;
-                $row['level_name'] = $levels[$row['level_id']] ?? null;
-                return $row;
-            }, $rows);
-
-        return [
-            'summary' => [
-                'total_amount' => array_sum(array_column($rows, 'amount')),
-                'total_transactions' => count($rows),
-                'unique_students' => count(array_unique(array_column($rows, 'reg_no'))),
-            ],
-            'chart_data' => $this->buildChartData($rows, $groupBy, $classes, $levels),
-            'transactions' => $transactions,
-        ];
+        return $query;
     }
+
     private function getLevels(): array
     {
         $levels = $this->level
@@ -111,7 +158,6 @@ class IncomeService
         $customType = $filters['custom_type'] ?? null;
         $settings = $this->getSchoolSettings();
 
-        // Quick reports
         if ($reportType === 'termly') {
             $query->where('term', '=', $settings['term']);
         } elseif ($reportType === 'session') {
@@ -173,22 +219,18 @@ class IncomeService
     {
         $appliedFilters = $filters['filters'] ?? [];
 
-        // Terms
         if (!empty($appliedFilters['terms'])) {
             $query->in('term', $appliedFilters['terms']);
         }
 
-        // Sessions (years)
         if (!empty($appliedFilters['sessions'])) {
             $query->in('year', $appliedFilters['sessions']);
         }
 
-        // Levels
         if (!empty($appliedFilters['levels'])) {
             $query->in('level', $appliedFilters['levels']);
         }
 
-        // Classes
         if (!empty($appliedFilters['classes'])) {
             $query->in('class', $appliedFilters['classes']);
         }
@@ -237,9 +279,8 @@ class IncomeService
             $grouped[$key]['unique_students'][$row['reg_no']] = true;
         }
 
-        // finalize unique_students count
         foreach ($grouped as &$g) {
-            $g['unique_students'] = count($g['unique_students']);
+            $g['unique_students'] = \count($g['unique_students']);
         }
 
         return array_values($grouped);
@@ -250,7 +291,6 @@ class IncomeService
         $chart = [];
 
         if ($groupBy) {
-            // Chart data for grouped reports
             foreach ($rows as $row) {
                 switch ($groupBy) {
                     case 'class':
@@ -260,17 +300,13 @@ class IncomeService
                         $key = $levels[$row['level_id']] ?? 'Unknown Level';
                         break;
                     case 'month':
-                        $key = date('Y-m', strtotime($row['date']));
+                        $key = $this->formatDate(date('Y-m', strtotime($row['date'])));
                         break;
                     default:
                         $key = 'Unknown';
                 }
 
-                if (!isset($chart[$key])) {
-                    $chart[$key] = 0;
-                }
-
-                $chart[$key] += $row['amount'];
+                $chart[$key] = ($chart[$key] ?? 0) + $row['amount'];
             }
 
             return array_map(
@@ -280,13 +316,9 @@ class IncomeService
             );
         }
 
-        // Chart data for normal reports (x = date)
         foreach ($rows as $row) {
             $date = date('Y-m-d', strtotime($row['date']));
-            if (!isset($chart[$date])) {
-                $chart[$date] = 0;
-            }
-            $chart[$date] += $row['amount'];
+            $chart[$date] = ($chart[$date] ?? 0) + $row['amount'];
         }
 
         return array_map(
@@ -301,13 +333,32 @@ class IncomeService
         try {
             $dt = \DateTime::createFromFormat('Y-m', $date);
             if ($dt) {
-                return $dt->format('M Y'); // Sep 2025
+                return $dt->format('M Y');
             }
         } catch (\Exception $e) {
-            // fallback if parsing fails
             return $date;
         }
 
         return $date;
+    }
+
+    private function normalizeTransactionNames(array $rows): array
+    {
+        return array_map(function (array $row) {
+            $row['name'] = $this->normalizeName($row['name'] ?? null);
+
+            return $row;
+        }, $rows);
+    }
+
+    private function normalizeName(?string $name): ?string
+    {
+        if ($name === null) {
+            return null;
+        }
+
+        $name = trim($name);
+
+        return $name === '' ? $name : ucwords(strtolower($name));
     }
 }

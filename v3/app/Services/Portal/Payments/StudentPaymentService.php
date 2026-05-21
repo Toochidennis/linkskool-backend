@@ -4,38 +4,103 @@ namespace V3\App\Services\Portal\Payments;
 
 use V3\App\Models\Portal\Academics\Level;
 use V3\App\Models\Portal\Payments\Transaction;
+use V3\App\Services\Paystack\PaystackService;
 
 class StudentPaymentService
 {
     private Transaction $transaction;
     private Level $level;
+    private \PDO $pdo;
 
     public function __construct(\PDO $pdo)
     {
+        $this->pdo = $pdo;
         $this->transaction = new Transaction($pdo);
         $this->level = new Level($pdo);
     }
 
-    public function getInvoiceAndTransactionHistory(int $studentId): array
+    public function getStudentInvoices(int $studentId): array
     {
-        $formatted = [
-            'invoice' => [],
-            'payments' => []
-        ];
-
-        $levelNames = [];
-
-        $transactions = $this->transaction
+        $invoices = $this->transaction
             ->select([
                 'tid AS id',
-                'trans_type AS type',
+                'description',
+                'amount',
+                'amount_paid',
+                'amount_due',
+                'year',
+                'term',
+                'status',
+            ])
+            ->where('cid', '=', $studentId)
+            ->where('trans_type', '=', 'invoice')
+            ->orderBy(['year' => 'DESC', 'term' => 'DESC'])
+            ->get();
+
+        if (empty($invoices)) {
+            return [];
+        }
+
+        $receipts = $this->transaction
+            ->select(['it_id', 'description'])
+            ->where('cid', '=', $studentId)
+            ->where('trans_type', '=', 'receipt')
+            ->get();
+
+        $receiptsByInvoiceId = [];
+        foreach ($receipts as $receipt) {
+            $receiptsByInvoiceId[(int) $receipt['it_id']][] = $receipt;
+        }
+
+        $result = [];
+
+        foreach ($invoices as $invoice) {
+            $invoiceId = $invoice['id'];
+            $allItems = json_decode($invoice['description'], true) ?? [];
+
+            $paidItems = [];
+            foreach ($receiptsByInvoiceId[$invoiceId] ?? [] as $receipt) {
+                foreach (json_decode($receipt['description'], true) ?? [] as $item) {
+                    $paidItems[$item['fee_id']] = $item;
+                }
+            }
+
+            $outstandingItems = array_values(
+                array_filter($allItems, fn($item) => !isset($paidItems[$item['fee_id']]))
+            );
+
+            $result[] = [
+                'id' => $invoiceId,
+                'invoice_details' => $allItems,
+                'items_paid' => array_values($paidItems),
+                'outstanding_items' => $outstandingItems,
+                'outstanding_total' => array_sum(array_column($outstandingItems, 'amount')),
+                'amount' => $invoice['amount'],
+                'amount_paid' => $invoice['amount_paid'],
+                'amount_due' => $invoice['amount_due'],
+                'year' => $invoice['year'],
+                'term' => $invoice['term'],
+                'status' => $invoice['status'],
+            ];
+        }
+
+        return $result;
+    }
+
+    public function getPaymentHistory(int $studentId, array $filters): array
+    {
+        $page = max(1, (int) ($filters['page'] ?? 1));
+        $limit = max(1, min(100, (int) ($filters['limit'] ?? 20)));
+
+        $query = $this->transaction
+            ->select([
+                'tid AS id',
+                'it_id AS invoice_id',
                 'ref AS reference',
                 'cref AS reg_no',
-                'cid AS student_id',
-                'description',
                 'name',
-                'amount',
-                'amount_due',
+                'amount_paid AS amount',
+                'description',
                 'date',
                 'year',
                 'term',
@@ -44,235 +109,274 @@ class StudentPaymentService
                 'status',
             ])
             ->where('cid', '=', $studentId)
-            ->where('approved', '=', 1)
-            ->orderBy(['year' => 'DESC', 'term' => 'DESC'])
-            ->get();
+            ->where('trans_type', '=', 'receipt');
 
-        $levels = $this->level
-            ->select(['id', 'level_name'])
-            ->get();
+        if (!empty($filters['year'])) {
+            $query->where('year', '=', $filters['year']);
+        }
 
+        if (!empty($filters['term'])) {
+            $query->where('term', '=', $filters['term']);
+        }
+
+        $result = $query->orderBy(['year' => 'DESC', 'date' => 'DESC'])->paginate($page, $limit);
+
+        $levels = $this->level->select(['id', 'level_name'])->get();
+        $levelNames = [];
         foreach ($levels as $level) {
             $levelNames[$level['id']] = $level['level_name'];
         }
 
-        foreach ($transactions as $trans) {
-            $type = $trans['type'];
-            $levelId = $trans['level_id'];
-            $levelName = $levelNames[$levelId] ?? 'Unknown Level';
+        $result['data'] = array_map(function ($row) use ($levelNames) {
+            $row['items_paid'] = json_decode($row['description'], true) ?? [];
+            $row['level_name'] = $levelNames[$row['level_id']] ?? null;
+            $row['name'] = $this->normalizeName($row['name'] ?? null);
+            unset($row['description']);
+            return $row;
+        }, $result['data']);
 
-            if ($type === 'invoice') {
-                $invoiceDetails = json_decode($trans['description'], true);
-                $formatted[$type][] = [
-                    'id' => $trans['id'],
-                    'invoice_details' => $invoiceDetails,
-                    'amount' => $trans['amount_due'],
-                    'year' => $trans['year'],
-                    'term' => $trans['term'],
-                ];
-            } else {
-                unset($trans['type']);
-                unset($trans['amount_due']);
-                $formatted['payments'][] = [
-                    ...$trans,
-                    'level_name' => $levelName,
-                ];
-            }
-        }
-
-        return $formatted;
+        return $result;
     }
 
-    public function addPayment(array $data): bool
+    private function normalizeName(?string $name): ?string
     {
-        $status = 0;
-
-        if ($data['type'] === 'offline') {
-            $status = 1;
-        } else {
-            $verify = $this->verifyPayment($data['reference']);
-
-            if (!$verify['success']) {
-                $status = 0;
-            } else {
-                $txStatus = $verify['status'];
-
-                if ($txStatus === 'success') {
-                    $status = 1;
-                } elseif (\in_array($txStatus, ['failed', 'abandoned'])) {
-                    $status = 0;
-                    // keep defaults
-                } elseif ($txStatus === 'pending') {
-                    $_SESSION['pending_payments'][$data['reference']] = [
-                        'timestamp' => time(),
-                        'data' => $data,
-                    ];
-                }
-            }
+        if ($name === null) {
+            return null;
         }
 
-        // Always create receipt (even if failed)
-        $description = 'School Fees Receipt for ' . $data['year'] . ' ' . $data['term'] . ' term';
+        $name = trim($name);
 
-        $payload = [
-            'trans_type' => 'receipts',
-            'memo' => $description,
+        return $name === '' ? $name : ucwords(strtolower($name));
+    }
+
+    public function addPayment(array $data): array
+    {
+        $items = $data['items'];
+        $data['amount'] = (float) array_sum(array_column($items, 'amount'));
+
+        if ($data['type'] === 'online') {
+            return $this->initiatePayment($data);
+        }
+
+        $reference = 'SFEES-' . date('YmdHis') . '-' . strtoupper(bin2hex(random_bytes(4)));
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmt = $this->pdo->prepare(
+                "SELECT tid FROM transactions WHERE tid = ? AND trans_type = 'invoice' FOR UPDATE"
+            );
+            $stmt->execute([$data['invoice_id']]);
+
+            $this->transaction->insert([
+                'trans_type' => 'receipt',
+                'memo' => 'School Fees for ' . $data['year'] . ' Term ' . $data['term'],
+                'description' => json_encode($items),
+                'c_type' => 1,
+                'ref' => $reference,
+                'cid' => $data['student_id'],
+                'cref' => $data['reg_no'],
+                'name' => $data['name'],
+                'quantity' => 1,
+                'it_id' => $data['invoice_id'],
+                'amount' => $data['amount'],
+                'amount_paid' => $data['amount'],
+                'amount_due' => 0,
+                'date' => date('Y-m-d'),
+                'account' => 1980,
+                'account_name' => 'Income',
+                'status' => 1,
+                'class' => $data['class_id'],
+                'level' => $data['level_id'],
+                'year' => $data['year'],
+                'term' => $data['term'],
+            ]);
+
+            $this->updateInvoice((int) $data['invoice_id'], $data['amount']);
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            return ['payment_type' => 'offline', 'success' => false, 'message' => $e->getMessage()];
+        }
+
+        return [
+            'payment_type' => 'offline',
+            'success' => true,
+            'reference' => $reference,
+        ];
+    }
+
+    private function initiatePayment(array $data): array
+    {
+        $reference = 'SFEES-' . date('YmdHis') . '-' . strtoupper(bin2hex(random_bytes(4)));
+
+        $this->transaction->insert([
+            'trans_type' => 'receipt',
+            'memo' => 'School Fees for ' . $data['year'] . ' Term ' . $data['term'],
+            'description' => json_encode($data['items']),
             'c_type' => 1,
-            'ref' => $data['reference'],
+            'ref' => $reference,
             'cid' => $data['student_id'],
             'cref' => $data['reg_no'],
             'name' => $data['name'],
             'quantity' => 1,
-            'it_id' => 1,
+            'it_id' => $data['invoice_id'],
             'amount' => $data['amount'],
+            'amount_paid' => 0,
+            'amount_due' => $data['amount'],
             'date' => date('Y-m-d'),
             'account' => 1980,
             'account_name' => 'Income',
-            'approved' => 1,
-            'status' => $status,
-            'sub' => 0,
+            'status' => 0,
             'class' => $data['class_id'],
             'level' => $data['level_id'],
             'year' => $data['year'],
             'term' => $data['term'],
+        ]);
+
+        $paystack = new PaystackService();
+
+        $payment = $paystack->initialize([
+            'email' => $data['email'],
+            'amount' => (int) round($data['amount'] * 100),
+            'reference' => $reference,
+            'metadata' => [
+                'payment_type' => 'school_fees',
+                'invoice_id' => $data['invoice_id'],
+                'student_id' => $data['student_id'],
+            ],
+        ]);
+
+        return [
+            'payment_type' => 'online',
+            'payment_url' => $payment['authorization_url'],
+            'reference' => $reference,
         ];
-
-        $this->transaction->insert($payload);
-
-        // Update invoice only if successful
-        if ($status === 1) {
-            return $this->updateInvoice($data);
-        }
-        return false;
     }
 
-    private function updateInvoice(array $data): bool
+    public function handleWebhookVerification(string $reference): array
     {
-        $tid = $data['invoice_id'];
+        $paystack = new PaystackService();
 
-        $invoice = $this->transaction
-            ->select(['IFNULL(amount_due, 0) as amount_due'])
-            ->where('tid', '=', $tid)
+        try {
+            $verification = $paystack->verify($reference);
+        } catch (\Throwable $e) {
+            return ['status' => 'failed', 'message' => $e->getMessage()];
+        }
+
+        if (!$verification['success'] || $verification['status'] !== 'success') {
+            $reason = $verification['status'] ?? 'unknown';
+            return ['status' => 'failed', 'message' => 'Payment not successful: ' . $reason];
+        }
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmt = $this->pdo->prepare(
+                "SELECT tid, it_id, amount, status FROM transactions
+                 WHERE ref = ? AND trans_type = 'receipt' FOR UPDATE"
+            );
+            $stmt->execute([$reference]);
+            $receipt = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (empty($receipt)) {
+                $this->pdo->rollBack();
+                return ['status' => 'failed', 'message' => 'Receipt not found for reference.'];
+            }
+
+            if ((int) $receipt['status'] === 1) {
+                $this->pdo->rollBack();
+                return ['status' => 'success', 'message' => 'Payment already verified.'];
+            }
+
+            $expectedKobo = (int) round((float) $receipt['amount'] * 100);
+            if ((int) $verification['amount_kobo'] !== $expectedKobo) {
+                $this->pdo->rollBack();
+                return ['status' => 'failed', 'message' => 'Payment amount mismatch.'];
+            }
+
+            $invoiceId = (int) $receipt['it_id'];
+            $amount = (float) $receipt['amount'];
+
+            $this->transaction
+                ->where('ref', '=', $reference)
+                ->where('trans_type', '=', 'receipt')
+                ->update([
+                    'status' => 1,
+                    'approved' => 1,
+                    'amount_paid' => $amount,
+                    'amount_due' => 0,
+                ]);
+
+            if ($invoiceId > 0) {
+                $this->updateInvoice($invoiceId, $amount);
+            }
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            return ['status' => 'failed', 'message' => $e->getMessage()];
+        }
+
+        return ['status' => 'success', 'message' => 'Payment verified and recorded.'];
+    }
+
+    public function checkPaymentStatus(string $reference): array
+    {
+        $receipt = $this->transaction
+            ->select(['tid', 'status', 'amount', 'amount_paid', 'amount_due', 'date'])
+            ->where('ref', '=', $reference)
+            ->where('trans_type', '=', 'receipt')
             ->first();
 
-        if (!$invoice) {
+        if (empty($receipt)) {
+            return [
+                'exists' => false,
+                'is_paid' => false,
+                'status' => null,
+                'message' => 'Payment reference not found.',
+            ];
+        }
+
+        $isPaid = (int) $receipt['status'] === 1;
+
+        return [
+            'exists' => true,
+            'is_paid' => $isPaid,
+            'status' => $isPaid ? 'success' : 'pending',
+            'message' => $isPaid ? 'Payment confirmed.' : 'Payment is still pending.',
+        ];
+    }
+
+    private function updateInvoice(int $invoiceId, float $payment): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT amount, amount_paid, amount_due FROM transactions
+             WHERE tid = ? AND trans_type = 'invoice' FOR UPDATE"
+        );
+        $stmt->execute([$invoiceId]);
+        $invoice = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (empty($invoice) || (float) $invoice['amount_due'] <= 0 || $payment <= 0) {
             return false;
         }
 
         $amountDue = (float) $invoice['amount_due'];
-        $payment   = (float) $data['amount'];
+        $amountPaid = (float) $invoice['amount_paid'];
+        $payment = min($payment, $amountDue);
 
-        if ($payment <= 0) {
-            return false;
+        $newAmountPaid = $amountPaid + $payment;
+        $newAmountDue = $amountDue - $payment;
+
+        if ($newAmountDue <= 0) {
+            return (bool) $this->transaction
+                ->where('tid', '=', $invoiceId)
+                ->update(['amount_paid' => $newAmountPaid, 'amount_due' => 0, 'status' => 1]);
         }
 
-        if ($amountDue <= 0) {
-            return false;
-        }
-
-
-        if ($payment > $amountDue) {
-            $payment = $amountDue; // Cap payment to amount due
-        }
-
-        $remainingBalance =  $amountDue - $payment;
-
-        if ($remainingBalance > 0) {
-            return $this->transaction
-                ->where('tid', '=', $tid)
-                ->update([
-                    'description' => json_encode($data['invoice_details']),
-                    'amount_due' => $remainingBalance,
-                    'net_due' => $invoice['amount_due']
-                ]);
-        } else {
-            return $this->transaction
-                ->where('tid', '=', $tid)
-                ->update(['approved' => 0, 'sub' => 0, 'amount_due' => 0]);
-        }
-    }
-
-    private function verifyPayment(string $reference): array
-    {
-        $curl = curl_init();
-
-        curl_setopt_array($curl, [
-            CURLOPT_URL => "https://api.paystack.co/transaction/verify/$reference",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTPHEADER => [
-                "Authorization: Bearer " . getenv('PAYSTACK_SECRET_KEY'),
-                "Cache-Control: no-cache",
-            ],
-        ]);
-
-        $response = curl_exec($curl);
-        $error = curl_error($curl);
-
-        if ($error) {
-            return [
-                'success' => false,
-                'message' => "cURL Error: $error",
-                'status' => null
-            ];
-        }
-
-        $result = json_decode($response, true);
-
-        if (!$result['status']) {
-            return [
-                'success' => false,
-                'message' => $result['message'] ?? 'Verification failed',
-                'status' => null
-            ];
-        }
-
-        return [
-            'success' => true,
-            'status' => $result['data']['status'], // success | failed | abandoned | pending
-            'amount' => $result['data']['amount'] / 100, // Convert kobo to Naira
-        ];
-    }
-
-    public function retryPendingTransactions(): void
-    {
-        if (!isset($_SESSION['pending_payments'])) {
-            return;
-        }
-
-        foreach ($_SESSION['pending_payments'] as $reference => $pending) {
-            $elapsed = time() - $pending['timestamp'];
-
-            // Retry only after 3 minutes
-            if ($elapsed < 180) {
-                continue;
-            }
-
-            $data = $pending['data'];
-            $verify = $this->verifyPayment($reference);
-
-            if ($verify['success'] && $verify['status'] === 'success') {
-                $this->transaction
-                    ->where('ref', '=', $reference)
-                    ->update([
-                        'status' => 1,
-                        'approved' => 1,
-                    ]);
-
-                $this->updateInvoice($data);
-                unset($_SESSION['pending_payments'][$reference]);
-            } elseif (\in_array($verify['status'], ['failed', 'abandoned'])) {
-                $this->transaction
-                    ->where('ref', '=', $reference)
-                    ->update([
-                        'status' => 0,
-                        'approved' => 1,
-                    ]);
-                unset($_SESSION['pending_payments'][$reference]);
-            } elseif ($elapsed > 1800) {
-                // Remove if pending for too long (e.g., 30 mins)
-                unset($_SESSION['pending_payments'][$reference]);
-            }
-        }
+        return (bool) $this->transaction
+            ->where('tid', '=', $invoiceId)
+            ->update(['amount_paid' => $newAmountPaid, 'amount_due' => $newAmountDue]);
     }
 }

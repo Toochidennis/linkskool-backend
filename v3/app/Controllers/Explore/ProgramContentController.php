@@ -4,17 +4,23 @@ namespace V3\App\Controllers\Explore;
 
 use V3\App\Common\Routing\Group;
 use V3\App\Common\Routing\Route;
-use V3\App\Services\Explore\LearningPathService;
+use V3\App\Services\Explore\ProgramContentAnalyticsService;
+use V3\App\Services\Explore\ProgramContentQuizService;
+use V3\App\Services\Explore\ProgramContentService;
 
 #[Group('/public/learning')]
-class LearningPathController extends ExploreBaseController
+class ProgramContentController extends ExploreBaseController
 {
-    private LearningPathService $learningPathService;
+    private ProgramContentService $programContentService;
+    private ProgramContentQuizService $programContentQuizService;
+    private ProgramContentAnalyticsService $programContentAnalyticsService;
 
     public function __construct()
     {
         parent::__construct();
-        $this->learningPathService = new LearningPathService($this->pdo);
+        $this->programContentService = new ProgramContentService($this->pdo);
+        $this->programContentQuizService = new ProgramContentQuizService($this->pdo);
+        $this->programContentAnalyticsService = new ProgramContentAnalyticsService($this->pdo);
     }
 
     #[Route('/programs', 'GET', ['api'])]
@@ -28,9 +34,9 @@ class LearningPathController extends ExploreBaseController
             ]
         );
 
-        $data = $this->learningPathService->getProgramsWithCourses(
+        $data = $this->programContentService->getProgramsWithCourses(
             $validated['birth_date'] ?? null,
-            (int) ($validated['profile_id'] ?? null)
+            isset($validated['profile_id']) ? (int) $validated['profile_id'] : null
         );
 
         $this->respond(
@@ -42,18 +48,72 @@ class LearningPathController extends ExploreBaseController
         );
     }
 
+    #[Route('/programs/content', 'GET', ['api'])]
+    public function getProgramsWithCoursesContent(array $vars): void
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'birth_date' => 'nullable|date',
+                'profile_id' => 'nullable|integer',
+            ]
+        );
+
+        $data = $this->programContentService->getProgramsWithCoursesContent(
+            $validated['birth_date'] ?? null,
+            isset($validated['profile_id']) ? (int) $validated['profile_id'] : null
+        );
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Program content retrieved successfully.',
+                'data' => $data,
+            ]
+        );
+    }
+
+    #[Route('/programs/{program_slug}/content', 'GET', ['api'])]
+    public function getProgramContentBySlug(array $vars): void
+    {
+        $validated = $this->validate(
+            $vars,
+            [
+                'program_slug' => 'required|string',
+                'profile_id' => 'required|integer',
+            ]
+        );
+
+        $data = $this->programContentService->getProgramContentBySlug(
+            (int) $validated['profile_id'],
+            $validated['program_slug']
+        );
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Program content retrieved successfully.',
+                'data' => $data,
+            ]
+        );
+    }
+
     #[Route('/cohorts/{cohort_id}', 'GET', ['api'])]
     public function getActiveCohortByCourse(array $vars)
     {
         $validated = $this->validate(
             $vars,
             [
-                'cohort_id' => 'required|integer',
+                'cohort_id' => 'required|string',
+                'profile_id' => 'nullable|integer',
             ]
         );
 
-        $result = $this->learningPathService
-            ->getActiveCohortByCourse($validated['cohort_id']);
+        $result = $this->programContentService
+            ->getActiveCohortByCourse(
+                $validated['cohort_id'],
+                isset($validated['profile_id']) ? (int) $validated['profile_id'] : null
+            );
 
         return $this->respond([
             'success' => true,
@@ -71,7 +131,7 @@ class LearningPathController extends ExploreBaseController
             ]
         );
 
-        $lessons = $this->learningPathService->getLessonsByCohort($validated['cohort_id']);
+        $lessons = $this->programContentService->getLessonsByCohort($validated['cohort_id']);
 
         $this->respond(
             [
@@ -93,7 +153,7 @@ class LearningPathController extends ExploreBaseController
             ]
         );
 
-        $response = $this->learningPathService->getLessonsByCohortWithNextCourse(
+        $response = $this->programContentService->getLessonsByCohortWithNextCourse(
             $validated['cohort_id'],
             $validated['profile_id'],
         );
@@ -118,7 +178,7 @@ class LearningPathController extends ExploreBaseController
             ]
         );
 
-        $rows = $this->learningPathService->getCohortLessonsWithSubmission(
+        $rows = $this->programContentService->getCohortLessonsWithSubmission(
             $validated['cohort_id'],
             $validated['profile_id']
         );
@@ -143,7 +203,7 @@ class LearningPathController extends ExploreBaseController
             ]
         );
 
-        $result = $this->learningPathService
+        $result = $this->programContentService
             ->getLessonById($validated['lesson_id'], $validated['profile_id']);
 
         return $this->respond([
@@ -162,7 +222,7 @@ class LearningPathController extends ExploreBaseController
             ]
         );
 
-        $quizzes = $this->learningPathService
+        $quizzes = $this->programContentQuizService
             ->getLessonQuiz($validated['lesson_id']);
 
         $this->respond(
@@ -186,7 +246,7 @@ class LearningPathController extends ExploreBaseController
 
         $profileId = $validated['profile_id'];
 
-        $row = $this->learningPathService->getUserLearningStats($profileId);
+        $row = $this->programContentAnalyticsService->getUserLearningStats($profileId);
 
         $this->respond(
             [
@@ -208,7 +268,7 @@ class LearningPathController extends ExploreBaseController
             ]
         );
 
-        $data = $this->learningPathService
+        $data = $this->programContentAnalyticsService
             ->getLessonPerformanceByProfile(
                 (int) $validated['profile_id'],
                 (int) $validated['cohort_id']
@@ -234,7 +294,7 @@ class LearningPathController extends ExploreBaseController
             ]
         );
 
-        $data = $this->learningPathService
+        $data = $this->programContentAnalyticsService
             ->getLeaderboardByCohort(
                 (int) $validated['profile_id'],
                 (int) $validated['cohort_id']
@@ -260,7 +320,7 @@ class LearningPathController extends ExploreBaseController
             ]
         );
 
-        $data = $this->learningPathService->getUpcomingCohorts(
+        $data = $this->programContentService->getUpcomingCohorts(
             $validated['slug'],
             (int) $validated['profile_id'],
         );

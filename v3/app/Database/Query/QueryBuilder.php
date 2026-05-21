@@ -299,7 +299,7 @@ class QueryBuilder
      * Inserts data into the table.
      *
      * @param  array $data The data to insert.
-     * @return int|false The last inserted ID or false on failure.
+     * @return string|true|false The last inserted ID, true if no auto-increment ID, or false on failure.
      */
     public function insert(array $data)
     {
@@ -314,7 +314,37 @@ class QueryBuilder
         );
 
         $this->reset();
-        return $stmt->execute(array_values($data)) ? $this->pdo->lastInsertId() : false;
+        return $stmt->execute(array_values($data)) ? ($this->pdo->lastInsertId() ?: true) : false;
+    }
+
+    /**
+     * Inserts multiple rows into the table in a single query.
+     *
+     * @param  array $rows An array of associative arrays, each representing a row.
+     * @return int|false The number of inserted rows or false on failure.
+     */
+    public function insertMany(array $rows): int|false
+    {
+        $columns = array_keys($rows[0]);
+        array_map($this->validateColumn(...), $columns);
+
+        $wrappedColumns = implode(", ", array_map($this->wrapIdentifier(...), $columns));
+        $rowPlaceholder = '(' . implode(", ", array_fill(0, count($columns), '?')) . ')';
+        $allPlaceholders = implode(", ", array_fill(0, count($rows), $rowPlaceholder));
+
+        $bindings = [];
+        foreach ($rows as $row) {
+            foreach ($columns as $column) {
+                $bindings[] = $row[$column] ?? null;
+            }
+        }
+
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO " . $this->wrapIdentifier($this->table) . " ($wrappedColumns) VALUES $allPlaceholders"
+        );
+
+        $this->reset();
+        return $stmt->execute($bindings) ? $stmt->rowCount() : false;
     }
 
     /**
@@ -516,16 +546,27 @@ class QueryBuilder
 
         $offset = ($page - 1) * $limit;
 
+        // Build count query before get() resets state
+        $countQuery = "SELECT COUNT(*) FROM `$this->table`";
+        if (!empty($this->joins)) {
+            $countQuery .= " " . implode(" ", $this->joins);
+        }
+        if (!empty($this->whereConditions)) {
+            $countQuery .= " WHERE " . implode(" AND ", $this->whereConditions);
+        }
+        $countStmt = $this->pdo->prepare($countQuery);
+        $countStmt->execute([...$this->bindings, ...$this->whereBindings]);
+        $total = (int) $countStmt->fetchColumn();
+
         $data = $this->limit($limit)->offset($offset)->get();
-        $total = $this->count();
 
         return [
             'data' => $data,
             'meta' => [
                 'total' => $total,
-                'per_page' => $limit,
+                'limit' => $limit,
                 'current_page' => $page,
-                'last_page' => ceil($total / $limit),
+                'last_page' => (int) ceil($total / $limit),
                 'has_next' => $page * $limit < $total,
                 'has_prev' => $page > 1
             ],

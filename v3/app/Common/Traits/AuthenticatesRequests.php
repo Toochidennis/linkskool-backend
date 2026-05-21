@@ -5,7 +5,6 @@ namespace V3\App\Common\Traits;
 use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use Firebase\JWT\ExpiredException;
 use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Common\Utilities\ResponseHandler;
 
@@ -13,18 +12,21 @@ trait AuthenticatesRequests
 {
     private static function getSecretKey(): string
     {
-        return getenv('JWT_SECRET_KEY') ?: 'fallback_secret';
+        return getenv('JWT_SECRET_KEY');
     }
 
-    private static function generateJWT(string $userId, string $name, string $role): string
+    private static function generateJWT(string $userId, string $name, string $role, string $type = 'access'): string
     {
         $issuedAt = time();
-        $expirationTime = $issuedAt + 2592000; // 30 days
+        $expirationTime = $type === 'refresh'
+            ? $issuedAt + 7776000  // 90 days
+            : $issuedAt + 172800; // 2 days
         $payload = [
             'iss'  => 'linkskool.com',
             'aud'  => 'linkskool.com',
             'iat'  => $issuedAt,
             'exp'  => $expirationTime,
+            'type' => $type,
             'data' => [
                 'id'   => $userId,
                 'name' => $name,
@@ -41,36 +43,50 @@ trait AuthenticatesRequests
         try {
             $decoded = JWT::decode($token, new Key(self::getSecretKey(), 'HS256'));
             return json_decode(json_encode($decoded), true);
-        } catch (ExpiredException $e) {
-            $decoded = json_decode(base64_decode(explode('.', $token)[1] ?? ''), true);
-
-            if (!isset($decoded['data'])) {
-                ResponseHandler::sendJsonResponse([
-                    'success' => false,
-                    'message' => 'Token structure invalid or corrupted.',
-                    'status'  => HttpStatus::UNAUTHORIZED
-                ]);
-            }
-
-            $newToken = self::generateJWT(
-                $decoded['data']['id'],
-                $decoded['data']['name'],
-                $decoded['data']['role']
-            );
-
-            ResponseHandler::sendJsonResponse([
-                'success' => true,
-                'message' => 'Token refreshed.',
-                'token'   => $newToken,
-                'status'  => HttpStatus::UNAUTHORIZED
-            ]);
         } catch (Exception $e) {
             ResponseHandler::sendJsonResponse([
                 'success' => false,
-                'message' => 'Invalid or malformed token.',
+                'message' => 'Authentication failed.',
                 'status'  => HttpStatus::UNAUTHORIZED
             ]);
         }
+    }
+
+    public static function refreshToken(string $token): array
+    {
+        try {
+            $decoded = JWT::decode($token, new Key(self::getSecretKey(), 'HS256'));
+            $data = json_decode(json_encode($decoded), true);
+        } catch (Exception $e) {
+            ResponseHandler::sendJsonResponse([
+                'success' => false,
+                'message' => 'Authentication failed.',
+                'status'  => HttpStatus::UNAUTHORIZED
+            ]);
+        }
+
+        if (!isset($data['data']['id'], $data['data']['name'], $data['data']['role'])) {
+            ResponseHandler::sendJsonResponse([
+                'success' => false,
+                'message' => 'Authentication failed.',
+                'status'  => HttpStatus::UNAUTHORIZED
+            ]);
+        }
+
+        if (($data['type'] ?? '') !== 'refresh') {
+            ResponseHandler::sendJsonResponse([
+                'success' => false,
+                'message' => 'Authentication failed.',
+                'status'  => HttpStatus::UNAUTHORIZED
+            ]);
+        }
+
+        $accessToken = self::generateJWT($data['data']['id'], $data['data']['name'], $data['data']['role']);
+
+        return [
+            'access_token'  => $accessToken,
+            'refresh_token' => self::generateJWT($data['data']['id'], $data['data']['name'], $data['data']['role'], 'refresh'),
+        ];
     }
 
     private static function validateAPIKey(string $apiKey): bool
@@ -87,8 +103,8 @@ trait AuthenticatesRequests
         if (!str_starts_with($authHeader, 'Bearer ')) {
             ResponseHandler::sendJsonResponse([
                 'success' => false,
-                'message' => "Invalid token. Missing 'Bearer ' prefix.",
-                'status'  => HttpStatus::BAD_REQUEST
+                'message' => 'Authentication failed.',
+                'status'  => HttpStatus::UNAUTHORIZED
             ]);
         }
 

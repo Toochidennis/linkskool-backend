@@ -19,64 +19,95 @@ class StudentPaymentController extends BaseController
     }
 
     #[Route(
-        '/students/{student_id:\d+}/make-payment',
+        '/students/{student_id:\d+}/payment/initiate',
         'POST',
         ['auth', 'role:admin', 'role:student']
     )]
-    public function makePayment(array $vars)
+    public function initiatePayment(array $vars)
     {
         $cleanedData = $this->validate(
             data: [...$this->post, ...$vars],
             rules: [
-                'invoice_id' => 'required|string|filled',
-                'reference' => 'required|string|filled',
                 'student_id' => 'required|integer|min:1',
+                'invoice_id' => 'required|integer|min:1',
                 'reg_no' => 'required|string|filled',
                 'name' => 'required|string|filled',
-                'amount' => 'required|numeric|min:1',
+                'email' => 'required_if:type,online|email',
+                'items' => 'required|array|min:1',
                 'class_id' => 'required|integer',
                 'level_id' => 'required|integer',
                 'type' => 'required|string|in:offline,online',
                 'year' => 'required|digits:4',
                 'term' => 'required|integer|in:1,2,3',
-                'invoice_details' => 'required|array|min:1',
-                'invoice_details.*.fee_id' => 'required|integer',
-                'invoice_details.*.fee_name' => 'required|string|filled',
-                'invoice_details.*.amount' => 'required|numeric',
             ],
         );
 
-        $newId = $this->studentPayment->addPayment($cleanedData);
+        $result = $this->studentPayment->addPayment($cleanedData);
 
-        if ($newId) {
-            $this->respond(
-                [
-                    'success' => true,
-                    'message' => 'Payment successful'
-                ],
-                HttpStatus::CREATED
-            );
-        }
-
-        $this->respondError(
-            'Validation failed',
-            HttpStatus::BAD_REQUEST
-        );
+        return $this->respond([
+            'success' => true,
+            'data' => $result,
+        ], HttpStatus::CREATED);
     }
 
     #[Route(
-        '/students/{student_id:\d+}/financial-records',
+        '/students/payment/status/{reference}',
+        'GET',
+        ['auth', 'role:admin', 'role:student']
+    )]
+    public function checkPaymentStatus(array $vars)
+    {
+        $cleanedData = $this->validate($vars, [
+            'reference' => 'required|string|filled',
+        ]);
+
+        return $this->respond([
+            'success' => true,
+            'data' => $this->studentPayment->checkPaymentStatus($cleanedData['reference']),
+        ]);
+    }
+
+    #[Route(
+        '/students/{student_id:\d+}/invoices',
         'GET',
         ['auth', 'role:student', 'role:admin']
     )]
-    public function getFinancialRecords(array $vars)
+    public function getInvoices(array $vars)
     {
-        $cleanedData = $this->validate($vars, ['student_id' => 'required|integer']);
+        $cleanedData = $this->validate($vars, [
+            'student_id' => 'required|integer|min:1',
+        ]);
 
-        $this->respond([
+        return $this->respond([
             'success' => true,
-            'response' => $this->studentPayment
-                ->getInvoiceAndTransactionHistory($cleanedData['student_id']),
+            'data' => $this->studentPayment->getStudentInvoices($cleanedData['student_id']),
+        ]);
+    }
+
+    #[Route(
+        '/students/{student_id:\d+}/payment/history',
+        'GET',
+        ['auth', 'role:student', 'role:admin']
+    )]
+    public function getPaymentHistory(array $vars)
+    {
+        $cleanedData = $this->validate(
+            data: [...$vars],
+            rules: [
+                'student_id' => 'required|integer|min:1',
+                'year' => 'nullable|digits:4',
+                'term' => 'nullable|integer|in:1,2,3',
+                'page' => 'nullable|integer|min:1',
+                'limit' => 'nullable|integer|min:1',
+            ],
+        );
+
+        return $this->respond([
+            'success' => true,
+            'data' => $this->studentPayment->getPaymentHistory(
+                $cleanedData['student_id'],
+                $cleanedData,
+            ),
         ]);
     }
 }

@@ -7,11 +7,13 @@ use Throwable;
 use V3\App\Common\Events\EventDispatcher;
 use V3\App\Events\Auth\UserRegisteredFirstTime;
 use V3\App\Models\Common\UserDeviceToken;
+use V3\App\Services\Explore\Classroom\ClassroomInstitutionService;
 
 class AuthBootstrapService
 {
     private CbtUserService $cbtUserService;
     private ProgramProfileService $profileService;
+    private ClassroomInstitutionService $institutionService;
     private UserDeviceToken $userDeviceToken;
     private PDO $pdo;
 
@@ -20,6 +22,7 @@ class AuthBootstrapService
         $this->pdo = $pdo;
         $this->cbtUserService = new CbtUserService($pdo);
         $this->profileService = new ProgramProfileService($pdo);
+        $this->institutionService = new ClassroomInstitutionService($pdo);
         $this->userDeviceToken = new UserDeviceToken($pdo);
     }
 
@@ -96,9 +99,12 @@ class AuthBootstrapService
                 );
             }
 
+            $institution = $this->institutionService->getInstitutionByUserId($registeredUserId);
+
             return [
                 'user' => $user,
-                'profiles' => $profiles
+                'profiles' => $profiles,
+                'institution' => $institution ?: null,
             ];
         } catch (Throwable $e) {
             $this->pdo->rollBack();
@@ -106,9 +112,9 @@ class AuthBootstrapService
         }
     }
 
-    public function bootstrapWithGoogleToken(string $token, ?string $fcmToken = null): array
+    public function bootstrapWithGoogleToken(string $token, ?string $fcmToken = null, ?string $platform = null): array
     {
-        $tokens = $this->exchangeCodeForTokens($token);
+        $tokens = $this->exchangeCodeForTokens($token, $platform);
         $accessToken = $tokens['access_token'] ?? null;
 
         if (empty($accessToken)) {
@@ -192,9 +198,14 @@ class AuthBootstrapService
         return $result;
     }
 
-    private function exchangeCodeForTokens(string $code): array
+    private function exchangeCodeForTokens(string $code, ?string $platform = null): array
     {
         $curl = curl_init();
+
+        $redirectUri = getEnv('GOOGLE_REDIRECT_URI');
+        if ($platform === 'web') {
+            $redirectUri = getEnv('GOOGLE_REDIRECT_URI_WEB');
+        }
 
         curl_setopt_array($curl, [
             CURLOPT_URL => getEnv('GOOGLE_TOKEN_URL'),
@@ -204,7 +215,7 @@ class AuthBootstrapService
                 'code' => $code,
                 'client_id' => getEnv('GOOGLE_CLIENT_ID'),
                 'client_secret' => getEnv('GOOGLE_CLIENT_SECRET'),
-                'redirect_uri' => getEnv('GOOGLE_REDIRECT_URI'),
+                'redirect_uri' => $redirectUri,
                 'grant_type' => 'authorization_code',
             ]),
             CURLOPT_HTTPHEADER => [
@@ -253,7 +264,8 @@ class AuthBootstrapService
 
             return [
                 'user' => $user,
-                'profiles' => $profiles
+                'profiles' => $profiles,
+                'institution' => null,
             ];
         }
 
@@ -269,11 +281,13 @@ class AuthBootstrapService
         }
 
         $profiles = $this->profileService->getProfilesByUserId($user['id']);
+        $institution = $this->institutionService->getInstitutionByUserId((int) $user['id']);
         unset($user['password']);
 
         return [
             'user' => $user,
-            'profiles' => $profiles
+            'profiles' => $profiles,
+            'institution' => $institution ?: null,
         ];
     }
 

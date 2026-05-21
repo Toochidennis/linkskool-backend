@@ -30,55 +30,21 @@ class CourseCohortEnrollmentController extends ExploreBaseController
                 'cohort_name' => 'required|string',
                 'program_id' => 'required|integer',
                 'cohort_id' => 'required|integer',
-                'enrollment_type' => 'required|string|in:free,paid,trial',
-                'trial_expiry_date' => 'nullable|date',
+                'enrollment_type' => 'nullable|string|in:free,paid,trial',
             ],
         );
 
-        $enrollmentId = $this->enrollmentService->enrollUser($validated);
-
-        if (!$enrollmentId) {
-            $this->respondError(
-                'Enrollment failed.',
-                HttpStatus::BAD_REQUEST
-            );
-        }
+        $result = $this->enrollmentService->enrollOrResolveNextAction($validated);
 
         $this->respond(
             [
                 'status' => true,
-                'message' => 'User enrolled successfully.',
-                'data' => $enrollmentId
+                'message' => $result['message'],
+                'data' => $result['data'],
             ],
-            HttpStatus::CREATED
+            ($result['created'] ?? false) ? HttpStatus::CREATED : HttpStatus::OK
         );
     }
-
-    // #[Route('', 'DELETE', ['api'])]
-    // public function unEnrollUser(array $vars): void
-    // {
-    //     $validated = $this->validate(
-    //         [...$this->getRequestData(), ...$vars],
-    //         [
-    //             'profile_id' => 'required|integer',
-    //             'cohort_id' => 'required|integer',
-    //         ],
-    //     );
-
-    //     $success = $this->enrollmentService->unEnrollUser($validated);
-
-    //     if (!$success) {
-    //         $this->respondError('Unenrollment failed.', HttpStatus::BAD_REQUEST);
-    //     }
-
-    //     $this->respond(
-    //         [
-    //             'status' => true,
-    //             'message' => 'User unenrolled successfully.',
-    //         ],
-    //         HttpStatus::OK
-    //     );
-    // }
 
     #[Route('/{cohort_id}/enrollments/is-enrolled', 'GET', ['api'])]
     public function isUserEnrolled(array $vars): void
@@ -155,7 +121,6 @@ class CourseCohortEnrollmentController extends ExploreBaseController
                 'first_name' => 'nullable|string',
                 'last_name' => 'nullable|string',
                 'enrollment_type' => 'required|string|in:free,paid,trial',
-                'trial_expiry_date' => 'nullable|date',
             ],
         );
 
@@ -224,6 +189,49 @@ class CourseCohortEnrollmentController extends ExploreBaseController
             [
                 'status' => true,
                 'message' => 'Lessons taken updated successfully.',
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/{cohort_id}/enrollments/mobile-payment', 'POST', ['api'])]
+    public function initiateMobilePayment(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'profile_id' => 'required|integer',
+                'email' => 'required|email',
+                'program_id' => 'required|integer',
+                'course_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+            ]
+        );
+
+        $res = $this->enrollmentService->initiateMobilePayment($validated);
+
+        if ($res['status'] === 'blocked') {
+            $this->respond(
+                [
+                    'success' => true,
+                    'message' => $res['message'],
+                ],
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        if ($res['status'] === 'failed') {
+            $this->respondError(
+                $res['message'],
+                HttpStatus::BAD_REQUEST
+            );
+        }
+
+        $this->respond(
+            [
+                'success' => true,
+                'message' => 'Mobile payment initiated successfully.',
+                'data' => $res,
             ],
             HttpStatus::OK
         );
@@ -338,7 +346,7 @@ class CourseCohortEnrollmentController extends ExploreBaseController
         $this->respond(
             [
                 'success' => true,
-                'message' => 'Payment verification',
+                'message' => 'Payment status retrieved successfully.',
                 'data' => $this->enrollmentService->checkPaymentStatus($validated['reference'])
             ]
         );
@@ -375,6 +383,36 @@ class CourseCohortEnrollmentController extends ExploreBaseController
                 'success' => true,
                 'message' => 'Reservation completed successfully.',
                 'data' => $res,
+            ],
+            HttpStatus::OK
+        );
+    }
+
+    #[Route('/{cohort_id}/enrollments/mobile-billing', 'POST', ['api'])]
+    public function verifyMobileBilling(array $vars): void
+    {
+        $validated = $this->validate(
+            [...$this->getRequestData(), ...$vars],
+            [
+                'profile_id' => 'required|integer',
+                'program_id' => 'required|integer',
+                'course_id' => 'required|integer',
+                'cohort_id' => 'required|integer',
+                'purchase_token' => 'required|string',
+                'product_id' => 'required|string',
+            ]
+        );
+
+        $result = $this->enrollmentService->verifyMobileStorePurchase($validated);
+
+        if (!$result['success']) {
+            $this->respondError($result['message'], HttpStatus::BAD_REQUEST);
+        }
+
+        $this->respond(
+            [
+                'status' => true,
+                'message' => $result['message'],
             ],
             HttpStatus::OK
         );

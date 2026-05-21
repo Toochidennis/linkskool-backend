@@ -37,7 +37,7 @@ class ProgramEnrollmentAnalysisService
             'profiles' => $this->groupProgramProfiles($rows),
             'meta' => [
                 'total' => $total,
-                'per_page' => $limit,
+                'limit' => $limit,
                 'current_page' => $page,
                 'last_page' => $limit > 0 ? (int) ceil($total / $limit) : 0,
                 'has_next' => ($page * $limit) < $total,

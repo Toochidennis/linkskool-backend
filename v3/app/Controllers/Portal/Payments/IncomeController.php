@@ -2,6 +2,7 @@
 
 namespace V3\App\Controllers\Portal\Payments;
 
+use V3\App\Common\Utilities\HttpStatus;
 use V3\App\Controllers\BaseController;
 use V3\App\Common\Routing\{Route, Group};
 use V3\App\Services\Portal\Payments\IncomeService;
@@ -32,6 +33,8 @@ class IncomeController extends BaseController
                 'start_date' => 'required_if:custom_type,range|date',
                 'end_date' => 'required_if:custom_type,range|date|after_or_equal:start_date',
                 'group_by' => 'nullable|string|in:level,class,month',
+                'page' => 'nullable|integer|min:1',
+                'limit' => 'nullable|integer|min:1',
                 'filters.terms' => 'nullable|array',
                 'filters.terms.*' => 'integer|in:1,2,3',
                 'filters.sessions' => 'nullable|array',
@@ -43,11 +46,9 @@ class IncomeController extends BaseController
             ]
         );
 
-        $reports = $this->incomeService->report($filteredVars);
-
         return $this->respond([
             'success' => true,
-            'data' => $reports
+            'data' => $this->incomeService->report($filteredVars),
         ]);
     }
 }

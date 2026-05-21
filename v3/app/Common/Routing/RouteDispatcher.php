@@ -22,6 +22,8 @@ class RouteDispatcher
         $auto->registerControllers('V3\App\Controllers\Explore', '/public', $isCacheEnabled);
         //$auto->registerControllers('V3\App\Controllers\Learning', '/learning');
 
+        $auto->generateDocs();
+
         $dispatcher = new GroupCountBasedDispatcher($collector->getData());
 
         $httpMethod = $_SERVER['REQUEST_METHOD'];

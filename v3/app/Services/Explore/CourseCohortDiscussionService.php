@@ -476,7 +476,7 @@ class CourseCohortDiscussionService
             }, $discussions),
             'meta' => [
                 'total' => $total,
-                'per_page' => $limit,
+                'limit' => $limit,
                 'current_page' => $page,
                 'last_page' => $limit > 0 ? (int) ceil($total / $limit) : 0,
                 'has_next' => ($page * $limit) < $total,
@@ -544,7 +544,7 @@ class CourseCohortDiscussionService
             'posts' => array_map(fn(array $post) => $this->formatPost($post), $posts),
             'meta' => [
                 'total' => $total,
-                'per_page' => $limit,
+                'limit' => $limit,
                 'current_page' => $page,
                 'last_page' => $limit > 0 ? (int) ceil($total / $limit) : 0,
                 'has_next' => ($page * $limit) < $total,
@@ -602,7 +602,7 @@ class CourseCohortDiscussionService
             'replies' => array_map(fn(array $reply) => $this->formatPost($reply), $replies),
             'meta' => [
                 'total' => $total,
-                'per_page' => $limit,
+                'limit' => $limit,
                 'current_page' => $page,
                 'last_page' => $limit > 0 ? (int) ceil($total / $limit) : 0,
                 'has_next' => ($page * $limit) < $total,

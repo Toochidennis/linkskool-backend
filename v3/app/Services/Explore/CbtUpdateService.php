@@ -232,7 +232,7 @@ class CbtUpdateService
 
         return [
             'data' => $data,
-            'pagination' => $rows['meta'],
+            'meta' => $rows['meta'],
         ];
     }
 

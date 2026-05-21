@@ -64,9 +64,12 @@ class AuthService
             ->first();
 
         if ($student && $this->verifyPassword($student['password'], $password)) {
+            $accessToken = self::generateJWT($student['id'], $student['surname'], 'student');
             return [
-                'data'  => $this->getStudentData($student['id']),
-                'token' => self::generateJWT($student['id'], $student['surname'], 'student'),
+                'data'          => $this->getStudentData($student['id']),
+                'token'         => $accessToken,
+                'access_token'  => $accessToken,
+                'refresh_token' => self::generateJWT($student['id'], $student['surname'], 'student', 'refresh'),
             ];
         }
 
@@ -103,9 +106,12 @@ class AuthService
             default => [],
         };
 
+        $accessToken = self::generateJWT(userId: $id, name: $name, role: $role);
         return [
-            'data' => $data,
-            'token' => self::generateJWT(userId: $id, name: $name, role: $role)
+            'data'          => $data,
+            'token'         => $accessToken,
+            'access_token'  => $accessToken,
+            'refresh_token' => self::generateJWT(userId: $id, name: $name, role: $role, type: 'refresh'),
         ];
     }
 
@@ -273,6 +279,11 @@ class AuthService
         return $this->classModel
             ->whereRaw('FIND_IN_SET(?, class_table.form_teacher) > 0', [(string) $teacherId])
             ->count();
+    }
+
+    public static function refresh(string $token): array
+    {
+        return self::refreshToken($token);
     }
 
     private function verifyPassword(string $userPassword, string $password): bool

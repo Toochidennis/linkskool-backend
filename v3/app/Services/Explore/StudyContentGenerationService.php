@@ -5,22 +5,24 @@ namespace V3\App\Services\Explore;
 use V3\App\Common\Utilities\Logger;
 use V3\App\Models\Explore\StudyTopic;
 use V3\App\Models\Explore\StudySubTopic;
+use V3\App\Services\Common\DeepSeekClient;
 
 class StudyContentGenerationService
 {
     private StudyTopic $model;
     private StudySubTopic $subTopicModel;
+    private DeepSeekClient $ai;
 
     private const BATCH_SIZE   = 10;
-    private const MAX_RETRIES  = 3;
     private const API_DELAY_MS = 800;
 
     private float $lastCall = 0;
 
     public function __construct(\PDO $pdo)
     {
-        $this->model  = new StudyTopic($pdo);
-        $this->subTopicModel  = new StudySubTopic($pdo);
+        $this->model        = new StudyTopic($pdo);
+        $this->subTopicModel = new StudySubTopic($pdo);
+        $this->ai           = new DeepSeekClient();
     }
 
     public function process(int $limit = 50): void
@@ -184,12 +186,12 @@ class StudyContentGenerationService
 
         $this->rateLimit();
 
-        return $this->callAI([
+        return $this->ai->call([
             'model'       => 'deepseek-chat',
             'messages'    => [['role' => 'user', 'content' => $prompt, 'response_format' => ['type' => 'json']]],
             'temperature' => 0.3,
-            'max_tokens'  => 2000
-        ]);
+            'max_tokens'  => 2000,
+        ], 120);
     }
 
     // ─── Stage 2: Content per section ─────────────────────────────────────────
@@ -272,12 +274,12 @@ class StudyContentGenerationService
 
         $this->rateLimit();
 
-        return $this->callAI([
+        return $this->ai->call([
             'model'       => 'deepseek-chat',
             'messages'    => [['role' => 'user', 'content' => $prompt, 'response_format' => ['type' => 'json']]],
             'temperature' => 0.3,
-            'max_tokens'  => 8000
-        ]);
+            'max_tokens'  => 8000,
+        ], 120);
     }
 
     // ─── Stage 3: Quiz generation ──────────────────────────────────────────────
@@ -348,12 +350,12 @@ class StudyContentGenerationService
 
         $this->rateLimit();
 
-        $result = $this->callAI([
+        $result = $this->ai->call([
             'model'       => 'deepseek-chat',
             'messages'    => [['role' => 'user', 'content' => $prompt, 'response_format' => ['type' => 'json']]],
             'temperature' => 0.3,
-            'max_tokens'  => 1500
-        ]);
+            'max_tokens'  => 1500,
+        ], 120);
 
         return $result['questions'] ?? [];
     }
@@ -402,12 +404,12 @@ class StudyContentGenerationService
 
         $this->rateLimit();
 
-        $result = $this->callAI([
-            'model'  => 'deepseek-chat',
+        $result = $this->ai->call([
+            'model'       => 'deepseek-chat',
             'messages'    => [['role' => 'user', 'content' => $prompt, 'response_format' => ['type' => 'json']]],
             'temperature' => 0.3,
-            'max_tokens'  => 8000
-        ]);
+            'max_tokens'  => 8000,
+        ], 120);
 
         return $result['final_quiz'] ?? [];
     }
@@ -477,58 +479,6 @@ class StudyContentGenerationService
         }
 
         $this->lastCall = microtime(true);
-    }
-
-    private function callAI(array $payload, int $retry = 0): array
-    {
-        try {
-            $ch = curl_init(getenv('DEEP_SEEK_URL'));
-
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST           => true,
-                CURLOPT_HTTPHEADER     => [
-                    'Authorization: Bearer ' . getenv('DEEP_SEEK_API_KEY'),
-                    'Content-Type: application/json'
-                ],
-                CURLOPT_POSTFIELDS => json_encode($payload),
-                CURLOPT_TIMEOUT    => 120
-            ]);
-
-            $response = curl_exec($ch);
-            curl_close($ch);
-
-            $decoded = json_decode($response, true);
-            $content = $decoded['choices'][0]['message']['content'] ?? null;
-
-            if (!$content) {
-                throw new \RuntimeException('Invalid AI response');
-            }
-
-            return $this->extractJson($content);
-        } catch (\Throwable $e) {
-            if ($retry < self::MAX_RETRIES) {
-                usleep(1000 * (2 ** $retry));
-                return $this->callAI($payload, $retry + 1);
-            }
-
-            throw $e;
-        }
-    }
-
-    private function extractJson(string $content): array
-    {
-        if (!preg_match('/\{.*\}/s', $content, $matches)) {
-            throw new \RuntimeException('No JSON found in AI response');
-        }
-
-        $decoded = json_decode($matches[0], true);
-
-        if (!is_array($decoded)) {
-            throw new \RuntimeException('Invalid JSON in AI response');
-        }
-
-        return $decoded;
     }
 
     private function validateAndNormalize(array $data): array
