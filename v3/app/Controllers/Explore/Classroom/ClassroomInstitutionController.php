@@ -50,6 +50,7 @@ class ClassroomInstitutionController extends ExploreBaseController
             [
                 'status'  => true,
                 'message' => 'Institution created successfully.',
+                'data' => $created,
             ],
             HttpStatus::CREATED
         );

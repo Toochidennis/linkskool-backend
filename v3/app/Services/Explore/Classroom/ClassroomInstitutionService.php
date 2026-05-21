@@ -19,7 +19,7 @@ class ClassroomInstitutionService
         $this->accessCodeService = new ClassroomAccessCodeService($pdo);
     }
 
-    public function createClassroomInstitution(array $data): bool
+    public function createClassroomInstitution(array $data): array|bool
     {
         $institutionSlug = Str::slug($data['name']);
 
@@ -64,7 +64,7 @@ class ClassroomInstitutionService
             );
 
             $this->model->commit();
-            return $accessCodeResult;
+            return $this->getInstitutionByUserId($data['user_id']);
         } catch (\Exception $e) {
             $this->model->rollBack();
             return false;
