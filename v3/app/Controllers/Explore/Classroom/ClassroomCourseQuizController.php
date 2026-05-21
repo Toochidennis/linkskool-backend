@@ -131,11 +131,11 @@ class ClassroomCourseQuizController extends ExploreBaseController
         $validated = $this->validate(
             [...$this->getRequestData(), ...$vars],
             [
-                'course_id'  => 'required|integer',
-                'count'      => 'required|integer',
-                'subject_id' => 'nullable|integer',
-                'level_id'   => 'nullable|integer',
-                'topic'      => 'nullable|string',
+                'count'        => 'required|integer',
+                'course_name'  => 'required|string',
+                'subject_name' => 'nullable|string',
+                'level_name'   => 'nullable|string',
+                'topic'        => 'nullable|string',
             ]
         );
 

@@ -37,9 +37,9 @@ class ClassroomSyncController extends ExploreBaseController
     #[Route('/{institution_id}', 'POST', ['api'])]
     public function push(array $vars): void
     {
-        $validated = $this->validate($vars, [
-            'institution_id' => 'required|string',
-        ]);
+        // $validated = $this->validate($vars, [
+        //     'institution_id' => 'required|string',
+        // ]);
 
         $counts = $this->service->push($this->getRequestData());
 

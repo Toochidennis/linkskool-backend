@@ -34,9 +34,28 @@ class ClassroomAuthService
         }
 
         return [
-            'status'      => 'success',
-            'message'     => 'Authentication successful.',
-            'student'     => $student,
+            'status' => 'success',
+            'message' => 'Authentication successful.',
+            'student' => $student,
+            'institution' => $institution,
+        ];
+    }
+
+    public function authenticateStaff(string $password, string $joinCode): array
+    {
+        $institution = $this->institutionModel->where('join_code', $joinCode)->first();
+
+        if (empty($institution)) {
+            return ['status' => 'error', 'message' => 'Invalid join code.'];
+        }
+
+        if (!password_verify($password, $institution['password_hash'])) {
+            return ['status' => 'error', 'message' => 'Invalid credentials.'];
+        }
+
+        return [
+            'status' => 'success',
+            'message' => 'Authentication successful.',
             'institution' => $institution,
         ];
     }

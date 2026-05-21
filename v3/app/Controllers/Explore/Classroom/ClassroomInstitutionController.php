@@ -34,6 +34,7 @@ class ClassroomInstitutionController extends ExploreBaseController
                 'website' => 'nullable|string',
                 'address' => 'nullable|string',
                 'user_id' => 'required|integer',
+                'password' => 'required|string|min:8',
             ],
         );
 

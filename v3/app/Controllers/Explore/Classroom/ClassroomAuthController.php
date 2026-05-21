@@ -51,4 +51,35 @@ class ClassroomAuthController extends ExploreBaseController
             HttpStatus::OK
         );
     }
+
+    #[Route('/staff', 'POST', ['api'])]
+    public function authenticateStaff(): void
+    {
+        $validated = $this->validate(
+            $this->getRequestData(),
+            [
+                'password' => 'required|string',
+                'join_code'  => 'required|string',
+            ],
+        );
+
+        $result = $this->service->authenticateStaff(
+            $validated['password'],
+            $validated['join_code']
+        );
+        if ($result['status'] === 'error') {
+            $this->respondError($result['message'], HttpStatus::UNAUTHORIZED);
+        }
+
+        $this->respond(
+            [
+                'status' => true,
+                'message' => $result['message'],
+                'data' => [
+                    'institution' => $result['institution'],
+                ],
+            ],
+            HttpStatus::OK
+        );
+    }
 }

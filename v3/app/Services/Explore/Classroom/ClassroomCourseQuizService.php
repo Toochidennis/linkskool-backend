@@ -2,30 +2,21 @@
 
 namespace V3\App\Services\Explore\Classroom;
 
-use V3\App\Models\Explore\Classroom\ClassroomCourse;
 use V3\App\Models\Explore\Classroom\ClassroomCourseQuiz;
 use V3\App\Models\Explore\Classroom\ClassroomCourseQuizSetting;
-use V3\App\Models\Explore\Level;
-use V3\App\Models\Portal\Academics\Course as SubjectModel;
 use V3\App\Services\Common\DeepSeekClient;
 
 class ClassroomCourseQuizService
 {
     protected ClassroomCourseQuiz $model;
     private ClassroomCourseQuizSetting $settingModel;
-    private ClassroomCourse $courseModel;
-    private Level $levelModel;
-    private SubjectModel $subjectModel;
     private DeepSeekClient $ai;
 
     public function __construct(\PDO $pdo)
     {
-        $this->model          = new ClassroomCourseQuiz($pdo);
-        $this->settingModel   = new ClassroomCourseQuizSetting($pdo);
-        $this->courseModel    = new ClassroomCourse($pdo);
-        $this->levelModel     = new Level($pdo);
-        $this->subjectModel   = new SubjectModel($pdo);
-        $this->ai = new DeepSeekClient();
+        $this->model        = new ClassroomCourseQuiz($pdo);
+        $this->settingModel = new ClassroomCourseQuizSetting($pdo);
+        $this->ai           = new DeepSeekClient();
     }
 
     public function create(array $data)
@@ -141,33 +132,14 @@ class ClassroomCourseQuizService
 
     public function generateQuestions(array $data): array
     {
-        $courseId = $data['course_id'];
-        $count = $data['count'];
-        $subjectId = $data['subject_id'] ?? null;
-        $levelId = $data['level_id'] ?? null;
-        $topic  = $data['topic'] ?? null;
+        $count       = $data['count'];
+        $courseName  = $data['course_name'] ?? null;
+        $subjectName = $data['subject_name'] ?? null;
+        $levelName   = $data['level_name'] ?? null;
+        $topic       = $data['topic'] ?? null;
 
-        $course = $this->courseModel
-            ->select(['name'])
-            ->where('id', $courseId)
-            ->first();
-
-        if (empty($course['name'])) {
-            throw new \InvalidArgumentException("Course with ID {$courseId} not found.");
-        }
-
-        $courseName = $course['name'];
-
-        $levelName = null;
-        if ($levelId) {
-            $level = $this->levelModel->select(['name'])->where('id', $levelId)->first();
-            $levelName = $level['name'] ?? null;
-        }
-
-        $subjectName = null;
-        if ($subjectId) {
-            $subject   = $this->subjectModel->select(['course_name'])->where('id', $subjectId)->first();
-            $subjectName = $subject['course_name'] ?? null;
+        if (empty($courseName)) {
+            throw new \InvalidArgumentException("course_name is required.");
         }
 
         $meta = array_filter([

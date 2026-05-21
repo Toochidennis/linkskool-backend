@@ -52,6 +52,7 @@ class ClassroomInstitutionService
                 'email' => $data['email'] ?? null,
                 'address' => $data['address'] ?? null,
                 'join_code' => $this->generateJoinCode($data['name']),
+                'password_hash' => password_hash($data['password'], PASSWORD_BCRYPT),
             ]);
 
             if (!$institutionId) {

@@ -2,23 +2,17 @@
 
 namespace V3\App\Common\Utilities;
 
-use V3\App\Common\Utilities\ResponseHandler;
-
 class Sanitizer
 {
     // Use this for general text input sanitization
     public static function sanitizeInput($input, string $parentKey = ''): array|string|null
     {
-        $nullFields = [];
-
         $config = \HTMLPurifier_Config::createDefault();
         $purifier = new \HTMLPurifier($config);
 
-        // Recursive function to check for nulls and sanitize
-        $process = function ($value, $keyPath) use (&$process, &$nullFields, $purifier): array|string|null {
+        $process = function ($value, $keyPath) use (&$process, $purifier): array|string|null {
             if ($value === null) {
-                $nullFields[] = $keyPath;
-                return null; // Keep null as-is, but record it
+                return null;
             }
 
             if (\is_array($value)) {
@@ -29,22 +23,9 @@ class Sanitizer
                 return $sanitized;
             }
 
-            // Sanitize scalar value
             return $purifier->purify(trim((string)$value));
         };
 
-        $sanitizedData = $process($input, $parentKey);
-
-        // If any null fields found, return error
-        if (!empty($nullFields)) {
-            ResponseHandler::sendJsonResponse([
-                'status' => false,
-                'message' => 'Sanitization failed.',
-                'error' => "The following fields cannot be null: " . implode(', ', $nullFields)
-            ]);
-            http_response_code(400);
-        }
-
-        return $sanitizedData;
+        return $process($input, $parentKey);
     }
 }

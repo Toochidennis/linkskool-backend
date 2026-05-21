@@ -231,8 +231,13 @@ class ClassroomSyncService
         $bindings = [];
         foreach ($rows as $row) {
             foreach ($columns as $col) {
-                $val        = $row[$col] ?? null;
-                $bindings[] = \is_array($val) ? json_encode($val) : $val;
+                $val = $row[$col] ?? null;
+                if (\is_array($val)) {
+                    $val = json_encode($val);
+                } elseif (\is_string($val) && preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/', $val)) {
+                    $val = (new \DateTime($val))->format('Y-m-d H:i:s');
+                }
+                $bindings[] = $val;
             }
         }
 
@@ -245,13 +250,24 @@ class ClassroomSyncService
     {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($bindings);
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        return $this->normalizeDates($row);
     }
 
     private function fetchAll(string $sql, array $bindings = []): array
     {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($bindings);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return array_map([$this, 'normalizeDates'], $stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    private function normalizeDates(array $row): array
+    {
+        foreach ($row as $key => $val) {
+            if (\is_string($val) && preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $val)) {
+                $row[$key] = str_replace(' ', 'T', $val) . 'Z';
+            }
+        }
+        return $row;
     }
 }
