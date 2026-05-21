@@ -299,7 +299,7 @@ class QueryBuilder
      * Inserts data into the table.
      *
      * @param  array $data The data to insert.
-     * @return int|false The last inserted ID or false on failure.
+     * @return string|true|false The last inserted ID, true if no auto-increment ID, or false on failure.
      */
     public function insert(array $data)
     {
@@ -314,7 +314,7 @@ class QueryBuilder
         );
 
         $this->reset();
-        return $stmt->execute(array_values($data)) ? $this->pdo->lastInsertId() : false;
+        return $stmt->execute(array_values($data)) ? ($this->pdo->lastInsertId() ?: true) : false;
     }
 
     /**
