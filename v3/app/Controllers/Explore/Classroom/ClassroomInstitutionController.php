@@ -68,9 +68,9 @@ class ClassroomInstitutionController extends ExploreBaseController
 
         $saved = $this->service->savePassword($validated['institution_id'], $validated['password']);
 
-        if (!$saved) {
+        if (!$saved['success']) {
             $this->respondError(
-                'Failed to save password.',
+                $saved['message'] ?? 'Failed to save password.',
                 HttpStatus::BAD_REQUEST
             );
         }
@@ -79,6 +79,7 @@ class ClassroomInstitutionController extends ExploreBaseController
             [
                 'status'  => true,
                 'message' => 'Password saved successfully.',
+                'data' => $saved['institution'] ?? null,
             ],
             HttpStatus::OK
         );

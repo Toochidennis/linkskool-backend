@@ -71,15 +71,32 @@ class ClassroomInstitutionService
         }
     }
 
-    public function savePassword(string $institutionId, string $newPassword): bool
+    public function savePassword(string $institutionId, string $newPassword): array
     {
         $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT);
-        return $this->model
+        $updated =  $this->model
             ->where('id', $institutionId)
             ->update([
                 'password_hash' => $passwordHash,
                 'updated_at' => date('Y-m-d H:i:s')
             ]);
+
+        if (!$updated) {
+            return [
+                'success' => false,
+                'message' => 'Failed to update password. Please try again.'
+            ];
+        }
+
+        $institution =  $this->model
+            ->where('id', $institutionId)
+            ->first();
+
+        return [
+            'success' => true,
+            'message' => 'Password updated successfully.',
+            'institution' => $institution
+        ];
     }
 
     public function getInstitutionByUserId(int $userId): array
