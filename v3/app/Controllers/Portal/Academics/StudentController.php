@@ -80,7 +80,7 @@ class StudentController extends BaseController
                 'photo.file' => 'sometimes|string',
                 'photo.file_name'      => 'sometimes|string',
                 'photo.old_file_name'  => 'sometimes|string',
-                'surname'                => 'required|string|filled',
+                'surname'  => 'required|string|filled',
                 'first_name'             => 'required|string|filled',
                 'middle'                 => 'nullable|string',
                 'gender'                 => 'required|string|in:male,female',
@@ -103,7 +103,7 @@ class StudentController extends BaseController
                 'past_record'            => 'nullable|string',
                 'result'                 => 'nullable|string',
                 'level_id'               => 'required|integer|filled',
-                'class_id'               => 'required|integer|filled'
+                'class_id' => 'required|integer|filled'
             ]
         );
 
@@ -171,6 +171,22 @@ class StudentController extends BaseController
         $this->respond([
             'success' => true,
             'students' => $this->studentService->getStudentsByClass($data['class_id'])
+        ]);
+    }
+
+    #[Route('/students/export', 'GET', ['auth', 'role:admin'])]
+    public function exportStudents(array $vars)
+    {
+        $data = $this->validate(
+            data: $vars,
+            rules: [
+                'level_id' => 'required|integer|filled'
+            ]
+        );
+
+        $this->respond([
+            'success'  => true,
+            'response' => $this->studentService->exportStudents($data['level_id'])
         ]);
     }
 

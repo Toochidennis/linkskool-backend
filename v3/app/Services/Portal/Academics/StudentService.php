@@ -335,6 +335,23 @@ class StudentService
         ];
     }
 
+    public function exportStudents(int $levelId): array
+    {
+        return $this->student
+            ->select([
+                'id AS student_id',
+                'registration_no',
+                'first_name',
+                'surname AS last_name',
+                'middle AS middle_name',
+                'student_level AS level_id',
+                'guardian_phone_no AS phone',
+            ])
+            ->where('student_level', '=', $levelId)
+            ->orderBy('surname', 'ASC')
+            ->get();
+    }
+
     public function deleteStudent(int $id): bool
     {
         return $this->student
