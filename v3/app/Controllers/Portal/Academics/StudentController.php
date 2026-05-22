@@ -187,7 +187,8 @@ class StudentController extends BaseController
 
         $this->respond([
             'success'  => true,
-            'response' => $this->studentService->exportStudents($data['level_ids'])
+            'response' => $this->studentService->exportStudents($data['level_ids']),
+            'data' => $this->studentService->exportStudents($data['level_ids'])
         ]);
     }
 
