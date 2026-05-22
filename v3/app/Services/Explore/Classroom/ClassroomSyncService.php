@@ -72,6 +72,10 @@ class ClassroomSyncService
                 "SELECT * FROM classroom_sync_logs WHERE institution_id = ?",
                 [$institutionId]
             ),
+            'level_mappings'     => $this->fetchAll(
+                "SELECT * FROM classroom_level_mappings WHERE institution_id = ?",
+                [$institutionId]
+            ),
         ];
     }
 
@@ -92,6 +96,14 @@ class ClassroomSyncService
                     'id', 'slug', 'name', 'type', 'user_id',
                     'logo_url', 'banner_url', 'website', 'phone', 'email', 'address',
                     'join_code', 'created_at', 'updated_at', 'deleted_at',
+                ]);
+            }
+
+            if (!empty($payload['level_mappings'])) {
+                $counts['level_mappings'] = $this->upsert('classroom_level_mappings', $payload['level_mappings'], [
+                    'id', 'institution_id', 'local_level_id', 'external_level_id',
+                    'external_system', 'external_name',
+                    'created_at', 'updated_at', 'deleted_at',
                 ]);
             }
 
