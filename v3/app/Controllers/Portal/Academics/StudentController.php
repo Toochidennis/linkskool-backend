@@ -180,13 +180,14 @@ class StudentController extends BaseController
         $data = $this->validate(
             data: $vars,
             rules: [
-                'level_id' => 'required|integer|filled'
+                'level_ids'   => 'required|array',
+                'level_ids.*' => 'required|integer|filled',
             ]
         );
 
         $this->respond([
             'success'  => true,
-            'response' => $this->studentService->exportStudents($data['level_id'])
+            'response' => $this->studentService->exportStudents($data['level_ids'])
         ]);
     }
 

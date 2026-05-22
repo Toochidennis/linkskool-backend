@@ -200,7 +200,7 @@ class ClassroomCourseQuizService
         PROMPT;
 
         $result = $this->ai->call([
-            'model' => 'gpt-5.5',
+            'model' => 'gpt-4.1',
             'messages' => [['role' => 'user', 'content' => $prompt]],
             'temperature' => 0.4,
             'max_tokens' => 300 * $count,
