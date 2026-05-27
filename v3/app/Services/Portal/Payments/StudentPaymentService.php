@@ -34,6 +34,7 @@ class StudentPaymentService
             ])
             ->where('cid', '=', $studentId)
             ->where('trans_type', '=', 'invoice')
+            ->where('status', '=', 0)
             ->orderBy(['year' => 'DESC', 'term' => 'DESC'])
             ->get();
 
@@ -45,6 +46,7 @@ class StudentPaymentService
             ->select(['it_id', 'description'])
             ->where('cid', '=', $studentId)
             ->where('trans_type', '=', 'receipt')
+            ->where('status', '=', 1)
             ->get();
 
         $receiptsByInvoiceId = [];
@@ -109,7 +111,8 @@ class StudentPaymentService
                 'status',
             ])
             ->where('cid', '=', $studentId)
-            ->where('trans_type', '=', 'receipt');
+            ->where('trans_type', '=', 'receipt')
+            ->where('status', '=', 1);
 
         if (!empty($filters['year'])) {
             $query->where('year', '=', $filters['year']);

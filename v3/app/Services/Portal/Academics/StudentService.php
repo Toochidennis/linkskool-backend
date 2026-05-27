@@ -359,7 +359,7 @@ class StudentService
                 'first_name'  => $row['first_name'],
                 'last_name'   => $row['last_name'],
                 'middle_name' => $row['middle_name'],
-                'phone'       => $row['phone'],
+                'phone' => $row['phone'],
             ];
         }
 

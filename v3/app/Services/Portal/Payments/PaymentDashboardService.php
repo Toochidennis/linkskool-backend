@@ -151,7 +151,8 @@ class PaymentDashboardService
             ])
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
-            ->in('trans_type', ['receipt', 'expenditure']);
+            ->in('trans_type', ['receipt', 'expenditure'])
+            ->whereRaw("(trans_type != 'receipt' OR status = 1)");
 
         if (!empty($filters['class_id'])) {
             $stats->where('class', '=', $filters['class_id']);
@@ -179,7 +180,8 @@ class PaymentDashboardService
             ])
             ->where('year', '=', $filters['year'])
             ->where('term', '=', $filters['term'])
-            ->in('trans_type', ['receipt', 'expenditure']);
+            ->in('trans_type', ['receipt', 'expenditure'])
+            ->whereRaw("(trans_type != 'receipt' OR status = 1)");
 
         if (!empty($filters['class_id'])) {
             $this->transaction->where('class', '=', $filters['class_id']);
