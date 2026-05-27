@@ -22,7 +22,6 @@ class WebhookController extends ExploreBaseController
     private BillingService $billingService;
     private CourseCohortEnrollmentService $courseEnrollment;
     private CbtPaymentFulfillmentService $cbtPaymentFulfillmentService;
-    private StudentPaymentService $studentPaymentService;
 
     public function __construct()
     {
@@ -31,7 +30,6 @@ class WebhookController extends ExploreBaseController
         $this->billingService = new BillingService($this->pdo);
         $this->courseEnrollment = new CourseCohortEnrollmentService($this->pdo);
         $this->cbtPaymentFulfillmentService = new CbtPaymentFulfillmentService($this->pdo);
-        $this->studentPaymentService = new StudentPaymentService($this->pdo);
     }
 
     #[Route('/webhooks/paystack', 'POST')]
@@ -87,8 +85,14 @@ class WebhookController extends ExploreBaseController
 
         switch ($type) {
             case 'school_fees':
-                $res = $this->studentPaymentService
-                    ->handleWebhookVerification($data['reference']);
+                $db = trim((string) ($metadata['_db'] ?? ''));
+                if ($db === '') {
+                    $res = ['status' => 'failed', 'message' => 'Missing school database identifier.'];
+                    break;
+                }
+                $schoolPdo = DatabaseConnector::connect($db);
+                $schoolPaymentService = new StudentPaymentService($schoolPdo);
+                $res = $schoolPaymentService->handleWebhookVerification($data['reference']);
                 break;
             case 'course':
                 $res = $this->courseEnrollment

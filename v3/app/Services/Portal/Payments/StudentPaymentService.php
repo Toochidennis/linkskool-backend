@@ -248,6 +248,7 @@ class StudentPaymentService
                 'payment_type' => 'school_fees',
                 'invoice_id' => $data['invoice_id'],
                 'student_id' => $data['student_id'],
+                '_db' => $data['_db'],
             ],
         ]);
 
@@ -260,7 +261,6 @@ class StudentPaymentService
 
     public function handleWebhookVerification(string $reference): array
     {
-        // Check DB first before hitting Paystack — mirrors billing service pattern
         $receipt = $this->transaction
             ->select(['tid', 'it_id', 'amount', 'status'])
             ->where('ref', '=', $reference)
@@ -283,7 +283,7 @@ class StudentPaymentService
             return ['status' => 'failed', 'message' => $e->getMessage()];
         }
 
-        if (!$verification || !$verification['success'] || $verification['status'] !== 'success') {
+        if (!$verification['success'] || $verification['status'] !== 'success') {
             $reason = $verification['status'] ?? 'unknown';
             return ['status' => 'failed', 'message' => 'Payment not successful: ' . $reason];
         }
@@ -296,19 +296,16 @@ class StudentPaymentService
         $invoiceId = (int) $receipt['it_id'];
         $amount = (float) $receipt['amount'];
 
-        // Open transaction only for the atomic write phase
-        $this->pdo->beginTransaction();
+        $this->transaction->beginTransaction();
 
         try {
-            // Re-fetch with lock to guard against duplicate webhook delivery
-            $stmt = $this->pdo->prepare(
-                "SELECT status FROM transactions WHERE ref = ? AND trans_type = 'receipt' FOR UPDATE"
+            $rows = $this->transaction->rawQuery(
+                "SELECT status FROM transactions WHERE ref = ? AND trans_type = 'receipt' FOR UPDATE",
+                [$reference]
             );
-            $stmt->execute([$reference]);
-            $locked = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-            if (!$locked || (int) $locked['status'] === 1) {
-                $this->pdo->rollBack();
+            if (empty($rows) || (int) $rows[0]['status'] === 1) {
+                $this->transaction->rollBack();
                 return ['status' => 'success', 'message' => 'Payment already verified.'];
             }
 
@@ -326,9 +323,9 @@ class StudentPaymentService
                 $this->updateInvoice($invoiceId, $amount);
             }
 
-            $this->pdo->commit();
+            $this->transaction->commit();
         } catch (\Throwable $e) {
-            $this->pdo->rollBack();
+            $this->transaction->rollBack();
             return ['status' => 'failed', 'message' => $e->getMessage()];
         }
 
@@ -364,12 +361,12 @@ class StudentPaymentService
 
     private function updateInvoice(int $invoiceId, float $payment): bool
     {
-        $stmt = $this->pdo->prepare(
+        $rows = $this->transaction->rawQuery(
             "SELECT amount, amount_paid, amount_due FROM transactions
-             WHERE tid = ? AND trans_type = 'invoice' FOR UPDATE"
+             WHERE tid = ? AND trans_type = 'invoice' FOR UPDATE",
+            [$invoiceId]
         );
-        $stmt->execute([$invoiceId]);
-        $invoice = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $invoice = $rows[0] ?? null;
 
         if (empty($invoice) || (float) $invoice['amount_due'] <= 0 || $payment <= 0) {
             return false;
