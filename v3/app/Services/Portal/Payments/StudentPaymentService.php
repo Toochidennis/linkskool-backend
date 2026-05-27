@@ -260,6 +260,21 @@ class StudentPaymentService
 
     public function handleWebhookVerification(string $reference): array
     {
+        // Check DB first before hitting Paystack — mirrors billing service pattern
+        $receipt = $this->transaction
+            ->select(['tid', 'it_id', 'amount', 'status'])
+            ->where('ref', '=', $reference)
+            ->where('trans_type', '=', 'receipt')
+            ->first();
+
+        if (empty($receipt)) {
+            return ['status' => 'failed', 'message' => 'Receipt not found for reference.'];
+        }
+
+        if ((int) $receipt['status'] === 1) {
+            return ['status' => 'success', 'message' => 'Payment already verified.'];
+        }
+
         $paystack = new PaystackService();
 
         try {
@@ -268,39 +283,34 @@ class StudentPaymentService
             return ['status' => 'failed', 'message' => $e->getMessage()];
         }
 
-        if (!$verification['success'] || $verification['status'] !== 'success') {
+        if (!$verification || !$verification['success'] || $verification['status'] !== 'success') {
             $reason = $verification['status'] ?? 'unknown';
             return ['status' => 'failed', 'message' => 'Payment not successful: ' . $reason];
         }
 
+        $expectedKobo = (int) round((float) $receipt['amount'] * 100);
+        if ((int) $verification['amount_kobo'] !== $expectedKobo) {
+            return ['status' => 'failed', 'message' => 'Payment amount mismatch.'];
+        }
+
+        $invoiceId = (int) $receipt['it_id'];
+        $amount = (float) $receipt['amount'];
+
+        // Open transaction only for the atomic write phase
         $this->pdo->beginTransaction();
 
         try {
+            // Re-fetch with lock to guard against duplicate webhook delivery
             $stmt = $this->pdo->prepare(
-                "SELECT tid, it_id, amount, status FROM transactions
-                 WHERE ref = ? AND trans_type = 'receipt' FOR UPDATE"
+                "SELECT status FROM transactions WHERE ref = ? AND trans_type = 'receipt' FOR UPDATE"
             );
             $stmt->execute([$reference]);
-            $receipt = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $locked = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-            if (empty($receipt)) {
-                $this->pdo->rollBack();
-                return ['status' => 'failed', 'message' => 'Receipt not found for reference.'];
-            }
-
-            if ((int) $receipt['status'] === 1) {
+            if (!$locked || (int) $locked['status'] === 1) {
                 $this->pdo->rollBack();
                 return ['status' => 'success', 'message' => 'Payment already verified.'];
             }
-
-            $expectedKobo = (int) round((float) $receipt['amount'] * 100);
-            if ((int) $verification['amount_kobo'] !== $expectedKobo) {
-                $this->pdo->rollBack();
-                return ['status' => 'failed', 'message' => 'Payment amount mismatch.'];
-            }
-
-            $invoiceId = (int) $receipt['it_id'];
-            $amount = (float) $receipt['amount'];
 
             $this->transaction
                 ->where('ref', '=', $reference)

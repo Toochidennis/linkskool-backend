@@ -65,7 +65,7 @@ class CbtUserController extends ExploreBaseController
             ->bootstrapWithGoogleToken(
                 $data['google_token'],
                 $data['fcm_token'] ?? null,
-                $data['platform']
+                $data['platform'] ?? null
             );
 
         if (empty($response)) {
