@@ -42,6 +42,7 @@ class StudentPaymentController extends BaseController
             ],
         );
 
+        $cleanedData['_db'] = $this->post['_db'];
         $result = $this->studentPayment->addPayment($cleanedData);
 
         return $this->respond([

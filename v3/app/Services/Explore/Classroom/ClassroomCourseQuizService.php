@@ -4,29 +4,29 @@ namespace V3\App\Services\Explore\Classroom;
 
 use V3\App\Models\Explore\Classroom\ClassroomCourseQuiz;
 use V3\App\Models\Explore\Classroom\ClassroomCourseQuizSetting;
-use V3\App\Services\Common\DeepSeekClient;
+use V3\App\Services\Common\OpenAIClient;
 
 class ClassroomCourseQuizService
 {
     protected ClassroomCourseQuiz $model;
     private ClassroomCourseQuizSetting $settingModel;
-    private DeepSeekClient $ai;
+    private OpenAIClient $ai;
 
     public function __construct(\PDO $pdo)
     {
-        $this->model        = new ClassroomCourseQuiz($pdo);
+        $this->model = new ClassroomCourseQuiz($pdo);
         $this->settingModel = new ClassroomCourseQuizSetting($pdo);
-        $this->ai           = new DeepSeekClient();
+        $this->ai = new OpenAIClient();
     }
 
     public function create(array $data)
     {
         $payload = [
             'quiz_settings_id' => $data['quiz_settings_id'],
-            'course_id'  => $data['course_id'],
-            'question_text'  => $data['question_text'],
-            'options'  => json_encode($data['options']),
-            'correct'  => json_encode($data['correct']),
+            'course_id' => $data['course_id'],
+            'question_text' => $data['question_text'],
+            'options' => json_encode($data['options']),
+            'correct' => json_encode($data['correct']),
         ];
 
         if (isset($data['question_id']) && !empty($data['question_id']) && $data['question_id'] > 0) {
@@ -42,10 +42,10 @@ class ClassroomCourseQuizService
     {
         $rows = array_map(fn($q) => [
             'quiz_settings_id' => $quizSettingsId,
-            'course_id'        => $courseId,
-            'question_text'    => $q['question_text'],
-            'options'          => json_encode($q['options']),
-            'correct'          => json_encode($q['correct']),
+            'course_id' => $courseId,
+            'question_text' => $q['question_text'],
+            'options' => json_encode($q['options']),
+            'correct' => json_encode($q['correct']),
         ], $questions);
 
         return $this->model->insertMany($rows);
@@ -73,12 +73,12 @@ class ClassroomCourseQuizService
 
         $payload = [
             'institution_id' => $data['institution_id'],
-            'course_id'      => $courseId,
-            'lesson_id'      => $lessonId,
-            'topic'          => $data['topic'] ?? null,
-            'duration'       => $data['duration'] ?? null,
-            'start_date'     => $data['start_date'] ?? null,
-            'end_date'       => $data['end_date'] ?? null,
+            'course_id' => $courseId,
+            'lesson_id' => $lessonId,
+            'topic' => $data['topic'] ?? null,
+            'duration' => $data['duration'] ?? null,
+            'start_date' => $data['start_date'] ?? null,
+            'end_date' => $data['end_date'] ?? null,
         ];
 
         $query = $this->settingModel->where('course_id', $courseId);
@@ -151,8 +151,11 @@ class ClassroomCourseQuizService
 
         $metaJson = json_encode($meta, JSON_PRETTY_PRINT);
 
+        $nonce = bin2hex(random_bytes(8));
+
         $prompt = <<<PROMPT
         You are a quiz question generator for an educational platform.
+        Session: {$nonce}
 
         CONTEXT:
         {$metaJson}
@@ -163,6 +166,8 @@ class ClassroomCourseQuizService
         RULES:
         - Each question must have exactly 4 options
         - The correct answer must reference the exact text of one option and its zero-based order (0–3)
+        - CRITICAL: The correct answer position (order) MUST vary across questions — do NOT place the correct answer at the same index for all questions. Distribute the correct answer across positions 0, 1, 2, and 3 as randomly and evenly as possible throughout the set
+        - Every call should produce a fresh, unique set of questions — never repeat the same questions from a previous generation
         - Questions must be relevant to the course/subject/level provided
         - Language should be clear and appropriate for the target level
         - For ALL mathematical or scientific notation — including equations, expressions, formulas, fractions, exponents, roots, matrices, vectors, integrals, summations, chemical formulas, Greek letters, and any symbolic content — you MUST use KaTeX/MathJax dollar-sign syntax
@@ -195,7 +200,7 @@ class ClassroomCourseQuizService
         PROMPT;
 
         $result = $this->ai->call([
-            'model' => 'deepseek-chat',
+            'model' => 'gpt-4.1',
             'messages' => [['role' => 'user', 'content' => $prompt]],
             'temperature' => 0.4,
             'max_tokens' => 300 * $count,

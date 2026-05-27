@@ -108,8 +108,8 @@ class AuthService
 
         $accessToken = self::generateJWT(userId: $id, name: $name, role: $role);
         return [
-            'data'          => $data,
-            'token'         => $accessToken,
+            'data' => $data,
+            'token' => $accessToken,
             'access_token'  => $accessToken,
             'refresh_token' => self::generateJWT(userId: $id, name: $name, role: $role, type: 'refresh'),
         ];

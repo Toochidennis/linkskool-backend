@@ -81,7 +81,8 @@ class AuthController
         $this->response = [
             'success' => true,
             'message' => 'Login successful',
-            'response' => $loginResponse + ['_db' => $dbname]
+            'response' => $loginResponse + ['_db' => $dbname],
+            'data' => $loginResponse + ['_db' => $dbname],
         ];
         ResponseHandler::sendJsonResponse($this->response);
     }

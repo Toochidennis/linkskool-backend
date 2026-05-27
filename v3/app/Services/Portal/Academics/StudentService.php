@@ -343,6 +343,37 @@ class StudentService
         ];
     }
 
+    public function exportStudents(array $levelIds): array
+    {
+        $rows = $this->student
+            ->select([
+                'registration_no AS reg_number',
+                'first_name',
+                'surname AS last_name',
+                'middle AS middle_name',
+                'student_level AS level_id',
+                'guardian_phone_no AS phone',
+            ])
+            ->in('student_level', $levelIds)
+            ->orderBy('surname', 'ASC')
+            ->get();
+
+        $grouped = array_fill_keys(array_map('strval', $levelIds), []);
+
+        foreach ($rows as $row) {
+            $levelId = (string) $row['level_id'];
+            $grouped[$levelId][] = [
+                'reg_number'  => $row['reg_number'],
+                'first_name'  => $row['first_name'],
+                'last_name'   => $row['last_name'],
+                'middle_name' => $row['middle_name'],
+                'phone' => $row['phone'],
+            ];
+        }
+
+        return $grouped;
+    }
+
     public function deleteStudent(int $id): bool
     {
         return $this->student
